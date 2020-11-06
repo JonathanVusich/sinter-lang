@@ -10,9 +10,9 @@ impl VirtualMachine {
         return VirtualMachine { chunks: vec![] }
     }
 
-    pub (crate) fn interpret(&self, chunk: &Chunk) -> InterpretResult {
-        
-    }
+    // pub (crate) fn interpret(&self, chunk: &Chunk) -> InterpretResult {
+    //
+    // }
 }
 
 pub (crate) enum InterpretResult {
