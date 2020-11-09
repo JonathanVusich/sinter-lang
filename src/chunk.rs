@@ -1,5 +1,6 @@
 pub (crate) struct Chunk {
     code: Vec<u8>,
+    count: i32,
 
     u8_constants: Vec<u8>,
     u16_constants: Vec<u16>,
@@ -23,6 +24,7 @@ impl Chunk {
     pub (crate) fn new() -> Chunk {
         return Chunk {
             code: vec![],
+            count: 0,
             u8_constants: Vec::with_capacity(0),
             u16_constants: Vec::with_capacity(0),
             u32_constants: Vec::with_capacity(0),
@@ -46,8 +48,13 @@ impl Chunk {
         return &self.code;
     }
 
+    pub (crate) fn get_count(self) -> i32 {
+        return self.count;
+    }
+
     pub (crate) fn add_opcode(&mut self, opcode: u8, line_no: i32) {
         self.code.push(opcode);
+        self.count += 1;
         self.lines.push(line_no);
     }
 
