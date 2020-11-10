@@ -1,3 +1,4 @@
+#[macro_export]
 macro_rules! multiply {
 
     ($x:expr, $y:expr) => {
@@ -5,6 +6,7 @@ macro_rules! multiply {
     }
 }
 
+#[macro_export]
 macro_rules! divide {
 
     ($x:expr, $y:expr) => {
@@ -12,6 +14,7 @@ macro_rules! divide {
     }
 }
 
+#[macro_export]
 macro_rules! add {
 
     ($x:expr, $y:expr) => {
@@ -19,6 +22,7 @@ macro_rules! add {
     }
 }
 
+#[macro_export]
 macro_rules! subtract {
 
     ($x:expr, $y:expr) => {
