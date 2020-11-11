@@ -40,6 +40,10 @@ pub (crate) enum TokenType {
     TokenLess,
     TokenLessEqual,
 
+    // Generics tokens
+    TokenGenericStart,
+    TokenGenericEnd,
+
     // Literals.
     TokenIdentifier,
     TokenString,
@@ -60,6 +64,7 @@ pub (crate) enum TokenType {
     TokenThis,
     TokenTrue,
     TokenVar,
+    TokenVal,
     TokenWhile,
 
     TokenError,

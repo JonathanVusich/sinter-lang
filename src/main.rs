@@ -7,6 +7,7 @@ mod stack;
 mod scanner;
 mod compiler;
 mod token;
+mod number;
 
 use std::io;
 
