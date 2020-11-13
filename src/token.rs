@@ -1,12 +1,13 @@
-pub(crate) struct Token<'a> {
-    token_type: TokenType,
-    token: &'a str,
-    line: i32
+#[derive(Eq, PartialEq, Debug)]
+pub (crate) struct Token {
+    pub (crate) token_type: TokenType,
+    pub (crate) token: String,
+    pub (crate) line: i32
 }
 
 impl Token {
 
-    pub (crate) fn new(token_type: TokenType, token: &str, line: i32) -> Token {
+    pub (crate) fn new(token_type: TokenType, token: String, line: i32) -> Token {
         return Token {
             token_type,
             token,
@@ -15,7 +16,7 @@ impl Token {
     }
 }
 
-
+#[derive(Eq, PartialEq, Debug)]
 pub (crate) enum TokenType {
     // Single-character tokens.
     TokenLeftParen,
@@ -56,11 +57,10 @@ pub (crate) enum TokenType {
     TokenElse,
     TokenFalse,
     TokenFor,
-    TokenFun,
+    TokenFn,
     TokenIf,
     TokenOr,
     TokenReturn,
-    TokenSuper,
     TokenThis,
     TokenTrue,
     TokenVar,

@@ -11,10 +11,7 @@ mod number;
 
 use std::io;
 
-use crate::chunk::Chunk;
 use crate::vm::VirtualMachine;
-use crate::opcode::*;
-use std::io::Error;
 use crate::compiler::compile;
 
 fn main() {
