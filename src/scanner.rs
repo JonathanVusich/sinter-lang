@@ -293,6 +293,9 @@ impl Scanner<'_> {
     }
 
     fn peek(&mut self) -> &str {
+        if self.is_at_end() {
+            return "\0";
+        }
         return self.code[self.current];
     }
 
@@ -305,7 +308,7 @@ impl Scanner<'_> {
     }
 
     fn is_at_end(&self) -> bool {
-        return self.current >= self.code.len() - 1;
+        return self.current > self.code.len() - 1;
     }
 }
 
@@ -316,9 +319,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_scanner() {
-        let graphemes = UnicodeSegmentation::graphemes("val x = 12.45;", true).collect::<Vec<&str>>();
-
+    fn basic_scanner_test() {
         let scanner = Scanner::new("val x = 12.45;");
 
         let all_tokens = scan_all_tokens(scanner);
@@ -328,6 +329,56 @@ mod tests {
             Token::new(TokenIdentifier, "x".to_owned(), 1),
             Token::new(TokenEqual, "=".to_owned(), 1),
             Token::new(TokenDouble, "12.45".to_owned(), 1),
+            Token::new(TokenSemicolon, ";".to_owned(), 1),
+            Token::new(TokenEof, "".to_owned(), 1)
+        ], all_tokens);
+    }
+
+    #[test]
+    fn scanner_with_unicode_identifier() {
+        let scanner = Scanner::new("val xÇÇ = 12.45;");
+
+        let all_tokens = scan_all_tokens(scanner);
+
+        assert_eq!(vec![
+            Token::new(TokenVal, "val".to_owned(), 1),
+            Token::new(TokenIdentifier, "x".to_owned(), 1),
+            Token::new(TokenError, "Ç".to_owned(), 1),
+            Token::new(TokenError, "Ç".to_owned(), 1),
+            Token::new(TokenEqual, "=".to_owned(), 1),
+            Token::new(TokenDouble, "12.45".to_owned(), 1),
+            Token::new(TokenSemicolon, ";".to_owned(), 1),
+            Token::new(TokenEof, "".to_owned(), 1)
+        ], all_tokens);
+    }
+
+    #[test]
+    fn scanner_with_unicode_string() {
+        let scanner = Scanner::new("val x = \"ÇÇ\";");
+
+        let all_tokens = scan_all_tokens(scanner);
+
+        assert_eq!(vec![
+            Token::new(TokenVal, "val".to_owned(), 1),
+            Token::new(TokenIdentifier, "x".to_owned(), 1),
+            Token::new(TokenEqual, "=".to_owned(), 1),
+            Token::new(TokenString, "\"ÇÇ\"".to_owned(), 1),
+            Token::new(TokenSemicolon, ";".to_owned(), 1),
+            Token::new(TokenEof, "".to_owned(), 1)
+        ], all_tokens);
+    }
+
+    #[test]
+    fn scanner_operators() {
+        let scanner = Scanner::new("0 < 1;");
+
+        let all_tokens = scan_all_tokens(scanner);
+
+        assert_eq!(vec![
+            Token::new(TokenLong, "0".to_owned(), 1),
+            Token::new(TokenLess, "<".to_owned(), 1),
+            Token::new(TokenLong, "1".to_owned(), 1),
+            Token::new(TokenSemicolon, ";".to_owned(), 1),
             Token::new(TokenEof, "".to_owned(), 1)
         ], all_tokens);
     }
