@@ -1,4 +1,4 @@
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub (crate) struct Token {
     pub (crate) token_type: TokenType,
     pub (crate) token: String,
@@ -14,9 +14,17 @@ impl Token {
             line
         }
     }
+
+    pub (crate) fn from_str(token_type: TokenType, token: &str, line: i32) -> Token {
+        return Token {
+            token_type,
+            token: token.to_string(),
+            line
+        }
+    }
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Copy, Clone)]
 pub (crate) enum TokenType {
     // Single-character tokens.
     TokenLeftParen,
@@ -40,10 +48,6 @@ pub (crate) enum TokenType {
     TokenGreaterEqual,
     TokenLess,
     TokenLessEqual,
-
-    // Generics tokens
-    TokenGenericStart,
-    TokenGenericEnd,
 
     // Literals.
     TokenIdentifier,

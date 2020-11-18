@@ -3,16 +3,16 @@ use crate::opcode::*;
 use crate::dis::disassemble_instruction;
 use crate::stack::Stack;
 
-pub (crate) struct VirtualMachine {
-    chunk: Chunk,
+pub (crate) struct VirtualMachine<'_a> {
+    chunk: &'_a Chunk,
     stack: Stack,
     ip: usize,
     debug: bool,
 }
 
-impl VirtualMachine {
+impl VirtualMachine<'_> {
 
-    pub (crate) fn new(chunk: Chunk) -> VirtualMachine {
+    pub (crate) fn new(chunk: &Chunk) -> VirtualMachine {
         return VirtualMachine {
             chunk,
             stack: Stack::new(),

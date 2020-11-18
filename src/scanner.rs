@@ -4,22 +4,6 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::token::{Token, TokenType};
 use crate::token::TokenType::{TokenEof, TokenError, TokenLeftParen, TokenRightParen, TokenLeftBrace, TokenRightBrace, TokenSemicolon, TokenComma, TokenDot, TokenMinus, TokenPlus, TokenSlash, TokenStar, TokenBangEqual, TokenBang, TokenEqualEqual, TokenEqual, TokenLessEqual, TokenLess, TokenGreater, TokenGreaterEqual, TokenString, TokenDouble, TokenLong, TokenIdentifier, TokenAnd, TokenClass, TokenElse, TokenIf, TokenOr, TokenReturn, TokenVal, TokenVar, TokenWhile, TokenFalse, TokenFor, TokenFn, TokenThis, TokenTrue};
-use crate::number::NumberType::{Long, Double};
-
-static CLASS_KEYWORD: &str = "class";
-static AND_KEYWORD: &str = "and";
-static ELSE_KEYWORD: &str = "else";
-static FALSE_KEYWORD: &str = "false";
-static FOR_KEYWORD: &str = "for";
-static FUNCTION_KEYWORD: &str = "fn";
-static IF_KEYWORD: &str = "if";
-static OR_KEYWORD: &str = "or";
-static RETURN_KEYWORD: &str = "return";
-static THIS_KEYWORD: &str = "this";
-static TRUE_KEYWORD: &str = "true";
-static VAR_KEYWORD: &str = "var";
-static VAL_KEYWORD: &str = "val";
-static WHILE_KEYWORD: &str = "while";
 
 #[derive(Debug)]
 pub(crate) struct Scanner<'a> {
@@ -31,7 +15,7 @@ pub(crate) struct Scanner<'a> {
 
 impl Scanner<'_> {
 
-    pub (crate) fn new(string: &str) -> Scanner {
+    pub (crate) fn new(string: &str) -> Scanner<'_> {
         return Scanner {
             code: UnicodeSegmentation::graphemes(string, true).collect::<Vec<&str>>(),
             start: 0,
@@ -133,7 +117,6 @@ impl Scanner<'_> {
     }
 
     fn number(&mut self) -> Token {
-        let mut number_type = Long;
         while Scanner::is_digit(self.peek()) {
             self.advance();
         }
@@ -143,7 +126,6 @@ impl Scanner<'_> {
                 _ => false
             };
             if next_is_digit {
-                number_type = Double;
                 self.advance();
 
                 while Scanner::is_digit(self.peek()) {
@@ -241,15 +223,12 @@ impl Scanner<'_> {
     }
 
     fn make_token(&self, token_type: TokenType) -> Token {
-        return Token::new(
-            token_type,
-            self.code[self.start..self.current].join(""),
-            self.line
-        )
+        let token: String = self.code[self.start..self.current].join("");
+        return Token::new(token_type, token, self.line);
     }
 
     fn error_token(&self, error_message: &str) -> Token {
-        return Token::new(TokenError, String::from(error_message), self.line);
+        return Token::new(TokenError, error_message.to_string(), self.line);
     }
 
     fn next_match(&mut self, expected: &str) -> bool {
@@ -325,12 +304,12 @@ mod tests {
         let all_tokens = scan_all_tokens(scanner);
 
         assert_eq!(vec![
-            Token::new(TokenVal, "val".to_owned(), 1),
-            Token::new(TokenIdentifier, "x".to_owned(), 1),
-            Token::new(TokenEqual, "=".to_owned(), 1),
-            Token::new(TokenDouble, "12.45".to_owned(), 1),
-            Token::new(TokenSemicolon, ";".to_owned(), 1),
-            Token::new(TokenEof, "".to_owned(), 1)
+            Token::from_str(TokenVal, "val", 1),
+            Token::from_str(TokenIdentifier, "x", 1),
+            Token::from_str(TokenEqual, "=", 1),
+            Token::from_str(TokenDouble, "12.45", 1),
+            Token::from_str(TokenSemicolon, ";", 1),
+            Token::from_str(TokenEof, "", 1)
         ], all_tokens);
     }
 
@@ -341,14 +320,14 @@ mod tests {
         let all_tokens = scan_all_tokens(scanner);
 
         assert_eq!(vec![
-            Token::new(TokenVal, "val".to_owned(), 1),
-            Token::new(TokenIdentifier, "x".to_owned(), 1),
-            Token::new(TokenError, "Ç".to_owned(), 1),
-            Token::new(TokenError, "Ç".to_owned(), 1),
-            Token::new(TokenEqual, "=".to_owned(), 1),
-            Token::new(TokenDouble, "12.45".to_owned(), 1),
-            Token::new(TokenSemicolon, ";".to_owned(), 1),
-            Token::new(TokenEof, "".to_owned(), 1)
+            Token::from_str(TokenVal, "val", 1),
+            Token::from_str(TokenIdentifier, "x", 1),
+            Token::from_str(TokenError, "Ç", 1),
+            Token::from_str(TokenError, "Ç", 1),
+            Token::from_str(TokenEqual, "=", 1),
+            Token::from_str(TokenDouble, "12.45", 1),
+            Token::from_str(TokenSemicolon, ";", 1),
+            Token::from_str(TokenEof, "", 1)
         ], all_tokens);
     }
 
@@ -359,12 +338,12 @@ mod tests {
         let all_tokens = scan_all_tokens(scanner);
 
         assert_eq!(vec![
-            Token::new(TokenVal, "val".to_owned(), 1),
-            Token::new(TokenIdentifier, "x".to_owned(), 1),
-            Token::new(TokenEqual, "=".to_owned(), 1),
-            Token::new(TokenString, "\"ÇÇ\"".to_owned(), 1),
-            Token::new(TokenSemicolon, ";".to_owned(), 1),
-            Token::new(TokenEof, "".to_owned(), 1)
+            Token::from_str(TokenVal, "val", 1),
+            Token::from_str(TokenIdentifier, "x", 1),
+            Token::from_str(TokenEqual, "=", 1),
+            Token::from_str(TokenString, "\"ÇÇ\"", 1),
+            Token::from_str(TokenSemicolon, ";", 1),
+            Token::from_str(TokenEof, "", 1)
         ], all_tokens);
     }
 
@@ -375,11 +354,11 @@ mod tests {
         let all_tokens = scan_all_tokens(scanner);
 
         assert_eq!(vec![
-            Token::new(TokenLong, "0".to_owned(), 1),
-            Token::new(TokenLess, "<".to_owned(), 1),
-            Token::new(TokenLong, "1".to_owned(), 1),
-            Token::new(TokenSemicolon, ";".to_owned(), 1),
-            Token::new(TokenEof, "".to_owned(), 1)
+            Token::from_str(TokenLong, "0", 1),
+            Token::from_str(TokenLess, "<", 1),
+            Token::from_str(TokenLong, "1", 1),
+            Token::from_str(TokenSemicolon, ";", 1),
+            Token::from_str(TokenEof, "", 1)
         ], all_tokens);
     }
 
