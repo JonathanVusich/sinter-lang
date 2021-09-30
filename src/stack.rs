@@ -30,18 +30,16 @@ impl Stack {
     }
 
     pub (crate) fn read_f64(&mut self) -> f64 {
-        let mut bytes: [u8; 8] = [0; 8];
         let index = self.internal.len() - 8;
-        bytes.copy_from_slice(&self.internal[index..]);
-        self.internal.truncate(index);
+        let bytes: [u8; 8] = self.internal[index..].try_into().unwrap();
         let double = f64::from_ne_bytes(bytes);
+        self.internal.truncate(index);
         return double;
     }
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]

@@ -1,26 +1,41 @@
-pub (crate) const OP_RETURN: u8 = 0;
+#[repr(u8)]
+#[derive(PartialOrd, PartialEq, Debug)]
+pub (crate) enum OpCode {
+    Return,
+    I64Constant,
+    F64Constant,
+    I2F,
+    F2I,
+    IAdd,
+    FAdd,
+    ISub,
+    FSub,
+    IMult,
+    FMult,
+    IDiv,
+    FDiv,
+    INeg,
+    FNeg
+}
 
-pub (crate) const OP_I64_CONSTANT: u8 = 1;
-pub (crate) const OP_I64_CONSTANT_2_BYTES: u8 = 2;
+impl From<u8> for OpCode {
+    fn from(byte: u8) -> Self {
+        let opcode: OpCode;
+        unsafe {
+            opcode = std::mem::transmute::<u8, OpCode>(byte);
+        }
+        opcode
+    }
+}
 
-pub (crate) const OP_F64_CONSTANT: u8 = 3;
-pub (crate) const OP_F64_CONSTANT_2_BYTES: u8 = 4;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-pub (crate) const OP_I2F: u8 = 5;
-pub (crate) const OP_F2I: u8 = 6;
-
-// Binary operators
-pub (crate) const OP_IADD: u8 = 7;
-pub (crate) const OP_FADD: u8 = 8;
-
-pub (crate) const OP_ISUB: u8 = 9;
-pub (crate) const OP_FSUB: u8 = 10;
-
-pub (crate) const OP_IMULT: u8 = 11;
-pub (crate) const OP_FMULT: u8 = 12;
-
-pub (crate) const OP_IDIV: u8 = 13;
-pub (crate) const OP_FDIV: u8 = 14;
-
-pub (crate) const OP_INEG: u8 = 15;
-pub (crate) const OP_FNEG: u8 = 16;
+    #[test]
+    fn test_enum() {
+        assert_eq!(OpCode::Return, OpCode::from(0));
+        assert_eq!(OpCode::I64Constant, OpCode::from(1));
+        assert_eq!(OpCode::F64Constant, OpCode::from(2));
+    }
+}
