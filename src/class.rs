@@ -1,6 +1,7 @@
 use std::convert::TryInto;
 
 use rand::Rng;
+use crate::address::Address;
 
 static MAX_CLASS_INDEX: u32 = 16_777_215;
 
@@ -9,10 +10,19 @@ static GENERATION_INDEX: usize = 4;
 static CLASS_INDEX: usize = 5;
 static FIELD_RANGE_START: usize = 8;
 
+pub (crate) struct Class<'a>(&'a mut [u8]);
+
+impl Class<'_> {
+
+    pub (crate) fn new(class: &mut [u8]) -> Class {
+        return Class(&mut *class);
+    }
+}
+
 pub (crate) fn identity_hashcode(class_instance: &mut [u8]) -> u32 {
-    let mut rng = rand::thread_rng();
     let hashcode = u32::from_be_bytes(class_instance[..GENERATION_INDEX].try_into().unwrap());
     if hashcode == 0 {
+        let mut rng = rand::thread_rng();
         let computed_hashcode: u32 = rng.gen();
         let bytes = computed_hashcode.to_be_bytes();
         for i in HASHCODE_INDEX..GENERATION_INDEX {
@@ -47,8 +57,21 @@ pub (crate) fn set_class_index(class_instance: &mut [u8], class_index: u32) {
     }
 }
 
+pub (crate) fn read_address(class_instance: &mut [u8], index: usize, size: usize) -> Address {
+    return Address::new(0);
+}
+
 mod tests {
-    use crate::class::{bump_generation, get_class_index, set_class_index, get_generation, identity_hashcode, HASHCODE_INDEX, GENERATION_INDEX, MAX_CLASS_INDEX};
+    use crate::class::{bump_generation, get_class_index, set_class_index, get_generation, identity_hashcode, HASHCODE_INDEX, GENERATION_INDEX, MAX_CLASS_INDEX, Class};
+
+    #[test]
+    fn instantiation() {
+        let mut vector: Vec<u8> = vec![1, 0, 0, 0, 0, 0, 0, 0];
+        let mut class = Class(&mut *vector);
+        class.0.rotate_left(1);
+
+        assert_eq!(vector, vec![0, 0, 0, 0, 0, 0, 0, 1]);
+    }
 
     #[test]
     fn hashcode_test() {
