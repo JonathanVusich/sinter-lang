@@ -15,6 +15,15 @@ impl Address {
         return address;
     }
 
+    pub (crate) fn to_be_bytes(&self) -> [u8; 8] {
+        self.0.to_be_bytes()
+    }
+
+    pub (crate) fn from_be_bytes(bytes: [u8; 8]) -> Self {
+        let address = u64::from_be_bytes(bytes);
+        return Address::new(address);
+    }
+
     pub (crate) fn mark0(&mut self) {
         self.0 = self.0 | MARK0_MASK;
     }
