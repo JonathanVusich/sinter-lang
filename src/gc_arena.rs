@@ -1,13 +1,19 @@
+use std::alloc::{self, Layout};
+use std::collections::HashMap;
+use std::ptr::NonNull;
+
+use crate::memory::MemoryBlock;
+
 pub (crate) struct GCArena {
-    new_generation: Vec<u8>,
-    permanent_generation: Vec<u8>
+    regions: Vec<MemoryBlock>,
+    large_objects: Vec<u8>
 }
 
 impl GCArena {
     pub fn new() -> Self {
         GCArena {
-            new_generation: vec![],
-            permanent_generation: vec![]
+            regions: vec![],
+            large_objects: vec![]
         }
     }
 }

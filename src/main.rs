@@ -6,6 +6,10 @@ mod opcode;
 mod address;
 mod gc_arena;
 mod class;
+mod memory;
+mod block;
+mod gc;
+mod pointers;
 
 fn main() {
 
