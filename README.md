@@ -76,4 +76,37 @@ To define a class, use the `class` keyword.
 class Shape
 ```
 
-Properties of a class can be listed in 
+Properties of a class can be listed in its declaration.
+
+```ignorelang
+class Rectangle(width: f64, length: f64) {
+    fn perimeter() {
+        return (height + length) * 2
+    }
+}
+```
+
+The default constructor with the class parameters is available automatically.
+
+```ignorelang
+val rectangle = new Rectangle(5.0, 2.0)
+println("The perimeter is {rectangle.perimeter()}")
+```
+
+Inheritance between classes is declared by a colon (`:`). Classes are final by default; to make a class extendable, mark it as `open`.
+
+```ignorelang
+open class Shape
+
+class Rectangle(width: f64, length: f64): Shape()
+```
+
+### Comments
+Like most languages, Flux supports single-line (or end-of-line) and multi-line (block) comments.
+
+```ignorelang
+// This is an end-of-line comment
+
+/* This is a block comment
+   on multiple lines. */
+```
