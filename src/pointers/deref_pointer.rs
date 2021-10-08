@@ -146,7 +146,7 @@ mod tests {
 
         pointer.compare_and_swap(current, target);
 
-        assert!(pointer.pointer == target);
+        assert_eq!(pointer.pointer, target);
     }
 
     #[test]
@@ -159,7 +159,7 @@ mod tests {
 
         pointer.atomic_store(target);
 
-        assert!(pointer.pointer == target);
+        assert_eq!(pointer.pointer, target);
     }
 
     #[test]

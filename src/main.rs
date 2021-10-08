@@ -10,6 +10,7 @@ mod memory;
 mod block;
 mod gc;
 mod pointers;
+mod object;
 
 fn main() {
 
