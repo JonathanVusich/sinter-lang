@@ -1,2 +1,2 @@
 pub mod block;
-pub mod block_header;
+mod byte_map;
