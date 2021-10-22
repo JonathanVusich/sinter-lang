@@ -1,1 +1,2 @@
-mod object;
+pub mod object;
+pub mod class;

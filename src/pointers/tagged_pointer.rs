@@ -14,8 +14,10 @@ pub struct TaggedPointer<T> {
 }
 
 impl<T> TaggedPointer<T> {
-    pub fn new(ptr: *mut T) -> Self {
-        TaggedPointer { ptr }
+    pub fn new(ptr: *const T) -> Self {
+        TaggedPointer {
+            ptr: ptr as *mut T
+        }
     }
 
     pub fn set_bit(&mut self, bit: u32) {
@@ -110,10 +112,12 @@ mod tests {
     use std::ops::Shl;
 
     use super::*;
+    use crate::object::class::Class;
 
     #[test]
     pub fn size() {
         assert_eq!(std::mem::size_of::<TaggedPointer<i32>>(), std::mem::size_of::<usize>());
+        assert_eq!(std::mem::size_of::<TaggedPointer<Class>>(), std::mem::size_of::<usize>());
     }
 
     #[test]
