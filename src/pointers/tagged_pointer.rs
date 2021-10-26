@@ -20,6 +20,13 @@ impl<T> TaggedPointer<T> {
         }
     }
 
+    pub fn from_address(address: u64) -> Self {
+        let ptr = address as *mut T;
+        TaggedPointer {
+            ptr
+        }
+    }
+
     pub fn set_bit(&mut self, bit: u32) {
         let val = self.ptr as usize;
         let mask = get_mask(bit);
@@ -69,6 +76,12 @@ fn print_usize(val: usize) {
         print!("{:08b}", byte);
     }
     println!();
+}
+
+impl<T> From<TaggedPointer<T>> for u64 {
+    fn from(pointer: TaggedPointer<T>) -> Self {
+        pointer.ptr as u64
+    }
 }
 
 impl<T> Deref for TaggedPointer<T> {
