@@ -6,21 +6,22 @@ use crate::pointers::heap_pointer::HeapPointer;
 pub const BLOCK_SIZE: usize = 32768;
 
 /// The number of bytes in single line.
-pub const LINE_SIZE: usize = 128;
+pub const LINE_SIZE: usize = 1 << 7;
 
 /// The number of lines in a block.
 /// We have to subtract three lines to make room for the line map and for the cursors.
 pub const LINES_PER_BLOCK: usize = (BLOCK_SIZE / LINE_SIZE) - 3;
 
-/// The number of 8 byte chunks in a block.
-pub const CHUNKS_PER_BLOCK: usize = (LINE_SIZE * LINES_PER_BLOCK) / 8;
+/// The number of bytes in a block.
+pub const BYTES_PER_BLOCK: usize = LINE_SIZE * LINES_PER_BLOCK;
 
 #[repr(align(32768))]
 pub struct Block {
     line_map: ByteMap,
-    lines: [u64; CHUNKS_PER_BLOCK], // Aligned pointer for faster accesses
-    cursor: *mut u64,
-    max_address: *mut u64
+    lines: [u8; BYTES_PER_BLOCK],
+    start_address: *const u8,
+    max_address: *const u8,
+    cursor: *mut u8,
 }
 
 impl Block {
@@ -28,28 +29,63 @@ impl Block {
         let mut block: Box<Block> = Box::default();
         block.cursor = block.lines.as_mut_ptr();
         unsafe {
-            block.max_address = block.cursor.add(CHUNKS_PER_BLOCK);
+            block.start_address = block.cursor;
+            block.max_address = block.cursor.add(BYTES_PER_BLOCK);
         }
         block
     }
 
     pub fn allocate(&mut self, class: &Class) -> Option<HeapPointer> {
-        let start_cursor = self.cursor;
-        let end_cursor = self.end_cursor(class.object_size());
+        let object_start = self.cursor;
+        let end_cursor = end_cursor(self.cursor, class.object_size());
 
-        if (end_cursor as usize) < (self.max_address as usize) {
+        if object_fits(self.max_address, end_cursor) {
             self.cursor = end_cursor;
-            let heap_pointer = HeapPointer::new(class, start_cursor);
+            let mut heap_pointer = HeapPointer::new(class, object_start);
+
+            let object_end = end_address(object_start, class.object_size());
+
+            let start_line = self.line_for_address(object_start);
+            let end_line = self.line_for_address(object_end);
+
+            if start_line != end_line {
+                heap_pointer.mark_spans_lines();
+            }
+
             Some(heap_pointer)
         } else {
             None
         }
     }
 
-    fn end_cursor(&self, object_size: usize) -> *mut u64 {
+    fn line_for_address(&self, address: *mut u8) -> isize {
+        unsafe {
+            address.offset_from(self.start_address) / 128
+        }
+    }
+
+    fn end_cursor(&self, object_size: usize) -> *mut u8 {
         unsafe {
             self.cursor.add(object_size)
         }
+    }
+}
+
+fn object_fits(end_address: *const u8, end_cursor: *mut u8) -> bool {
+    unsafe {
+        end_address.offset_from(end_cursor) >= 0
+    }
+}
+
+fn end_cursor(cursor: *mut u8, object_size: usize) -> *mut u8 {
+    unsafe {
+        cursor.add(object_size)
+    }
+}
+
+fn end_address(start_cursor: *mut u8, object_size: usize) -> *mut u8 {
+    unsafe {
+        start_cursor.add(object_size - 1)
     }
 }
 
@@ -57,9 +93,10 @@ impl Default for Block {
     fn default() -> Self {
         Block {
             line_map: ByteMap::new(),
-            lines: [0; CHUNKS_PER_BLOCK],
+            lines: [0; BYTES_PER_BLOCK],
+            start_address: std::ptr::null(),
+            max_address: std::ptr::null_mut(),
             cursor: std::ptr::null_mut(),
-            max_address: std::ptr::null_mut()
         }
     }
 }
@@ -67,7 +104,7 @@ impl Default for Block {
 
 
 mod tests {
-    use crate::gc::block::{Block, BLOCK_SIZE};
+    use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK};
     use crate::object::class::Class;
 
     #[test]
@@ -87,17 +124,17 @@ mod tests {
 
         let mut start_cursor = block.cursor;
 
-        let class = Class::new(2);
+        let class = Class::new(16);
 
         let pointer = block.allocate(&class).unwrap();
 
         // Compute offset between pointers
         unsafe {
             let offset = block.cursor.offset_from(start_cursor);
-            assert_eq!(2, offset);
+            assert_eq!(16, offset);
         }
 
-        let larger_class = Class::new(4);
+        let larger_class = Class::new(32);
 
         start_cursor = block.cursor;
         let second_pointer = block.allocate(&larger_class).unwrap();
@@ -105,7 +142,7 @@ mod tests {
         // Compute offset between pointers
         unsafe {
             let offset = block.cursor.offset_from(start_cursor);
-            assert_eq!(4, offset);
+            assert_eq!(32, offset);
         }
     }
 
@@ -113,7 +150,7 @@ mod tests {
     pub fn allocation_mutation() {
         let mut block = Block::new();
 
-        let class = Class::new(2);
+        let class = Class::new(16);
 
         let pointer = block.allocate(&class).unwrap();
 
@@ -126,5 +163,45 @@ mod tests {
             assert_eq!(123, raw_ptr.read());
             assert_eq!(234, raw_ptr.offset(1).read())
         }
+    }
+
+    #[test]
+    pub fn spans_lines() {
+        let mut block = Block::new();
+
+        let class_64 = Class::new(64);
+        let class_128 = Class::new(128);
+
+        let pointer = block.allocate(&class_64).unwrap();
+
+        assert!(!pointer.spans_lines());
+
+        let large_pointer = block.allocate(&class_128).unwrap();
+
+        assert!(large_pointer.spans_lines());
+
+        let another_small_pointer = block.allocate(&class_64).unwrap();
+
+        assert!(!another_small_pointer.spans_lines());
+
+        let another_large_pointer = block.allocate(&class_128).unwrap();
+
+        assert!(!another_large_pointer.spans_lines());
+    }
+
+    #[test]
+    pub fn allocate_single_object() {
+        let mut block = Block::new();
+
+        let class = Class::new(BYTES_PER_BLOCK);
+
+        let heap_pointer = block.allocate(&class);
+        assert!(heap_pointer.is_some());
+
+        let small_class = Class::new(1);
+
+        let no_pointer = block.allocate(&small_class);
+
+        assert!(no_pointer.is_none());
     }
 }

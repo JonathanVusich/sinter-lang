@@ -11,7 +11,6 @@ impl Class {
         }
     }
 
-
     pub fn object_size(&self) -> usize {
         self.object_size
     }
