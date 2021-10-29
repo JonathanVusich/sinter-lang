@@ -33,24 +33,37 @@ impl HeapPointer {
         let mut mark_word = class_pointer.get_mark_word();
         let mut ref_count = mark_word >> 4;
 
-        // println!("{}", ref_count);
-
         if ref_count < 15 {
             ref_count += 1;
         }
 
         ref_count <<= 4;
 
-        // println!("{}", ref_count);
+        mark_word &= 0x0F;
 
-        mark_word &= 0xF0;
+        let result = ref_count | mark_word;
 
-        // println!("{}", mark_word);
-
-        let result = mark_word | ref_count;
-
-        println!("{}", result);
         class_pointer.set_mark_word(result);
+        self.write_class_pointer(class_pointer);
+    }
+
+    pub fn decrement_ref_count(&mut self) {
+        let mut class_pointer = self.class_pointer();
+        let mut mark_word = class_pointer.get_mark_word();
+        let mut ref_count = mark_word >> 4;
+
+        if ref_count > 0 {
+            ref_count -= 1;
+        }
+
+        ref_count <<= 4;
+
+        mark_word &=0x0F;
+
+        let result = ref_count | mark_word;
+
+        class_pointer.set_mark_word(result);
+        self.write_class_pointer(class_pointer);
     }
 
     pub fn mark_spans_lines(&mut self) {
@@ -129,7 +142,7 @@ mod tests {
     }
 
     #[test]
-    pub fn increment_ref_count() {
+    pub fn ref_count() {
         let mut val: u64 = 128;
         let raw_ptr: *mut u64 = &mut val;
 
@@ -137,13 +150,28 @@ mod tests {
 
         let mut heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
+        for x in 1..16 {
+            heap_pointer.increment_ref_count();
+            assert_eq!((x as u8) << 4, heap_pointer.class_pointer().get_mark_word());
+        }
+
+        // Check overflow
+        assert_eq!(0b11110000, heap_pointer.class_pointer().get_mark_word());
+
         heap_pointer.increment_ref_count();
 
-        assert_eq!(0b00010000, heap_pointer.class_pointer().get_mark_word());
+        assert_eq!(0b11110000, heap_pointer.class_pointer().get_mark_word());
 
-        heap_pointer.increment_ref_count();
+        for x in (0..15).rev() {
+            heap_pointer.decrement_ref_count();
+            assert_eq!((x as u8) << 4, heap_pointer.class_pointer().get_mark_word());
+        }
 
-        assert_eq!(0b00100000, heap_pointer.class_pointer().get_mark_word());
+        assert_eq!(0b00000000, heap_pointer.class_pointer().get_mark_word());
+
+        heap_pointer.decrement_ref_count();
+
+        assert_eq!(0b00000000, heap_pointer.class_pointer().get_mark_word());
     }
 }
 

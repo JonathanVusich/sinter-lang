@@ -29,14 +29,16 @@ impl<T> TaggedPointer<T> {
 
     pub fn get_mark_word(&self) -> u8 {
         let val = self.ptr as usize;
-        let no_low_bits = val & 0xFFFFFFFFFFFFFF;
         let shifted_val = val >> 56;
         shifted_val as u8
     }
 
     pub fn set_mark_word(&mut self, mark_word: u8) {
+        let mut ptr = self.ptr as usize;
+        ptr <<= 8;
+        ptr >>= 8;
         let shifted_mark_word = (mark_word as usize) << 56;
-        self.ptr = (self.ptr as usize | shifted_mark_word) as _
+        self.ptr = (ptr | shifted_mark_word) as _
     }
 
     pub fn set_bit(&mut self, bit: u32) {
@@ -290,6 +292,14 @@ mod tests {
         tagged_pointer.set_mark_word(new_mark_word);
 
         assert_eq!(new_mark_word, tagged_pointer.get_mark_word());
+
+        assert_eq!(1, *tagged_pointer);
+
+        let different_mark_word: u8 = 0b10001000;
+
+        tagged_pointer.set_mark_word(different_mark_word);
+
+        assert_eq!(different_mark_word, tagged_pointer.get_mark_word());
 
         assert_eq!(1, *tagged_pointer);
     }
