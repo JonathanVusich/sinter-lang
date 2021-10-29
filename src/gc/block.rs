@@ -43,7 +43,7 @@ impl Block {
             self.cursor = end_cursor;
             let mut heap_pointer = HeapPointer::new(class, object_start);
 
-            let object_end = end_address(object_start, class.object_size());
+            let object_end = end_of_object(object_start, class.object_size());
 
             let start_line = self.line_for_address(object_start);
             let end_line = self.line_for_address(object_end);
@@ -51,6 +51,8 @@ impl Block {
             if start_line != end_line {
                 heap_pointer.mark_spans_lines();
             }
+
+            heap_pointer.mark_as_new();
 
             Some(heap_pointer)
         } else {
@@ -83,7 +85,7 @@ fn end_cursor(cursor: *mut u8, object_size: usize) -> *mut u8 {
     }
 }
 
-fn end_address(start_cursor: *mut u8, object_size: usize) -> *mut u8 {
+fn end_of_object(start_cursor: *mut u8, object_size: usize) -> *mut u8 {
     unsafe {
         start_cursor.add(object_size - 1)
     }

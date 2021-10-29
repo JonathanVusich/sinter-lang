@@ -27,6 +27,18 @@ impl<T> TaggedPointer<T> {
         }
     }
 
+    pub fn get_mark_word(&self) -> u8 {
+        let val = self.ptr as usize;
+        let no_low_bits = val & 0xFFFFFFFFFFFFFF;
+        let shifted_val = val >> 56;
+        shifted_val as u8
+    }
+
+    pub fn set_mark_word(&mut self, mark_word: u8) {
+        let shifted_mark_word = (mark_word as usize) << 56;
+        self.ptr = (self.ptr as usize | shifted_mark_word) as _
+    }
+
     pub fn set_bit(&mut self, bit: u32) {
         let val = self.ptr as usize;
         let mask = get_mask(bit);
@@ -135,8 +147,8 @@ mod tests {
 
     #[test]
     pub fn dereferencing() {
-        let mut val: i32 = 1;
-        let mut tagged_pointer = TaggedPointer::new(&mut val);
+        let val: i32 = 1;
+        let mut tagged_pointer = TaggedPointer::new(&val);
 
         assert_eq!(*tagged_pointer, val);
 
@@ -172,8 +184,8 @@ mod tests {
 
     #[test]
     pub fn setting_bits() {
-        let mut val: i32 = 1;
-        let mut tagged_pointer = TaggedPointer::new(&mut val);
+        let val: i32 = 1;
+        let mut tagged_pointer = TaggedPointer::new(&val);
 
         tagged_pointer.set_bit(1);
 
@@ -208,8 +220,8 @@ mod tests {
 
         }));
 
-        let mut val = 1;
-        let mut tagged_pointer = TaggedPointer::new(&mut val);
+        let val = 1;
+        let mut tagged_pointer = TaggedPointer::new(&val);
 
         tagged_pointer.set_bit(0);
     }
@@ -221,9 +233,64 @@ mod tests {
 
         }));
 
-        let mut val = 1;
-        let mut tagged_pointer = TaggedPointer::new(&mut val);
+        let val = 1;
+        let mut tagged_pointer = TaggedPointer::new(&val);
 
         tagged_pointer.set_bit(9);
+    }
+
+    #[test]
+    pub fn mark_word() {
+        let val = 1;
+        let mut tagged_pointer = TaggedPointer::new(&val);
+
+        tagged_pointer.set_bit(1);
+
+        assert_eq!(0b10000000, tagged_pointer.get_mark_word());
+
+        tagged_pointer.set_bit(2);
+
+        assert_eq!(0b11000000, tagged_pointer.get_mark_word());
+
+        tagged_pointer.set_bit(3);
+
+        assert_eq!(0b11100000, tagged_pointer.get_mark_word());
+
+        tagged_pointer.set_bit(4);
+
+        assert_eq!(0b11110000, tagged_pointer.get_mark_word());
+
+        tagged_pointer.set_bit(5);
+
+        assert_eq!(0b11111000, tagged_pointer.get_mark_word());
+
+        tagged_pointer.set_bit(6);
+
+        assert_eq!(0b11111100, tagged_pointer.get_mark_word());
+
+        tagged_pointer.set_bit(7);
+
+        assert_eq!(0b11111110, tagged_pointer.get_mark_word());
+
+        tagged_pointer.set_bit(8);
+
+        assert_eq!(0b11111111, tagged_pointer.get_mark_word());
+    }
+
+    #[test]
+    pub fn set_mark_word() {
+        let val = 1;
+
+        let mut tagged_pointer = TaggedPointer::new(&val);
+
+        assert_eq!(0b00000000, tagged_pointer.get_mark_word());
+
+        let new_mark_word: u8 = 0b11110000;
+
+        tagged_pointer.set_mark_word(new_mark_word);
+
+        assert_eq!(new_mark_word, tagged_pointer.get_mark_word());
+
+        assert_eq!(1, *tagged_pointer);
     }
 }
