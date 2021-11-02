@@ -9,8 +9,12 @@ impl ByteMap {
         ByteMap { map: [0; LINES_PER_BLOCK] }
     }
 
-    pub fn set_ref_count(&mut self, line: usize, ref_count: u8) {
-        self.map[line] = ref_count;
+    pub fn increment(&mut self, line: usize) {
+        self.map[line] += 1;
+    }
+
+    pub fn decrement(&mut self, line: usize) {
+        self.map[line] -= 1;
     }
 
     pub fn get_ref_count(&self, line: usize) -> u8 {

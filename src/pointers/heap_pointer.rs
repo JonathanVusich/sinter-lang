@@ -1,5 +1,7 @@
 use crate::object::class::Class;
 use crate::pointers::tagged_pointer::TaggedPointer;
+use crate::pointers::pointer::Pointer;
+use std::borrow::BorrowMut;
 
 pub struct HeapPointer {
     ptr: *mut u8,
@@ -8,18 +10,14 @@ pub struct HeapPointer {
 impl HeapPointer {
 
     pub fn new(class: &Class, ptr: *mut u8) -> Self {
-        let pointer = TaggedPointer::new(class);
+        let pointer = TaggedPointer::new_with_mark_word(class, class.mark_word());
+
         let address: u64 = pointer.into();
         let heap_pointer = HeapPointer { ptr };
         unsafe {
             heap_pointer.ptr.cast::<u64>().write(address);
         }
         heap_pointer
-    }
-
-    pub fn class_pointer(&self) -> TaggedPointer<Class> {
-        let address = self.class_address();
-        TaggedPointer::from_address(address)
     }
 
     pub fn start_address(&self) -> *mut u64 {
@@ -29,17 +27,17 @@ impl HeapPointer {
     }
 
     pub fn increment_ref_count(&mut self) {
-        let mut class_pointer = self.class_pointer();
+        let mut class_pointer = self.tagged_class_pointer();
         let mut mark_word = class_pointer.get_mark_word();
-        let mut ref_count = mark_word >> 4;
+        let mut ref_count = mark_word >> 5;
 
-        if ref_count < 15 {
+        if ref_count < 7 {
             ref_count += 1;
         }
 
-        ref_count <<= 4;
+        ref_count <<= 5;
 
-        mark_word &= 0x0F;
+        mark_word &= 0x1F;
 
         let result = ref_count | mark_word;
 
@@ -48,17 +46,17 @@ impl HeapPointer {
     }
 
     pub fn decrement_ref_count(&mut self) {
-        let mut class_pointer = self.class_pointer();
+        let mut class_pointer = self.tagged_class_pointer();
         let mut mark_word = class_pointer.get_mark_word();
-        let mut ref_count = mark_word >> 4;
+        let mut ref_count = mark_word >> 5;
 
         if ref_count > 0 {
             ref_count -= 1;
         }
 
-        ref_count <<= 4;
+        ref_count <<= 5;
 
-        mark_word &=0x0F;
+        mark_word &= 0x1F;
 
         let result = ref_count | mark_word;
 
@@ -66,24 +64,48 @@ impl HeapPointer {
         self.write_class_pointer(class_pointer);
     }
 
-    pub fn mark_spans_lines(&mut self) {
-        let mut class_pointer = self.class_pointer();
-        class_pointer.set_bit(5);
-        self.write_class_pointer(class_pointer);
+    pub fn ref_count(&self) -> u8 {
+        let class_pointer = self.tagged_class_pointer();
+        class_pointer.get_mark_word() >> 5
     }
 
     pub fn spans_lines(&self) -> bool {
-        self.class_pointer().is_bit_set(5)
-    }
-
-    pub fn mark_as_new(&mut self) {
-        let mut class_pointer = self.class_pointer();
-        class_pointer.set_bit(6);
-        self.write_class_pointer(class_pointer);
+        self.tagged_class_pointer().is_bit_set(4)
     }
 
     pub fn is_new(&self) -> bool {
-        self.class_pointer().is_bit_set(6)
+        self.tagged_class_pointer().is_bit_set(6)
+    }
+
+    pub fn is_forwarded(&self) -> bool {
+        let tagged_pointer = self.tagged_class_pointer();
+        tagged_pointer.is_bit_set(7) || tagged_pointer.is_bit_set(8)
+    }
+
+    pub fn is_being_forwarded(&self) -> bool {
+        self.tagged_class_pointer().is_bit_set(7)
+    }
+
+    pub fn mark_forwarded(&mut self) {
+        let mut class_pointer = self.tagged_class_pointer();
+        class_pointer.set_bit(7);
+        class_pointer.set_bit(8);
+        self.write_class_pointer(class_pointer);
+    }
+
+    pub fn mark_being_forwarded(&mut self) {
+        let mut class_pointer = self.tagged_class_pointer();
+        class_pointer.set_bit(7);
+        self.write_class_pointer(class_pointer);
+    }
+
+    pub fn class_pointer(&self) -> Pointer<Class> {
+        Pointer::from_address(self.class_address())
+    }
+
+    fn tagged_class_pointer(&self) -> TaggedPointer<Class> {
+        let class_address = self.class_address();
+        TaggedPointer::from_address(class_address)
     }
 
     fn class_address(&self) -> u64 {
@@ -102,6 +124,7 @@ impl HeapPointer {
 mod tests {
     use crate::object::class::Class;
     use crate::pointers::heap_pointer::HeapPointer;
+    use crate::gc::block::LINE_SIZE;
 
     #[test]
     pub fn constructor() {
@@ -120,7 +143,7 @@ mod tests {
 
         let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
-        let read_class = heap_pointer.class_pointer();
+        let read_class = heap_pointer.tagged_class_pointer();
 
         assert_eq!(class, *read_class);
     }
@@ -132,11 +155,13 @@ mod tests {
 
         let class = Class::new(2);
 
-        let mut heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
+        let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
         assert!(!heap_pointer.spans_lines());
 
-        heap_pointer.mark_spans_lines();
+        let large_class = Class::new(LINE_SIZE);
+
+        let heap_pointer = HeapPointer::new(&large_class, raw_ptr.cast::<u8>());
 
         assert!(heap_pointer.spans_lines());
     }
@@ -150,28 +175,33 @@ mod tests {
 
         let mut heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
-        for x in 1..16 {
+        // Clear out mark word
+        let mut tagged_ptr = heap_pointer.tagged_class_pointer();
+        tagged_ptr.set_mark_word(0);
+        heap_pointer.write_class_pointer(tagged_ptr);
+
+        for x in 1..8 {
             heap_pointer.increment_ref_count();
-            assert_eq!((x as u8) << 4, heap_pointer.class_pointer().get_mark_word());
+            assert_eq!((x as u8) << 5, heap_pointer.tagged_class_pointer().get_mark_word());
         }
 
         // Check overflow
-        assert_eq!(0b11110000, heap_pointer.class_pointer().get_mark_word());
+        assert_eq!(0b11100000, heap_pointer.tagged_class_pointer().get_mark_word());
 
         heap_pointer.increment_ref_count();
 
-        assert_eq!(0b11110000, heap_pointer.class_pointer().get_mark_word());
+        assert_eq!(0b11100000, heap_pointer.tagged_class_pointer().get_mark_word());
 
-        for x in (0..15).rev() {
+        for x in (0..7).rev() {
             heap_pointer.decrement_ref_count();
-            assert_eq!((x as u8) << 4, heap_pointer.class_pointer().get_mark_word());
+            assert_eq!((x as u8) << 5, heap_pointer.tagged_class_pointer().get_mark_word());
         }
 
-        assert_eq!(0b00000000, heap_pointer.class_pointer().get_mark_word());
+        assert_eq!(0b00000000, heap_pointer.tagged_class_pointer().get_mark_word());
 
         heap_pointer.decrement_ref_count();
 
-        assert_eq!(0b00000000, heap_pointer.class_pointer().get_mark_word());
+        assert_eq!(0b00000000, heap_pointer.tagged_class_pointer().get_mark_word());
     }
 }
 

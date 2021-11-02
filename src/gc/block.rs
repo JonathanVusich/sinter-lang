@@ -1,6 +1,7 @@
 use crate::gc::byte_map::ByteMap;
 use crate::object::class::Class;
 use crate::pointers::heap_pointer::HeapPointer;
+use crate::gc::block_state::BlockState;
 
 /// The number of bytes in a block.
 pub const BLOCK_SIZE: usize = 32768;
@@ -22,6 +23,7 @@ pub struct Block {
     start_address: *const u8,
     max_address: *const u8,
     cursor: *mut u8,
+    block_state: BlockState
 }
 
 impl Block {
@@ -41,18 +43,17 @@ impl Block {
 
         if object_fits(self.max_address, end_cursor) {
             self.cursor = end_cursor;
-            let mut heap_pointer = HeapPointer::new(class, object_start);
-
-            let object_end = end_of_object(object_start, class.object_size());
+            let heap_pointer = HeapPointer::new(class, object_start);
 
             let start_line = self.line_for_address(object_start);
-            let end_line = self.line_for_address(object_end);
-
-            if start_line != end_line {
-                heap_pointer.mark_spans_lines();
+            if class.is_small_object() {
+                self.line_map.increment(start_line as usize)
+            } else {
+                let end_line = self.line_for_address(end_of_object(object_start, class.object_size()));
+                for i in start_line..=end_line {
+                    self.line_map.increment(i as usize);
+                }
             }
-
-            heap_pointer.mark_as_new();
 
             Some(heap_pointer)
         } else {
@@ -91,6 +92,7 @@ fn end_of_object(start_cursor: *mut u8, object_size: usize) -> *mut u8 {
     }
 }
 
+
 impl Default for Block {
     fn default() -> Self {
         Block {
@@ -99,6 +101,7 @@ impl Default for Block {
             start_address: std::ptr::null(),
             max_address: std::ptr::null_mut(),
             cursor: std::ptr::null_mut(),
+            block_state: BlockState::Free
         }
     }
 }
@@ -188,7 +191,7 @@ mod tests {
 
         let another_large_pointer = block.allocate(&class_128).unwrap();
 
-        assert!(!another_large_pointer.spans_lines());
+        assert!(another_large_pointer.spans_lines());
     }
 
     #[test]
