@@ -2,6 +2,7 @@ use crate::gc::byte_map::ByteMap;
 use crate::object::class::Class;
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::gc::block_state::BlockState;
+use std::alloc::AllocError;
 
 /// The number of bytes in a block.
 pub const BLOCK_SIZE: usize = 32768;
@@ -61,12 +62,14 @@ impl Block {
         }
     }
 
+    #[inline(always)]
     fn line_for_address(&self, address: *mut u8) -> isize {
         unsafe {
             address.offset_from(self.start_address) / 128
         }
     }
 
+    #[inline(always)]
     fn end_cursor(&self, object_size: usize) -> *mut u8 {
         unsafe {
             self.cursor.add(object_size)
@@ -74,18 +77,21 @@ impl Block {
     }
 }
 
+#[inline(always)]
 fn object_fits(end_address: *const u8, end_cursor: *mut u8) -> bool {
     unsafe {
         end_address.offset_from(end_cursor) >= 0
     }
 }
 
+#[inline(always)]
 fn end_cursor(cursor: *mut u8, object_size: usize) -> *mut u8 {
     unsafe {
         cursor.add(object_size)
     }
 }
 
+#[inline(always)]
 fn end_of_object(start_cursor: *mut u8, object_size: usize) -> *mut u8 {
     unsafe {
         start_cursor.add(object_size - 1)
@@ -109,6 +115,9 @@ impl Default for Block {
 
 
 mod tests {
+
+    extern crate test;
+
     use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK};
     use crate::object::class::Class;
 

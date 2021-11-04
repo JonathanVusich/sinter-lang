@@ -11,3 +11,18 @@ channel = "stable"
 
 [dependencies]
 rand = "0.8.4"
+
+[dev-dependencies]
+criterion = "0.3.5"
+
+[[bench]]
+name = "block_allocation"
+harness = false
+
+[[bench]]
+name = "tagged_pointer"
+harness = false
+
+[[bench]]
+name = "pointer"
+harness = false

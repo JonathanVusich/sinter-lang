@@ -1,7 +1,6 @@
 use std::ops::{Deref, DerefMut};
 use std::borrow::Borrow;
 use std::marker::PhantomData;
-use crate::object::class::Class;
 
 const BIT_1_MASK: u64 = compute_mask(1);
 const BIT_2_MASK: u64 = compute_mask(2);
@@ -12,6 +11,7 @@ const BIT_6_MASK: u64 = compute_mask(6);
 const BIT_7_MASK: u64 = compute_mask(7);
 const BIT_8_MASK: u64 = compute_mask(8);
 
+#[derive(Copy, Clone)]
 pub struct TaggedPointer<T> {
     ptr: u64,
     data: PhantomData<T>
@@ -164,10 +164,15 @@ impl<T> DerefMut for TaggedPointer<T> {
 }
 
 mod tests {
+    extern crate test;
+
     use std::ops::Shl;
 
     use super::*;
     use crate::object::class::Class;
+
+    use test::Bencher;
+    use test::black_box;
 
     #[test]
     pub fn size() {

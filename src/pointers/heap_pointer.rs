@@ -1,7 +1,6 @@
 use crate::object::class::Class;
 use crate::pointers::tagged_pointer::TaggedPointer;
 use crate::pointers::pointer::Pointer;
-use std::borrow::BorrowMut;
 
 pub struct HeapPointer {
     ptr: *mut u8,
@@ -37,7 +36,7 @@ impl HeapPointer {
 
         ref_count <<= 5;
 
-        mark_word &= 0x1F;
+        mark_word &= !0xe0;
 
         let result = ref_count | mark_word;
 
@@ -56,7 +55,7 @@ impl HeapPointer {
 
         ref_count <<= 5;
 
-        mark_word &= 0x1F;
+        mark_word &= !0xe0;
 
         let result = ref_count | mark_word;
 
@@ -177,31 +176,31 @@ mod tests {
 
         // Clear out mark word
         let mut tagged_ptr = heap_pointer.tagged_class_pointer();
-        tagged_ptr.set_mark_word(0);
+        tagged_ptr.set_mark_word(1);
         heap_pointer.write_class_pointer(tagged_ptr);
 
         for x in 1..8 {
             heap_pointer.increment_ref_count();
-            assert_eq!((x as u8) << 5, heap_pointer.tagged_class_pointer().get_mark_word());
+            assert_eq!(((x as u8) << 5) + 1, heap_pointer.tagged_class_pointer().get_mark_word());
         }
 
         // Check overflow
-        assert_eq!(0b11100000, heap_pointer.tagged_class_pointer().get_mark_word());
+        assert_eq!(0b11100001, heap_pointer.tagged_class_pointer().get_mark_word());
 
         heap_pointer.increment_ref_count();
 
-        assert_eq!(0b11100000, heap_pointer.tagged_class_pointer().get_mark_word());
+        assert_eq!(0b11100001, heap_pointer.tagged_class_pointer().get_mark_word());
 
         for x in (0..7).rev() {
             heap_pointer.decrement_ref_count();
-            assert_eq!((x as u8) << 5, heap_pointer.tagged_class_pointer().get_mark_word());
+            assert_eq!(((x as u8) << 5) + 1, heap_pointer.tagged_class_pointer().get_mark_word());
         }
 
-        assert_eq!(0b00000000, heap_pointer.tagged_class_pointer().get_mark_word());
+        assert_eq!(0b00000001, heap_pointer.tagged_class_pointer().get_mark_word());
 
         heap_pointer.decrement_ref_count();
 
-        assert_eq!(0b00000000, heap_pointer.tagged_class_pointer().get_mark_word());
+        assert_eq!(0b00000001, heap_pointer.tagged_class_pointer().get_mark_word());
     }
 }
 
