@@ -3,6 +3,8 @@ use crate::object::class::Class;
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::gc::block_state::BlockState;
 use std::alloc::AllocError;
+use std::ptr::addr_of;
+use std::ptr::addr_of_mut;
 
 /// The number of bytes in a block.
 pub const BLOCK_SIZE: usize = 32768;
@@ -28,15 +30,36 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new() -> Box<Block> {
-        let mut block: Box<Block> = Box::default();
-        block.cursor = block.lines.as_mut_ptr();
+
+    pub fn try_allocate() -> Result<Box<Block>, AllocError> {
+        let mut block = Box::<Block>::try_new_zeroed()?;
+        let block_ptr = block.as_mut_ptr();
+
         unsafe {
-            block.start_address = block.cursor;
-            block.max_address = block.cursor.add(BYTES_PER_BLOCK);
+            let lines_ptr: *mut [u8; BYTES_PER_BLOCK] = addr_of_mut!((*block_ptr).lines);
+            let start_address_ptr: *mut *const u8 = addr_of_mut!((*block_ptr).start_address);
+            let end_address_ptr: *mut *const u8 = addr_of_mut!((*block_ptr).max_address);
+            let cursor_ptr: *mut *mut u8 = addr_of_mut!((*block_ptr).cursor);
+            let block_state_ptr: *mut BlockState = addr_of_mut!((*block_ptr).block_state);
+
+            start_address_ptr.write((*lines_ptr).as_ptr());
+            end_address_ptr.write((*lines_ptr).as_ptr().add(BYTES_PER_BLOCK));
+            cursor_ptr.write((*lines_ptr).as_mut_ptr());
+            block_state_ptr.write(BlockState::Free);
+            let safe_block = block.assume_init();
+            Ok(safe_block)
         }
-        block
     }
+
+    // pub fn new() -> Box<Block> {
+    //     let mut block: Box<Block> = Box::default();
+    //     block.cursor = block.lines.as_mut_ptr();
+    //     unsafe {
+    //         block.start_address = block.cursor;
+    //         block.max_address = block.cursor.add(BYTES_PER_BLOCK);
+    //     }
+    //     block
+    // }
 
     pub fn allocate(&mut self, class: &Class) -> Option<HeapPointer> {
         let object_start = self.cursor;
@@ -118,8 +141,9 @@ mod tests {
 
     extern crate test;
 
-    use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK};
+    use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK, LINES_PER_BLOCK};
     use crate::object::class::Class;
+    use crate::gc::block_state::BlockState;
 
     #[test]
     pub fn size() {
@@ -128,13 +152,30 @@ mod tests {
 
     #[test]
     pub fn constructor() {
-        let block = Block::new();
+        let mut block = Block::try_allocate().unwrap();
+
+        for i in 0..LINES_PER_BLOCK {
+            block.line_map.increment(i);
+            assert_eq!(block.line_map.get_ref_count(i), 1);
+            block.line_map.decrement(i);
+            assert_eq!(block.line_map.get_ref_count(i), 0);
+        }
+
+        for val in block.lines {
+            assert_eq!(0, val);
+        }
+
+        assert_eq!(block.start_address, block.lines.as_ptr());
+        assert_eq!(block.max_address, block.lines.as_ptr_range().end);
+        assert_eq!(block.cursor, block.start_address as *mut u8);
+        assert_eq!(block.block_state, BlockState::Free);
+
         assert_eq!(BLOCK_SIZE, std::mem::size_of::<Block>());
     }
 
     #[test]
     pub fn simple_allocation() {
-        let mut block = Block::new();
+        let mut block = Block::try_allocate().unwrap();
 
         let mut start_cursor = block.cursor;
 
@@ -162,7 +203,7 @@ mod tests {
 
     #[test]
     pub fn allocation_mutation() {
-        let mut block = Block::new();
+        let mut block = Block::try_allocate().unwrap();
 
         let class = Class::new(16);
 
@@ -181,7 +222,7 @@ mod tests {
 
     #[test]
     pub fn spans_lines() {
-        let mut block = Block::new();
+        let mut block = Block::try_allocate().unwrap();
 
         let class_64 = Class::new(64);
         let class_128 = Class::new(128);
@@ -205,7 +246,7 @@ mod tests {
 
     #[test]
     pub fn allocate_single_object() {
-        let mut block = Block::new();
+        let mut block = Block::try_allocate().unwrap();
 
         let class = Class::new(BYTES_PER_BLOCK);
 
