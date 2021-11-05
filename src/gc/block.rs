@@ -7,19 +7,18 @@ use std::ptr::addr_of;
 use std::ptr::addr_of_mut;
 
 /// The number of bytes in a block.
-pub const BLOCK_SIZE: usize = 32768;
+pub const BLOCK_SIZE: usize = 1024 * 1024;
 
 /// The number of bytes in single line.
-pub const LINE_SIZE: usize = 1 << 7;
+pub const LINE_SIZE: usize = 256;
 
 /// The number of lines in a block.
 /// We have to subtract three lines to make room for the line map and for the cursors.
-pub const LINES_PER_BLOCK: usize = (BLOCK_SIZE / LINE_SIZE) - 3;
+pub const LINES_PER_BLOCK: usize = (BLOCK_SIZE / LINE_SIZE) - 17;
 
 /// The number of bytes in a block.
 pub const BYTES_PER_BLOCK: usize = LINE_SIZE * LINES_PER_BLOCK;
 
-#[repr(align(32768))]
 pub struct Block {
     line_map: ByteMap,
     lines: [u8; BYTES_PER_BLOCK],
@@ -51,16 +50,6 @@ impl Block {
         }
     }
 
-    // pub fn new() -> Box<Block> {
-    //     let mut block: Box<Block> = Box::default();
-    //     block.cursor = block.lines.as_mut_ptr();
-    //     unsafe {
-    //         block.start_address = block.cursor;
-    //         block.max_address = block.cursor.add(BYTES_PER_BLOCK);
-    //     }
-    //     block
-    // }
-
     pub fn allocate(&mut self, class: &Class) -> Option<HeapPointer> {
         let object_start = self.cursor;
         let end_cursor = end_cursor(self.cursor, class.object_size());
@@ -88,7 +77,7 @@ impl Block {
     #[inline(always)]
     fn line_for_address(&self, address: *mut u8) -> isize {
         unsafe {
-            address.offset_from(self.start_address) / 128
+            address.offset_from(self.start_address) / LINE_SIZE as isize
         }
     }
 
@@ -121,33 +110,18 @@ fn end_of_object(start_cursor: *mut u8, object_size: usize) -> *mut u8 {
     }
 }
 
-
-impl Default for Block {
-    fn default() -> Self {
-        Block {
-            line_map: ByteMap::new(),
-            lines: [0; BYTES_PER_BLOCK],
-            start_address: std::ptr::null(),
-            max_address: std::ptr::null_mut(),
-            cursor: std::ptr::null_mut(),
-            block_state: BlockState::Free
-        }
-    }
-}
-
-
-
 mod tests {
 
     extern crate test;
 
-    use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK, LINES_PER_BLOCK};
+    use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK, LINES_PER_BLOCK, LINE_SIZE};
     use crate::object::class::Class;
     use crate::gc::block_state::BlockState;
 
     #[test]
     pub fn size() {
-        assert_eq!(BLOCK_SIZE, std::mem::size_of::<Block>());
+        assert!(BLOCK_SIZE < LINE_SIZE + std::mem::size_of::<Block>());
+        assert!(BLOCK_SIZE > std::mem::size_of::<Block>());
     }
 
     #[test]
@@ -161,16 +135,14 @@ mod tests {
             assert_eq!(block.line_map.get_ref_count(i), 0);
         }
 
-        for val in block.lines {
-            assert_eq!(0, val);
+        for val in block.lines.as_mut_slice() {
+            assert_eq!(0, *val);
         }
 
         assert_eq!(block.start_address, block.lines.as_ptr());
         assert_eq!(block.max_address, block.lines.as_ptr_range().end);
         assert_eq!(block.cursor, block.start_address as *mut u8);
         assert_eq!(block.block_state, BlockState::Free);
-
-        assert_eq!(BLOCK_SIZE, std::mem::size_of::<Block>());
     }
 
     #[test]
@@ -224,22 +196,22 @@ mod tests {
     pub fn spans_lines() {
         let mut block = Block::try_allocate().unwrap();
 
-        let class_64 = Class::new(64);
-        let class_128 = Class::new(128);
+        let class_half_line = Class::new(LINE_SIZE / 2);
+        let class_full_line = Class::new(LINE_SIZE);
 
-        let pointer = block.allocate(&class_64).unwrap();
+        let pointer = block.allocate(&class_half_line).unwrap();
 
         assert!(!pointer.spans_lines());
 
-        let large_pointer = block.allocate(&class_128).unwrap();
+        let large_pointer = block.allocate(&class_full_line).unwrap();
 
         assert!(large_pointer.spans_lines());
 
-        let another_small_pointer = block.allocate(&class_64).unwrap();
+        let another_small_pointer = block.allocate(&class_half_line).unwrap();
 
         assert!(!another_small_pointer.spans_lines());
 
-        let another_large_pointer = block.allocate(&class_128).unwrap();
+        let another_large_pointer = block.allocate(&class_full_line).unwrap();
 
         assert!(another_large_pointer.spans_lines());
     }

@@ -14,7 +14,7 @@ impl GlobalAllocator {
 
     pub fn new(size: usize) -> Self {
         GlobalAllocator {
-            max_size: size,
+            max_size: size * BLOCK_SIZE,
             current_allocation: AtomicUsize::new(0)
         }
     }
@@ -28,6 +28,10 @@ impl GlobalAllocator {
             self.current_allocation.store(self.max_size, SeqCst);
             Err(AllocError {})
         }
+    }
+
+    pub fn get_max_size(&self) -> usize {
+        self.max_size
     }
 }
 
@@ -43,14 +47,14 @@ mod tests {
 
     #[test]
     pub fn constructor() {
-        let global_alloc = GlobalAllocator::new(BLOCK_SIZE);
+        let global_alloc = GlobalAllocator::new(1);
         assert_eq!(global_alloc.max_size, BLOCK_SIZE);
         assert_eq!(0, global_alloc.current_allocation.load(Relaxed))
     }
 
     #[test]
     pub fn allocate() {
-        let global_alloc = GlobalAllocator::new(BLOCK_SIZE * 2);
+        let global_alloc = GlobalAllocator::new(2);
 
         let block = global_alloc.allocate_block().unwrap();
         let second_block = global_alloc.allocate_block().unwrap();
@@ -61,29 +65,26 @@ mod tests {
 
     #[test]
     pub fn large_allocation() {
-        let max_size = BLOCK_SIZE * 5_000;
+        let max_size = 20_000;
         let global_alloc = GlobalAllocator::new(max_size);
 
         // let mut blocks: Vec<Box<Block>> = vec![];
 
         loop {
             let block = global_alloc.allocate_block();
-            match block {
-                Err(_) => {
-                    assert_eq!(global_alloc.max_size, max_size);
-                    assert_eq!(global_alloc.current_allocation.load(SeqCst), global_alloc.max_size);
-                    break;
-                }
-                _ => {
-
-                }
+            if block.is_err() {
+                assert_eq!(global_alloc.max_size, max_size * BLOCK_SIZE);
+                assert_eq!(global_alloc.current_allocation.load(SeqCst), global_alloc.max_size);
+                break;
             }
         }
     }
 
     #[test]
     pub fn allocate_from_multiple_threads() {
-        let global_alloc = Arc::new(GlobalAllocator::new(BLOCK_SIZE * 50_000));
+        let max_size = 50_000;
+
+        let global_alloc = Arc::new(GlobalAllocator::new(max_size));
 
         let mut handles = vec![];
 
@@ -102,6 +103,7 @@ mod tests {
                         }
                     }
                 }
+                std::mem::drop(blocks)
             });
             handles.push(handle);
         }

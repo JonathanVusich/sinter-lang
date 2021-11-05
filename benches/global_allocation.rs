@@ -1,39 +1,57 @@
 use flux_lang::gc::global_allocator::GlobalAllocator;
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::*;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::atomic::Ordering::Relaxed;
+use std::sync::atomic::Ordering::{SeqCst};
 use std::thread;
 use std::thread::JoinHandle;
+use flux_lang::gc::block::{BLOCK_SIZE, Block};
+use std::collections::LinkedList;
 
 fn global_allocator(c: &mut Criterion) {
-    c.bench_function("Global allocator", |b| b.iter(|| {
 
-        let global_alloc = Arc::new(GlobalAllocator::new(10_000_000_000));
+
+    c.bench_function("Global allocator", |b| b.iter(|| {
+        let global_alloc = Arc::new(GlobalAllocator::new(10_000));
         let start = Arc::new(AtomicBool::new(false));
 
-        let thread_handles = (0..32).into_iter().map(|_| {
+        let mut thread_handles: Vec<JoinHandle<()>> = vec![];
+        for _ in 0..32 {
             let allocator = global_alloc.clone();
             let starter = start.clone();
-            thread::spawn(move || {
+            let join_handle = thread::spawn(move || {
+
+                let mut blocks: LinkedList<Box<Block>> = LinkedList::new();
+
                 'spin: loop {
-                    if starter.load(Relaxed) {
+                    if starter.load(SeqCst) {
                         break 'spin;
                     }
                 }
 
                 'inner: loop {
-                    if black_box(allocator.allocate_block()).is_err() {
-                        break 'inner;
-                    };
+                    match allocator.allocate_block() {
+                        Ok(block) => blocks.push_back(block),
+                        Err(_) => break 'inner
+                    }
                 }
-            })
-        }).collect::<Vec<JoinHandle<()>>>();
+            });
+            thread_handles.push(join_handle);
+        }
+
         start.store(true, Ordering::SeqCst);
-        black_box(thread_handles);
+        for handle in thread_handles {
+            handle.join().unwrap();
+        }
+
+        assert_eq!(global_alloc.get_max_size(), 10_000 * BLOCK_SIZE);
     }));
 }
 
-criterion_group!(global_allocation, global_allocator);
+criterion_group!{
+    name = global_allocation;
+    config = Criterion::default().sample_size(10);
+    targets = global_allocator
+}
 criterion_main!(global_allocation);
