@@ -1,13 +1,14 @@
-use crate::gc::block::Block;
+use crate::gc::block::{Block, BLOCK_SIZE};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::alloc::AllocError;
-use std::sync::atomic::Ordering::{SeqCst, Relaxed};
+use std::sync::atomic::Ordering::{SeqCst, Relaxed, Acquire};
 use std::mem::MaybeUninit;
 
-struct GlobalAllocator {
+pub struct GlobalAllocator {
     max_size: usize,
     current_allocation: AtomicUsize
 }
+
 
 impl GlobalAllocator {
 
@@ -18,24 +19,13 @@ impl GlobalAllocator {
         }
     }
 
-    pub fn allocate_block(&mut self) -> Result<Box<Block>, AllocError> {
-        let block_size = std::mem::size_of::<Block>();
-        let current_alloc = self.current_allocation.load(SeqCst);
-        if self.max_size - current_alloc > block_size {
-            let result = self.current_allocation
-                .compare_exchange(current_alloc, current_alloc + block_size,
-                                  SeqCst, Relaxed);
-
-            match result {
-                Ok(x) => {
-                    let block = Block::try_allocate()?;
-                    Ok(block)
-                }
-                Err(x) => {
-                    Err(AllocError {})
-                }
-            }
+    pub fn allocate_block(&self) -> Result<Box<Block>, AllocError> {
+        let current_alloc = self.current_allocation.fetch_add(BLOCK_SIZE, SeqCst);
+        if current_alloc + BLOCK_SIZE <= self.max_size {
+            let block = Block::try_allocate()?;
+            Ok(block)
         } else {
+            self.current_allocation.store(self.max_size, SeqCst);
             Err(AllocError {})
         }
     }
@@ -43,8 +33,13 @@ impl GlobalAllocator {
 
 mod tests {
     use crate::gc::global_allocator::GlobalAllocator;
-    use crate::gc::block::BLOCK_SIZE;
-    use std::sync::atomic::Ordering::Relaxed;
+    use crate::gc::block::{BLOCK_SIZE, Block};
+    use std::sync::atomic::Ordering::{Relaxed, SeqCst};
+    use std::thread;
+    use std::sync::Arc;
+    use std::thread::JoinHandle;
+    use std::sync::atomic::AtomicUsize;
+    use std::time::Duration;
 
     #[test]
     pub fn constructor() {
@@ -55,12 +50,64 @@ mod tests {
 
     #[test]
     pub fn allocate() {
-        let mut global_alloc = GlobalAllocator::new(BLOCK_SIZE * 2);
+        let global_alloc = GlobalAllocator::new(BLOCK_SIZE * 2);
 
         let block = global_alloc.allocate_block().unwrap();
         let second_block = global_alloc.allocate_block().unwrap();
 
         let third_attempt = global_alloc.allocate_block();
         assert!(third_attempt.is_err());
+    }
+
+    #[test]
+    pub fn large_allocation() {
+        let max_size = BLOCK_SIZE * 5_000;
+        let global_alloc = GlobalAllocator::new(max_size);
+
+        // let mut blocks: Vec<Box<Block>> = vec![];
+
+        loop {
+            let block = global_alloc.allocate_block();
+            match block {
+                Err(_) => {
+                    assert_eq!(global_alloc.max_size, max_size);
+                    assert_eq!(global_alloc.current_allocation.load(SeqCst), global_alloc.max_size);
+                    break;
+                }
+                _ => {
+
+                }
+            }
+        }
+    }
+
+    #[test]
+    pub fn allocate_from_multiple_threads() {
+        let global_alloc = Arc::new(GlobalAllocator::new(BLOCK_SIZE * 50_000));
+
+        let mut handles = vec![];
+
+        for _ in 0..16 {
+            let allocator = global_alloc.clone();
+            let handle = thread::spawn(move || {
+                let mut blocks: Vec<Box<Block>> = vec![];
+                'allocating: loop {
+                    let block = allocator.allocate_block();
+                    match block {
+                        Ok(b) => {
+                            blocks.push(b);
+                        },
+                        Err(_) => {
+                            break 'allocating;
+                        }
+                    }
+                }
+            });
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
     }
 }
