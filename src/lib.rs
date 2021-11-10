@@ -4,7 +4,7 @@
 #![feature(test)]
 #![feature(allocator_api)]
 #![feature(new_uninit)]
-#![feature(fn_traits)]
+// #![feature(fn_traits)]
 
 pub mod stack;
 pub mod opcode;
@@ -13,3 +13,4 @@ pub mod memory;
 pub mod gc;
 pub mod pointers;
 pub mod object;
+pub mod util;

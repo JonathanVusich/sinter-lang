@@ -5,7 +5,7 @@ use crate::gc::block_state::BlockState;
 use std::alloc::AllocError;
 use std::ptr::addr_of;
 use std::ptr::addr_of_mut;
-use crate::object::object_size::ObjectClassification;
+use crate::object::object_classification::ObjectClassification;
 
 /// The number of bytes in a block.
 pub const BLOCK_SIZE: usize = 1024 * 1024;
@@ -55,6 +55,7 @@ impl Block {
     }
 
     pub fn allocate(&mut self, class: &Class) -> Option<HeapPointer> {
+        todo!("Return an error to specify whether we need to overflow or set a new block");
         let object_start = self.cursor;
         let end_cursor = end_cursor(self.cursor, class.object_size());
 
