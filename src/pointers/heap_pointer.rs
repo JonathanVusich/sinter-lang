@@ -1,3 +1,4 @@
+use std::ptr::NonNull;
 use crate::object::class::Class;
 use crate::pointers::tagged_pointer::TaggedPointer;
 use crate::pointers::pointer::Pointer;
@@ -100,6 +101,10 @@ impl HeapPointer {
 
     pub fn class_pointer(&self) -> Pointer<Class> {
         Pointer::from_address(self.class_address())
+    }
+
+    pub unsafe fn to_raw(&self) -> NonNull<u8> {
+        NonNull::new_unchecked(self.ptr)
     }
 
     fn tagged_class_pointer(&self) -> TaggedPointer<Class> {
