@@ -5,6 +5,7 @@ use crate::gc::block_state::BlockState;
 use std::alloc::AllocError;
 use std::ptr::addr_of;
 use std::ptr::addr_of_mut;
+use crate::object::object_size::ObjectClassification;
 
 /// The number of bytes in a block.
 pub const BLOCK_SIZE: usize = 1024 * 1024;
@@ -28,10 +29,13 @@ pub struct Block {
     block_state: BlockState
 }
 
+unsafe impl Send for Block {}
+unsafe impl Sync for Block {}
+
 impl Block {
 
     pub fn try_allocate() -> Result<Box<Block>, AllocError> {
-        let mut block = Box::<Block>::try_new_zeroed()?;
+        let mut block = Box::<Block>::try_new_uninit()?;
         let block_ptr = block.as_mut_ptr();
 
         unsafe {
@@ -59,7 +63,7 @@ impl Block {
             let heap_pointer = HeapPointer::new(class, object_start);
 
             let start_line = self.line_for_address(object_start);
-            if class.is_small_object() {
+            if class.object_classification() == ObjectClassification::Small {
                 self.line_map.increment(start_line as usize)
             } else {
                 let end_line = self.line_for_address(end_of_object(object_start, class.object_size()));
@@ -67,7 +71,6 @@ impl Block {
                     self.line_map.increment(i as usize);
                 }
             }
-
             Some(heap_pointer)
         } else {
             None

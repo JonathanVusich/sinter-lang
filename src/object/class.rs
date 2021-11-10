@@ -1,9 +1,10 @@
-use crate::gc::block::LINE_SIZE;
+use crate::gc::block::{LINE_SIZE, BLOCK_SIZE};
+use crate::object::object_size::ObjectClassification;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Class {
     object_size: usize,
-    small_object: bool,
+    object_classification: ObjectClassification,
     mark_word: u8,
 }
 
@@ -19,7 +20,7 @@ impl Class {
 
         Class {
             object_size,
-            small_object,
+            object_classification: ObjectClassification::from(object_size),
             mark_word
         }
     }
@@ -32,8 +33,8 @@ impl Class {
         self.object_size
     }
 
-    pub fn is_small_object(&self) -> bool {
-        self.small_object
+    pub fn object_classification(&self) -> ObjectClassification {
+        self.object_classification
     }
 }
 

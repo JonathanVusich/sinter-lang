@@ -4,6 +4,7 @@
 #![feature(test)]
 #![feature(allocator_api)]
 #![feature(new_uninit)]
+#![feature(fn_traits)]
 
 pub mod stack;
 pub mod opcode;

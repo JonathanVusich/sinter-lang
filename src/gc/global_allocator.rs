@@ -1,12 +1,15 @@
 use crate::gc::block::{Block, BLOCK_SIZE};
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
-use std::alloc::AllocError;
+use std::alloc::{AllocError, Layout, Global, Allocator, alloc_zeroed, System};
 use std::sync::atomic::Ordering::{SeqCst, Relaxed, Acquire};
 use std::mem::MaybeUninit;
+use crate::pointers::heap_pointer::HeapPointer;
+use crate::object::class::Class;
 
 pub struct GlobalAllocator {
     max_size: usize,
-    current_allocation: AtomicUsize
+    current_allocation: AtomicUsize,
+    reclaimed_blocks: Vec<Box<Block>>
 }
 
 
@@ -15,7 +18,8 @@ impl GlobalAllocator {
     pub fn new(size: usize) -> Self {
         GlobalAllocator {
             max_size: size * BLOCK_SIZE,
-            current_allocation: AtomicUsize::new(0)
+            current_allocation: AtomicUsize::new(0),
+            reclaimed_blocks: vec![]
         }
     }
 
@@ -25,7 +29,24 @@ impl GlobalAllocator {
             let block = Block::try_allocate()?;
             Ok(block)
         } else {
-            self.current_allocation.store(self.max_size, SeqCst);
+            self.current_allocation.fetch_sub(BLOCK_SIZE, SeqCst);
+            Err(AllocError {})
+        }
+    }
+
+    pub fn deallocate_block(&mut self, block: Box<Block>) {
+        self.current_allocation.fetch_sub(BLOCK_SIZE, SeqCst);
+        self.reclaimed_blocks.push(block);
+    }
+
+    pub fn allocate_large_object<A: Allocator>(&self, class: &Class) -> Result<HeapPointer, AllocError> {
+        let current_alloc = self.current_allocation.fetch_add(class.object_size(), SeqCst);
+        if current_alloc + class.object_size() <= self.max_size {
+            let layout = Layout::array::<u8>(class.object_size()).unwrap();
+            let ptr = Global.allocate_zeroed(layout)?;
+            Ok(HeapPointer::new(class, ptr.cast().as_ptr()))
+        } else {
+            self.current_allocation.fetch_sub(class.object_size(), SeqCst);
             Err(AllocError {})
         }
     }

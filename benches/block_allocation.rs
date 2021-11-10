@@ -9,9 +9,9 @@ fn small_class_allocation(c: &mut Criterion) {
 
     c.bench_function("Small class allocation", |b| b.iter(|| {
         let mut block = black_box(Block::try_allocate().unwrap());
-        let mut heap_ptr = block.allocate(&small_class);
+        let mut heap_ptr = block.allocate_small(&small_class);
         while heap_ptr.is_some() {
-            heap_ptr = block.allocate(&small_class);
+            heap_ptr = block.allocate_small(&small_class);
         }
         heap_ptr
     }));
@@ -23,9 +23,9 @@ fn large_class_allocation(c: &mut Criterion) {
 
     c.bench_function("Large class allocation", |b| b.iter(|| {
         let mut block = black_box(Block::try_allocate().unwrap());
-        let mut heap_ptr = block.allocate(&small_class);
+        let mut heap_ptr = block.allocate_small(&small_class);
         while heap_ptr.is_some() {
-            heap_ptr = block.allocate(&small_class);
+            heap_ptr = block.allocate_small(&small_class);
         }
         heap_ptr
     }));
