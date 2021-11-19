@@ -1,13 +1,13 @@
 use crate::gc::block::{LINE_SIZE, BLOCK_SIZE};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum ObjectClassification {
+pub enum SizeClass {
     Small,
     Medium,
     Large
 }
 
-impl ObjectClassification {
+impl SizeClass {
 
     pub fn from(object_size: usize) -> Self {
         if object_size <= LINE_SIZE {

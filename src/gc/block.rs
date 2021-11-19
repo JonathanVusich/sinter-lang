@@ -5,7 +5,7 @@ use crate::gc::block_state::BlockState;
 use std::alloc::AllocError;
 use std::ptr::addr_of;
 use std::ptr::addr_of_mut;
-use crate::object::object_classification::ObjectClassification;
+use crate::object::size_class::SizeClass;
 
 /// The number of bytes in a block.
 pub const BLOCK_SIZE: usize = 1024 * 1024;
@@ -34,8 +34,8 @@ unsafe impl Sync for Block {}
 
 impl Block {
 
-    pub fn try_allocate() -> Result<Box<Block>, AllocError> {
-        let mut block = Box::<Block>::try_new_uninit()?;
+    pub fn boxed() -> Box<Block> {
+        let mut block = Box::<Block>::new_uninit();
         let block_ptr = block.as_mut_ptr();
 
         unsafe {
@@ -49,13 +49,11 @@ impl Block {
             end_address_ptr.write((*lines_ptr).as_ptr().add(BYTES_PER_BLOCK));
             cursor_ptr.write((*lines_ptr).as_mut_ptr());
             block_state_ptr.write(BlockState::Free);
-            let safe_block = block.assume_init();
-            Ok(safe_block)
+            block.assume_init()
         }
     }
 
     pub fn allocate(&mut self, class: &Class) -> Option<HeapPointer> {
-        todo!("Return an error to specify whether we need to overflow or set a new block");
         let object_start = self.cursor;
         let end_cursor = end_cursor(self.cursor, class.object_size());
 
@@ -64,7 +62,7 @@ impl Block {
             let heap_pointer = HeapPointer::new(class, object_start);
 
             let start_line = self.line_for_address(object_start);
-            if class.object_classification() == ObjectClassification::Small {
+            if class.size_class() == SizeClass::Small {
                 self.line_map.increment(start_line as usize)
             } else {
                 let end_line = self.line_for_address(end_of_object(object_start, class.object_size()));
@@ -130,7 +128,7 @@ mod tests {
 
     #[test]
     pub fn constructor() {
-        let mut block = Block::try_allocate().unwrap();
+        let mut block = Block::boxed();
 
         for i in 0..LINES_PER_BLOCK {
             block.line_map.increment(i);
@@ -151,7 +149,7 @@ mod tests {
 
     #[test]
     pub fn simple_allocation() {
-        let mut block = Block::try_allocate().unwrap();
+        let mut block = Block::boxed();
 
         let mut start_cursor = block.cursor;
 
@@ -179,7 +177,7 @@ mod tests {
 
     #[test]
     pub fn allocation_mutation() {
-        let mut block = Block::try_allocate().unwrap();
+        let mut block = Block::boxed();
 
         let class = Class::new(16);
 
@@ -198,7 +196,7 @@ mod tests {
 
     #[test]
     pub fn spans_lines() {
-        let mut block = Block::try_allocate().unwrap();
+        let mut block = Block::boxed();
 
         let class_half_line = Class::new(LINE_SIZE / 2);
         let class_full_line = Class::new(LINE_SIZE);
@@ -222,7 +220,7 @@ mod tests {
 
     #[test]
     pub fn allocate_single_object() {
-        let mut block = Block::try_allocate().unwrap();
+        let mut block = Block::boxed();
 
         let class = Class::new(BYTES_PER_BLOCK);
 

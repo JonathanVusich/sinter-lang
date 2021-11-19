@@ -8,8 +8,6 @@
 
 pub mod stack;
 pub mod opcode;
-pub mod gc_arena;
-pub mod memory;
 pub mod gc;
 pub mod pointers;
 pub mod object;

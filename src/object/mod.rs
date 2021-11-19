@@ -1,3 +1,3 @@
 pub mod object;
 pub mod class;
-pub mod object_classification;
+pub mod size_class;
