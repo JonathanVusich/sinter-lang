@@ -1,15 +1,14 @@
 use std::sync::Arc;
-use crate::gc::global_allocator::GlobalAllocator;
+use std::thread::Thread;
 
 pub struct GarbageCollector {
-    global_allocator: Arc<GlobalAllocator>
+
 }
 
 impl GarbageCollector {
 
-    pub fn new(global_allocator: Arc<GlobalAllocator>) -> Self {
+    pub fn new() -> Self {
         GarbageCollector {
-            global_allocator
         }
     }
 

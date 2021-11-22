@@ -11,6 +11,7 @@ channel = "stable"
 
 [dependencies]
 rand = "0.8.4"
+bit-set = "0.5.2"
 
 [dev-dependencies]
 criterion = "0.3.5"

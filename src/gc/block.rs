@@ -1,11 +1,12 @@
-use crate::gc::byte_map::ByteMap;
-use crate::object::class::Class;
-use crate::pointers::heap_pointer::HeapPointer;
-use crate::gc::block_state::BlockState;
 use std::alloc::AllocError;
 use std::ptr::addr_of;
 use std::ptr::addr_of_mut;
+
+use crate::gc::block_state::BlockState;
+use crate::gc::byte_map::ByteMap;
+use crate::object::class::Class;
 use crate::object::size_class::SizeClass;
+use crate::pointers::heap_pointer::HeapPointer;
 
 /// The number of bytes in a block.
 pub const BLOCK_SIZE: usize = 1024 * 1024;
@@ -34,8 +35,8 @@ unsafe impl Sync for Block {}
 
 impl Block {
 
-    pub fn boxed() -> Box<Block> {
-        let mut block = Box::<Block>::new_uninit();
+    pub fn boxed() -> Result<Box<Block>, AllocError> {
+        let mut block = Box::<Block>::try_new_uninit()?;
         let block_ptr = block.as_mut_ptr();
 
         unsafe {
@@ -49,7 +50,7 @@ impl Block {
             end_address_ptr.write((*lines_ptr).as_ptr().add(BYTES_PER_BLOCK));
             cursor_ptr.write((*lines_ptr).as_mut_ptr());
             block_state_ptr.write(BlockState::Free);
-            block.assume_init()
+            Ok(block.assume_init())
         }
     }
 
@@ -116,9 +117,9 @@ mod tests {
 
     extern crate test;
 
-    use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK, LINES_PER_BLOCK, LINE_SIZE};
-    use crate::object::class::Class;
+    use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK, LINE_SIZE, LINES_PER_BLOCK};
     use crate::gc::block_state::BlockState;
+    use crate::object::class::Class;
 
     #[test]
     pub fn size() {
@@ -128,7 +129,7 @@ mod tests {
 
     #[test]
     pub fn constructor() {
-        let mut block = Block::boxed();
+        let mut block = Block::boxed().unwrap();
 
         for i in 0..LINES_PER_BLOCK {
             block.line_map.increment(i);
@@ -149,7 +150,7 @@ mod tests {
 
     #[test]
     pub fn simple_allocation() {
-        let mut block = Block::boxed();
+        let mut block = Block::boxed().unwrap();
 
         let mut start_cursor = block.cursor;
 
@@ -177,7 +178,7 @@ mod tests {
 
     #[test]
     pub fn allocation_mutation() {
-        let mut block = Block::boxed();
+        let mut block = Block::boxed().unwrap();
 
         let class = Class::new(16);
 
@@ -196,7 +197,7 @@ mod tests {
 
     #[test]
     pub fn spans_lines() {
-        let mut block = Block::boxed();
+        let mut block = Block::boxed().unwrap();
 
         let class_half_line = Class::new(LINE_SIZE / 2);
         let class_full_line = Class::new(LINE_SIZE);
@@ -220,7 +221,7 @@ mod tests {
 
     #[test]
     pub fn allocate_single_object() {
-        let mut block = Block::boxed();
+        let mut block = Block::boxed().unwrap();
 
         let class = Class::new(BYTES_PER_BLOCK);
 

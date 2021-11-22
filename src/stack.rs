@@ -1,40 +1,46 @@
 use std::convert::TryInto;
+use bit_set::BitSet;
+use crate::pointers::heap_pointer::HeapPointer;
+use crate::values::value::Value;
+
+pub const STACK_SIZE: usize = 2_000_000;
 
 #[derive(Debug)]
 pub (crate) struct Stack {
-    internal: Vec<u8>
+    internal: [u8; STACK_SIZE],
+    index: usize,
+    stack_map: BitSet
 }
 
 impl Stack {
 
-    pub (crate) fn new() -> Stack {
-        return Stack {
-            internal: vec![]
+    pub (crate) fn new() -> Self {
+        Stack {
+            internal: [0; STACK_SIZE],
+            index: 0,
+            stack_map: BitSet::with_capacity(STACK_SIZE)
         }
     }
 
-    pub (crate) fn push_i64(&mut self, val: &i64) {
-        self.internal.extend_from_slice(&val.to_ne_bytes());
+    pub fn push_value<const L: usize, T: Value<L>>(&mut self, value: T) {
+        let bytes = value.to_bytes();
+        for i in 0..T::len() {
+            self.internal[self.index + i] = bytes[i]
+        }
+        if T::is_reference_type() {
+            self.stack_map.insert(self.index);
+        }
+        self.index += T::len();
+
     }
 
-    pub (crate) fn push_f64(&mut self, val: &f64) {
-        self.internal.extend_from_slice(&val.to_ne_bytes());
-    }
+    pub fn read_value<const L: usize, T: Value<L>>(&mut self) -> T {
+        let end = self.index;
+        self.index -= T::len();
+        let start = self.index;
 
-    pub (crate) fn read_i64(&mut self) -> i64 {
-        let index = self.internal.len() - 8;
-        let bytes: [u8; 8] = self.internal[index..].try_into().unwrap();
-        let long = i64::from_ne_bytes(bytes);
-        self.internal.truncate(index);
-        return long;
-    }
-
-    pub (crate) fn read_f64(&mut self) -> f64 {
-        let index = self.internal.len() - 8;
-        let bytes: [u8; 8] = self.internal[index..].try_into().unwrap();
-        let double = f64::from_ne_bytes(bytes);
-        self.internal.truncate(index);
-        return double;
+        let array: [u8; L] = self.internal[start..end].try_into().unwrap();
+        T::from_bytes(array)
     }
 }
 
@@ -43,18 +49,49 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_i64() {
+    fn read_and_write() {
         let mut stack = Stack::new();
-        stack.push_i64(&12);
-
-        assert_eq!(stack.read_i64(), 12);
+        stack.push_value(12i32);
+        assert_eq!(12i32, stack.read_value());
     }
 
     #[test]
-    fn test_f64() {
+    fn stack_map() {
         let mut stack = Stack::new();
-        stack.push_f64(&12.23);
+        stack.push_value(1i32);
+        stack.push_value(HeapPointer::from_address(0));
+        stack.push_value(HeapPointer::from_address(0));
+        stack.push_value(HeapPointer::from_address(0));
 
-        assert_eq!(stack.read_f64(), 12.23);
+        stack.push_value(3i64);
+
+        let mut expected_bitset = BitSet::new();
+        expected_bitset.insert(4);
+        expected_bitset.insert(12);
+        expected_bitset.insert(20);
+
+        assert_eq!(expected_bitset, stack.stack_map);
+
+        let num: i64 = stack.read_value();
+
+        let mut pointer: HeapPointer = stack.read_value();
+        pointer = stack.read_value();
+        pointer = stack.read_value();
+
+        let small_num: i32 = stack.read_value();
+
+        assert_eq!(num, 3);
+        assert_eq!(small_num, 1);
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_uninit_value() {
+        std::panic::set_hook(Box::new(|info| {
+
+        }));
+
+        let mut stack = Stack::new();
+        let val: i32 = stack.read_value();
     }
 }

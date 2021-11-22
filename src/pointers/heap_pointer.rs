@@ -20,6 +20,11 @@ impl HeapPointer {
         heap_pointer
     }
 
+    pub fn from_address(address: u64) -> Self {
+        let ptr: *mut u8 = address as _;
+        HeapPointer { ptr }
+    }
+
     pub fn start_address(&self) -> *mut u64 {
         unsafe {
             self.ptr.cast::<u64>().offset(1)
