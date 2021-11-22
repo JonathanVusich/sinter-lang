@@ -130,6 +130,12 @@ impl HeapPointer {
     }
 }
 
+impl From<HeapPointer> for u64 {
+    fn from(ptr: HeapPointer) -> Self {
+        ptr.ptr as u64
+    }
+}
+
 mod tests {
     use crate::object::class::Class;
     use crate::pointers::heap_pointer::HeapPointer;
