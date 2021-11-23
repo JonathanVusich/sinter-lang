@@ -1,11 +1,13 @@
 use crate::gc::block::{LINE_SIZE, BLOCK_SIZE};
 use crate::class::size_class::SizeClass;
+use crate::pointers::heap_pointer::HeapPointer;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Class {
     object_size: usize,
     object_classification: SizeClass,
     mark_word: u8,
+    static_roots: Vec<HeapPointer>
 }
 
 impl Class {
@@ -21,8 +23,13 @@ impl Class {
         Class {
             object_size,
             object_classification: SizeClass::from(object_size),
-            mark_word
+            mark_word,
+            static_roots: vec![]
         }
+    }
+
+    pub fn static_roots(&self) -> &Vec<HeapPointer> {
+        &self.static_roots
     }
 
     pub fn mark_word(&self) -> u8 {

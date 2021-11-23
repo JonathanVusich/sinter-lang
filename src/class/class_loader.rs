@@ -5,8 +5,8 @@ pub struct ClassLoader {
 }
 
 impl ClassLoader {
-    
-    pub fn classes<'a>(&'a self) -> impl Iterator<Item = &Class> + 'a {
-        self.classes.iter()
+
+    pub fn classes(&self) -> &Vec<Class> {
+        &self.classes
     }
 }

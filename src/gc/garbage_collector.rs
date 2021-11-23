@@ -23,5 +23,11 @@ impl GarbageCollector {
         for thread_stack in stacks.as_slice() {
 
         }
+
+        for class in self.class_loader.classes() {
+            for root in class.static_roots() {
+
+            }
+        }
     }
 }
