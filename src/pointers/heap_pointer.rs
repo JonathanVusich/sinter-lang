@@ -1,8 +1,10 @@
+use std::ops::Deref;
 use std::ptr::NonNull;
 use crate::object::class::Class;
 use crate::pointers::tagged_pointer::TaggedPointer;
 use crate::pointers::pointer::Pointer;
 
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct HeapPointer {
     ptr: *mut u8,
 }

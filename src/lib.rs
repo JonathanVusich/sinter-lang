@@ -4,9 +4,8 @@
 #![feature(test)]
 #![feature(allocator_api)]
 #![feature(new_uninit)]
-// #![feature(adt_const_params)]
 #![feature(generic_const_exprs)]
-// #![feature(fn_traits)]
+#![feature(type_alias_impl_trait)]
 
 pub mod stack;
 pub mod opcode;
