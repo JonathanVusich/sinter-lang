@@ -80,7 +80,7 @@ impl<'a> Iterator for RootIterator<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::object::class::Class;
+    use crate::class::class::Class;
 
     use super::*;
 

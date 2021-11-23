@@ -1,6 +1,6 @@
 use std::ops::Deref;
 use std::ptr::NonNull;
-use crate::object::class::Class;
+use crate::class::class::Class;
 use crate::pointers::tagged_pointer::TaggedPointer;
 use crate::pointers::pointer::Pointer;
 
@@ -139,7 +139,7 @@ impl From<HeapPointer> for u64 {
 }
 
 mod tests {
-    use crate::object::class::Class;
+    use crate::class::class::Class;
     use crate::pointers::heap_pointer::HeapPointer;
     use crate::gc::block::LINE_SIZE;
 

@@ -1,5 +1,5 @@
 use crate::gc::block::{LINE_SIZE, BLOCK_SIZE};
-use crate::object::size_class::SizeClass;
+use crate::class::size_class::SizeClass;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Class {

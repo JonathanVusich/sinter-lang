@@ -1,13 +1,13 @@
 use std::alloc::{Allocator, AllocError, Global, Layout};
 use std::sync::Arc;
 
+use crate::class::class::Class;
+use crate::class::size_class::SizeClass;
 use crate::gc::block::Block;
 use crate::gc::garbage_collector::GarbageCollector;
-use crate::object::class::Class;
-use crate::object::size_class::SizeClass;
 use crate::pointers::heap_pointer::HeapPointer;
 
-struct ThreadAllocator {
+pub struct ThreadAllocator {
     garbage_collector: Arc<GarbageCollector>,
     current_block: Option<Box<Block>>,
     overflow_block: Option<Box<Block>>,
@@ -24,17 +24,17 @@ impl ThreadAllocator {
         }
     }
 
-    pub fn allocate(&mut self, class: &Class) -> HeapPointer {
-        let ptr = match class.size_class() {
+    pub fn allocate(&mut self, object: &Class) -> HeapPointer {
+        let ptr = match object.size_class() {
             SizeClass::Small | SizeClass::Medium => {
                 let block = self.get_current_block();
-                let possible_alloc = block.allocate(class);
+                let possible_alloc = block.allocate(object);
 
                 match possible_alloc {
                     Some(ptr) => ptr,
                     None => {
                         let overflow_block = self.get_overflow_block();
-                        let overflow_alloc = overflow_block.allocate(class);
+                        let overflow_alloc = overflow_block.allocate(object);
                         let pointer: HeapPointer = match overflow_alloc {
                             Some(overflow_ptr) => {
                                 overflow_ptr
@@ -42,14 +42,14 @@ impl ThreadAllocator {
                             None => {
                                 self.blocks_in_use.push(self.overflow_block.take().unwrap());
                                 let new_overflow = self.get_overflow_block();
-                                new_overflow.allocate(class).unwrap()
+                                new_overflow.allocate(object).unwrap()
                             }
                         };
                         return pointer;
                     }
                 }
             }
-            SizeClass::Large => self.allocate_large_object(class),
+            SizeClass::Large => self.allocate_large_object(object),
         };
         ptr
     }
@@ -63,7 +63,7 @@ impl ThreadAllocator {
     }
 
     fn allocate_block(&self) -> Box<Block> {
-        return match Block::boxed() {
+        match Block::boxed() {
             Ok(block) => block,
             Err(error) => {
                 self.garbage_collector.collect();

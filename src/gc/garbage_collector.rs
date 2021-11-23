@@ -1,16 +1,20 @@
 use std::sync::{Arc, Mutex};
 use std::thread::Thread;
-use crate::stack::ThreadStack;
+use crate::class::class_loader::ClassLoader;
+use crate::gc::thread_allocator::ThreadAllocator;
+use crate::thread_stack::ThreadStack;
 
 pub struct GarbageCollector {
-    thread_stacks: Mutex<Vec<ThreadStack>>
+    thread_stacks: Mutex<Vec<Arc<ThreadStack>>>,
+    class_loader: Arc<ClassLoader>
 }
 
 impl GarbageCollector {
 
-    pub fn new() -> Self {
+    pub fn new(class_loader: Arc<ClassLoader>) -> Self {
         GarbageCollector {
-            thread_stacks: Mutex::new(vec![])
+            thread_stacks: Mutex::new(vec![]),
+            class_loader
         }
     }
 

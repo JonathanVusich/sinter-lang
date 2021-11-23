@@ -7,10 +7,10 @@
 #![feature(generic_const_exprs)]
 #![feature(type_alias_impl_trait)]
 
-pub mod stack;
+pub mod thread_stack;
 pub mod opcode;
 pub mod gc;
 pub mod pointers;
-pub mod object;
+pub mod class;
 pub mod util;
 pub mod values;

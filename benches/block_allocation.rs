@@ -1,4 +1,4 @@
-use flux_lang::object::class::Class;
+use flux_lang::class::class::Class;
 use flux_lang::gc::block::Block;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};

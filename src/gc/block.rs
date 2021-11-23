@@ -4,8 +4,8 @@ use std::ptr::addr_of_mut;
 
 use crate::gc::block_state::BlockState;
 use crate::gc::byte_map::ByteMap;
-use crate::object::class::Class;
-use crate::object::size_class::SizeClass;
+use crate::class::class::Class;
+use crate::class::size_class::SizeClass;
 use crate::pointers::heap_pointer::HeapPointer;
 
 /// The number of bytes in a block.
@@ -117,9 +117,9 @@ mod tests {
 
     extern crate test;
 
+    use crate::class::class::Class;
     use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK, LINE_SIZE, LINES_PER_BLOCK};
     use crate::gc::block_state::BlockState;
-    use crate::object::class::Class;
 
     #[test]
     pub fn size() {

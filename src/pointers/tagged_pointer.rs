@@ -169,7 +169,7 @@ mod tests {
     use std::ops::Shl;
 
     use super::*;
-    use crate::object::class::Class;
+    use crate::class::class::Class;
 
     use test::Bencher;
     use test::black_box;
