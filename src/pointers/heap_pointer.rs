@@ -1,8 +1,10 @@
 use std::ops::Deref;
 use std::ptr::NonNull;
+
 use crate::class::class::Class;
-use crate::pointers::tagged_pointer::TaggedPointer;
+use crate::class::reference_field::ReferenceField;
 use crate::pointers::pointer::Pointer;
+use crate::pointers::tagged_pointer::TaggedPointer;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct HeapPointer {
@@ -27,48 +29,34 @@ impl HeapPointer {
         HeapPointer { ptr }
     }
 
-    pub fn start_address(&self) -> *mut u64 {
+    pub fn start_address(&self) -> Pointer<u8> {
         unsafe {
-            self.ptr.cast::<u64>().offset(1)
+            Pointer::from_raw(self.ptr.offset(8))
         }
     }
 
-    pub fn increment_ref_count(&mut self) {
-        let mut class_pointer = self.tagged_class_pointer();
-        let mut mark_word = class_pointer.get_mark_word();
-        let mut ref_count = mark_word >> 5;
-
-        if ref_count < 7 {
-            ref_count += 1;
-        }
-
-        ref_count <<= 5;
-
-        mark_word &= !0xe0;
-
-        let result = ref_count | mark_word;
-
-        class_pointer.set_mark_word(result);
-        self.write_class_pointer(class_pointer);
+    pub fn clear_ref_count(&self) {
+        self.alter_ref_count(move |ref_count| 0)
     }
 
-    pub fn decrement_ref_count(&mut self) {
-        let mut class_pointer = self.tagged_class_pointer();
-        let mut mark_word = class_pointer.get_mark_word();
-        let mut ref_count = mark_word >> 5;
+    pub fn increment_ref_count(&self) {
+        self.alter_ref_count(move |ref_count| {
+            if ref_count < 7 {
+                ref_count + 1
+            } else {
+                ref_count
+            }
+        })
+    }
 
-        if ref_count > 0 {
-            ref_count -= 1;
-        }
-
-        ref_count <<= 5;
-
-        mark_word &= !0xe0;
-
-        let result = ref_count | mark_word;
-
-        class_pointer.set_mark_word(result);
-        self.write_class_pointer(class_pointer);
+    pub fn decrement_ref_count(&self) {
+        self.alter_ref_count(move |ref_count| {
+            if ref_count > 0 {
+                ref_count - 1
+            } else {
+                ref_count
+            }
+        })
     }
 
     pub fn ref_count(&self) -> u8 {
@@ -93,23 +81,33 @@ impl HeapPointer {
         self.tagged_class_pointer().is_bit_set(7)
     }
 
-    pub fn mark_forwarded(&mut self) {
+    pub fn mark_forwarded(&self) {
         let mut class_pointer = self.tagged_class_pointer();
         class_pointer.set_bit(7);
         class_pointer.set_bit(8);
         self.write_class_pointer(class_pointer);
     }
 
-    pub fn mark_being_forwarded(&mut self) {
+    pub fn mark_being_forwarded(&self) {
         let mut class_pointer = self.tagged_class_pointer();
         class_pointer.set_bit(7);
         self.write_class_pointer(class_pointer);
     }
 
     pub fn class_pointer(&self) -> Pointer<Class> {
-        Pointer::from_address(self.class_address())
+        let mut ptr = self.class_address() as isize;
+        // Clear out tags
+        ptr <<= 16;
+        ptr >>= 16;
+
+        let pointer: *mut Class = ptr as _;
+
+        Pointer::from_raw(pointer)
     }
 
+    /// # Safety
+    ///
+    /// This function is completely safe since the internal pointer is guaranteed to be valid.
     pub unsafe fn to_raw(&self) -> NonNull<u8> {
         NonNull::new_unchecked(self.ptr)
     }
@@ -125,10 +123,27 @@ impl HeapPointer {
         }
     }
 
-    fn write_class_pointer(&mut self, class_pointer: TaggedPointer<Class>) {
+    fn write_class_pointer(&self, class_pointer: TaggedPointer<Class>) {
         unsafe {
             self.ptr.cast::<u64>().write(class_pointer.into())
         }
+    }
+
+    fn alter_ref_count<F: FnOnce(u8) -> u8>(&self, ref_func: F) {
+        let mut class_pointer = self.tagged_class_pointer();
+        let mut mark_word = class_pointer.get_mark_word();
+        let mut ref_count = mark_word >> 5;
+
+        ref_count = ref_func(ref_count);
+
+        ref_count <<= 5;
+
+        mark_word &= !0xe0;
+
+        let result = ref_count | mark_word;
+
+        class_pointer.set_mark_word(result);
+        self.write_class_pointer(class_pointer);
     }
 }
 
@@ -140,8 +155,8 @@ impl From<HeapPointer> for u64 {
 
 mod tests {
     use crate::class::class::Class;
-    use crate::pointers::heap_pointer::HeapPointer;
     use crate::gc::block::LINE_SIZE;
+    use crate::pointers::heap_pointer::HeapPointer;
 
     #[test]
     pub fn constructor() {
@@ -190,7 +205,7 @@ mod tests {
 
         let class = Class::new(2);
 
-        let mut heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
+        let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
         // Clear out mark word
         let mut tagged_ptr = heap_pointer.tagged_class_pointer();

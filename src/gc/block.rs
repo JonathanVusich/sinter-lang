@@ -186,13 +186,11 @@ mod tests {
 
         let raw_ptr = pointer.start_address();
 
-        unsafe {
-            raw_ptr.write(123);
-            raw_ptr.add(1).write(234);
+        raw_ptr.write(123);
+        raw_ptr.add(1).write(234);
 
-            assert_eq!(123, raw_ptr.read());
-            assert_eq!(234, raw_ptr.offset(1).read())
-        }
+        assert_eq!(123, raw_ptr.read());
+        assert_eq!(234, raw_ptr.add(1).read())
     }
 
     #[test]

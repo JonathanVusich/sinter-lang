@@ -1,13 +1,21 @@
-use crate::gc::block::{LINE_SIZE, BLOCK_SIZE};
+use std::ptr::NonNull;
+use std::slice::Iter;
+use crate::class::field::Field;
+use crate::class::reference_field::ReferenceField;
+
 use crate::class::size_class::SizeClass;
+use crate::gc::block::{BLOCK_SIZE, LINE_SIZE};
 use crate::pointers::heap_pointer::HeapPointer;
+use crate::pointers::pointer::Pointer;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Class {
     object_size: usize,
     object_classification: SizeClass,
     mark_word: u8,
-    static_roots: Vec<HeapPointer>
+    static_roots: Vec<HeapPointer>,
+    fields: Vec<Field>,
+    references: Vec<ReferenceField>
 }
 
 impl Class {
@@ -24,12 +32,18 @@ impl Class {
             object_size,
             object_classification: SizeClass::from(object_size),
             mark_word,
-            static_roots: vec![]
+            static_roots: vec![],
+            fields: vec![],
+            references: vec![]
         }
     }
 
-    pub fn static_roots(&self) -> &Vec<HeapPointer> {
-        &self.static_roots
+    pub fn static_roots(&self) -> impl Iterator<Item = HeapPointer> + '_ {
+        self.static_roots.as_slice().iter().copied()
+    }
+
+    pub fn references(&self) -> impl Iterator<Item = &ReferenceField> + '_ {
+        self.references.as_slice().iter()
     }
 
     pub fn mark_word(&self) -> u8 {

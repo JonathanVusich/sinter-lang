@@ -7,20 +7,37 @@ pub struct Pointer<T> {
 
 impl<T> Pointer<T> {
     pub fn new(value: &T) -> Self {
-        Pointer {
+        Self {
             pointer: value as *const T as *mut T,
         }
     }
 
-    pub fn from_address(address: u64) -> Self {
-        let mut ptr = address as isize;
-        // Clear out tags
-        ptr <<= 16;
-        ptr >>= 16;
-
-        Pointer {
+    pub fn from_raw(ptr: *mut T) -> Self {
+        Self {
             pointer: ptr as _
         }
+    }
+
+    pub fn add(&self, offset: usize) -> Self {
+        let offset_ptr = unsafe { self.pointer.add(offset) };
+        Self {
+            pointer: offset_ptr
+        }
+    }
+
+    pub fn cast<U>(&self) -> Pointer<U> {
+        let cast_ptr: *mut U = self.pointer.cast();
+        Pointer {
+            pointer: cast_ptr
+        }
+    }
+
+    pub fn read(&self) -> T {
+        unsafe { self.pointer.read() }
+    }
+
+    pub fn write(&self, value: T) {
+        unsafe { self.pointer.write(value) }
     }
 }
 

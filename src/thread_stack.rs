@@ -100,7 +100,7 @@ mod tests {
         let ptr: *mut i128 = &mut heap_value;
         let heap_ptr = HeapPointer::new(&Class::new(8), ptr.cast());
 
-        unsafe { heap_ptr.start_address().write(123) };
+        heap_ptr.start_address().write(123);
 
         stack.push_value(heap_ptr);
         stack.push_value(heap_ptr);
@@ -119,11 +119,11 @@ mod tests {
 
         let mut pointer: HeapPointer = stack.read_value();
         assert_eq!(heap_ptr, pointer);
-        unsafe { assert_eq!(123, pointer.start_address().read()) };
+        assert_eq!(123, pointer.start_address().read());
         pointer = stack.read_value();
-        unsafe { assert_eq!(123, pointer.start_address().read()) };
+        assert_eq!(123, pointer.start_address().read());
         pointer = stack.read_value();
-        unsafe { assert_eq!(123, pointer.start_address().read()) };
+        assert_eq!(123, pointer.start_address().read());
 
         let small_num: i32 = stack.read_value();
 
@@ -143,7 +143,7 @@ mod tests {
         let ptr: *mut i128 = &mut heap_value;
         let heap_ptr = HeapPointer::new(&Class::new(8), ptr.cast());
 
-        unsafe { heap_ptr.start_address().write(12345u64) };
+        heap_ptr.start_address().cast::<u64>().write(12345u64);
 
         stack.push_value(heap_ptr);
 
@@ -159,7 +159,7 @@ mod tests {
         assert_eq!(3, gc_roots.len());
 
         for ptr in gc_roots {
-            assert_eq!(12345, unsafe { ptr.start_address().read() });
+            assert_eq!(12345, ptr.start_address().cast::<u64>().read());
         }
     }
 

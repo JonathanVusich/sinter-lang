@@ -54,6 +54,10 @@ impl ThreadAllocator {
         ptr
     }
 
+    pub fn sweep_garbage(&self) {
+        todo!()
+    }
+
     fn get_overflow_block(&mut self) -> &mut Box<Block> {
         self.overflow_block.get_or_insert(self.allocate_block())
     }
