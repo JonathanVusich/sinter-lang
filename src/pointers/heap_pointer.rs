@@ -5,6 +5,7 @@ use std::ptr::NonNull;
 use crate::class::class::Class;
 use crate::class::reference_field::ReferenceField;
 use crate::gc::block::{Block, BLOCK_BYTEMASK};
+use crate::gc::byte_map::ByteMap;
 use crate::pointers::pointer::Pointer;
 use crate::pointers::tagged_pointer::TaggedPointer;
 
@@ -50,7 +51,10 @@ impl HeapPointer {
     }
 
     pub fn mark(&self) {
-        self.tagged_class_pointer().set_bit(4)
+        let mut tagged_class_ptr = self.tagged_class_pointer();
+        tagged_class_ptr.set_bit(4);
+
+        self.block().mark(self, tagged_class_ptr);
     }
 
     pub fn spans_lines(&self) -> bool {

@@ -71,11 +71,11 @@ impl Block {
 
             let start_line = self.line_for_address(object_start);
             if class.size_class() == SizeClass::Small {
-                self.line_map.increment(start_line as usize)
+                self.line_map.mark(start_line as usize)
             } else {
                 let end_line = self.line_for_address(end_of_object(object_start, class.object_size()));
                 for i in start_line..=end_line {
-                    self.line_map.increment(i as usize);
+                    self.line_map.mark(i as usize);
                 }
             }
             Some(heap_pointer)
@@ -83,6 +83,8 @@ impl Block {
             None
         }
     }
+
+    pub fn
 
     #[inline(always)]
     fn line_for_address(&self, address: *mut u8) -> isize {
@@ -141,9 +143,9 @@ mod tests {
         let mut block = Block::boxed().unwrap();
 
         for i in 0..LINES_PER_BLOCK {
-            block.line_map.increment(i);
+            block.line_map.mark(i);
             assert_eq!(block.line_map.get_ref_count(i), 1);
-            block.line_map.decrement(i);
+            block.line_map.clear(i);
             assert_eq!(block.line_map.get_ref_count(i), 0);
         }
 
@@ -263,7 +265,5 @@ mod tests {
                 }
             }
         }
-
-
     }
 }

@@ -1,6 +1,6 @@
 use crate::gc::block::LINES_PER_BLOCK;
 
-pub (crate) struct ByteMap {
+pub struct ByteMap {
     map: [u8; LINES_PER_BLOCK]
 }
 
@@ -9,16 +9,16 @@ impl ByteMap {
         ByteMap { map: [0; LINES_PER_BLOCK] }
     }
 
-    pub fn increment(&mut self, line: usize) {
-        self.map[line] += 1;
+    pub fn mark(&mut self, line: usize) {
+        self.map[line] = 1;
     }
 
-    pub fn decrement(&mut self, line: usize) {
-        self.map[line] -= 1;
+    pub fn clear(&mut self, line: usize) {
+        self.map[line] = 0;
     }
 
-    pub fn get_ref_count(&self, line: usize) -> u8 {
-        self.map[line]
+    pub fn is_marked(&self, line: usize) -> bool {
+        self.map[line] == 1
     }
 }
 

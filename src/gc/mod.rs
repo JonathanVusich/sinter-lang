@@ -1,6 +1,6 @@
 pub mod block;
-mod byte_map;
-mod block_state;
-mod thread_allocator;
-mod garbage_collector;
+pub mod byte_map;
+pub mod block_state;
+pub mod thread_allocator;
+pub mod garbage_collector;
 

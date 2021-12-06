@@ -1,4 +1,7 @@
 use std::ops::{Deref, DerefMut};
+use crate::class::class::Class;
+use crate::pointers::heap_pointer::HeapPointer;
+use crate::pointers::tagged_pointer::TaggedPointer;
 
 pub struct Pointer<T> {
     /// The underlying raw pointer.
