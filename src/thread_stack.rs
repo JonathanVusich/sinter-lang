@@ -8,7 +8,7 @@ use crate::values::value::Value;
 pub const STACK_SIZE: usize = 1024 * 1024;
 
 #[derive(Debug)]
-pub (crate) struct ThreadStack {
+pub struct ThreadStack {
     internal: [u8; STACK_SIZE],
     index: usize,
     stack_map: BitSet

@@ -30,7 +30,3 @@ harness = false
 [[bench]]
 name = "pointer"
 harness = false
-
-[[bench]]
-name = "global_allocation"
-harness = false

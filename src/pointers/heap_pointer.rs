@@ -1,8 +1,10 @@
 use std::ops::Deref;
+use std::pin::Pin;
 use std::ptr::NonNull;
 
 use crate::class::class::Class;
 use crate::class::reference_field::ReferenceField;
+use crate::gc::block::{Block, BLOCK_BYTEMASK};
 use crate::pointers::pointer::Pointer;
 use crate::pointers::tagged_pointer::TaggedPointer;
 
@@ -35,37 +37,24 @@ impl HeapPointer {
         }
     }
 
-    pub fn clear_ref_count(&self) {
-        self.alter_ref_count(move |ref_count| 0)
+    pub fn is_young(&self) -> bool {
+        !self.is_old()
     }
 
-    pub fn increment_ref_count(&self) {
-        self.alter_ref_count(move |ref_count| {
-            if ref_count < 7 {
-                ref_count + 1
-            } else {
-                ref_count
-            }
-        })
+    pub fn is_old(&self) -> bool {
+        self.tagged_class_pointer().is_bit_set(3)
     }
 
-    pub fn decrement_ref_count(&self) {
-        self.alter_ref_count(move |ref_count| {
-            if ref_count > 0 {
-                ref_count - 1
-            } else {
-                ref_count
-            }
-        })
+    pub fn is_marked(&self) -> bool {
+        self.tagged_class_pointer().is_bit_set(4)
     }
 
-    pub fn ref_count(&self) -> u8 {
-        let class_pointer = self.tagged_class_pointer();
-        class_pointer.get_mark_word() >> 5
+    pub fn mark(&self) {
+        self.tagged_class_pointer().set_bit(4)
     }
 
     pub fn spans_lines(&self) -> bool {
-        self.tagged_class_pointer().is_bit_set(4)
+        self.tagged_class_pointer().is_bit_set(5)
     }
 
     pub fn is_new(&self) -> bool {
@@ -74,7 +63,7 @@ impl HeapPointer {
 
     pub fn is_forwarded(&self) -> bool {
         let tagged_pointer = self.tagged_class_pointer();
-        tagged_pointer.is_bit_set(7) || tagged_pointer.is_bit_set(8)
+        tagged_pointer.is_bit_set(7) && tagged_pointer.is_bit_set(8)
     }
 
     pub fn is_being_forwarded(&self) -> bool {
@@ -105,11 +94,18 @@ impl HeapPointer {
         Pointer::from_raw(pointer)
     }
 
+    pub fn block(&self) -> Pointer<Block> {
+        let address = self.ptr as usize & BLOCK_BYTEMASK;
+
+        let block: *mut Block = address as _;
+        Pointer::from_raw(block)
+    }
+
     /// # Safety
     ///
     /// This function is completely safe since the internal pointer is guaranteed to be valid.
-    pub unsafe fn to_raw(&self) -> NonNull<u8> {
-        NonNull::new_unchecked(self.ptr)
+    pub fn to_raw(&self) -> NonNull<u8> {
+        unsafe { NonNull::new_unchecked(self.ptr) }
     }
 
     fn tagged_class_pointer(&self) -> TaggedPointer<Class> {
@@ -128,23 +124,6 @@ impl HeapPointer {
             self.ptr.cast::<u64>().write(class_pointer.into())
         }
     }
-
-    fn alter_ref_count<F: FnOnce(u8) -> u8>(&self, ref_func: F) {
-        let mut class_pointer = self.tagged_class_pointer();
-        let mut mark_word = class_pointer.get_mark_word();
-        let mut ref_count = mark_word >> 5;
-
-        ref_count = ref_func(ref_count);
-
-        ref_count <<= 5;
-
-        mark_word &= !0xe0;
-
-        let result = ref_count | mark_word;
-
-        class_pointer.set_mark_word(result);
-        self.write_class_pointer(class_pointer);
-    }
 }
 
 impl From<HeapPointer> for u64 {
@@ -155,7 +134,7 @@ impl From<HeapPointer> for u64 {
 
 mod tests {
     use crate::class::class::Class;
-    use crate::gc::block::LINE_SIZE;
+    use crate::gc::block::{Block, LINE_SIZE};
     use crate::pointers::heap_pointer::HeapPointer;
 
     #[test]
@@ -196,44 +175,6 @@ mod tests {
         let heap_pointer = HeapPointer::new(&large_class, raw_ptr.cast::<u8>());
 
         assert!(heap_pointer.spans_lines());
-    }
-
-    #[test]
-    pub fn ref_count() {
-        let mut val: u64 = 128;
-        let raw_ptr: *mut u64 = &mut val;
-
-        let class = Class::new(2);
-
-        let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
-
-        // Clear out mark word
-        let mut tagged_ptr = heap_pointer.tagged_class_pointer();
-        tagged_ptr.set_mark_word(1);
-        heap_pointer.write_class_pointer(tagged_ptr);
-
-        for x in 1..8 {
-            heap_pointer.increment_ref_count();
-            assert_eq!(((x as u8) << 5) + 1, heap_pointer.tagged_class_pointer().get_mark_word());
-        }
-
-        // Check overflow
-        assert_eq!(0b11100001, heap_pointer.tagged_class_pointer().get_mark_word());
-
-        heap_pointer.increment_ref_count();
-
-        assert_eq!(0b11100001, heap_pointer.tagged_class_pointer().get_mark_word());
-
-        for x in (0..7).rev() {
-            heap_pointer.decrement_ref_count();
-            assert_eq!(((x as u8) << 5) + 1, heap_pointer.tagged_class_pointer().get_mark_word());
-        }
-
-        assert_eq!(0b00000001, heap_pointer.tagged_class_pointer().get_mark_word());
-
-        heap_pointer.decrement_ref_count();
-
-        assert_eq!(0b00000001, heap_pointer.tagged_class_pointer().get_mark_word());
     }
 }
 

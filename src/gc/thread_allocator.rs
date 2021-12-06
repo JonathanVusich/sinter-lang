@@ -70,7 +70,7 @@ impl ThreadAllocator {
         match Block::boxed() {
             Ok(block) => block,
             Err(error) => {
-                self.garbage_collector.collect();
+                // self.garbage_collector.collect();
                 Block::boxed().unwrap() // Don't attempt to continue if this fails.
             }
         }
@@ -82,7 +82,7 @@ impl ThreadAllocator {
         let ptr = match Global.allocate(layout) {
             Ok(ptr) => ptr,
             Err(error) => {
-                self.garbage_collector.collect();
+                // self.garbage_collector.collect();
                 Global.allocate(layout).unwrap() // Don't attempt to continue if this fails.
             }
         };

@@ -25,7 +25,7 @@ impl Class {
         let mark_word: u8 = if small_object {
             0b00000100
         } else {
-            0b00010100
+            0b00001100
         };
 
         Class {

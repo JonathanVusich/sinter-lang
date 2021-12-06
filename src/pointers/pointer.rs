@@ -39,6 +39,10 @@ impl<T> Pointer<T> {
     pub fn write(&self, value: T) {
         unsafe { self.pointer.write(value) }
     }
+
+    pub fn to_raw(&self) -> *mut T {
+        self.pointer
+    }
 }
 
 impl<T> Deref for Pointer<T> {

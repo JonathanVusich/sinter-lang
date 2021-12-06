@@ -2,32 +2,39 @@ use std::alloc::AllocError;
 use std::ptr::addr_of;
 use std::ptr::addr_of_mut;
 
-use crate::gc::block_state::BlockState;
-use crate::gc::byte_map::ByteMap;
 use crate::class::class::Class;
 use crate::class::size_class::SizeClass;
+use crate::gc::block_state::BlockState;
+use crate::gc::byte_map::ByteMap;
 use crate::pointers::heap_pointer::HeapPointer;
+use crate::pointers::pointer::Pointer;
 
 /// The number of bytes in a block.
-pub const BLOCK_SIZE: usize = 1024 * 1024;
+pub const BLOCK_SIZE: usize = 256 * 1024;
 
 /// The number of bytes in single line.
 pub const LINE_SIZE: usize = 256;
 
 /// The number of lines in a block.
 /// We have to subtract three lines to make room for the line map and for the cursors.
-pub const LINES_PER_BLOCK: usize = (BLOCK_SIZE / LINE_SIZE) - 17;
+pub const LINES_PER_BLOCK: usize = (BLOCK_SIZE / LINE_SIZE) - 8;
 
 /// The number of bytes in a block.
 pub const BYTES_PER_BLOCK: usize = LINE_SIZE * LINES_PER_BLOCK;
 
+/// The mask to apply to go from a heap pointer to the block pointer.
+/// This is HIGHLY UNSAFE! There must be strict tests to ensure that this
+/// invariant is maintained.
+pub const BLOCK_BYTEMASK: usize = !(BLOCK_SIZE - 1) as usize;
+
+#[repr(C, align(262144))]
 pub struct Block {
-    line_map: ByteMap,
     lines: [u8; BYTES_PER_BLOCK],
+    line_map: ByteMap,
     start_address: *const u8,
     max_address: *const u8,
     cursor: *mut u8,
-    block_state: BlockState
+    block_state: BlockState,
 }
 
 unsafe impl Send for Block {}
@@ -117,14 +124,16 @@ mod tests {
 
     extern crate test;
 
+    use std::ptr::addr_of;
+
     use crate::class::class::Class;
-    use crate::gc::block::{Block, BLOCK_SIZE, BYTES_PER_BLOCK, LINE_SIZE, LINES_PER_BLOCK};
+    use crate::gc::block::{Block, BLOCK_BYTEMASK, BLOCK_SIZE, BYTES_PER_BLOCK, LINE_SIZE, LINES_PER_BLOCK};
     use crate::gc::block_state::BlockState;
+    use crate::pointers::pointer::Pointer;
 
     #[test]
     pub fn size() {
-        assert!(BLOCK_SIZE < LINE_SIZE + std::mem::size_of::<Block>());
-        assert!(BLOCK_SIZE > std::mem::size_of::<Block>());
+        assert_eq!(BLOCK_SIZE, std::mem::size_of::<Block>());
     }
 
     #[test]
@@ -231,5 +240,30 @@ mod tests {
         let no_pointer = block.allocate(&small_class);
 
         assert!(no_pointer.is_none());
+    }
+
+    #[test]
+    pub fn block() {
+        let mut block = Block::boxed().unwrap();
+
+        let class = Class::new(16);
+
+        let raw_block_ptr: *mut Block = &mut *block;
+        let block_pointer = Pointer::from_raw(raw_block_ptr);
+
+        loop {
+            let heap_pointer = block.allocate(&class);
+            match heap_pointer {
+                Some(ptr) => {
+                    let ptr_block = ptr.block();
+                    assert!(ptr_block == block_pointer);
+                }
+                None => {
+                    return
+                }
+            }
+        }
+
+
     }
 }
