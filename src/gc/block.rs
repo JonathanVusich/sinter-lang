@@ -10,7 +10,7 @@ use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::pointer::Pointer;
 
 /// The number of bytes in a block.
-pub const BLOCK_SIZE: usize = 256 * 1024;
+pub const BLOCK_SIZE: usize = 32 * 1024;
 
 /// The number of bytes in single line.
 pub const LINE_SIZE: usize = 256;
