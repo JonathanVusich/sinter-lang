@@ -54,7 +54,7 @@ impl HeapPointer {
         let mut tagged_class_ptr = self.tagged_class_pointer();
         tagged_class_ptr.set_bit(4);
 
-        self.block().mark(self, tagged_class_ptr);
+        self.block().mark_instance(&tagged_class_ptr, self.ptr);
     }
 
     pub fn spans_lines(&self) -> bool {
