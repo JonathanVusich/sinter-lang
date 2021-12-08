@@ -1,54 +1,67 @@
 use std::alloc::{Allocator, AllocError, Layout};
+use std::mem::MaybeUninit;
 use std::path::Component::Prefix;
 use std::ptr::{NonNull, slice_from_raw_parts};
 use std::sync::atomic::AtomicPtr;
 use std::sync::atomic::Ordering::SeqCst;
+use std::sync::Once;
 
 use region::{alloc, Allocation, Protection};
+use winapi::um::memoryapi::{
+    VirtualAlloc, VirtualFree, VirtualLock, VirtualProtect, VirtualQuery, VirtualUnlock,
+};
+use winapi::um::sysinfoapi::{GetNativeSystemInfo, SYSTEM_INFO};
+use winapi::um::winnt::{MEM_COMMIT, MEM_RELEASE, MEM_RESERVE, MEMORY_BASIC_INFORMATION};
 
 use crate::gc::block::Block;
+use crate::heap::page;
+use crate::heap::region::Error::{AllocationFailed, InvalidSize};
+use crate::os;
 
 pub struct Region {
-    allocation: Allocation,
+    start: *const u8,
+    end: *const u8,
     cursor: AtomicPtr<u8>
+}
+
+#[derive(Debug)]
+pub enum Error {
+    InvalidSize,
+    AllocationFailed
 }
 
 impl Region {
 
-    pub fn new(size: usize) -> Self {
-        let mut allocation = region::alloc(size, Protection::READ_WRITE).unwrap();
-        let cursor = allocation.as_mut_ptr::<u8>();
-
-        Self {
-            allocation,
-            cursor: AtomicPtr::new(cursor)
+    pub fn new(size: usize) -> Result<Self, Error> {
+        if size == 0 {
+            return Err(InvalidSize)
         }
-    }
+        let size = page::ceil(size as *const ()) as usize;
 
-    // pub fn allocate() -> Block {
-    //
-    // }
-}
+        let region_ptr = unsafe { os::alloc(std::ptr::null::<>(), size) };
+        let ptr = region_ptr.cast::<u8>();
+        let end_ptr = unsafe { ptr.add(size) };
 
-unsafe impl Allocator for Region {
-
-    fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
-        loop {
-            let current_cursor = self.cursor.load(SeqCst);
-            let new_cursor = unsafe { current_cursor.offset(layout.size() as isize) };
-            match self.cursor.compare_exchange(current_cursor, new_cursor, SeqCst, SeqCst) {
-                Ok(_) => {
-                    unsafe {
-                        return Ok(NonNull::slice_from_raw_parts(NonNull::new_unchecked(current_cursor), layout.size()))
-                    }
-                }
-                Err(_) => {}
-            }
+        if ptr.is_null() {
+            return Err(AllocationFailed)
         }
-    }
 
-    unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: Layout) {
-        todo!()
+        Ok(Self {
+            start: ptr,
+            end: end_ptr,
+            cursor: AtomicPtr::new(ptr as *mut u8)
+        })
     }
 }
 
+mod tests {
+    use crate::heap::region::Region;
+
+    #[test]
+    pub fn huge_region() {
+        let size = 16 * 1024 * 1024 * 1024;
+        let region = Region::new(size).unwrap();
+        assert_eq!(region.cursor.into_inner() as *const u8, region.start);
+        assert_eq!(unsafe { region.start.add(size) }, region.end);
+    }
+}

@@ -16,3 +16,4 @@ pub mod class;
 pub mod util;
 pub mod values;
 pub mod heap;
+pub mod os;
