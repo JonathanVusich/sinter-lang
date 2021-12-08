@@ -17,7 +17,7 @@ pub const LINE_SIZE: usize = 256;
 
 /// The number of lines in a block.
 /// We have to subtract three lines to make room for the line map and for the cursors.
-pub const LINES_PER_BLOCK: usize = (BLOCK_SIZE / LINE_SIZE) - 8;
+pub const LINES_PER_BLOCK: usize = (BLOCK_SIZE / LINE_SIZE) - 1;
 
 /// The number of bytes in a block.
 pub const BYTES_PER_BLOCK: usize = LINE_SIZE * LINES_PER_BLOCK;
@@ -27,7 +27,7 @@ pub const BYTES_PER_BLOCK: usize = LINE_SIZE * LINES_PER_BLOCK;
 /// invariant is maintained.
 pub const BLOCK_BYTEMASK: usize = !(BLOCK_SIZE - 1) as usize;
 
-#[repr(C, align(262144))]
+#[repr(C, align(32768))]
 pub struct Block {
     lines: [u8; BYTES_PER_BLOCK],
     line_map: ByteMap,

@@ -47,10 +47,6 @@ impl Region {
             },
         };
 
-        println!("{}", min_size);
-        println!("{}", size);
-
-
         let region_ptr = unsafe { os::alloc(std::ptr::null::<>(), size) };
         let ptr = region_ptr.cast::<u8>();
 
@@ -66,9 +62,10 @@ impl Region {
     }
 
     pub fn allocate_block(&self) -> Option<Pointer<Block>> {
-        let block_start = self.block_cursor.fetch_add(1, SeqCst);
-        if block_start < self.num_blocks {
-            let block_ptr: *mut Block = unsafe { self.start.add(block_start) } as _;
+        let block_num = self.block_cursor.fetch_add(1, SeqCst);
+        if block_num < self.num_blocks {
+            let start_ptr = self.start.cast::<Block>() as *mut Block;
+            let block_ptr: *mut Block = unsafe { start_ptr.add(block_num) };
             Some(Pointer::from_raw(block_ptr))
         } else {
             None
@@ -82,10 +79,10 @@ mod tests {
 
     #[test]
     pub fn huge_region() {
-        let size = BLOCK_SIZE * 1024 * 1024;
+        let size = BLOCK_SIZE * 256 * 1024;
         let region = Region::new(size).unwrap();
         assert_eq!(region.block_cursor.into_inner(), 0);
-        assert_eq!(region.num_blocks, 1024 * 1024);
+        assert_eq!(region.num_blocks, 256 * 1024);
     }
 
     #[test]
@@ -94,5 +91,22 @@ mod tests {
         let region = Region::new(size + 23).unwrap();
         assert_eq!(region.block_cursor.into_inner(), 0);
         assert_eq!(region.num_blocks, 3);
+    }
+
+    #[test]
+    pub fn allocation() {
+        let size = BLOCK_SIZE * 2;
+        let region = Region::new(size).unwrap();
+
+        let block_1 = region.allocate_block().unwrap();
+        let block_2 = region.allocate_block().unwrap();
+
+        assert_eq!(region.start, block_1.to_raw().cast());
+        assert_eq!(block_1.add(1).to_raw(), block_2.to_raw());
+
+        let empty_block = region.allocate_block();
+        assert!(empty_block.is_none());
+
+        block_1.allocate()
     }
 }
