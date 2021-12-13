@@ -42,23 +42,17 @@ unsafe impl Sync for Block {}
 
 impl Block {
 
-    pub fn boxed() -> Result<Box<Block>, AllocError> {
-        let mut block = Box::<Block>::try_new_uninit()?;
-        let block_ptr = block.as_mut_ptr();
+    pub unsafe fn initialize(block: *mut Block) {
+        let lines_ptr: *mut [u8; BYTES_PER_BLOCK] = addr_of_mut!((*block).lines);
+        let start_address_ptr: *mut *const u8 = addr_of_mut!((*block).start_address);
+        let end_address_ptr: *mut *const u8 = addr_of_mut!((*block).max_address);
+        let cursor_ptr: *mut *mut u8 = addr_of_mut!((*block).cursor);
+        let block_state_ptr: *mut BlockState = addr_of_mut!((*block).block_state);
 
-        unsafe {
-            let lines_ptr: *mut [u8; BYTES_PER_BLOCK] = addr_of_mut!((*block_ptr).lines);
-            let start_address_ptr: *mut *const u8 = addr_of_mut!((*block_ptr).start_address);
-            let end_address_ptr: *mut *const u8 = addr_of_mut!((*block_ptr).max_address);
-            let cursor_ptr: *mut *mut u8 = addr_of_mut!((*block_ptr).cursor);
-            let block_state_ptr: *mut BlockState = addr_of_mut!((*block_ptr).block_state);
-
-            start_address_ptr.write((*lines_ptr).as_ptr());
-            end_address_ptr.write((*lines_ptr).as_ptr().add(BYTES_PER_BLOCK));
-            cursor_ptr.write((*lines_ptr).as_mut_ptr());
-            block_state_ptr.write(BlockState::Free);
-            Ok(block.assume_init())
-        }
+        start_address_ptr.write((*lines_ptr).as_ptr());
+        end_address_ptr.write((*lines_ptr).as_ptr().add(BYTES_PER_BLOCK));
+        cursor_ptr.write((*lines_ptr).as_mut_ptr());
+        block_state_ptr.write(BlockState::Free);
     }
 
     pub fn allocate(&mut self, class: &Class) -> Option<HeapPointer> {
@@ -128,11 +122,13 @@ mod tests {
 
     extern crate test;
 
+    use std::mem::MaybeUninit;
     use std::ptr::addr_of;
 
     use crate::class::class::Class;
     use crate::gc::block::{Block, BLOCK_BYTEMASK, BLOCK_SIZE, BYTES_PER_BLOCK, LINE_SIZE, LINES_PER_BLOCK};
     use crate::gc::block_state::BlockState;
+    use crate::heap::region::Region;
     use crate::pointers::pointer::Pointer;
 
     #[test]
@@ -141,8 +137,14 @@ mod tests {
     }
 
     #[test]
+    pub fn uninit_size() {
+        assert_eq!(BLOCK_SIZE, std::mem::size_of::<MaybeUninit<Block>>());
+    }
+
+    #[test]
     pub fn constructor() {
-        let mut block = Block::boxed().unwrap();
+        let region = Region::new(BLOCK_SIZE).unwrap();
+        let mut block = region.allocate_block().unwrap();
 
         for i in 0..LINES_PER_BLOCK {
             // block.line_map.mark(i);
@@ -163,7 +165,8 @@ mod tests {
 
     #[test]
     pub fn simple_allocation() {
-        let mut block = Block::boxed().unwrap();
+        let region = Region::new(BLOCK_SIZE).unwrap();
+        let mut block = region.allocate_block().unwrap();
 
         let mut start_cursor = block.cursor;
 
@@ -191,7 +194,8 @@ mod tests {
 
     #[test]
     pub fn allocation_mutation() {
-        let mut block = Block::boxed().unwrap();
+        let region = Region::new(BLOCK_SIZE).unwrap();
+        let mut block = region.allocate_block().unwrap();
 
         let class = Class::new(16);
 
@@ -208,7 +212,8 @@ mod tests {
 
     #[test]
     pub fn spans_lines() {
-        let mut block = Block::boxed().unwrap();
+        let region = Region::new(BLOCK_SIZE).unwrap();
+        let mut block = region.allocate_block().unwrap();
 
         let class_half_line = Class::new(LINE_SIZE / 2);
         let class_full_line = Class::new(LINE_SIZE);
@@ -232,7 +237,8 @@ mod tests {
 
     #[test]
     pub fn allocate_single_object() {
-        let mut block = Block::boxed().unwrap();
+        let region = Region::new(BLOCK_SIZE).unwrap();
+        let mut block = region.allocate_block().unwrap();
 
         let class = Class::new(BYTES_PER_BLOCK);
 
@@ -248,7 +254,8 @@ mod tests {
 
     #[test]
     pub fn block() {
-        let mut block = Block::boxed().unwrap();
+        let region = Region::new(BLOCK_SIZE).unwrap();
+        let mut block = region.allocate_block().unwrap();
 
         let class = Class::new(16);
 

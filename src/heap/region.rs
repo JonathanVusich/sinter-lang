@@ -66,6 +66,7 @@ impl Region {
         if block_num < self.num_blocks {
             let start_ptr = self.start.cast::<Block>() as *mut Block;
             let block_ptr: *mut Block = unsafe { start_ptr.add(block_num) };
+            unsafe { Block::initialize(block_ptr) };
             Some(Pointer::from_raw(block_ptr))
         } else {
             None
@@ -74,6 +75,7 @@ impl Region {
 }
 
 mod tests {
+    use crate::class::class::Class;
     use crate::gc::block::BLOCK_SIZE;
     use crate::heap::region::Region;
 
@@ -98,7 +100,7 @@ mod tests {
         let size = BLOCK_SIZE * 2;
         let region = Region::new(size).unwrap();
 
-        let block_1 = region.allocate_block().unwrap();
+        let mut block_1 = region.allocate_block().unwrap();
         let block_2 = region.allocate_block().unwrap();
 
         assert_eq!(region.start, block_1.to_raw().cast());
@@ -107,6 +109,13 @@ mod tests {
         let empty_block = region.allocate_block();
         assert!(empty_block.is_none());
 
-        block_1.allocate()
+        let size_class = Class::new(16);
+
+        let heap_ptr = block_1.allocate(&size_class).unwrap();
+
+        heap_ptr.start_address().cast::<u64>().write(123);
+
+        let heap_val = unsafe { region.start.cast::<u64>().add(1).read() };
+        assert_eq!(123, heap_val);
     }
 }

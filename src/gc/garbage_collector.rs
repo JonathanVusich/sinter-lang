@@ -8,26 +8,30 @@ use crate::pointers::heap_pointer::HeapPointer;
 use crate::thread_stack::ThreadStack;
 
 pub struct GarbageCollector {
-    class_loader: Rc<ClassLoader>
+    class_loader: Rc<ClassLoader>,
+    thread_stacks: Vec<Rc<ThreadStack>>
 }
 
 impl GarbageCollector {
 
     pub fn new(class_loader: Rc<ClassLoader>) -> Self {
         GarbageCollector {
-            class_loader
+            class_loader,
+            thread_stacks: vec![]
         }
     }
 
-    pub fn collect(&self, thread_stack: &ThreadStack) {
+    pub fn collect(&self) {
         for class in self.class_loader.classes() {
             for root in class.static_roots() {
                 trace(root)
             }
         }
 
-        for root in thread_stack.gc_roots() {
-            trace(root)
+        for thread_stack in self.thread_stacks.as_slice() {
+            for gc_root in thread_stack.gc_roots() {
+                trace(gc_root)
+            }
         }
     }
 }

@@ -5,19 +5,21 @@ use crate::class::class::Class;
 use crate::class::size_class::SizeClass;
 use crate::gc::block::Block;
 use crate::gc::garbage_collector::GarbageCollector;
+use crate::gc::global_allocator::GlobalAllocator;
 use crate::pointers::heap_pointer::HeapPointer;
+use crate::pointers::pointer::Pointer;
 
 pub struct ThreadAllocator {
-    garbage_collector: Arc<GarbageCollector>,
-    current_block: Option<Box<Block>>,
-    overflow_block: Option<Box<Block>>,
-    blocks_in_use: Vec<Box<Block>>
+    global_allocator: Arc<GlobalAllocator>,
+    current_block: Option<Pointer<Block>>,
+    overflow_block: Option<Pointer<Block>>,
+    blocks_in_use: Vec<Pointer<Block>>
 }
 
 impl ThreadAllocator {
-    pub fn new(garbage_collector: Arc<GarbageCollector>) -> Self {
+    pub fn new(global_allocator: Arc<GlobalAllocator>) -> Self {
         ThreadAllocator {
-            garbage_collector,
+            global_allocator,
             current_block: None,
             overflow_block: None,
             blocks_in_use: vec![]
@@ -58,22 +60,16 @@ impl ThreadAllocator {
         todo!()
     }
 
-    fn get_overflow_block(&mut self) -> &mut Box<Block> {
+    fn get_overflow_block(&mut self) -> &mut Pointer<Block> {
         self.overflow_block.get_or_insert(self.allocate_block())
     }
 
-    fn get_current_block(&mut self) -> &mut Box<Block> {
+    fn get_current_block(&mut self) -> &mut Pointer<Block> {
         self.current_block.get_or_insert(self.allocate_block())
     }
 
-    fn allocate_block(&self) -> Box<Block> {
-        match Block::boxed() {
-            Ok(block) => block,
-            Err(error) => {
-                // self.garbage_collector.collect();
-                Block::boxed().unwrap() // Don't attempt to continue if this fails.
-            }
-        }
+    fn allocate_block(&self) -> Pointer<Block> {
+        self.global_allocator.allocate_block()
     }
 
     fn allocate_large_object(&self, class: &Class) -> HeapPointer {
