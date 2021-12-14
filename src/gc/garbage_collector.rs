@@ -5,11 +5,10 @@ use std::thread::Thread;
 use crate::class::class_loader::ClassLoader;
 use crate::gc::thread_allocator::ThreadAllocator;
 use crate::pointers::heap_pointer::HeapPointer;
-use crate::thread_stack::ThreadStack;
 
 pub struct GarbageCollector {
     class_loader: Rc<ClassLoader>,
-    thread_stacks: Vec<Rc<ThreadStack>>
+    thread_stacks: Vec<Arc<Thread>>
 }
 
 impl GarbageCollector {
@@ -28,10 +27,10 @@ impl GarbageCollector {
             }
         }
 
-        for thread_stack in self.thread_stacks.as_slice() {
-            for gc_root in thread_stack.gc_roots() {
-                trace(gc_root)
-            }
+        for thread in self.thread_stacks.as_slice() {
+            // for gc_root in thread.gc_roots() {
+            //     trace(gc_root)
+            // }
         }
     }
 }

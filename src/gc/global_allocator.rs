@@ -29,7 +29,7 @@ impl GlobalAllocator {
             Some(block) => block,
             None => {
                 self.garbage_collector.collect();
-                return self.allocate_block();
+                self.heap.allocate_block().unwrap()
             }
         }
     }

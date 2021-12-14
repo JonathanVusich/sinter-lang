@@ -3,9 +3,7 @@ use crate::pointers::heap_pointer::HeapPointer;
 pub trait Value<const SIZE: usize> {
 
     fn from_bytes(bytes: [u8; SIZE]) -> Self;
-    fn is_reference_type() -> bool;
     fn len() -> usize;
-
     fn to_bytes(self) -> [u8; SIZE];
 }
 
@@ -16,10 +14,6 @@ macro_rules! value_impl {
 
             fn from_bytes(bytes: [u8; std::mem::size_of::<$type>()]) -> Self {
                 <$type>::from_ne_bytes(bytes)
-            }
-
-            fn is_reference_type() -> bool {
-                false
             }
 
             fn len() -> usize {
@@ -46,11 +40,6 @@ impl Value<8> for HeapPointer {
     fn from_bytes(bytes: [u8; 8]) -> Self {
         HeapPointer::from_address(u64::from_ne_bytes(bytes))
     }
-
-    fn is_reference_type() -> bool {
-        true
-    }
-
 
     fn len() -> usize {
         8

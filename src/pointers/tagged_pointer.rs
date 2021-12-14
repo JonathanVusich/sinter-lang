@@ -1,6 +1,6 @@
-use std::ops::{Deref, DerefMut};
 use std::borrow::Borrow;
 use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
 
 const BIT_1_MASK: u64 = compute_mask(1);
 const BIT_2_MASK: u64 = compute_mask(2);
@@ -74,7 +74,6 @@ impl<T> TaggedPointer<T> {
     }
 }
 
-#[inline(always)]
 const fn compute_mask(bit: u32) -> u64 {
     assert!(bit > 0 && bit < 9, "Unsupported bit index!");
     let mut mask: u64 = 1;
@@ -167,12 +166,12 @@ mod tests {
     extern crate test;
 
     use std::ops::Shl;
-
-    use super::*;
-    use crate::class::class::Class;
-
     use test::Bencher;
     use test::black_box;
+
+    use crate::class::class::Class;
+
+    use super::*;
 
     #[test]
     pub fn size() {
