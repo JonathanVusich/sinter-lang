@@ -8,7 +8,6 @@
 #![feature(type_alias_impl_trait)]
 #![feature(nonnull_slice_from_raw_parts)]
 
-pub mod thread;
 pub mod opcode;
 pub mod gc;
 pub mod pointers;
@@ -18,3 +17,4 @@ pub mod values;
 pub mod heap;
 pub mod os;
 pub mod function;
+pub mod vm;

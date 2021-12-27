@@ -6,15 +6,15 @@ use crate::values::value::Value;
 pub const STACK_SIZE: usize = 4 * 1024;
 
 #[derive(Debug)]
-pub struct ThreadStack {
+pub struct Stack {
     internal: [u8; STACK_SIZE],
     index: usize
 }
 
-impl ThreadStack {
+impl Stack {
 
-    pub (crate) fn new() -> Self {
-        ThreadStack {
+    pub(crate) fn new() -> Self {
+        Stack {
             internal: [0; STACK_SIZE],
             index: 0
         }
@@ -53,14 +53,14 @@ mod tests {
 
     #[test]
     fn read_and_write() {
-        let mut stack = ThreadStack::new();
+        let mut stack = Stack::new();
         stack.push(12i32);
         assert_eq!(12i32, stack.pop::<4, i32>());
     }
 
     #[test]
     fn stack_map() {
-        let mut stack = ThreadStack::new();
+        let mut stack = Stack::new();
         stack.push(1i32);
 
         let mut heap_value = 0i128;
@@ -98,7 +98,7 @@ mod tests {
 
         }));
 
-        let mut stack = ThreadStack::new();
+        let mut stack = Stack::new();
         let val: i32 = stack.pop();
     }
 }
