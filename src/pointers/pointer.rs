@@ -3,6 +3,7 @@ use crate::class::class::Class;
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::tagged_pointer::TaggedPointer;
 
+#[derive(Debug)]
 pub struct Pointer<T> {
     /// The underlying raw pointer.
     pointer: *mut T
@@ -108,6 +109,6 @@ mod tests {
         let ptr1 = Pointer::new(&value);
         let ptr2 = Pointer::new(&value);
 
-        assert!(ptr1 == ptr2);
+        assert_eq!(ptr1, ptr2);
     }
 }

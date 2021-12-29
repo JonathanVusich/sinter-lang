@@ -3,7 +3,7 @@ use std::pin::Pin;
 use std::ptr::NonNull;
 
 use crate::class::class::Class;
-use crate::class::reference_field::ReferenceField;
+use crate::class::references::Reference;
 use crate::gc::block::{Block, BLOCK_BYTEMASK};
 use crate::gc::byte_map::ByteMap;
 use crate::pointers::pointer::Pointer;

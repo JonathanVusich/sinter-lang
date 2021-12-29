@@ -1,5 +1,5 @@
 #[repr(u8)]
-#[derive(PartialOrd, PartialEq, Debug)]
+#[derive(PartialOrd, PartialEq, Eq, Debug)]
 pub (crate) enum OpCode {
     Return,
     I64Constant,

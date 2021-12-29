@@ -1,7 +1,8 @@
 use std::ptr::NonNull;
 use std::slice::Iter;
 use crate::class::field::Field;
-use crate::class::reference_field::ReferenceField;
+use crate::class::method::Method;
+use crate::class::references::Reference;
 
 use crate::class::size_class::SizeClass;
 use crate::gc::block::{BLOCK_SIZE, LINE_SIZE};
@@ -15,7 +16,8 @@ pub struct Class {
     mark_word: u8,
     static_roots: Vec<HeapPointer>,
     fields: Vec<Field>,
-    references: Vec<ReferenceField>
+    references: Vec<Reference>,
+    methods: Vec<Method>
 }
 
 impl Class {
@@ -34,7 +36,8 @@ impl Class {
             mark_word,
             static_roots: vec![],
             fields: vec![],
-            references: vec![]
+            references: vec![],
+            methods: vec![]
         }
     }
 
@@ -42,7 +45,7 @@ impl Class {
         self.static_roots.as_slice().iter().copied()
     }
 
-    pub fn references(&self) -> impl Iterator<Item = &ReferenceField> + '_ {
+    pub fn references(&self) -> impl Iterator<Item = &Reference> + '_ {
         self.references.as_slice().iter()
     }
 

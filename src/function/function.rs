@@ -3,20 +3,21 @@ use crate::class::class::Class;
 
 use crate::opcode::OpCode;
 
-pub struct Function<'a> {
-    name: &'a str,
-    parameters: Vec<Parameter<'a>>,
+pub struct Function {
+    name: &'static str,
+    parameters: Vec<Parameter>,
     code: Vec<OpCode>,
 }
 
-pub struct Parameter<'a> {
-    class: &'a Class,
-    name: &'a str
+#[derive(Eq, PartialEq, Debug)]
+pub struct Parameter {
+    class: &'static Class,
+    name: &'static str
 }
 
-impl<'a> Function<'a> {
+impl Function {
 
-    pub fn new(name: &'a str) -> Self {
+    pub fn new(name: &'static str) -> Self {
         Self {
             name,
             parameters: Vec::new(),
@@ -24,8 +25,8 @@ impl<'a> Function<'a> {
         }
     }
 
-    pub fn call() {
-        
+    pub fn call(&self) {
+
     }
 }
 
