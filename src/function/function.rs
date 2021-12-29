@@ -6,12 +6,13 @@ use crate::opcode::OpCode;
 pub struct Function {
     name: &'static str,
     parameters: Vec<Parameter>,
+    call_frame_size: usize,
     code: Vec<OpCode>,
 }
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Parameter {
-    class: &'static Class,
+    parameter_type: &'static Class,
     name: &'static str
 }
 
@@ -21,6 +22,7 @@ impl Function {
         Self {
             name,
             parameters: Vec::new(),
+            call_frame_size: 0,
             code: Vec::new()
         }
     }

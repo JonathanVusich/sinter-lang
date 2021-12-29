@@ -19,7 +19,6 @@ impl VM {
     }
 
     pub fn run(function: Function) {
-        let slots = function.slots();
         let call_frame = CallFrame::new();
     }
 }

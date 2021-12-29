@@ -3,7 +3,4 @@ pub mod class_loader;
 pub mod size_class;
 pub mod field;
 pub mod references;
-pub mod inline_field;
 pub mod method;
-pub mod runtime_class;
-pub mod reference_field;

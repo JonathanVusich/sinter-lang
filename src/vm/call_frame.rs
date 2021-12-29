@@ -1,16 +1,14 @@
-use crate::vm::slot::Slot;
-
 pub struct CallFrame {
     return_address: usize,
-    slots: Vec<Slot>
+    size: usize,
 }
 
 impl CallFrame {
 
-    pub fn new() -> Self {
+    pub fn new(return_address: usize, size: usize) -> Self {
         Self {
-            return_address: 0,
-            slots: Vec::new()
+            return_address,
+            size
         }
     }
 }
