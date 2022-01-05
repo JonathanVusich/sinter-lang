@@ -1,14 +1,9 @@
-pub struct CallFrame {
-    return_address: usize,
-    size: usize,
-}
+use crate::function::function::Function;
 
-impl CallFrame {
-
-    pub fn new(return_address: usize, size: usize) -> Self {
-        Self {
-            return_address,
-            size
-        }
-    }
+pub struct CallFrame<'a> {
+    pub function: Function,
+    pub instructions: &'a [u8],
+    pub ip: usize,
+    pub address: usize,
+    pub size: usize,
 }

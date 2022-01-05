@@ -1,7 +1,6 @@
 use crate::class::references::{InlineReference, Reference};
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::pointer::Pointer;
-use crate::values::value::Value;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Field {
@@ -11,13 +10,13 @@ pub enum Field {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ReferenceField {
-    name: String,
+    name: &'static str,
     reference: Reference,
 }
 
 impl ReferenceField {
     
-    pub fn new(name: String, reference: Reference) -> Self {
+    pub fn new(name: &'static str, reference: Reference) -> Self {
         Self {
             name, 
             reference,
@@ -27,13 +26,13 @@ impl ReferenceField {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct InlineField {
-    name: String,
+    name: &'static str,
     reference: InlineReference
 }
 
 impl InlineField {
 
-    pub fn new(name: String, reference: InlineReference) -> Self {
+    pub fn new(name: &'static str, reference: InlineReference) -> Self {
         Self {
             name,
             reference,

@@ -1,10 +1,10 @@
 use std::ptr::NonNull;
 use std::slice::Iter;
 use crate::class::field::Field;
-use crate::class::method::Method;
 use crate::class::references::Reference;
 
 use crate::class::size_class::SizeClass;
+use crate::function::function::Function;
 use crate::gc::block::{BLOCK_SIZE, LINE_SIZE};
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::pointer::Pointer;
@@ -17,7 +17,7 @@ pub struct Class {
     static_roots: Vec<HeapPointer>,
     fields: Vec<Field>,
     references: Vec<Reference>,
-    methods: Vec<Method>
+    functions: Vec<Function>
 }
 
 impl Class {
@@ -37,7 +37,7 @@ impl Class {
             static_roots: vec![],
             fields: vec![],
             references: vec![],
-            methods: vec![]
+            functions: vec![]
         }
     }
 

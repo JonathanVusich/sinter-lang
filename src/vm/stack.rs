@@ -1,7 +1,6 @@
 use std::convert::TryInto;
 
 use crate::pointers::heap_pointer::HeapPointer;
-use crate::values::value::Value;
 
 pub const STACK_SIZE: usize = 4 * 1024;
 
@@ -20,27 +19,24 @@ impl Stack {
         }
     }
 
-    pub fn push<const L: usize, T: Value<L>>(&mut self, value: T) {
-        let bytes = value.to_bytes();
-        let start = self.index;
-        let end = self.index + T::len();
-        self.internal[start..end].copy_from_slice(&bytes);
-        self.index += T::len();
+    pub fn set(&mut self, index: usize) {
+        self.index = index;
     }
 
-    pub fn pop<const L: usize, T: Value<L>>(&mut self) -> T {
+    pub fn push(&mut self, value: &[u8]) {
+        let start = self.index;
+        let end = self.index + value.len();
+        self.internal[start..end].copy_from_slice(value);
+        self.index += value.len();
+    }
+
+    pub fn pop(&mut self, size: u16) -> &[u8] {
         let end = self.index;
-        self.index -= T::len();
+        self.index -= size as usize;
         let start = self.index;
 
-        let array: [u8; L] = self.internal[start..end].try_into().unwrap();
-        T::from_bytes(array)
-    }
-
-    fn read_ptr(&self, index: usize) -> HeapPointer {
-        let end = index + 8;
-        let array: [u8; 8] = self.internal[index..end].try_into().unwrap();
-        HeapPointer::from_bytes(array)
+        let array: &[u8] = &self.internal[start..end];
+        return array;
     }
 }
 
@@ -54,14 +50,14 @@ mod tests {
     #[test]
     fn read_and_write() {
         let mut stack = Stack::new();
-        stack.push(12i32);
-        assert_eq!(12i32, stack.pop::<4, i32>());
+        stack.push(&12i32.to_ne_bytes());
+        assert_eq!(&12i32.to_ne_bytes(), stack.pop(4));
     }
 
     #[test]
     fn stack_map() {
         let mut stack = Stack::new();
-        stack.push(1i32);
+        stack.push(&1i32.to_ne_bytes());
 
         let mut heap_value = 0i128;
         let ptr: *mut i128 = &mut heap_value;
@@ -69,23 +65,26 @@ mod tests {
 
         heap_ptr.start_address().write(123);
 
-        stack.push(heap_ptr);
-        stack.push(heap_ptr);
-        stack.push(heap_ptr);
+        let bytes: [u8; 8] = (heap_ptr.to_raw().as_ptr() as usize).to_ne_bytes();
 
-        stack.push(3i64);
+        stack.push(&bytes);
+        stack.push(&bytes);
+        stack.push(&bytes);
 
-        let num: i64 = stack.pop();
+        stack.push(&3i64.to_ne_bytes());
 
-        let mut pointer: HeapPointer = stack.pop();
+        let num = i64::from_ne_bytes(stack.pop(8).try_into().unwrap());
+
+        let mut pointer: HeapPointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
+
         assert_eq!(heap_ptr, pointer);
         assert_eq!(123, pointer.start_address().read());
-        pointer = stack.pop();
+        pointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
         assert_eq!(123, pointer.start_address().read());
-        pointer = stack.pop();
+        pointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
         assert_eq!(123, pointer.start_address().read());
 
-        let small_num: i32 = stack.pop();
+        let small_num: i32 = i32::from_ne_bytes(stack.pop(8).try_into().unwrap());
 
         assert_eq!(num, 3);
         assert_eq!(small_num, 1);
@@ -99,6 +98,6 @@ mod tests {
         }));
 
         let mut stack = Stack::new();
-        let val: i32 = stack.pop();
+        let val = stack.pop(1);
     }
 }

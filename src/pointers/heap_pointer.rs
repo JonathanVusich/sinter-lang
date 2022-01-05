@@ -10,6 +10,7 @@ use crate::pointers::pointer::Pointer;
 use crate::pointers::tagged_pointer::TaggedPointer;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
+#[repr(transparent)]
 pub struct HeapPointer {
     ptr: *mut u8,
 }

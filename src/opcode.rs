@@ -2,20 +2,16 @@
 #[derive(PartialOrd, PartialEq, Eq, Debug)]
 pub (crate) enum OpCode {
     Return,
-    I64Constant,
-    F64Constant,
-    I2F,
-    F2I,
-    IAdd,
-    FAdd,
-    ISub,
-    FSub,
-    IMult,
-    FMult,
-    IDiv,
-    FDiv,
-    INeg,
-    FNeg
+    GetConstant,
+    Pop,
+    Push,
+    SetLocal,
+    GetLocal,
+    GetGlobal,
+    SetGlobal,
+    Jump,
+    Loop,
+    Call,
 }
 
 impl From<u8> for OpCode {

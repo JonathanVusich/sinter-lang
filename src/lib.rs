@@ -13,7 +13,6 @@ pub mod gc;
 pub mod pointers;
 pub mod class;
 pub mod util;
-pub mod values;
 pub mod heap;
 pub mod os;
 pub mod function;
