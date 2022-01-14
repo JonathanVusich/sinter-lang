@@ -1,8 +1,7 @@
 use crate::function::function::Function;
 
-pub struct CallFrame<'a> {
+pub struct CallFrame {
     pub function: Function,
-    pub instructions: &'a [u8],
     pub ip: usize,
     pub address: usize,
     pub size: usize,

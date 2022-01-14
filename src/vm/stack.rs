@@ -1,4 +1,5 @@
 use std::convert::TryInto;
+use std::fmt::{Display, Formatter};
 
 use crate::pointers::heap_pointer::HeapPointer;
 
@@ -36,7 +37,14 @@ impl Stack {
         let start = self.index;
 
         let array: &[u8] = &self.internal[start..end];
-        return array;
+        array
+    }
+}
+
+impl Display for Stack {
+
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Stack[index: {}, stack: {:?}]", self.index, self.internal)
     }
 }
 
@@ -70,23 +78,23 @@ mod tests {
         stack.push(&bytes);
         stack.push(&bytes);
         stack.push(&bytes);
-
         stack.push(&3i64.to_ne_bytes());
 
         let num = i64::from_ne_bytes(stack.pop(8).try_into().unwrap());
 
         let mut pointer: HeapPointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
+        assert_eq!(123, pointer.start_address().read());
 
+        pointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
         assert_eq!(heap_ptr, pointer);
         assert_eq!(123, pointer.start_address().read());
+
         pointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
-        assert_eq!(123, pointer.start_address().read());
-        pointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
+        assert_eq!(heap_ptr, pointer);
         assert_eq!(123, pointer.start_address().read());
 
-        let small_num: i32 = i32::from_ne_bytes(stack.pop(8).try_into().unwrap());
+        let small_num: i32 = i32::from_ne_bytes(stack.pop(4).try_into().unwrap());
 
-        assert_eq!(num, 3);
         assert_eq!(small_num, 1);
     }
 

@@ -4,7 +4,6 @@
 #![feature(test)]
 #![feature(allocator_api)]
 #![feature(new_uninit)]
-#![feature(generic_const_exprs)]
 #![feature(type_alias_impl_trait)]
 #![feature(nonnull_slice_from_raw_parts)]
 
