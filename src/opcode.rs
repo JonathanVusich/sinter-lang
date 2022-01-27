@@ -2,21 +2,26 @@
 #[derive(PartialOrd, PartialEq, Eq, Debug)]
 pub (crate) enum OpCode {
     Return,
-    GetConstant, // Must be followed by an u64 offset and u16 size.
+    ReturnWide,
 
     Pop,
-    PopLarge,
+    PopWide,
 
     Push,
-    PushLarge,
+    PushWide,
+
+    GetConstant,
+    GetConstantWide,
 
     SetLocal,
-    GetLocal,
+    SetLocalWide,
 
-    GetGlobal, // Must be followed by a u64 offset and u16 size.
-    SetGlobal, // Must be followed
+    GetLocal,
+    GetLocalWide,
+
     Jump,
     Loop,
+
     Call,
 }
 
@@ -37,7 +42,26 @@ mod tests {
     #[test]
     fn test_enum() {
         assert_eq!(OpCode::Return, OpCode::from(0));
-        assert_eq!(OpCode::GetConstant, OpCode::from(1));
+        assert_eq!(OpCode::ReturnWide, OpCode::from(1));
+
         assert_eq!(OpCode::Pop, OpCode::from(2));
+        assert_eq!(OpCode::PopWide, OpCode::from(3));
+
+        assert_eq!(OpCode::Push, OpCode::from(4));
+        assert_eq!(OpCode::PushWide, OpCode::from(5));
+
+        assert_eq!(OpCode::GetConstant, OpCode::from(6));
+        assert_eq!(OpCode::GetConstantWide, OpCode::from(7));
+
+        assert_eq!(OpCode::SetLocal, OpCode::from(8));
+        assert_eq!(OpCode::SetLocalWide, OpCode::from(9));
+
+        assert_eq!(OpCode::GetLocal, OpCode::from(10));
+        assert_eq!(OpCode::GetLocalWide, OpCode::from(11));
+
+        assert_eq!(OpCode::Jump, OpCode::from(12));
+        assert_eq!(OpCode::Loop, OpCode::from(13));
+
+        assert_eq!(OpCode::Call, OpCode::from(14));
     }
 }

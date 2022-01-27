@@ -2,6 +2,7 @@ use std::convert::TryInto;
 use std::fmt::{Display, Formatter};
 
 use crate::pointers::heap_pointer::HeapPointer;
+use crate::util::constants::{DOUBLE_WORD, WORD};
 
 pub const STACK_SIZE: usize = 4 * 1024;
 
@@ -24,20 +25,34 @@ impl Stack {
         self.index = index;
     }
 
-    pub fn push(&mut self, value: &[u8]) {
+    pub fn push_word(&mut self, value: &[u8; WORD]) {
         let start = self.index;
-        let end = self.index + value.len();
+        let end = self.index + WORD;
         self.internal[start..end].copy_from_slice(value);
-        self.index += value.len();
+        self.index += WORD;
     }
 
-    pub fn pop(&mut self, size: u16) -> &[u8] {
+    pub fn push_double_word(&mut self, value: &[u8; DOUBLE_WORD]) {
+        let start = self.index;
+        let end = self.index + DOUBLE_WORD;
+        self.internal[start..end].copy_from_slice(value);
+        self.index += DOUBLE_WORD;
+    }
+
+    pub fn pop_word(&mut self) -> &[u8; WORD] {
         let end = self.index;
-        self.index -= size as usize;
+        self.index -= WORD;
         let start = self.index;
 
-        let array: &[u8] = &self.internal[start..end];
-        array
+        self.internal[start..end].try_into().unwrap()
+    }
+
+    pub fn pop_double_word(&mut self) -> &[u8; DOUBLE_WORD] {
+        let end = self.index;
+        self.index -= DOUBLE_WORD;
+        let start = self.index;
+
+        self.internal[start..end].try_into().unwrap()
     }
 }
 
@@ -58,14 +73,20 @@ mod tests {
     #[test]
     fn read_and_write() {
         let mut stack = Stack::new();
-        stack.push(&12i32.to_ne_bytes());
-        assert_eq!(&12i32.to_ne_bytes(), stack.pop(4));
+
+        let bytes: [u8; WORD] = 12usize.to_ne_bytes();
+
+        stack.push_word(&bytes);
+        assert_eq!(&bytes, stack.pop_word());
     }
 
     #[test]
     fn stack_map() {
         let mut stack = Stack::new();
-        stack.push(&1i32.to_ne_bytes());
+
+        let bytes: [u8; WORD] = 1usize.to_ne_bytes();
+
+        stack.push_word(&bytes);
 
         let mut heap_value = 0i128;
         let ptr: *mut i128 = &mut heap_value;
@@ -73,29 +94,30 @@ mod tests {
 
         heap_ptr.start_address().write(123);
 
-        let bytes: [u8; 8] = (heap_ptr.to_raw().as_ptr() as usize).to_ne_bytes();
+        let bytes: [u8; WORD] = (heap_ptr.to_raw().as_ptr() as usize).to_ne_bytes();
 
-        stack.push(&bytes);
-        stack.push(&bytes);
-        stack.push(&bytes);
-        stack.push(&3i64.to_ne_bytes());
+        stack.push_word(&bytes);
+        stack.push_word(&bytes);
+        stack.push_word(&bytes);
+        stack.push_word(&3isize.to_ne_bytes());
 
-        let num = i64::from_ne_bytes(stack.pop(8).try_into().unwrap());
+        let num = isize::from_ne_bytes(*stack.pop_word());
 
-        let mut pointer: HeapPointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
-        assert_eq!(123, pointer.start_address().read());
+        let address = usize::from_ne_bytes(*stack.pop_word());
+        let pointer1 = HeapPointer::from_address(address);
+        assert_eq!(123, pointer1.start_address().read());
 
-        pointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
-        assert_eq!(heap_ptr, pointer);
-        assert_eq!(123, pointer.start_address().read());
+        let address2 = usize::from_ne_bytes(*stack.pop_word());
+        let pointer2 = HeapPointer::from_address(address2);
+        assert_eq!(123, pointer2.start_address().read());
 
-        pointer = HeapPointer::from_address(u64::from_ne_bytes(stack.pop(8).try_into().unwrap()));
-        assert_eq!(heap_ptr, pointer);
-        assert_eq!(123, pointer.start_address().read());
+        let address3 = usize::from_ne_bytes(*stack.pop_word());
+        let pointer3 = HeapPointer::from_address(address3);
+        assert_eq!(123, pointer3.start_address().read());
 
-        let small_num: i32 = i32::from_ne_bytes(stack.pop(4).try_into().unwrap());
+        let num: usize = usize::from_ne_bytes(*stack.pop_word());
 
-        assert_eq!(small_num, 1);
+        assert_eq!(num, 1);
     }
 
     #[test]
@@ -106,6 +128,6 @@ mod tests {
         }));
 
         let mut stack = Stack::new();
-        let val = stack.pop(1);
+        let val = stack.pop_word();
     }
 }

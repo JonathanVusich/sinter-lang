@@ -81,10 +81,10 @@ mod tests {
 
     #[test]
     pub fn huge_region() {
-        let size = BLOCK_SIZE * 256 * 1024;
+        let size = BLOCK_SIZE * 256;
         let region = Region::new(size).unwrap();
         assert_eq!(region.block_cursor.into_inner(), 0);
-        assert_eq!(region.num_blocks, 256 * 1024);
+        assert_eq!(region.num_blocks, 256);
     }
 
     #[test]

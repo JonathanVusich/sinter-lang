@@ -28,7 +28,7 @@ impl HeapPointer {
         heap_pointer
     }
 
-    pub fn from_address(address: u64) -> Self {
+    pub fn from_address(address: usize) -> Self {
         let ptr: *mut u8 = address as _;
         HeapPointer { ptr }
     }

@@ -1,5 +1,33 @@
 # flux-lang
- 
+
+## Technical specification
+
+### Struct
+The max size of a struct must be able to fit into 24 bits. This enables pop and push instructions to only take up 32
+bits which allows them to fill only a single register on a 32 bit machine.
+
+## Bytecode reference
+
+### Opcodes
+```ignorelang
+OpCode::Return 
+```
+This opcode is used to terminate execution of a function. The VM will track the state of the current function call to 
+know the size of the return type.
+
+```ignorelang
+OpCode::Pop
+```
+This opcode is used to pop a value off of the stack. It is followed by a 24 bit offset to define the number of bytes to
+pop off the stack.
+
+```ignorelang
+OpCode::Push
+```
+This opcode is used to push a value onto the stack. It is followed by a 24 bit offset to define the number of bytes to
+push onto the stack.
+
+
 ## Basic syntax
 
 ### Package definition and imports

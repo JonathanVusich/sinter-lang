@@ -1,6 +1,8 @@
+use std::mem::size_of;
 use std::slice::SliceIndex;
 use crate::function::function::Function;
 use crate::opcode::OpCode;
+use crate::util::constants::WORD;
 use crate::vm::call_frame::CallFrame;
 use crate::vm::stack::Stack;
 
@@ -20,7 +22,7 @@ impl VM {
         }
     }
 
-    pub fn run(&mut self,function: Function, args: Box<[&str]>) -> usize {
+    pub fn run(&mut self, function: Function, args: Box<[&str]>) -> usize {
         debug_assert_eq!(function.call_frame_size(), 8);
         debug_assert_eq!(function.parameters().len(), 1);
 
@@ -37,6 +39,7 @@ impl VM {
             let opcode = self.read_opcode();
             match opcode {
                 OpCode::Return => {
+                    let word: &[u8; WORD] = self.thread_stack.pop_word();
                     self.current_frame -= 1;
                     if self.current_frame == 0 {
                         return 0;
@@ -44,19 +47,12 @@ impl VM {
                     self.call_frames.pop();
                     break;
                 }
-
-                OpCode::GetConstant => {
-
+                OpCode::ReturnWide => {
+                    self.current_frame -= 1;
+                    if self.current_frame == 0 {
+                        return 0;
+                    }
                 }
-                OpCode::Pop => {}
-                OpCode::Push => {}
-                OpCode::SetLocal => {}
-                OpCode::GetLocal => {}
-                OpCode::GetGlobal => {}
-                OpCode::SetGlobal => {}
-                OpCode::Jump => {}
-                OpCode::Loop => {}
-                OpCode::Call => {}
                 _ => {}
             }
         }
