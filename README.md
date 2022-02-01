@@ -145,17 +145,39 @@ This opcode is used to pop a 64-bit value off of the stack and discard it.
 ```ignorelang
 OpCode::GetConstant32
 ```
-This opcode is used to retrieve a 32-bit global variable.
+This opcode is used to push a 32-bit global variable onto the stack. It must be followed by a 24-bit index that 
+corresponds to the index into the constant pool.
 
 ```ignorelang
 OpCode::GetConstant64
 ```
-This opcode is used to retrieve a 64-bit global variable.
+This opcode is used to push a 64-bit global variable onto the stack. It must be followed by a 24-bit index that
+corresponds to the index into the constant pool.
 
+```ignorelang
+OpCode::SetLocal32
+```
+This opcode is used to set a 32-bit local variable from the value currently on the stack. It must be followed by a
+byte-sized index that corresponds to the index into the local variable storage in the stackframe.
 
-    SetLocal,
+```ignorelang
+OpCode::SetLocal64
+```
+This opcode is used to set a 64-bit local variable from the value currently on the stack. It must be followed by a
+byte-sized index that corresponds to the index into the local variable storage in the stackframe.
 
-    GetLocal,
+```ignorelang
+OpCode::GetLocal32
+```
+This opcode is used to push a 32-bit local variable onto the stack. It must be followed by a
+byte-sized index that corresponds to the index into the local variable storage in the stackframe. 
+
+```ignorelang
+OpCode::GetLocal64
+```
+This opcode is used to push a 64-bit local variable onto the stack. It must be followed by a
+byte-sized index that corresponds to the index into the local variable storage in the stackframe.
+
 
     Jump,
     Loop,
