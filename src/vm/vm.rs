@@ -9,6 +9,7 @@ use crate::vm::stack::Stack;
 pub struct VM {
     thread_stack: Stack,
     call_frames: Vec<CallFrame>,
+
     current_frame: usize
 }
 
@@ -22,12 +23,10 @@ impl VM {
         }
     }
 
-    pub fn run(&mut self, function: Function, args: Box<[&str]>) -> usize {
-        debug_assert_eq!(function.call_frame_size(), 8);
-        debug_assert_eq!(function.parameters().len(), 1);
+    pub fn run(&mut self, code: Vec<u8>, args: Box<[&str]>) -> usize {
 
         let call_frame = CallFrame {
-            function,
+            code,
             ip: 0,
             address: 0,
             size: 8 // This is the size of the pointer to the args array
@@ -46,12 +45,6 @@ impl VM {
                     }
                     self.call_frames.pop();
                     break;
-                }
-                OpCode::ReturnWide => {
-                    self.current_frame -= 1;
-                    if self.current_frame == 0 {
-                        return 0;
-                    }
                 }
                 _ => {}
             }

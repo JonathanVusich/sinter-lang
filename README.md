@@ -1,37 +1,11 @@
-# flux-lang
+# The Flux programming language
 
-## Technical specification
-
-### Struct
-The max size of a struct must be able to fit into 24 bits. This enables pop and push instructions to only take up 32
-bits which allows them to fill only a single register on a 32 bit machine.
-
-## Bytecode reference
-
-### Opcodes
-```ignorelang
-OpCode::Return 
-```
-This opcode is used to terminate execution of a function. The VM will track the state of the current function call to 
-know the size of the return type.
-
-```ignorelang
-OpCode::Pop
-```
-This opcode is used to pop a value off of the stack. It is followed by a 24 bit offset to define the number of bytes to
-pop off the stack.
-
-```ignorelang
-OpCode::Push
-```
-This opcode is used to push a value onto the stack. It is followed by a 24 bit offset to define the number of bytes to
-push onto the stack.
-
+Flux is a statically-typed and garbage collected language that is designed around user ergonomics and productivity.
 
 ## Basic syntax
 
 ### Package definition and imports
-Package specification should be at the top of all source files. 
+Package specification should be at the top of all source files.
 
 ```ignorelang
 package my.demo
@@ -94,7 +68,7 @@ var x = 5 // `i32` type is inferred
 x += 1
 ```
 
-Variables can be defined within a class or function definition. 
+Variables can be defined within a class or function definition.
 
 ### Creating classes and instances
 
@@ -138,3 +112,52 @@ Like most languages, Flux supports single-line (or end-of-line) and multi-line (
 /* This is a block comment
    on multiple lines. */
 ```
+
+
+## Bytecode reference
+
+### Opcodes
+```ignorelang
+OpCode::ReturnVoid
+```
+This opcode is used to terminate execution of a function with no return value.
+
+```ignorelang
+OpCode::Return32
+```
+This opcode is used to terminate execution of a function and return a 32-bit value to the callee.
+
+```ignorelang
+OpCode::Return64
+```
+This opcode is used to terminate execution of a function and return a 64-bit value to the callee.
+
+```ignorelang
+OpCode::Pop32
+```
+This opcode is used to pop a 32-bit value off of the stack and discard it.
+
+```ignorelang
+OpCode::Pop64
+```
+This opcode is used to pop a 64-bit value off of the stack and discard it.
+
+```ignorelang
+OpCode::GetConstant32
+```
+This opcode is used to retrieve a 32-bit global variable.
+
+```ignorelang
+OpCode::GetConstant64
+```
+This opcode is used to retrieve a 64-bit global variable.
+
+
+    SetLocal,
+
+    GetLocal,
+
+    Jump,
+    Loop,
+
+    Call,
