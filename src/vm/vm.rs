@@ -26,7 +26,7 @@ impl VM {
         }
     }
 
-    pub fn run(&mut self, code: Vec<u8>, args: Box<[&str]>) -> usize {
+    pub fn run(&mut self) -> usize {
         let call_frame = CallFrame {
             ip: 0,
             address: 0,
@@ -45,6 +45,17 @@ impl VM {
                     }
                     self.call_frames.pop();
                     break;
+                }
+                OpCode::Return32 => {
+                    let val = self.thread_stack.pop_32();
+                    self.current_frame -= 1;
+                    if self.current_frame == 0 {
+                        return 0;
+                    }
+                    self.call_frames.pop();
+
+
+                    self.thread_stack.push
                 }
                 _ => {}
             }
