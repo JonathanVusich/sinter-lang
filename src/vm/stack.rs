@@ -2,7 +2,7 @@ use std::convert::TryInto;
 use std::fmt::{Display, Formatter};
 
 use crate::pointers::heap_pointer::HeapPointer;
-use crate::util::constants::{DOUBLE_WORD, WORD};
+use crate::util::constants::{BITS_64, BITS_32, WORD};
 
 pub const STACK_SIZE: usize = 4 * 1024;
 
@@ -25,6 +25,20 @@ impl Stack {
         self.index = index;
     }
 
+    pub fn push_32(&mut self, value: &[u8; BITS_32]) {
+        let start = self.index;
+        let end = self.index + BITS_32;
+        self.internal[start..end].copy_from_slice(value);
+        self.index += BITS_32;
+    }
+
+    pub fn push_64(&mut self, value: &[u8; BITS_64]) {
+        let start = self.index;
+        let end = self.index + BITS_64;
+        self.internal[start..end].copy_from_slice(value);
+        self.index += BITS_64;
+    }
+
     pub fn push_word(&mut self, value: &[u8; WORD]) {
         let start = self.index;
         let end = self.index + WORD;
@@ -32,24 +46,25 @@ impl Stack {
         self.index += WORD;
     }
 
-    pub fn push_double_word(&mut self, value: &[u8; DOUBLE_WORD]) {
-        let start = self.index;
-        let end = self.index + DOUBLE_WORD;
-        self.internal[start..end].copy_from_slice(value);
-        self.index += DOUBLE_WORD;
-    }
-
-    pub fn pop_word(&mut self) -> &[u8; WORD] {
+    pub fn pop_32(&mut self) -> &[u8; BITS_32] {
         let end = self.index;
-        self.index -= WORD;
+        self.index -= BITS_32;
         let start = self.index;
 
         self.internal[start..end].try_into().unwrap()
     }
 
-    pub fn pop_double_word(&mut self) -> &[u8; DOUBLE_WORD] {
+    pub fn pop_64(&mut self) -> &[u8; BITS_64] {
         let end = self.index;
-        self.index -= DOUBLE_WORD;
+        self.index -= BITS_64;
+        let start = self.index;
+
+        self.internal[start..end].try_into().unwrap()
+    }
+
+    pub fn pop_word(&mut self) -> &[u8; WORD] {
+        let end = self.index;
+        self.index -= WORD;
         let start = self.index;
 
         self.internal[start..end].try_into().unwrap()
@@ -74,19 +89,19 @@ mod tests {
     fn read_and_write() {
         let mut stack = Stack::new();
 
-        let bytes: [u8; WORD] = 12usize.to_ne_bytes();
+        let bytes: [u8; BITS_32] = 12u32.to_ne_bytes();
 
-        stack.push_word(&bytes);
-        assert_eq!(&bytes, stack.pop_word());
+        stack.push_32(&bytes);
+        assert_eq!(&bytes, stack.pop_32());
     }
 
     #[test]
     fn stack_map() {
         let mut stack = Stack::new();
 
-        let bytes: [u8; WORD] = 1usize.to_ne_bytes();
+        let bytes: [u8; BITS_32] = 1u32.to_ne_bytes();
 
-        stack.push_word(&bytes);
+        stack.push_32(&bytes);
 
         let mut heap_value = 0i128;
         let ptr: *mut i128 = &mut heap_value;
@@ -115,7 +130,7 @@ mod tests {
         let pointer3 = HeapPointer::from_address(address3);
         assert_eq!(123, pointer3.start_address().read());
 
-        let num: usize = usize::from_ne_bytes(*stack.pop_word());
+        let num = u32::from_ne_bytes(*stack.pop_32());
 
         assert_eq!(num, 1);
     }
@@ -128,6 +143,6 @@ mod tests {
         }));
 
         let mut stack = Stack::new();
-        let val = stack.pop_word();
+        let val = stack.pop_32();
     }
 }

@@ -1,6 +1,8 @@
 # The Flux programming language
 
 Flux is a statically-typed and garbage collected language that is designed around user ergonomics and productivity.
+It features advanced garbage collection, message-based concurrency and generic types to allow users to develop systems
+quickly, scalably, and correctly.
 
 ## Basic syntax
 
@@ -178,8 +180,20 @@ OpCode::GetLocal64
 This opcode is used to push a 64-bit local variable onto the stack. It must be followed by a
 byte-sized index that corresponds to the index into the local variable storage in the stackframe.
 
+```ignorelang
+OpCode::Jump
+```
+This opcode is used to jump to the given offset within the executable code. It must be followed by a 24-bit offset
+that corresponds to the byte index to jump to.
 
-    Jump,
-    Loop,
+```ignorelang
+OpCode::JumpBack
+```
+This opcode is used to jump to the given offset within the executable code. It must be followed by a 24-bit offset
+that corresponds to the byte index to jump to.
 
-    Call,
+```ignorelang
+OpCode::Call
+```
+This opcode is used to call a procedure. It must be followed by a 24-bit offset specifying the amount of stack space to 
+allocate to the stackframe followed by a 32-bit offset to jump to.

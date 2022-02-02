@@ -1,20 +1,24 @@
 #[repr(u8)]
 #[derive(PartialOrd, PartialEq, Eq, Debug)]
 pub (crate) enum OpCode {
-    Return,
+    ReturnVoid,
+    Return32,
+    Return64,
 
-    Pop,
+    Pop32,
+    Pop64,
 
-    Push,
+    GetConstant32,
+    GetConstant64,
 
-    GetConstant,
+    SetLocal32,
+    SetLocal64,
 
-    SetLocal,
-
-    GetLocal,
+    GetLocal32,
+    GetLocal64,
 
     Jump,
-    Loop,
+    JumpBack,
 
     Call,
 }
@@ -35,22 +39,23 @@ mod tests {
 
     #[test]
     fn test_enum() {
-        assert_eq!(OpCode::Return, OpCode::from(0));
+        assert_eq!(OpCode::ReturnVoid, OpCode::from(0));
+        assert_eq!(OpCode::Return32, OpCode::from(1));
+        assert_eq!(OpCode::Return64, OpCode::from(2));
+        assert_eq!(OpCode::Pop32, OpCode::from(3));
+        assert_eq!(OpCode::Pop64, OpCode::from(4));
+        assert_eq!(OpCode::GetConstant32, OpCode::from(5));
+        assert_eq!(OpCode::GetConstant64, OpCode::from(6));
+        assert_eq!(OpCode::SetLocal32, OpCode::from(7));
+        assert_eq!(OpCode::SetLocal64, OpCode::from(8));
+        assert_eq!(OpCode::GetLocal32, OpCode::from(9));
+        assert_eq!(OpCode::GetLocal64, OpCode::from(10));
 
-        assert_eq!(OpCode::Pop, OpCode::from(1));
+        assert_eq!(OpCode::Jump, OpCode::from(11));
+        assert_eq!(OpCode::JumpBack, OpCode::from(12));
+        assert_eq!(OpCode::Call, OpCode::from(13));
 
-        assert_eq!(OpCode::Push, OpCode::from(2));
 
-        assert_eq!(OpCode::GetConstant, OpCode::from(3));
 
-        assert_eq!(OpCode::SetLocal, OpCode::from(4));
-
-        assert_eq!(OpCode::GetLocal, OpCode::from(5));
-
-        assert_eq!(OpCode::Jump, OpCode::from(6));
-
-        assert_eq!(OpCode::Loop, OpCode::from(7));
-
-        assert_eq!(OpCode::Call, OpCode::from(8));
     }
 }
