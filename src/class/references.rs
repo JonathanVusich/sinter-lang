@@ -22,7 +22,7 @@ impl Reference {
 
     pub fn load(&self, instance: Pointer<u8>) -> HeapPointer {
         let ptr: Pointer<usize> = instance.add(self.offset).cast();
-        HeapPointer::from_address(ptr.read())
+        HeapPointer::from(ptr.read().to_ne_bytes())
     }
 }
 

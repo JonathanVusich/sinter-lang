@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+use crate::pointers::mark_word::MarkWord;
 
 const BIT_1_MASK: u64 = compute_mask(1);
 const BIT_2_MASK: u64 = compute_mask(2);
@@ -12,12 +13,15 @@ const BIT_7_MASK: u64 = compute_mask(7);
 const BIT_8_MASK: u64 = compute_mask(8);
 
 #[derive(Copy, Clone)]
+#[cfg(target_pointer_width = "64")]
 pub struct TaggedPointer<T> {
     ptr: u64,
     data: PhantomData<T>
 }
 
+#[cfg(target_pointer_width = "64")]
 impl<T> TaggedPointer<T> {
+
     pub fn new(ptr: *const T) -> Self {
         TaggedPointer {
             ptr: ptr as u64,
@@ -25,8 +29,9 @@ impl<T> TaggedPointer<T> {
         }
     }
 
-    pub fn new_with_mark_word(ptr: *const T, mark_word: u8) -> Self {
-        let shifted_mark_word = (mark_word as u64) << 56;
+    pub fn new_with_mark_word(ptr: *const T, mark_word: MarkWord) -> Self {
+        let byte: u8 = mark_word.into();
+        let shifted_mark_word = (byte as u64) << 56;
         let tagged_ptr = ptr as u64 | shifted_mark_word;
 
         TaggedPointer {
@@ -42,35 +47,18 @@ impl<T> TaggedPointer<T> {
         }
     }
 
-    pub fn get_mark_word(&self) -> u8 {
+    pub fn get_mark_word(&self) -> MarkWord {
         let shifted_val = self.ptr >> 56;
-        shifted_val as u8
+        (shifted_val as u8).into()
     }
 
-    pub fn set_mark_word(&mut self, mark_word: u8) {
+    pub fn set_mark_word(&mut self, mark_word: MarkWord) {
         let mut ptr = self.ptr;
         ptr <<= 8;
         ptr >>= 8;
-        let shifted_mark_word = (mark_word as u64) << 56;
+        let byte: u8 = mark_word.into();
+        let shifted_mark_word = (byte as u64) << 56;
         self.ptr = (ptr | shifted_mark_word) as _
-    }
-
-    pub fn set_bit(&mut self, bit: u32) {
-        let ptr = self.ptr;
-        let mask = get_mask(bit);
-        self.ptr = (self.ptr as u64 | mask) as _
-    }
-
-    pub fn clear_bit(&mut self, bit: u32) {
-        let ptr = self.ptr;
-        let mask = get_mask(bit);
-        self.ptr = (self.ptr as u64 & !mask) as _
-    }
-
-    pub fn is_bit_set(&self, bit: u32) -> bool {
-        let ptr = self.ptr;
-        let mask = get_mask(bit);
-        (ptr & mask) != 0
     }
 }
 
@@ -96,68 +84,54 @@ const fn get_mask(bit: u32) -> u64 {
     }
 }
 
+#[cfg(target_pointer_width = "64")]
 impl<T> From<TaggedPointer<T>> for u64 {
     fn from(pointer: TaggedPointer<T>) -> Self {
         pointer.ptr as u64
     }
 }
 
+#[cfg(target_pointer_width = "64")]
 impl<T> Borrow<T> for TaggedPointer<T> {
     fn borrow(&self) -> &T {
         self.deref()
     }
 }
 
+#[cfg(target_pointer_width = "64")]
 impl<T> Deref for TaggedPointer<T> {
     type Target = T;
 
     fn deref(&self) -> &T {
-        #[cfg(target_pointer_width = "32")] {
-            let ptr: *mut T = self.ptr as *mut T;
-            unsafe {
-                &*ptr
-            }
-        }
+        let mut val = self.ptr as i64;
+        // Clear out tags
+        val <<= 16;
+        val >>= 16;
 
-        #[cfg(target_pointer_width = "64")] {
-            let mut val = self.ptr as i64;
-            // Clear out tags
-            val <<= 16;
-            val >>= 16;
+        let ptr: *mut T = val as _;
 
-            let ptr: *mut T = val as _;
-
-            unsafe {
-                let reference: &T = &*ptr;
-                reference
-            }
+        unsafe {
+            let reference: &T = &*ptr;
+            reference
         }
     }
 }
 
+#[cfg(target_pointer_width = "64")]
 impl<T> DerefMut for TaggedPointer<T> {
 
     fn deref_mut(&mut self) -> &mut T {
-        #[cfg(target_pointer_width = "32")] {
-            let ptr: *mut T = self.ptr as *mut T;
-            unsafe {
-                &mut *ptr
-            }
-        }
+        let mut val = self.ptr as i64;
 
-        #[cfg(target_pointer_width = "64")] {
-            let mut val = self.ptr as i64;
+        // Clear out tags
+        val <<= 16;
+        val >>= 16;
 
-            // Clear out tags
-            val <<= 16;
-            val >>= 16;
+        let ptr: *mut T = val as _;
 
-            let ptr: *mut T = val as _;
-
-            unsafe {
-                let reference: &mut T = &mut *ptr;
-                reference
-            }
+        unsafe {
+            let reference: &mut T = &mut *ptr;
+            reference
         }
     }
 }
@@ -174,12 +148,14 @@ mod tests {
     use super::*;
 
     #[test]
+    #[cfg(target_pointer_width = "64")]
     pub fn size() {
         assert_eq!(std::mem::size_of::<TaggedPointer<i32>>(), std::mem::size_of::<u64>());
         assert_eq!(std::mem::size_of::<TaggedPointer<Class>>(), std::mem::size_of::<u64>());
     }
 
     #[test]
+    #[cfg(target_pointer_width = "64")]
     pub fn dereferencing() {
         let val: i32 = 1;
         let mut tagged_pointer = TaggedPointer::new(&val);
@@ -188,22 +164,13 @@ mod tests {
 
         *tagged_pointer <<= 1;
 
-        tagged_pointer.set_bit(1);
-
         assert_eq!(2, val);
         assert_eq!(*tagged_pointer, val);
 
-        assert!(tagged_pointer.is_bit_set(1));
-
         *tagged_pointer <<= 2;
-
-        tagged_pointer.set_bit(2);
 
         assert_eq!(8, val);
         assert_eq!(*tagged_pointer, val);
-
-        assert!(tagged_pointer.is_bit_set(1));
-        assert!(tagged_pointer.is_bit_set(2));
 
         let new_val = tagged_pointer.shl(1);
 
@@ -211,44 +178,11 @@ mod tests {
 
         assert_eq!(8, val);
         assert_eq!(*tagged_pointer, val);
-
-        assert!(tagged_pointer.is_bit_set(1));
-        assert!(tagged_pointer.is_bit_set(2));
-    }
-
-    #[test]
-    pub fn setting_bits() {
-        let val: i32 = 1;
-        let mut tagged_pointer = TaggedPointer::new(&val);
-
-        tagged_pointer.set_bit(1);
-
-        assert_eq!(*tagged_pointer, 1);
-        assert!(tagged_pointer.is_bit_set(1));
-
-        tagged_pointer.clear_bit(1);
-
-        assert_eq!(*tagged_pointer, 1);
-        assert!(!tagged_pointer.is_bit_set(1));
-
-        tagged_pointer.set_bit(2);
-
-        assert_eq!(*tagged_pointer, 1);
-        assert!(tagged_pointer.is_bit_set(2));
-
-        tagged_pointer.clear_bit(1);
-
-        assert_eq!(*tagged_pointer, 1);
-        assert!(tagged_pointer.is_bit_set(2));
-
-        tagged_pointer.clear_bit(2);
-
-        assert_eq!(*tagged_pointer, 1);
-        assert!(!tagged_pointer.is_bit_set(2));
     }
 
     #[test]
     #[should_panic]
+    #[cfg(target_pointer_width = "64")]
     pub fn bit_too_low() {
         std::panic::set_hook(Box::new(|info| {
 
@@ -261,57 +195,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    pub fn bit_too_high() {
-        std::panic::set_hook(Box::new(|info| {
-
-        }));
-
-        let val = 1;
-        let mut tagged_pointer = TaggedPointer::new(&val);
-
-        tagged_pointer.set_bit(9);
-    }
-
-    #[test]
-    pub fn mark_word() {
-        let val = 1;
-        let mut tagged_pointer = TaggedPointer::new(&val);
-
-        tagged_pointer.set_bit(1);
-
-        assert_eq!(0b10000000, tagged_pointer.get_mark_word());
-
-        tagged_pointer.set_bit(2);
-
-        assert_eq!(0b11000000, tagged_pointer.get_mark_word());
-
-        tagged_pointer.set_bit(3);
-
-        assert_eq!(0b11100000, tagged_pointer.get_mark_word());
-
-        tagged_pointer.set_bit(4);
-
-        assert_eq!(0b11110000, tagged_pointer.get_mark_word());
-
-        tagged_pointer.set_bit(5);
-
-        assert_eq!(0b11111000, tagged_pointer.get_mark_word());
-
-        tagged_pointer.set_bit(6);
-
-        assert_eq!(0b11111100, tagged_pointer.get_mark_word());
-
-        tagged_pointer.set_bit(7);
-
-        assert_eq!(0b11111110, tagged_pointer.get_mark_word());
-
-        tagged_pointer.set_bit(8);
-
-        assert_eq!(0b11111111, tagged_pointer.get_mark_word());
-    }
-
-    #[test]
+    #[cfg(target_pointer_width = "64")]
     pub fn set_mark_word() {
         let val = 1;
 
@@ -337,10 +221,11 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_pointer_width = "64")]
     pub fn new_with_mark_word() {
         let val = 1;
 
-        let mark_word = 0b01010101;
+        let mark_word = 0b01010101.into();
 
         let tagged_pointer = TaggedPointer::new_with_mark_word(&val, mark_word);
 

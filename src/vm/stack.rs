@@ -118,16 +118,13 @@ mod tests {
 
         let num = isize::from_ne_bytes(*stack.pop_word());
 
-        let address = usize::from_ne_bytes(*stack.pop_word());
-        let pointer1 = HeapPointer::from_address(address);
+        let pointer1 = HeapPointer::from_bytes(stack.pop_word());
         assert_eq!(123, pointer1.start_address().read());
 
-        let address2 = usize::from_ne_bytes(*stack.pop_word());
-        let pointer2 = HeapPointer::from_address(address2);
+        let pointer2 = HeapPointer::from_bytes(stack.pop_word());
         assert_eq!(123, pointer2.start_address().read());
 
-        let address3 = usize::from_ne_bytes(*stack.pop_word());
-        let pointer3 = HeapPointer::from_address(address3);
+        let pointer3 = HeapPointer::from_bytes(stack.pop_word());
         assert_eq!(123, pointer3.start_address().read());
 
         let num = u32::from_ne_bytes(*stack.pop_32());

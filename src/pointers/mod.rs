@@ -1,3 +1,5 @@
 pub mod pointer;
-pub mod tagged_pointer;
 pub mod heap_pointer;
+pub mod mark_word;
+
+mod tagged_pointer;

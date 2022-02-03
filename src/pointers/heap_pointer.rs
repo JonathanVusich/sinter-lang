@@ -6,37 +6,60 @@ use crate::class::class::Class;
 use crate::class::references::Reference;
 use crate::gc::block::{Block, BLOCK_BYTEMASK};
 use crate::gc::byte_map::ByteMap;
+use crate::pointers::mark_word::MarkWord;
 use crate::pointers::pointer::Pointer;
 use crate::pointers::tagged_pointer::TaggedPointer;
+use crate::util::constants::WORD;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 #[repr(transparent)]
 pub struct HeapPointer {
-    ptr: *mut u8,
+    ptr: Pointer<u8>,
 }
 
 impl HeapPointer {
 
     pub fn new(class: &Class, ptr: *mut u8) -> Self {
-        let pointer = TaggedPointer::new_with_mark_word(class, class.mark_word());
+        #[cfg(target_pointer_width = "64")] {
+            let byte: u8 = class.mark_word().into();
+            let shifted_mark_word = (byte as usize) << 56;
+            let tagged_ptr = ptr as usize | shifted_mark_word;
 
-        let address: u64 = pointer.into();
-        let heap_pointer = HeapPointer { ptr };
-        unsafe {
+            let pointer = TaggedPointer::new_with_mark_word(class, class.mark_word());
+
+            let address: u64 = pointer.into();
+            let heap_pointer = HeapPointer { ptr: Pointer::from_raw(ptr) };
             heap_pointer.ptr.cast::<u64>().write(address);
+            heap_pointer
         }
-        heap_pointer
+        #[cfg(target_pointer_width = "32")] {
+            let pointer = Pointer::new(class);
+
+            let heap_pointer = HeapPointer { ptr: Pointer::from_raw(ptr) };
+            heap_pointer.ptr.cast::<u32>().write(pointer as u32);
+            heap_pointer
+        }
     }
 
-    pub fn from_address(address: usize) -> Self {
-        let ptr: *mut u8 = address as _;
-        HeapPointer { ptr }
+    pub fn class_pointer(&self) -> Pointer<Class> {
+        #[cfg(target_pointer_width = "64")] {
+            let mut val = self.ptr.cast::<isize>().read();
+            // Clear out tags
+            val <<= 16;
+            val >>= 16;
+
+            let ptr: *mut Class = val as _;
+            Pointer::from_raw(ptr)
+        }
+        #[cfg(target_pointer_width = "32")] {
+            let val = self.ptr.offset(4).cast::<usize>().read();
+            let ptr: *mut Class = val as _;
+            Pointer::from_raw(ptr)
+        }
     }
 
     pub fn start_address(&self) -> Pointer<u8> {
-        unsafe {
-            Pointer::from_raw(self.ptr.offset(8))
-        }
+        self.ptr.offset(8)
     }
 
     pub fn is_young(&self) -> bool {
@@ -44,63 +67,54 @@ impl HeapPointer {
     }
 
     pub fn is_old(&self) -> bool {
-        self.tagged_class_pointer().is_bit_set(3)
+        self.mark_word().is_bit_set(3)
     }
 
     pub fn is_marked(&self) -> bool {
-        self.tagged_class_pointer().is_bit_set(4)
+        self.mark_word().is_bit_set(4)
     }
 
     pub fn mark(&self) {
-        let mut tagged_class_ptr = self.tagged_class_pointer();
-        tagged_class_ptr.set_bit(4);
+        let mut mark_word = self.mark_word();
+        mark_word.set_bit(4);
+        self.set_mark_word(mark_word);
 
-        self.block().mark_instance(&tagged_class_ptr, self.ptr);
+        self.block().mark_instance(&*self.class_pointer(), self.start_address().to_raw());
     }
 
     pub fn spans_lines(&self) -> bool {
-        self.tagged_class_pointer().is_bit_set(5)
+        self.mark_word().is_bit_set(5)
     }
 
     pub fn is_new(&self) -> bool {
-        self.tagged_class_pointer().is_bit_set(6)
+        self.mark_word().is_bit_set(6)
     }
 
     pub fn is_forwarded(&self) -> bool {
-        let tagged_pointer = self.tagged_class_pointer();
-        tagged_pointer.is_bit_set(7) && tagged_pointer.is_bit_set(8)
+        let mark_word = self.mark_word();
+        mark_word.is_bit_set(7) && mark_word.is_bit_set(8)
     }
 
     pub fn is_being_forwarded(&self) -> bool {
-        self.tagged_class_pointer().is_bit_set(7)
+        self.mark_word().is_bit_set(7)
     }
 
     pub fn mark_forwarded(&self) {
-        let mut class_pointer = self.tagged_class_pointer();
-        class_pointer.set_bit(7);
-        class_pointer.set_bit(8);
-        self.write_class_pointer(class_pointer);
+        let mut mark_word = self.mark_word();
+        mark_word.set_bit(7);
+        mark_word.set_bit(8);
+        self.set_mark_word(mark_word);
     }
 
     pub fn mark_being_forwarded(&self) {
-        let mut class_pointer = self.tagged_class_pointer();
-        class_pointer.set_bit(7);
-        self.write_class_pointer(class_pointer);
-    }
-
-    pub fn class_pointer(&self) -> Pointer<Class> {
-        let mut ptr = self.class_address() as isize;
-        // Clear out tags
-        ptr <<= 16;
-        ptr >>= 16;
-
-        let pointer: *mut Class = ptr as _;
-
-        Pointer::from_raw(pointer)
+        let mut mark_word = self.mark_word();
+        mark_word.set_bit(7);
+        self.set_mark_word(mark_word);
     }
 
     pub fn block(&self) -> Pointer<Block> {
-        let address = self.ptr as usize & BLOCK_BYTEMASK;
+        let val: usize = self.ptr.into();
+        let address: usize = val & BLOCK_BYTEMASK;
 
         let block: *mut Block = address as _;
         Pointer::from_raw(block)
@@ -110,30 +124,29 @@ impl HeapPointer {
     ///
     /// This function is completely safe since the internal pointer is guaranteed to be valid.
     pub fn to_raw(&self) -> NonNull<u8> {
-        unsafe { NonNull::new_unchecked(self.ptr) }
+        self.ptr.into()
     }
 
-    fn tagged_class_pointer(&self) -> TaggedPointer<Class> {
-        let class_address = self.class_address();
-        TaggedPointer::from_address(class_address)
+    fn mark_word(&self) -> MarkWord {
+       self.ptr.read().into()
     }
 
-    fn class_address(&self) -> u64 {
-        unsafe {
-            self.ptr.cast::<u64>().read()
-        }
-    }
-
-    fn write_class_pointer(&self, class_pointer: TaggedPointer<Class>) {
-        unsafe {
-            self.ptr.cast::<u64>().write(class_pointer.into())
-        }
+    fn set_mark_word(&self, mark_word: MarkWord) {
+        self.ptr.write(mark_word.into())
     }
 }
 
-impl From<HeapPointer> for u64 {
-    fn from(ptr: HeapPointer) -> Self {
-        ptr.ptr as u64
+impl From<[u8; WORD]> for HeapPointer {
+
+    fn from(bytes: [u8; WORD]) -> Self {
+        HeapPointer { ptr: bytes.into() }
+    }
+}
+
+impl From<HeapPointer> for [u8; WORD] {
+
+    fn from(pointer: HeapPointer) -> Self {
+        pointer.ptr.into()
     }
 }
 
@@ -159,7 +172,7 @@ mod tests {
 
         let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
-        let read_class = heap_pointer.tagged_class_pointer();
+        let read_class = heap_pointer.class_pointer();
 
         assert_eq!(class, *read_class);
     }

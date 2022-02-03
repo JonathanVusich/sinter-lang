@@ -1,9 +1,11 @@
 use std::ops::{Deref, DerefMut};
+use std::ptr::NonNull;
 use crate::class::class::Class;
 use crate::pointers::heap_pointer::HeapPointer;
-use crate::pointers::tagged_pointer::TaggedPointer;
+use crate::util::constants::WORD;
 
 #[derive(Debug)]
+#[repr(transparent)]
 pub struct Pointer<T> {
     /// The underlying raw pointer.
     pointer: *mut T
@@ -11,29 +13,27 @@ pub struct Pointer<T> {
 
 impl<T> Pointer<T> {
     pub fn new(value: &T) -> Self {
-        Self {
-            pointer: value as *const T as *mut T,
-        }
+        Self { pointer: value as *const T as *mut T }
     }
 
     pub fn from_raw(ptr: *mut T) -> Self {
-        Self {
-            pointer: ptr as _
-        }
+        Self { pointer: ptr as _ }
+    }
+
+    pub fn to_raw(&self) -> *mut T {
+        self.pointer
     }
 
     pub fn add(&self, offset: usize) -> Self {
-        let offset_ptr = unsafe { self.pointer.add(offset) };
-        Self {
-            pointer: offset_ptr
-        }
+        unsafe { Self { pointer: self.pointer.add(offset) } }
+    }
+
+    pub fn offset(&self, offset: isize) -> Self {
+        unsafe { Self { pointer: self.pointer.offset(offset) } }
     }
 
     pub fn cast<U>(&self) -> Pointer<U> {
-        let cast_ptr: *mut U = self.pointer.cast();
-        Pointer {
-            pointer: cast_ptr
-        }
+        Pointer { pointer: self.pointer.cast::<U>() }
     }
 
     pub fn read(&self) -> T {
@@ -43,9 +43,33 @@ impl<T> Pointer<T> {
     pub fn write(&self, value: T) {
         unsafe { self.pointer.write(value) }
     }
+}
 
-    pub fn to_raw(&self) -> *mut T {
-        self.pointer
+impl<T> From<Pointer<T>> for [u8; WORD] {
+
+    fn from(pointer: Pointer<T>) -> Self {
+        (pointer.pointer as usize).to_ne_bytes().try_into().unwrap()
+    }
+}
+
+impl<T> From<Pointer<T>> for usize {
+
+    fn from(pointer: Pointer<T>) -> Self {
+        pointer.pointer as usize
+    }
+}
+
+impl<T> From<[u8; WORD]> for Pointer<T> {
+
+    fn from(bytes: [u8; WORD]) -> Pointer<T> {
+        Pointer { pointer: usize::from_ne_bytes(bytes) as *mut T }
+    }
+}
+
+impl<T> From<Pointer<T>> for NonNull<T> {
+
+    fn from(pointer: Pointer<T>) -> Self {
+        unsafe { NonNull::new_unchecked(pointer.pointer) }
     }
 }
 
