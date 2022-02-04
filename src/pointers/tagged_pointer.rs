@@ -40,13 +40,6 @@ impl<T> TaggedPointer<T> {
         }
     }
 
-    pub fn from_address(address: u64) -> Self {
-        TaggedPointer {
-            ptr: address,
-            data: PhantomData::default()
-        }
-    }
-
     pub fn get_mark_word(&self) -> MarkWord {
         let shifted_val = self.ptr >> 56;
         (shifted_val as u8).into()
@@ -190,8 +183,6 @@ mod tests {
 
         let val = 1;
         let mut tagged_pointer = TaggedPointer::new(&val);
-
-        tagged_pointer.set_bit(0);
     }
 
     #[test]
@@ -201,9 +192,9 @@ mod tests {
 
         let mut tagged_pointer = TaggedPointer::new(&val);
 
-        assert_eq!(0b00000000, tagged_pointer.get_mark_word());
+        assert_eq!(tagged_pointer.get_mark_word(), 0.into());
 
-        let new_mark_word: u8 = 0b11110000;
+        let new_mark_word: MarkWord = 0b11110000.into();
 
         tagged_pointer.set_mark_word(new_mark_word);
 
@@ -211,7 +202,7 @@ mod tests {
 
         assert_eq!(1, *tagged_pointer);
 
-        let different_mark_word: u8 = 0b10001000;
+        let different_mark_word: MarkWord = 0b10001000.into();
 
         tagged_pointer.set_mark_word(different_mark_word);
 

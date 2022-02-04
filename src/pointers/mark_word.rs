@@ -7,7 +7,7 @@ const BIT_6_MASK: u8 = compute_mask(6);
 const BIT_7_MASK: u8 = compute_mask(7);
 const BIT_8_MASK: u8 = compute_mask(8);
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct MarkWord {
     word: u8
 }
@@ -16,12 +16,12 @@ impl MarkWord {
 
     pub fn set_bit(&mut self, bit: u8) {
         let mask = get_mask(bit);
-        self.word = self.word | mask
+        self.word |= mask
     }
 
     pub fn clear_bit(&mut self, bit: u8) {
         let mask = get_mask(bit);
-        self.word = self.word & !mask
+        self.word &= !mask
     }
 
     pub fn is_bit_set(&self, bit: u8) -> bool {
@@ -47,7 +47,7 @@ const fn get_mask(bit: u8) -> u8 {
 
 const fn compute_mask(bit: u8) -> u8 {
     assert!(bit > 0 && bit < 9, "Unsupported bit index!");
-    let mut mask: u64 = 1;
+    let mut mask: u8 = 1;
     mask = mask.rotate_right(bit as u32);
     mask as u8
 }
@@ -75,6 +75,8 @@ mod tests {
 
         mark_word.set_bit(1);
 
+        println!("{:?}", mark_word);
+
         assert!(mark_word.is_bit_set(1));
 
         mark_word.clear_bit(1);
@@ -92,6 +94,17 @@ mod tests {
         mark_word.clear_bit(2);
 
         assert!(!mark_word.is_bit_set(2));
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn bit_too_low() {
+        std::panic::set_hook(Box::new(|info| {
+
+        }));
+
+        let mut mark_word = MarkWord::from(0);
+        mark_word.set_bit(0);
     }
 
     #[test]

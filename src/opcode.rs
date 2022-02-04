@@ -2,20 +2,26 @@
 #[derive(PartialOrd, PartialEq, Eq, Debug)]
 pub (crate) enum OpCode {
     ReturnVoid,
+
     Return32,
     Return64,
+    ReturnWord,
 
     Pop32,
     Pop64,
+    PopWord,
 
     GetConstant32,
     GetConstant64,
+    GetConstantWord,
 
     SetLocal32,
     SetLocal64,
+    SetConstantWord,
 
     GetLocal32,
     GetLocal64,
+    GetLocalWord,
 
     Jump,
     JumpBack,

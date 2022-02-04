@@ -6,14 +6,12 @@ quickly, scalably, and correctly.
 
 ## Basic syntax
 
-### Package definition and imports
-Package specification should be at the top of all source files.
+### Imports
 
 ```ignorelang
-package my.demo
-
 import std::vector
 ```
+Imports should be declared at the top of each source file. 
 
 ### Program entry point
 The entry point for a Flux application is the main function.

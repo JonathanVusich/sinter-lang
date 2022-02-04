@@ -7,7 +7,7 @@ use crate::vm::call_frame::CallFrame;
 use crate::vm::stack::Stack;
 
 pub struct VM {
-    code: Vec<u8>,
+    classes: Vec<CompiledClass>,
     args: Box<[&'static str]>,
     thread_stack: Stack,
     call_frames: Vec<CallFrame>,
@@ -16,9 +16,8 @@ pub struct VM {
 
 impl VM {
 
-    pub fn new(code: Vec<u8>, args: Box<[&'static str]>) -> Self {
+    pub fn new(args: Box<[&'static str]>) -> Self {
         Self {
-            code,
             args,
             thread_stack: Stack::new(),
             call_frames: vec![],
@@ -54,10 +53,53 @@ impl VM {
                     }
                     self.call_frames.pop();
 
-
-                    self.thread_stack.push
+                    self.thread_stack.push_32(val);
                 }
-                _ => {}
+                OpCode::Return64 => {
+                    let val = self.thread_stack.pop_64();
+                    self.current_frame -= 1;
+                    if self.current_frame == 0 {
+                        return 0;
+                    }
+                    self.call_frames.pop();
+
+                    self.thread_stack.push_64(val);
+                }
+                OpCode::ReturnWord => {
+                    let val = self.thread_stack.pop_word();
+                    self.current_frame -= 1;
+                    if self.current_frame == 0 {
+                        return 0;
+                    }
+                    self.call_frames.pop();
+
+                    self.thread_stack.push_word(val);
+                }
+
+                OpCode::Pop32 => {
+                    self.thread_stack.pop_32();
+                }
+                OpCode::Pop64 => {
+                    self.thread_stack.pop_64();
+                }
+                OpCode::PopWord => {
+                    self.thread_stack.pop_word();
+                }
+
+                OpCode::GetConstant32 => {
+
+                }
+                OpCode::GetConstant64 => {}
+                OpCode::GetConstantWord => {}
+                OpCode::SetLocal32 => {}
+                OpCode::SetLocal64 => {}
+                OpCode::SetConstantWord => {}
+                OpCode::GetLocal32 => {}
+                OpCode::GetLocal64 => {}
+                OpCode::GetLocalWord => {}
+                OpCode::Jump => {}
+                OpCode::JumpBack => {}
+                OpCode::Call => {}
             }
         }
         return 0;
