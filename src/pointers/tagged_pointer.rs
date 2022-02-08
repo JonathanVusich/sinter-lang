@@ -3,40 +3,37 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use crate::pointers::mark_word::MarkWord;
 
-const BIT_1_MASK: u64 = compute_mask(1);
-const BIT_2_MASK: u64 = compute_mask(2);
-const BIT_3_MASK: u64 = compute_mask(3);
-const BIT_4_MASK: u64 = compute_mask(4);
-const BIT_5_MASK: u64 = compute_mask(5);
-const BIT_6_MASK: u64 = compute_mask(6);
-const BIT_7_MASK: u64 = compute_mask(7);
-const BIT_8_MASK: u64 = compute_mask(8);
+const BIT_1_MASK: usize = compute_mask(1);
+const BIT_2_MASK: usize = compute_mask(2);
+const BIT_3_MASK: usize = compute_mask(3);
+const BIT_4_MASK: usize = compute_mask(4);
+const BIT_5_MASK: usize = compute_mask(5);
+const BIT_6_MASK: usize = compute_mask(6);
+const BIT_7_MASK: usize = compute_mask(7);
+const BIT_8_MASK: usize = compute_mask(8);
 
 #[derive(Copy, Clone)]
-#[cfg(target_pointer_width = "64")]
 pub struct TaggedPointer<T> {
-    ptr: u64,
-    data: PhantomData<T>
+    ptr: usize,
+    data: PhantomData<T>,
 }
 
-#[cfg(target_pointer_width = "64")]
 impl<T> TaggedPointer<T> {
-
     pub fn new(ptr: *const T) -> Self {
         TaggedPointer {
-            ptr: ptr as u64,
-            data: PhantomData::default()
+            ptr: ptr as usize,
+            data: PhantomData::default(),
         }
     }
 
     pub fn new_with_mark_word(ptr: *const T, mark_word: MarkWord) -> Self {
         let byte: u8 = mark_word.into();
-        let shifted_mark_word = (byte as u64) << 56;
-        let tagged_ptr = ptr as u64 | shifted_mark_word;
+        let shifted_mark_word = (byte as usize) << 56;
+        let tagged_ptr = ptr as usize | shifted_mark_word;
 
         TaggedPointer {
             ptr: tagged_ptr,
-            data: PhantomData::default()
+            data: PhantomData::default(),
         }
     }
 
@@ -50,20 +47,20 @@ impl<T> TaggedPointer<T> {
         ptr <<= 8;
         ptr >>= 8;
         let byte: u8 = mark_word.into();
-        let shifted_mark_word = (byte as u64) << 56;
+        let shifted_mark_word = (byte as usize) << 56;
         self.ptr = (ptr | shifted_mark_word) as _
     }
 }
 
-const fn compute_mask(bit: u32) -> u64 {
+const fn compute_mask(bit: u32) -> usize {
     assert!(bit > 0 && bit < 9, "Unsupported bit index!");
-    let mut mask: u64 = 1;
+    let mut mask: usize = 1;
     mask = mask.rotate_right(bit);
     mask
 }
 
 #[inline(always)]
-const fn get_mask(bit: u32) -> u64 {
+const fn get_mask(bit: u32) -> usize {
     match bit {
         1 => BIT_1_MASK,
         2 => BIT_2_MASK,
@@ -77,21 +74,18 @@ const fn get_mask(bit: u32) -> u64 {
     }
 }
 
-#[cfg(target_pointer_width = "64")]
-impl<T> From<TaggedPointer<T>> for u64 {
+impl<T> From<TaggedPointer<T>> for usize {
     fn from(pointer: TaggedPointer<T>) -> Self {
-        pointer.ptr as u64
+        pointer.ptr as usize
     }
 }
 
-#[cfg(target_pointer_width = "64")]
 impl<T> Borrow<T> for TaggedPointer<T> {
     fn borrow(&self) -> &T {
         self.deref()
     }
 }
 
-#[cfg(target_pointer_width = "64")]
 impl<T> Deref for TaggedPointer<T> {
     type Target = T;
 
@@ -110,9 +104,8 @@ impl<T> Deref for TaggedPointer<T> {
     }
 }
 
-#[cfg(target_pointer_width = "64")]
-impl<T> DerefMut for TaggedPointer<T> {
 
+impl<T> DerefMut for TaggedPointer<T> {
     fn deref_mut(&mut self) -> &mut T {
         let mut val = self.ptr as i64;
 
@@ -141,14 +134,12 @@ mod tests {
     use super::*;
 
     #[test]
-    #[cfg(target_pointer_width = "64")]
     pub fn size() {
-        assert_eq!(std::mem::size_of::<TaggedPointer<i32>>(), std::mem::size_of::<u64>());
-        assert_eq!(std::mem::size_of::<TaggedPointer<Class>>(), std::mem::size_of::<u64>());
+        assert_eq!(std::mem::size_of::<TaggedPointer<i32>>(), std::mem::size_of::<usize>());
+        assert_eq!(std::mem::size_of::<TaggedPointer<Class>>(), std::mem::size_of::<usize>());
     }
 
     #[test]
-    #[cfg(target_pointer_width = "64")]
     pub fn dereferencing() {
         let val: i32 = 1;
         let mut tagged_pointer = TaggedPointer::new(&val);
@@ -175,18 +166,14 @@ mod tests {
 
     #[test]
     #[should_panic]
-    #[cfg(target_pointer_width = "64")]
     pub fn bit_too_low() {
-        std::panic::set_hook(Box::new(|info| {
-
-        }));
+        std::panic::set_hook(Box::new(|info| {}));
 
         let val = 1;
         let mut tagged_pointer = TaggedPointer::new(&val);
     }
 
     #[test]
-    #[cfg(target_pointer_width = "64")]
     pub fn set_mark_word() {
         let val = 1;
 
@@ -212,7 +199,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(target_pointer_width = "64")]
     pub fn new_with_mark_word() {
         let val = 1;
 

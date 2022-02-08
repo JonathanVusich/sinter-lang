@@ -1,23 +1,26 @@
 use std::mem::size_of;
 use std::slice::SliceIndex;
+use crate::class::compiled_class::CompiledClass;
 use crate::function::function::Function;
 use crate::opcode::OpCode;
-use crate::util::constants::BITS_32;
 use crate::vm::call_frame::CallFrame;
 use crate::vm::stack::Stack;
 
 pub struct VM {
+
     classes: Vec<CompiledClass>,
     args: Box<[&'static str]>,
     thread_stack: Stack,
     call_frames: Vec<CallFrame>,
     current_frame: usize
+
 }
 
 impl VM {
 
-    pub fn new(args: Box<[&'static str]>) -> Self {
+    pub fn new(classes: Vec<CompiledClass>, args: Box<[&'static str]>) -> Self {
         Self {
+            classes,
             args,
             thread_stack: Stack::new(),
             call_frames: vec![],

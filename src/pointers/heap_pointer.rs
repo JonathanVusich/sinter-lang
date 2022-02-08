@@ -20,42 +20,26 @@ pub struct HeapPointer {
 impl HeapPointer {
 
     pub fn new(class: &Class, ptr: *mut u8) -> Self {
-        #[cfg(target_pointer_width = "64")] {
-            let byte: u8 = class.mark_word().into();
-            let shifted_mark_word = (byte as usize) << 56;
-            let tagged_ptr = ptr as usize | shifted_mark_word;
+        let byte: u8 = class.mark_word().into();
+        let shifted_mark_word = (byte as usize) << 56;
+        let tagged_ptr = ptr as usize | shifted_mark_word;
 
-            let pointer = TaggedPointer::new_with_mark_word(class, class.mark_word());
+        let pointer = TaggedPointer::new_with_mark_word(class, class.mark_word());
 
-            let address: u64 = pointer.into();
-            let heap_pointer = HeapPointer { ptr: Pointer::from_raw(ptr) };
-            heap_pointer.ptr.cast::<u64>().write(address);
-            heap_pointer
-        }
-        #[cfg(target_pointer_width = "32")] {
-            let pointer = Pointer::new(class);
-
-            let heap_pointer = HeapPointer { ptr: Pointer::from_raw(ptr) };
-            heap_pointer.ptr.cast::<u32>().write(pointer as u32);
-            heap_pointer
-        }
+        let address: usize = pointer.into();
+        let heap_pointer = HeapPointer { ptr: Pointer::from_raw(ptr) };
+        heap_pointer.ptr.cast::<usize>().write(address);
+        heap_pointer
     }
 
     pub fn class_pointer(&self) -> Pointer<Class> {
-        #[cfg(target_pointer_width = "64")] {
-            let mut val = self.ptr.cast::<isize>().read();
-            // Clear out tags
-            val <<= 16;
-            val >>= 16;
+        let mut val = self.ptr.cast::<isize>().read();
+        // Clear out tags
+        val <<= 16;
+        val >>= 16;
 
-            let ptr: *mut Class = val as _;
-            Pointer::from_raw(ptr)
-        }
-        #[cfg(target_pointer_width = "32")] {
-            let val = self.ptr.offset(4).cast::<usize>().read();
-            let ptr: *mut Class = val as _;
-            Pointer::from_raw(ptr)
-        }
+        let ptr: *mut Class = val as _;
+        Pointer::from_raw(ptr)
     }
 
     pub fn start_address(&self) -> Pointer<u8> {
