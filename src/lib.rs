@@ -14,6 +14,5 @@ pub mod class;
 pub mod util;
 pub mod heap;
 pub mod os;
-pub mod interface;
 pub mod function;
 pub mod vm;

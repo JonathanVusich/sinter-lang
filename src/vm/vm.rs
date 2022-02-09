@@ -1,15 +1,18 @@
+use std::collections::HashMap;
+use std::iter::Map;
 use std::mem::size_of;
 use std::slice::SliceIndex;
 use crate::class::compiled_class::CompiledClass;
+use crate::class::version::Version;
 use crate::function::function::Function;
 use crate::opcode::OpCode;
 use crate::vm::call_frame::CallFrame;
 use crate::vm::stack::Stack;
 
-pub struct VM {
+pub const CURRENT_VERSION: Version = Version::new(0, 1);
 
-    classes: Vec<CompiledClass>,
-    args: Box<[&'static str]>,
+pub struct VM {
+    classes: HashMap<String, CompiledClass>,
     thread_stack: Stack,
     call_frames: Vec<CallFrame>,
     current_frame: usize
@@ -18,17 +21,28 @@ pub struct VM {
 
 impl VM {
 
-    pub fn new(classes: Vec<CompiledClass>, args: Box<[&'static str]>) -> Self {
-        Self {
-            classes,
-            args,
+    pub fn new(mut classes: Vec<CompiledClass>) -> Self {
+        let mut vm = Self {
+            classes: HashMap::new(),
             thread_stack: Stack::new(),
             call_frames: vec![],
             current_frame: 0,
+        };
+
+        for class in classes.into_iter() {
+            if class.version() > CURRENT_VERSION {
+                panic!("Unrecognized class version!")
+            }
+            let qualified_name = class.qualified_name();
+            vm.classes.insert(qualified_name, class);
         }
+
+        vm
     }
 
-    pub fn run(&mut self) -> usize {
+    pub fn run(&mut self, main_class_name: String) -> usize {
+        let main_class = self.classes.get(&*main_class_name).expect("The specified main class is not loaded into the VM!");
+
         let call_frame = CallFrame {
             ip: 0,
             address: 0,
@@ -48,58 +62,27 @@ impl VM {
                     self.call_frames.pop();
                     break;
                 }
-                OpCode::Return32 => {
-                    let val = self.thread_stack.pop_32();
-                    self.current_frame -= 1;
-                    if self.current_frame == 0 {
-                        return 0;
-                    }
-                    self.call_frames.pop();
 
-                    self.thread_stack.push_32(val);
-                }
-                OpCode::Return64 => {
-                    let val = self.thread_stack.pop_64();
-                    self.current_frame -= 1;
-                    if self.current_frame == 0 {
-                        return 0;
-                    }
-                    self.call_frames.pop();
-
-                    self.thread_stack.push_64(val);
-                }
-                OpCode::ReturnWord => {
-                    let val = self.thread_stack.pop_word();
-                    self.current_frame -= 1;
-                    if self.current_frame == 0 {
-                        return 0;
-                    }
-                    self.call_frames.pop();
-
-                    self.thread_stack.push_word(val);
-                }
-
-                OpCode::Pop32 => {
-                    self.thread_stack.pop_32();
-                }
-                OpCode::Pop64 => {
-                    self.thread_stack.pop_64();
-                }
-                OpCode::PopWord => {
-                    self.thread_stack.pop_word();
-                }
-
-                OpCode::GetConstant32 => {
-
-                }
+                OpCode::Return8 => {}
+                OpCode::Return16 => {}
+                OpCode::Return32 => {}
+                OpCode::Return64 => {}
+                OpCode::Pop8 => {}
+                OpCode::Pop16 => {}
+                OpCode::Pop32 => {}
+                OpCode::Pop64 => {}
+                OpCode::GetConstant8 => {}
+                OpCode::GetConstant16 => {}
+                OpCode::GetConstant32 => {}
                 OpCode::GetConstant64 => {}
-                OpCode::GetConstantWord => {}
+                OpCode::SetLocal8 => {}
+                OpCode::SetLocal16 => {}
                 OpCode::SetLocal32 => {}
                 OpCode::SetLocal64 => {}
-                OpCode::SetConstantWord => {}
+                OpCode::GetLocal8 => {}
+                OpCode::GetLocal16 => {}
                 OpCode::GetLocal32 => {}
                 OpCode::GetLocal64 => {}
-                OpCode::GetLocalWord => {}
                 OpCode::Jump => {}
                 OpCode::JumpBack => {}
                 OpCode::Call => {}

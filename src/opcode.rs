@@ -3,25 +3,30 @@
 pub (crate) enum OpCode {
     ReturnVoid,
 
+    Return8,
+    Return16,
     Return32,
     Return64,
-    ReturnWord,
 
+    Pop8,
+    Pop16,
     Pop32,
     Pop64,
-    PopWord,
 
+    GetConstant8,
+    GetConstant16,
     GetConstant32,
     GetConstant64,
-    GetConstantWord,
 
+    SetLocal8,
+    SetLocal16,
     SetLocal32,
     SetLocal64,
-    SetConstantWord,
 
+    GetLocal8,
+    GetLocal16,
     GetLocal32,
     GetLocal64,
-    GetLocalWord,
 
     Jump,
     JumpBack,
