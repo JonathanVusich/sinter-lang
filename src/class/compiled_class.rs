@@ -31,6 +31,10 @@ impl CompiledClass {
         self.version
     }
 
+    pub fn constant_pool(&self) -> &ConstantPool {
+        &self.constant_pool
+    }
+
     pub fn fields(&self) -> &[Field] {
         self.fields.as_slice()
     }

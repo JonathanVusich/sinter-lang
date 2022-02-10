@@ -1,3 +1,6 @@
+use crate::bytes::byte_reader::ByteReader;
+use crate::bytes::from_bytes::FromBytes;
+
 #[repr(transparent)]
 #[derive(Clone)]
 pub struct ConstantPool {
@@ -23,14 +26,19 @@ impl ConstantPool {
     }
 }
 
-impl ConstantPoolEntry {
+impl FromBytes for ConstantPoolEntry {
 
-    pub fn new(offset: u16, size: u16) -> Self {
+    fn load(byte_reader: &mut ByteReader) -> Self {
+        let offset = u16::from_ne_bytes(*byte_reader.read_bytes::<2>());
+        let size = u16::from_ne_bytes(*byte_reader.read_bytes::<2>());
         Self {
             offset,
             size
         }
     }
+}
+
+impl ConstantPoolEntry {
 
     pub fn start(&self) -> usize {
         self.offset as usize

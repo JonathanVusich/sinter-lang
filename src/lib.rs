@@ -16,3 +16,4 @@ pub mod heap;
 pub mod os;
 pub mod function;
 pub mod vm;
+pub mod bytes;
