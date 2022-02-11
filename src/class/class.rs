@@ -4,6 +4,7 @@ use crate::class::field::Field;
 use crate::class::references::Reference;
 
 use crate::class::size_class::SizeClass;
+use crate::class::version::Version;
 use crate::function::function::Function;
 use crate::gc::block::{BLOCK_SIZE, LINE_SIZE};
 use crate::pointers::heap_pointer::HeapPointer;
@@ -12,12 +13,13 @@ use crate::pointers::pointer::Pointer;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Class {
+    version: Version,
     object_size: usize,
     object_classification: SizeClass,
     mark_word: MarkWord,
-    static_roots: Vec<HeapPointer>,
+
     fields: Vec<Field>,
-    references: Vec<Reference>,
+    references: Vec<Field>,
     functions: Vec<Function>
 }
 
@@ -35,15 +37,10 @@ impl Class {
             object_size,
             object_classification: SizeClass::from(object_size),
             mark_word,
-            static_roots: vec![],
             fields: vec![],
             references: vec![],
             functions: vec![]
         }
-    }
-
-    pub fn static_roots(&self) -> impl Iterator<Item = HeapPointer> + '_ {
-        self.static_roots.as_slice().iter().copied()
     }
 
     pub fn references(&self) -> impl Iterator<Item = &Reference> + '_ {

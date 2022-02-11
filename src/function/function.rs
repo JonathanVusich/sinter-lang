@@ -2,28 +2,30 @@ use bit_set::BitSet;
 use crate::class::class::Class;
 
 use crate::opcode::OpCode;
+use crate::strings::internal_string::InternalString;
+use crate::types::types::Type;
 use crate::vm::call_frame::CallFrame;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Function {
-    name: &'static str,
+    name: InternalString,
     parameters: Vec<Parameter>,
     call_frame_size: usize,
     code: Vec<u8>,
     constants: Vec<u8>,
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Parameter {
-    pub parameter_type: &'static Class,
-    pub name: &'static str,
+    pub name: InternalString,
+    pub parameter_type: Type,
 }
 
 impl Function {
 
-    pub fn new(name: &'static str) -> Self {
+    pub fn new() -> Self {
         Self {
-            name,
+            name: InternalString(0u32),
             parameters: vec![],
             call_frame_size: 0,
             code: vec![],
@@ -31,7 +33,7 @@ impl Function {
         }
     }
 
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> InternalString {
         self.name
     }
 
@@ -57,8 +59,7 @@ mod tests {
 
     #[test]
     pub fn constructor() {
-        let function = Function::new("TestFunction");
-        assert_eq!("TestFunction", function.name);
+        let function = Function::new();
     }
 }
 

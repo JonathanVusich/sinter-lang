@@ -2,10 +2,12 @@ use std::collections::HashMap;
 use std::iter::Map;
 use std::mem::size_of;
 use std::slice::SliceIndex;
+use crate::bytes::byte_reader::ByteReader;
 use crate::class::compiled_class::CompiledClass;
 use crate::class::version::Version;
 use crate::function::function::Function;
 use crate::opcode::OpCode;
+use crate::strings::string_pool::StringPool;
 use crate::vm::call_frame::CallFrame;
 use crate::vm::stack::Stack;
 
@@ -15,18 +17,19 @@ pub struct VM {
     classes: HashMap<String, CompiledClass>,
     thread_stack: Stack,
     call_frames: Vec<CallFrame>,
-    current_frame: usize
-
+    current_frame: usize,
+    string_pool: StringPool,
 }
 
 impl VM {
 
-    pub fn new(mut classes: Vec<CompiledClass>) -> Self {
+    pub fn new(mut classes: Vec<ByteReader>) -> Self {
         let mut vm = Self {
             classes: HashMap::new(),
             thread_stack: Stack::new(),
             call_frames: vec![],
             current_frame: 0,
+            string_pool: StringPool::with_capacity(8192),
         };
 
         for class in classes.into_iter() {
@@ -34,6 +37,7 @@ impl VM {
                 panic!("Unrecognized class version!")
             }
             let qualified_name = class.qualified_name();
+
             vm.classes.insert(qualified_name, class);
         }
 

@@ -17,3 +17,6 @@ pub mod os;
 pub mod function;
 pub mod vm;
 pub mod bytes;
+pub mod types;
+pub mod strings;
+pub mod traits;

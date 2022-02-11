@@ -2,11 +2,12 @@ use crate::bytes::byte_reader::ByteReader;
 use crate::bytes::from_bytes::FromBytes;
 use crate::class::compiled_class::CompiledClass;
 use crate::class::constant_pool::{ConstantPool, ConstantPoolEntry};
+use crate::strings::internal_string::InternalString;
 
 #[derive(Clone)]
 pub struct Method {
-    name: ConstantPoolEntry,
-    descriptor: ConstantPoolEntry,
+    name: InternalString,
+    descriptor: MethodDescriptor,
     max_stack_size: u16,
     max_locals: u16,
     code: Vec<u8>,
@@ -17,17 +18,13 @@ pub struct MethodDescriptor {
     parameters: Vec<ConstantPoolEntry>,
 }
 
-pub struct ReturnType {
-
-}
-
 impl Method {
 
     pub fn is_main_method(&self, pool: &ConstantPool) -> bool {
         let method_name = pool.load_str(self.name);
         let method_descriptor = pool.load::<MethodDescriptor>(self.descriptor);
 
-        method_name == "main" && pool.load::<ReturnType>(method_descriptor.return_type) == ReturnType::Void
+        method_name == "main" && pool.load::<Type>(method_descriptor.return_type) == Type::Void
     }
 }
 

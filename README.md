@@ -24,7 +24,7 @@ fn main() {
 
 A main argument that takes in a string array is also valid. The parameters given to the Flux VM at startup are passed to this method.
 ```ignorelang
-fn main(arguments: Array<String>) {
+fn main(arguments: [String]) {
     print(arguments.to_string());
 }
 ```
@@ -62,39 +62,31 @@ var x = 5; // `i32` type is inferred
 x += 1;
 ```
 
-Variables can be defined within a class or function definition.
+Variables can be defined within a struct or function definition.
 
-### Creating classes and instances
+### Defining structs and instances
 
-To define a class, use the `class` keyword.
+To define a struct, use the `struct` keyword.
 
 ```ignorelang
-class Shape
+struct Shape
 ```
 
-Properties of a class can be listed in its declaration.
+Properties of a struct are listed in its declaration.
 
 ```ignorelang
-class Rectangle(width: f64, length: f64) {
+struct Rectangle(width: f64, length: f64) {
     fn perimeter() {
         return (height + length) * 2
     }
 }
 ```
 
-The default constructor with the class parameters is available automatically.
+The default constructor with the struct parameters is available automatically.
 
 ```ignorelang
-val rectangle = new Rectangle(5.0, 2.0)
+val rectangle = Rectangle(5.0, 2.0)
 println("The perimeter is {rectangle.perimeter()}")
-```
-
-Inheritance between classes is declared by a colon (`:`). Classes are final by default; to make a class extendable, mark it as `open`.
-
-```ignorelang
-open class Shape
-
-class Rectangle(width: f64, length: f64): Shape()
 ```
 
 ### Comments
