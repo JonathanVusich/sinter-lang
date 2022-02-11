@@ -22,7 +22,7 @@ pub struct VM {
 
 impl VM {
 
-    pub fn new(mut classes: Vec<impl ByteReader>) -> Self {
+    pub fn new(mut class_readers: Vec<impl ByteReader>) -> Self {
         let mut vm = Self {
             classes: HashMap::new(),
             thread_stack: Stack::new(),
@@ -31,13 +31,14 @@ impl VM {
             string_pool: StringPool::with_capacity(8192),
         };
 
-        for class in classes.into_iter() {
-            if class.version() > CURRENT_VERSION {
+        for mut reader in class_readers.into_iter() {
+            let class = CompiledClass::load(reader);
+            if reader.version() > CURRENT_VERSION {
                 panic!("Unrecognized class version!")
             }
-            let qualified_name = class.qualified_name();
+            let qualified_name = reader.qualified_name();
 
-            vm.classes.insert(qualified_name, class);
+            vm.classes.insert(qualified_name, reader);
         }
 
         vm

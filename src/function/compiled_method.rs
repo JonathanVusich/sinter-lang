@@ -16,7 +16,7 @@ pub struct CompiledMethod {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct CompiledMethodDescriptor {
     return_type: CompiledType,
-    parameters: Box<[Type]>,
+    parameters: Box<[CompiledType]>,
 }
 
 impl FromBytes for CompiledMethod {
@@ -39,13 +39,13 @@ impl FromBytes for CompiledMethod {
 }
 
 impl FromBytes for CompiledMethodDescriptor {
-    fn load(byte_reader: &mut impl ByteReader) -> Self {
-        let return_type = CompiledType::load(byte_reader);
-        let parameters = Box::<[Type]>::load(byte_reader);
+    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+        let return_type = CompiledType::load(byte_reader)?;
+        let parameters = Box::<[CompiledType]>::load(byte_reader)?;
 
-        Self {
+        Ok(Self {
             return_type,
             parameters,
-        }
+        })
     }
 }

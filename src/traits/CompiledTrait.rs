@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{ErrorKind, Read};
 use crate::bytes::byte_reader::ByteReader;
 use crate::bytes::from_bytes::FromBytes;
 use crate::class::constant_pool::ConstantPoolEntry;
@@ -11,18 +11,17 @@ pub struct CompiledTrait {
 }
 
 impl FromBytes for CompiledTrait {
+    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+        let package = ConstantPoolEntry::load(byte_reader)?;
+        let name = ConstantPoolEntry::load(byte_reader)?;
 
-    fn load(byte_reader: &mut impl ByteReader) -> Self {
-        let package = ConstantPoolEntry::load(byte_reader);
-        let name = ConstantPoolEntry::load(byte_reader);
+        let methods = Box::<[CompiledMethod]>::load(byte_reader)?;
 
-        let methods = Box::<[CompiledMethod]>::load(byte_reader);
-
-        Self {
+        Ok(Self {
             package,
             name,
             methods,
-        }
+        })
     }
 }
 

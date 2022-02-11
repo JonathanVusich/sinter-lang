@@ -33,7 +33,10 @@ fn trace(root: HeapPointer) {
         let address = root.start_address();
 
         for reference in class_ptr.references() {
-            let new_root = reference.load(address);
+            let new_root = address
+                .add(reference.offset() as usize)
+                .cast::<HeapPointer>()
+                .read();
 
             trace(new_root)
         }

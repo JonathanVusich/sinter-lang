@@ -1,4 +1,7 @@
 use std::cmp::Ordering;
+use std::io::ErrorKind;
+use crate::bytes::byte_reader::ByteReader;
+use crate::bytes::from_bytes::FromBytes;
 
 pub const CURRENT_VERSION: Version = Version::new(0, 1);
 
@@ -15,6 +18,19 @@ impl Version {
             major, 
             minor
         }
+    }
+}
+
+impl FromBytes for Version {
+
+    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+        let major = u16::load(byte_reader)?;
+        let minor = u16::load(byte_reader)?;
+
+        Ok(Self {
+            major,
+            minor,
+        })
     }
 }
 

@@ -1,7 +1,11 @@
+use std::io::ErrorKind;
+use crate::bytes::byte_reader::ByteReader;
+use crate::bytes::from_bytes::FromBytes;
 use crate::class::constant_pool::{ConstantPool, ConstantPoolEntry};
 use crate::class::field::Field;
 use crate::class::version::Version;
 use crate::function::method::Method;
+use crate::types::types::CompiledType;
 
 #[derive(Clone)]
 pub struct CompiledClass {
@@ -11,9 +15,9 @@ pub struct CompiledClass {
     package: ConstantPoolEntry,
     name: ConstantPoolEntry,
 
-    fields: Vec<Field>,
-    reference_fields: Vec<Field>,
-    methods: Vec<Method>,
+    fields: Box<[Field]>,
+    reference_fields: Box<[Field]>,
+    methods: Box<[Method]>,
 }
 
 impl CompiledClass {
@@ -34,14 +38,28 @@ impl CompiledClass {
     }
 
     pub fn fields(&self) -> &[Field] {
-        self.fields.as_slice()
+        &*self.fields
     }
 
     pub fn reference_fields(&self) -> &[Field] {
-        self.reference_fields.as_slice()
+        &*self.reference_fields
     }
 
     pub fn methods(&self) -> &[Method] {
-        self.methods.as_slice()
+        &*self.methods
+    }
+}
+
+impl FromBytes for CompiledClass {
+
+    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+        let version = Version::load(byte_reader)?;
+        let constant_pool = ConstantPool::load(byte_reader)?;
+
+        let package = ConstantPoolEntry::load(byte_reader)?;
+        let name = ConstantPoolEntry::load(byte_reader)?;
+
+        let fields = Box::<[Field]>::load(byte_reader)?;
+        let
     }
 }

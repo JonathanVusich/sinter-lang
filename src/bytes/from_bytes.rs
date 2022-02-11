@@ -21,10 +21,15 @@ impl FromBytes for u16 {
     }
 }
 
-impl FromBytes for Box<[u8]> {
+impl<T: FromBytes> FromBytes for Box<[T]> {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Box<[u8]>, ErrorKind> {
-        let size = u16::load(byte_reader);
-        Ok(Box::new(*byte_reader.read(size as usize)?))
+    fn load(byte_reader: &mut impl ByteReader) -> Result<Box<[T]>, ErrorKind> {
+        let size = u16::load(byte_reader)?;
+
+        let mut results = Vec::<T>::with_capacity(size as usize);
+        for i in 0..size {
+            results.push(T::load(byte_reader)?)
+        }
+        Ok(results.into_boxed_slice())
     }
 }

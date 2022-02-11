@@ -5,7 +5,7 @@ use crate::bytes::from_bytes::FromBytes;
 #[repr(transparent)]
 #[derive(Clone)]
 pub struct ConstantPool {
-    pool: Vec<u8>,
+    pool: Box<[u8]>,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -15,11 +15,6 @@ pub struct ConstantPoolEntry {
 }
 
 impl ConstantPool {
-    pub fn new() -> Self {
-        Self {
-            pool: Vec::new()
-        }
-    }
 
     pub fn load_bytes(&self, entry: ConstantPoolEntry) -> &[u8] {
         &self.pool[entry.start()..entry.end()]
@@ -28,21 +23,15 @@ impl ConstantPool {
     pub fn load_str(&self, entry: ConstantPoolEntry) -> &str {
         std::str::from_utf8(self.load_bytes(entry)).expect("Invalid UTF-8 strings!")
     }
-
-    pub fn load<T: FromBytes>(&self, entry: ConstantPoolEntry) -> T {
-        T::load(&mut ByteReader::new(self.load_bytes(entry)))
-    }
 }
 
-impl FromBytes for ConstantPoolEntry {
+impl FromBytes for ConstantPool {
+
     fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
-        let offset = u16::from_ne_bytes(byte_reader.read_bytes::<2>()?);
-        let size = u16::from_ne_bytes(byte_reader.read_bytes::<2>()?);
-        Ok(
-            Self {
-                offset,
-                size,
-            })
+        let pool = Box::<[u8]>::load(byte_reader)?;
+        Ok(Self {
+            pool
+        })
     }
 }
 
@@ -53,5 +42,17 @@ impl ConstantPoolEntry {
 
     pub fn end(&self) -> usize {
         (self.offset + self.size) as usize
+    }
+}
+
+impl FromBytes for ConstantPoolEntry {
+    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+        let offset = u16::from_ne_bytes(*byte_reader.read_bytes::<2>()?);
+        let size = u16::from_ne_bytes(*byte_reader.read_bytes::<2>()?);
+        Ok(
+            Self {
+                offset,
+                size,
+            })
     }
 }
