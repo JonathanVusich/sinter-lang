@@ -1,5 +1,7 @@
 use std::cmp::Ordering;
 
+pub const CURRENT_VERSION: Version = Version::new(0, 1);
+
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Version {
     major: u16,

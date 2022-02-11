@@ -1,20 +1,20 @@
+use std::io::ErrorKind;
 use crate::bytes::byte_reader::ByteReader;
 use crate::bytes::from_bytes::FromBytes;
 
 #[repr(transparent)]
 #[derive(Clone)]
 pub struct ConstantPool {
-    pool: Vec<u8>
+    pool: Vec<u8>,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct ConstantPoolEntry {
     offset: u16,
     size: u16,
 }
 
 impl ConstantPool {
-
     pub fn new() -> Self {
         Self {
             pool: Vec::new()
@@ -35,19 +35,18 @@ impl ConstantPool {
 }
 
 impl FromBytes for ConstantPoolEntry {
-
-    fn load(byte_reader: &mut ByteReader) -> Self {
-        let offset = u16::from_ne_bytes(*byte_reader.read_bytes::<2>());
-        let size = u16::from_ne_bytes(*byte_reader.read_bytes::<2>());
-        Self {
-            offset,
-            size
-        }
+    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+        let offset = u16::from_ne_bytes(byte_reader.read_bytes::<2>()?);
+        let size = u16::from_ne_bytes(byte_reader.read_bytes::<2>()?);
+        Ok(
+            Self {
+                offset,
+                size,
+            })
     }
 }
 
 impl ConstantPoolEntry {
-
     pub fn start(&self) -> usize {
         self.offset as usize
     }

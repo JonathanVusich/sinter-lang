@@ -6,6 +6,7 @@
 #![feature(new_uninit)]
 #![feature(type_alias_impl_trait)]
 #![feature(nonnull_slice_from_raw_parts)]
+#![feature(buf_read_has_data_left)]
 
 pub mod opcode;
 pub mod gc;

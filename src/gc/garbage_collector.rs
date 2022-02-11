@@ -21,17 +21,7 @@ impl GarbageCollector {
     }
 
     pub fn collect(&self) {
-        for class in self.class_loader.classes() {
-            for root in class.static_roots() {
-                trace(root)
-            }
-        }
 
-        for thread in self.thread_stacks.as_slice() {
-            // for gc_root in thread.gc_roots() {
-            //     trace(gc_root)
-            // }
-        }
     }
 }
 

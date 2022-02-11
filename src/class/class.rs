@@ -4,8 +4,8 @@ use crate::class::field::Field;
 use crate::class::references::Reference;
 
 use crate::class::size_class::SizeClass;
-use crate::class::version::Version;
-use crate::function::function::Function;
+use crate::class::version::{CURRENT_VERSION, Version};
+use crate::function::method::Method;
 use crate::gc::block::{BLOCK_SIZE, LINE_SIZE};
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::mark_word::MarkWord;
@@ -20,7 +20,7 @@ pub struct Class {
 
     fields: Vec<Field>,
     references: Vec<Field>,
-    functions: Vec<Function>
+    methods: Vec<Method>
 }
 
 impl Class {
@@ -34,16 +34,17 @@ impl Class {
         };
 
         Class {
+            version: CURRENT_VERSION,
             object_size,
             object_classification: SizeClass::from(object_size),
             mark_word,
             fields: vec![],
             references: vec![],
-            functions: vec![]
+            methods: vec![]
         }
     }
 
-    pub fn references(&self) -> impl Iterator<Item = &Reference> + '_ {
+    pub fn references(&self) -> impl Iterator<Item = &Field> + '_ {
         self.references.as_slice().iter()
     }
 

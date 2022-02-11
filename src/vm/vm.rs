@@ -5,7 +5,6 @@ use std::slice::SliceIndex;
 use crate::bytes::byte_reader::ByteReader;
 use crate::class::compiled_class::CompiledClass;
 use crate::class::version::Version;
-use crate::function::function::Function;
 use crate::opcode::OpCode;
 use crate::strings::string_pool::StringPool;
 use crate::vm::call_frame::CallFrame;
@@ -23,7 +22,7 @@ pub struct VM {
 
 impl VM {
 
-    pub fn new(mut classes: Vec<ByteReader>) -> Self {
+    pub fn new(mut classes: Vec<impl ByteReader>) -> Self {
         let mut vm = Self {
             classes: HashMap::new(),
             thread_stack: Stack::new(),
