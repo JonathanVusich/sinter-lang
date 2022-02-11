@@ -42,7 +42,8 @@ impl VM {
 
     pub fn run(&mut self, main_class_name: String) -> usize {
         let main_class = self.classes.get(&*main_class_name).expect("The specified main class is not loaded into the VM!");
-
+        let main_method = main_class.get_main_method().expect("Main class did not provide a main() method!");
+        
         let call_frame = CallFrame {
             ip: 0,
             address: 0,

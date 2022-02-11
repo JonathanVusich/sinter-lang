@@ -5,7 +5,7 @@ authors = ["Jonathan Vusich <31666175+JonathanVusich@users.noreply.github.com>"]
 edition = "2021"
 
 [toolchain]
-channel = "stable"
+channel = "nightly"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

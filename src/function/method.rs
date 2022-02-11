@@ -17,31 +17,33 @@ pub struct MethodDescriptor {
     parameters: Vec<ConstantPoolEntry>,
 }
 
+pub struct ReturnType {
+
+}
+
 impl Method {
 
     pub fn is_main_method(&self, pool: &ConstantPool) -> bool {
-        let method_name = std::str::from_utf8(pool.load(self.name)).unwrap();
-        let method_descriptor = MethodDescriptor::from(pool.load(self.descriptor));
+        let method_name = pool.load_str(self.name);
+        let method_descriptor = pool.load::<MethodDescriptor>(self.descriptor);
 
-        return method_name == "main" && method_descriptor.return_type
+        method_name == "main" && pool.load::<ReturnType>(method_descriptor.return_type) == ReturnType::Void
     }
 }
 
-impl MethodDescriptor {
+impl FromBytes for MethodDescriptor {
 
-    pub fn from(bytes: &[u8]) -> MethodDescriptor {
-        assert!(bytes.len() >= 4);
+    fn load(byte_reader: &mut ByteReader) -> Self {
+        assert!(byte_reader.remaining() >= 4);
 
-        let mut byte_reader = ByteReader::new(bytes);
+        let return_type = ConstantPoolEntry::load(byte_reader);
 
-        let return_type = ConstantPoolEntry::load(&mut byte_reader);
-
-        return if bytes.len() > 4 {
-            let num_entries = u16::load(&mut byte_reader);
+        return if byte_reader.remaining() > 4 {
+            let num_entries = u16::load(byte_reader);
             let mut parameters = Vec::<ConstantPoolEntry>::with_capacity(num_entries as usize);
 
             while !byte_reader.is_empty() {
-                let parameter = ConstantPoolEntry::load(&mut byte_reader);
+                let parameter = ConstantPoolEntry::load(byte_reader);
                 parameters.push(parameter)
             }
 

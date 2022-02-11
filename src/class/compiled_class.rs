@@ -19,10 +19,8 @@ pub struct CompiledClass {
 impl CompiledClass {
 
     pub fn qualified_name(&self) -> String {
-        let package_value = self.constant_pool.load(self.package);
-        let package_name = std::str::from_utf8(package_value).unwrap();
-        let class_value = self.constant_pool.load(self.name);
-        let class_name = std::str::from_utf8(class_value).unwrap();
+        let package_name = self.constant_pool.load_str(self.package);
+        let class_name = self.constant_pool.load_str(self.name);
 
         package_name.to_string() + class_name
     }
