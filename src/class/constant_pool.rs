@@ -27,9 +27,9 @@ impl ConstantPool {
 
 impl FromBytes for ConstantPool {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
         let pool = Box::<[u8]>::load(byte_reader)?;
-        Ok(Self {
+        Some(Self {
             pool
         })
     }
@@ -46,10 +46,11 @@ impl ConstantPoolEntry {
 }
 
 impl FromBytes for ConstantPoolEntry {
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
-        let offset = u16::from_ne_bytes(*byte_reader.read_bytes::<2>()?);
-        let size = u16::from_ne_bytes(*byte_reader.read_bytes::<2>()?);
-        Ok(
+    
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        let offset = u16::from_ne_bytes(byte_reader.read_bytes::<2>()?);
+        let size = u16::from_ne_bytes(byte_reader.read_bytes::<2>()?);
+        Some(
             Self {
                 offset,
                 size,

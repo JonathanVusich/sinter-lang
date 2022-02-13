@@ -23,11 +23,11 @@ impl Version {
 
 impl FromBytes for Version {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
         let major = u16::load(byte_reader)?;
         let minor = u16::load(byte_reader)?;
 
-        Ok(Self {
+        Some(Self {
             major,
             minor,
         })

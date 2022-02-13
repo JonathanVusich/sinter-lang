@@ -1,10 +1,15 @@
 use std::collections::HashMap;
+use std::error::Error;
+use std::io::ErrorKind;
 use std::iter::Map;
 use std::mem::size_of;
 use std::slice::SliceIndex;
 use crate::bytes::byte_reader::ByteReader;
+use crate::bytes::from_bytes::FromBytes;
+use crate::class::class::Class;
 use crate::class::compiled_class::CompiledClass;
 use crate::class::version::Version;
+use crate::errors::vm_error::{VMError, VMErrorKind};
 use crate::opcode::OpCode;
 use crate::strings::string_pool::StringPool;
 use crate::vm::call_frame::CallFrame;
@@ -13,7 +18,7 @@ use crate::vm::stack::Stack;
 pub const CURRENT_VERSION: Version = Version::new(0, 1);
 
 pub struct VM {
-    classes: HashMap<String, CompiledClass>,
+    classes: HashMap<String, Class>,
     thread_stack: Stack,
     call_frames: Vec<CallFrame>,
     current_frame: usize,
@@ -22,7 +27,7 @@ pub struct VM {
 
 impl VM {
 
-    pub fn new(mut class_readers: Vec<impl ByteReader>) -> Self {
+    pub fn new(mut class_readers: Vec<impl ByteReader>) -> Result<Self, VMError> {
         let mut vm = Self {
             classes: HashMap::new(),
             thread_stack: Stack::new(),
@@ -32,13 +37,14 @@ impl VM {
         };
 
         for mut reader in class_readers.into_iter() {
-            let class = CompiledClass::load(reader);
-            if reader.version() > CURRENT_VERSION {
-                panic!("Unrecognized class version!")
+            let class = CompiledClass::load(&mut reader)
+                .ok_or_else(move || VMError::new(VMErrorKind::MalformedClassFile))?;
+            if class.version() > CURRENT_VERSION {
+                return Err(VMError::new(VMErrorKind::UnsupportedClassVersion(class.version())));
             }
-            let qualified_name = reader.qualified_name();
 
-            vm.classes.insert(qualified_name, reader);
+            let runtime_class = Class::from(class, vm.string_pool);
+            vm.classes.insert(runtime_class.qualified_name(), runtime_class);
         }
 
         vm

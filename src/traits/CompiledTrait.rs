@@ -11,13 +11,13 @@ pub struct CompiledTrait {
 }
 
 impl FromBytes for CompiledTrait {
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
         let package = ConstantPoolEntry::load(byte_reader)?;
         let name = ConstantPoolEntry::load(byte_reader)?;
 
         let methods = Box::<[CompiledMethod]>::load(byte_reader)?;
 
-        Ok(Self {
+        Some(Self {
             package,
             name,
             methods,

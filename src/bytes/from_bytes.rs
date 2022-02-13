@@ -4,32 +4,39 @@ use crate::class::constant_pool::ConstantPoolEntry;
 
 pub trait FromBytes: Sized {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind>;
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self>;
 }
 
 impl FromBytes for u8 {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
-        Ok(u8::from_ne_bytes(byte_reader.read_bytes::<1>()?))
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        Some(u8::from_ne_bytes(byte_reader.read_bytes::<1>()?))
     }
 }
 
 impl FromBytes for u16 {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
-        Ok(u16::from_ne_bytes(byte_reader.read_bytes::<2>()?))
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        Some(u16::from_ne_bytes(byte_reader.read_bytes::<2>()?))
+    }
+}
+
+impl FromBytes for u64 {
+
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        Some(u64::from_ne_bytes(byte_reader.read_bytes::<8>()?))
     }
 }
 
 impl<T: FromBytes> FromBytes for Box<[T]> {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Box<[T]>, ErrorKind> {
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Box<[T]>> {
         let size = u16::load(byte_reader)?;
 
         let mut results = Vec::<T>::with_capacity(size as usize);
         for i in 0..size {
             results.push(T::load(byte_reader)?)
         }
-        Ok(results.into_boxed_slice())
+        Some(results.into_boxed_slice())
     }
 }

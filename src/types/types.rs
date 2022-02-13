@@ -15,8 +15,8 @@ pub enum Type {
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct CompiledType {
-    base_type: CompiledBaseType,
-    actual_type: ConstantPoolEntry,
+    pub base_type: CompiledBaseType,
+    pub actual_type: ConstantPoolEntry,
 }
 
 #[repr(u8)]
@@ -29,11 +29,11 @@ pub enum CompiledBaseType {
 }
 
 impl FromBytes for CompiledType {
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
         let base_type = CompiledBaseType::load(byte_reader)?;
         let actual_type = ConstantPoolEntry::load(byte_reader)?;
 
-        Ok(Self {
+        Some(Self {
             base_type,
             actual_type,
         })
@@ -41,8 +41,8 @@ impl FromBytes for CompiledType {
 }
 
 impl FromBytes for CompiledBaseType {
-    fn load(byte_reader: &mut impl ByteReader) -> Result<Self, ErrorKind> {
-        Ok(CompiledBaseType::from(u8::load(byte_reader)?))
+    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        Some(CompiledBaseType::from(u8::load(byte_reader)?))
     }
 }
 

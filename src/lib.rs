@@ -21,3 +21,4 @@ pub mod bytes;
 pub mod types;
 pub mod strings;
 pub mod traits;
+pub mod errors;
