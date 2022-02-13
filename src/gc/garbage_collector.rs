@@ -32,9 +32,9 @@ fn trace(root: HeapPointer) {
         let class_ptr = root.class_pointer();
         let address = root.start_address();
 
-        for reference in class_ptr.references() {
+        for reference in class_ptr.references.iter() {
             let new_root = address
-                .add(reference.offset() as usize)
+                .add(reference.offset as usize)
                 .cast::<HeapPointer>()
                 .read();
 

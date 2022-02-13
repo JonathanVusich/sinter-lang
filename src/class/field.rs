@@ -26,8 +26,8 @@ pub struct CompiledField {
 
 impl Field {
 
-    pub fn new(name: InternalString, 
-               type_descriptor: Type, 
+    pub fn new(name: InternalString,
+               type_descriptor: Type,
                offset: u64,
                size: u64,) -> Self {
         Self {
@@ -41,11 +41,15 @@ impl Field {
 
 impl CompiledField {
 
-    pub fn new(name: ConstantPoolEntry, type_descriptor: CompiledType, offset: u64) -> Self {
+    pub fn new(name: ConstantPoolEntry,
+               type_descriptor: CompiledType,
+               offset: u64,
+               size: u64,) -> Self {
         Self {
             name,
             type_descriptor,
             offset,
+            size,
         }
     }
 }

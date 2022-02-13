@@ -39,15 +39,21 @@ impl VM {
         for mut reader in class_readers.into_iter() {
             let class = CompiledClass::load(&mut reader)
                 .ok_or_else(move || VMError::new(VMErrorKind::MalformedClassFile))?;
-            if class.version() > CURRENT_VERSION {
-                return Err(VMError::new(VMErrorKind::UnsupportedClassVersion(class.version())));
+            if class.version > CURRENT_VERSION {
+                return Err(VMError::new(VMErrorKind::UnsupportedClassVersion(class.version)));
             }
 
-            let runtime_class = Class::from(class, vm.string_pool);
-            vm.classes.insert(runtime_class.qualified_name(), runtime_class);
+            let runtime_class = Class::from(class, &mut vm.string_pool);
+
+            let package_name = vm.string_pool.lookup(runtime_class.package).to_owned();
+            let name = vm.string_pool.lookup(runtime_class.name);
+
+            let qualified_name = package_name + name;
+
+            vm.classes.insert(qualified_name, runtime_class);
         }
 
-        vm
+        Ok(vm)
     }
 
     pub fn run(&mut self, main_class_name: String) -> usize {

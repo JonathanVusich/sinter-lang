@@ -27,7 +27,7 @@ impl ThreadAllocator {
     }
 
     pub fn allocate(&mut self, object: &Class) -> HeapPointer {
-        let ptr = match object.size_class() {
+        let ptr = match object.size_class {
             SizeClass::Small | SizeClass::Medium => {
                 let block = self.get_current_block();
                 let possible_alloc = block.allocate(object);
@@ -73,7 +73,7 @@ impl ThreadAllocator {
     }
 
     fn allocate_large_object(&self, class: &Class) -> HeapPointer {
-        let layout = Layout::array::<u8>(class.object_size()).unwrap();
+        let layout = Layout::array::<u8>(class.size).unwrap();
 
         let ptr = match Global.allocate(layout) {
             Ok(ptr) => ptr,
@@ -88,7 +88,7 @@ impl ThreadAllocator {
 
     fn deallocate_large_object(&self, object: HeapPointer) {
         let class = object.class_pointer();
-        let layout = Layout::array::<u8>(class.object_size()).unwrap();
+        let layout = Layout::array::<u8>(class.size).unwrap();
         unsafe { Global.deallocate(object.to_raw(), layout); }
     }
 }

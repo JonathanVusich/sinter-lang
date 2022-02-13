@@ -1,33 +1,40 @@
 use std::ptr::NonNull;
 use std::slice::Iter;
 use crate::class::compiled_class::CompiledClass;
-use crate::class::constant_pool::ConstantPoolEntry;
+use crate::class::constant_pool::{ConstantPool, ConstantPoolEntry};
 use crate::class::field::Field;
 use crate::class::references::Reference;
 
 use crate::class::size_class::SizeClass;
 use crate::class::version::{CURRENT_VERSION, Version};
-use crate::function::method::Method;
+use crate::function::method::{Method, MethodDescriptor};
 use crate::gc::block::{BLOCK_SIZE, LINE_SIZE};
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::mark_word::MarkWord;
 use crate::pointers::pointer::Pointer;
+use crate::strings::internal_string::InternalString;
 use crate::strings::string_pool::StringPool;
 use crate::types::types::{CompiledBaseType, CompiledType, Type};
+use crate::types::types::Type::*;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Class {
-    version: Version,
-    size: usize,
-    object_classification: SizeClass,
-    mark_word: MarkWord,
+    pub version: Version,
 
-    fields: Vec<Field>,
-    references: Vec<Field>,
-    methods: Vec<Method>,
+    pub package: InternalString,
+    pub name: InternalString,
+
+    pub size: usize,
+    pub size_class: SizeClass,
+    pub mark_word: MarkWord,
+
+    pub fields: Box<[Field]>,
+    pub references: Box<[Field]>,
+    pub methods: Box<[Method]>,
 }
 
 impl Class {
+
     pub fn new(object_size: usize) -> Class {
         let small_object = object_size < LINE_SIZE;
         let mark_word = if small_object {
@@ -38,48 +45,54 @@ impl Class {
 
         Class {
             version: CURRENT_VERSION,
+
+            package: InternalString(0),
+            name: InternalString(0),
+
             size: object_size,
-            object_classification: SizeClass::from(object_size),
+            size_class: SizeClass::from(object_size),
             mark_word,
-            fields: vec![],
-            references: vec![],
-            methods: vec![],
+            fields: Vec::new().into_boxed_slice(),
+            references: Vec::new().into_boxed_slice(),
+            methods: Vec::new().into_boxed_slice(),
         }
     }
 
     pub fn from(compiled_class: CompiledClass, string_pool: &mut StringPool) -> Self {
-        let version = compiled_class.version();
+        let version = compiled_class.version;
 
-        let fields = compiled_class.fields().iter().map(|compiled_field| {
-            let name = compiled_class.constant_pool().load_str(compiled_field.name);
-            let interned_name = string_pool.intern(name);
+        let fields = compiled_class.fields.iter().map(|compiled_field| {
+            let name = load_str(compiled_field.name, &compiled_class.constant_pool, string_pool);
+            let actual_type = load_type(&compiled_field.type_descriptor, &compiled_class.constant_pool, string_pool);
 
-            let type_descriptor = compiled_field.type_descriptor();
-
-            let actual_type = compiled_class.constant_pool().load_str(type_descriptor.actual_type);
-            let interned_type = string_pool.intern(actual_type);
-
-            let base_type = match type_descriptor.base_type {
-                CompiledBaseType::Void => Type::Void,
-                CompiledBaseType::InlineClass => Type::InlineClass(interned_type),
-                CompiledBaseType::Class => Type::Class(interned_type),
-                CompiledBaseType::Trait => Type::Trait(interned_type),
-            };
-
-            Field::new(interned_name, base_type, compiled_field.offset)
-        }).collect_vec();
+            Field::new(name, actual_type, compiled_field.offset, compiled_field.size)
+        }).collect::<Vec<Field>>()
+          .into_boxed_slice();
 
         let references = fields.iter()
-            .filter(|field| field.size == 8)
+            .filter(|field| {
+                return match field.type_descriptor {
+                    Trait(b) | Class(b) => true,
+                    _ => false
+                }
+            })
             .cloned()
-            .collect_vec();
+            .collect::<Vec<Field>>()
+            .into_boxed_slice();
 
         let methods = compiled_class.methods.iter().map(|method| {
-            let name = compiled_class.constant_pool.load_str(method.name);
-            let interned_name = string_pool.intern(name);
+            let name = load_str(method.name, &compiled_class.constant_pool, string_pool);
 
-            let descriptor = method.descriptor;
-        }).collect_vec();
+            let return_type = load_type(&&method.descriptor.return_type, &compiled_class.constant_pool, string_pool);
+            let parameters = method.descriptor.parameters.iter().map(|compiled_type| {
+                load_type(compiled_type, &compiled_class.constant_pool, string_pool)
+            }).collect::<Vec<Type>>()
+              .into_boxed_slice();
+
+            let descriptor = MethodDescriptor::new(return_type, parameters);
+
+            Method::new(name, descriptor, method.max_stack_size, method.max_locals, method.code.clone())
+        }).collect();
 
         let size_class = SizeClass::from(compiled_class.size as usize);
         let mark_word = if size_class == SizeClass::Small {
@@ -88,33 +101,38 @@ impl Class {
             0b00001100.into()
         };
 
+        let package = load_str(compiled_class.package, &compiled_class.constant_pool, string_pool);
+        let name = load_str(compiled_class.package, &compiled_class.constant_pool, string_pool);
+
         Self {
-            version: compiled_class.version(),
+            version: compiled_class.version,
+            package,
+            name,
+
             size: compiled_class.size as usize,
-            object_classification: size_class,
+            size_class,
             mark_word,
             fields,
             references,
             methods,
         }
     }
-
-    pub fn references(&self) -> impl Iterator<Item=&Field> + '_ {
-        self.references.as_slice().iter()
-    }
-
-    pub fn mark_word(&self) -> MarkWord {
-        self.mark_word
-    }
-
-    pub fn object_size(&self) -> usize {
-        self.size
-    }
-
-    pub fn size_class(&self) -> SizeClass {
-        self.object_classification
-    }
 }
 
-pub fn compute_class_size(fields: Box<[Field]>)
+fn load_str(entry: ConstantPoolEntry, constant_pool: &ConstantPool, string_pool: &mut StringPool) -> InternalString {
+    let string = constant_pool.load_str(entry);
+    string_pool.intern(string)
+}
+
+fn load_type(compiled_type: &CompiledType, constant_pool: &ConstantPool, string_pool: &mut StringPool) -> Type {
+    let actual_type = constant_pool.load_str(compiled_type.actual_type);
+    let interned_type = string_pool.intern(actual_type);
+
+    return match compiled_type.base_type {
+        CompiledBaseType::Void => Void,
+        CompiledBaseType::InlineClass => InlineClass(interned_type),
+        CompiledBaseType::Class => Class(interned_type),
+        CompiledBaseType::Trait => Trait(interned_type),
+    }
+}
 

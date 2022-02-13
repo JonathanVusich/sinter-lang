@@ -17,7 +17,7 @@ pub struct Method {
     code: Box<[u8]>,
 }
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct MethodDescriptor {
     return_type: Type,
     parameters: Box<[Type]>,
@@ -25,8 +25,32 @@ pub struct MethodDescriptor {
 
 impl Method {
 
+    pub fn new(name: InternalString, 
+               descriptor: MethodDescriptor,
+               max_stack_size: u16,
+               max_locals: u16,
+               code: Box<[u8]>) -> Self {
+        Self {
+            name,
+            descriptor,
+            max_stack_size,
+            max_locals,
+            code,
+        }
+    }
+    
     pub fn is_main_method(&self, pool: &StringPool) -> bool {
         let method_name = pool.lookup(self.name);
         method_name == "main" && self.descriptor.return_type == Type::Void
+    }
+}
+
+impl MethodDescriptor {
+    
+    pub fn new(return_type: Type, parameters: Box<[Type]>) -> Self {
+        Self {
+            return_type,
+            parameters,
+        }
     }
 }

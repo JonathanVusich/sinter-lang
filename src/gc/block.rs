@@ -57,7 +57,7 @@ impl Block {
 
     pub fn allocate(&mut self, class: &Class) -> Option<HeapPointer> {
         let object_start = self.cursor;
-        let end_cursor = end_cursor(self.cursor, class.object_size());
+        let end_cursor = end_cursor(self.cursor, class.size);
 
         if object_fits(self.max_address, end_cursor) {
             self.cursor = end_cursor;
@@ -72,10 +72,10 @@ impl Block {
 
     pub fn mark_instance(&mut self, class: &Class, instance: *mut u8) {
         let start_line = self.line_for_address(instance);
-        if class.size_class() == SizeClass::Small {
+        if class.size_class == SizeClass::Small {
             self.line_map.mark(start_line as usize)
         } else {
-            let end_line = self.line_for_address(end_of_object(instance, class.object_size()));
+            let end_line = self.line_for_address(end_of_object(instance, class.size));
             for i in start_line..=end_line {
                 self.line_map.mark(i as usize);
             }

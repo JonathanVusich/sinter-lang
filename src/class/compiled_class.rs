@@ -23,13 +23,7 @@ pub struct CompiledClass {
 }
 
 impl CompiledClass {
-
-    pub fn qualified_name(&self) -> String {
-        let package_name = self.constant_pool.load_str(self.package);
-        let class_name = self.constant_pool.load_str(self.name);
-
-        package_name.to_string() + class_name
-    }
+    
 }
 
 impl FromBytes for CompiledClass {

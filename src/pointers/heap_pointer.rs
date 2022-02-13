@@ -20,11 +20,11 @@ pub struct HeapPointer {
 impl HeapPointer {
 
     pub fn new(class: &Class, ptr: *mut u8) -> Self {
-        let byte: u8 = class.mark_word().into();
+        let byte: u8 = class.mark_word.into();
         let shifted_mark_word = (byte as usize) << 56;
         let tagged_ptr = ptr as usize | shifted_mark_word;
 
-        let pointer = TaggedPointer::new_with_mark_word(class, class.mark_word());
+        let pointer = TaggedPointer::new_with_mark_word(class, class.mark_word);
 
         let address: usize = pointer.into();
         let heap_pointer = HeapPointer { ptr: Pointer::from_raw(ptr) };
