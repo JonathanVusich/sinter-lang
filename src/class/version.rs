@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::io::ErrorKind;
-use crate::bytes::byte_reader::ByteReader;
-use crate::bytes::from_bytes::FromBytes;
+use crate::bytes::serializers::ByteReader;
+use crate::bytes::serializable::Serializable;
 
 pub const CURRENT_VERSION: Version = Version::new(0, 1);
 
@@ -21,9 +21,9 @@ impl Version {
     }
 }
 
-impl FromBytes for Version {
+impl Serializable for Version {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
+    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
         let major = u16::load(byte_reader)?;
         let minor = u16::load(byte_reader)?;
 

@@ -4,8 +4,8 @@ use std::io::ErrorKind;
 use std::iter::Map;
 use std::mem::size_of;
 use std::slice::SliceIndex;
-use crate::bytes::byte_reader::ByteReader;
-use crate::bytes::from_bytes::FromBytes;
+use crate::bytes::serializers::ByteReader;
+use crate::bytes::serializable::Serializable;
 use crate::class::class::Class;
 use crate::class::compiled_class::CompiledClass;
 use crate::class::version::Version;
@@ -37,7 +37,7 @@ impl VM {
         };
 
         for mut reader in class_readers.into_iter() {
-            let class = CompiledClass::load(&mut reader)
+            let class = CompiledClass::read(&mut reader)
                 .ok_or_else(move || VMError::new(VMErrorKind::MalformedClassFile))?;
             if class.version > CURRENT_VERSION {
                 return Err(VMError::new(VMErrorKind::UnsupportedClassVersion(class.version)));

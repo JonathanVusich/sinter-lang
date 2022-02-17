@@ -1,6 +1,6 @@
 use std::io::ErrorKind;
-use crate::bytes::byte_reader::ByteReader;
-use crate::bytes::from_bytes::FromBytes;
+use crate::bytes::serializers::ByteReader;
+use crate::bytes::serializable::Serializable;
 
 #[repr(transparent)]
 #[derive(Clone)]
@@ -25,10 +25,10 @@ impl ConstantPool {
     }
 }
 
-impl FromBytes for ConstantPool {
+impl Serializable for ConstantPool {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
-        let pool = Box::<[u8]>::load(byte_reader)?;
+    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        let pool = Box::<[u8]>::read(byte_reader)?;
         Some(Self {
             pool
         })
@@ -45,11 +45,11 @@ impl ConstantPoolEntry {
     }
 }
 
-impl FromBytes for ConstantPoolEntry {
+impl Serializable for ConstantPoolEntry {
     
-    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
-        let offset = u16::from_ne_bytes(byte_reader.read_bytes::<2>()?);
-        let size = u16::from_ne_bytes(byte_reader.read_bytes::<2>()?);
+    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        let offset = u16::from_ne_bytes(byte_reader.read_exact::<2>()?);
+        let size = u16::from_ne_bytes(byte_reader.read_exact::<2>()?);
         Some(
             Self {
                 offset,

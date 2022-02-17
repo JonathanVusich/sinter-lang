@@ -1,6 +1,6 @@
 use std::io::{ErrorKind, Read};
-use crate::bytes::byte_reader::ByteReader;
-use crate::bytes::from_bytes::FromBytes;
+use crate::bytes::serializers::ByteReader;
+use crate::bytes::serializable::Serializable;
 use crate::class::class::Class;
 use crate::class::constant_pool::ConstantPoolEntry;
 use crate::strings::internal_string::InternalString;
@@ -28,10 +28,10 @@ pub enum CompiledBaseType {
     Trait,
 }
 
-impl FromBytes for CompiledType {
-    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
-        let base_type = CompiledBaseType::load(byte_reader)?;
-        let actual_type = ConstantPoolEntry::load(byte_reader)?;
+impl Serializable for CompiledType {
+    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        let base_type = CompiledBaseType::read(byte_reader)?;
+        let actual_type = ConstantPoolEntry::read(byte_reader)?;
 
         Some(Self {
             base_type,
@@ -40,8 +40,8 @@ impl FromBytes for CompiledType {
     }
 }
 
-impl FromBytes for CompiledBaseType {
-    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
+impl Serializable for CompiledBaseType {
+    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
         Some(CompiledBaseType::from(u8::load(byte_reader)?))
     }
 }

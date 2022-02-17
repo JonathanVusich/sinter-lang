@@ -1,6 +1,6 @@
 use std::io::{BufRead, BufReader, ErrorKind};
-use crate::bytes::byte_reader::ByteReader;
-use crate::bytes::from_bytes::FromBytes;
+use crate::bytes::serializers::ByteReader;
+use crate::bytes::serializable::Serializable;
 use crate::class::constant_pool::ConstantPoolEntry;
 use crate::types::types::{CompiledType, Type};
 
@@ -19,14 +19,14 @@ pub struct CompiledMethodDescriptor {
     pub parameters: Box<[CompiledType]>,
 }
 
-impl FromBytes for CompiledMethod {
-    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
-        let name = ConstantPoolEntry::load(byte_reader)?;
-        let descriptor = CompiledMethodDescriptor::load(byte_reader)?;
+impl Serializable for CompiledMethod {
+    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        let name = ConstantPoolEntry::read(byte_reader)?;
+        let descriptor = CompiledMethodDescriptor::read(byte_reader)?;
         let max_stack_size = u16::load(byte_reader)?;
         let max_locals = u16::load(byte_reader)?;
 
-        let code = Box::<[u8]>::load(byte_reader)?;
+        let code = Box::<[u8]>::read(byte_reader)?;
 
         Some(Self {
             name,
@@ -38,10 +38,10 @@ impl FromBytes for CompiledMethod {
     }
 }
 
-impl FromBytes for CompiledMethodDescriptor {
-    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
-        let return_type = CompiledType::load(byte_reader)?;
-        let parameters = Box::<[CompiledType]>::load(byte_reader)?;
+impl Serializable for CompiledMethodDescriptor {
+    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        let return_type = CompiledType::read(byte_reader)?;
+        let parameters = Box::<[CompiledType]>::read(byte_reader)?;
 
         Some(Self {
             return_type,

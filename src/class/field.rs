@@ -1,6 +1,6 @@
 use std::io::ErrorKind;
-use crate::bytes::byte_reader::ByteReader;
-use crate::bytes::from_bytes::FromBytes;
+use crate::bytes::serializers::ByteReader;
+use crate::bytes::serializable::Serializable;
 use crate::class::constant_pool::ConstantPoolEntry;
 use crate::class::references::{InlineReference, Reference};
 use crate::pointers::heap_pointer::HeapPointer;
@@ -54,11 +54,11 @@ impl CompiledField {
     }
 }
 
-impl FromBytes for CompiledField {
+impl Serializable for CompiledField {
 
-    fn load(byte_reader: &mut impl ByteReader) -> Option<Self> {
-        let name = ConstantPoolEntry::load(byte_reader)?;
-        let type_descriptor = CompiledType::load(byte_reader)?;
+    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+        let name = ConstantPoolEntry::read(byte_reader)?;
+        let type_descriptor = CompiledType::read(byte_reader)?;
         let offset = u64::load(byte_reader)?;
         let size = u64::load(byte_reader)?;
 

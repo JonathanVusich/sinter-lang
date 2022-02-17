@@ -1,6 +1,6 @@
 use std::io::ErrorKind;
-use crate::bytes::byte_reader::ByteReader;
-use crate::bytes::from_bytes::FromBytes;
+use crate::bytes::serializers::ByteReader;
+use crate::bytes::serializable::Serializable;
 use crate::class::compiled_class::CompiledClass;
 use crate::class::constant_pool::{ConstantPool, ConstantPoolEntry};
 use crate::function::compiled_method::CompiledMethodDescriptor;

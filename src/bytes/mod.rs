@@ -1,3 +1,3 @@
-pub mod from_bytes;
-pub mod byte_reader;
+pub mod serializable;
+pub mod serializers;
 pub mod to_bytes;
