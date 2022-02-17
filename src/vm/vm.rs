@@ -27,7 +27,7 @@ pub struct VM {
 
 impl VM {
 
-    pub fn new(mut class_readers: Vec<impl ByteReader>) -> Result<Self, VMError> {
+    pub fn new(mut module_readers: Vec<impl ByteReader>) -> Result<Self, VMError> {
         let mut vm = Self {
             classes: HashMap::new(),
             thread_stack: Stack::new(),
@@ -36,28 +36,32 @@ impl VM {
             string_pool: StringPool::with_capacity(8192),
         };
 
-        for mut reader in class_readers.into_iter() {
-            let class = CompiledClass::read(&mut reader)
-                .ok_or_else(move || VMError::new(VMErrorKind::MalformedClassFile))?;
-            if class.version > CURRENT_VERSION {
-                return Err(VMError::new(VMErrorKind::UnsupportedClassVersion(class.version)));
+        for mut reader in module_readers.into_iter() {
+
+            let classes = Box::<[CompiledClass]>::read(&mut reader)
+                .or_else(move |err| Err(VMError::new(VMErrorKind::MalformedClassFile)))?;
+
+            if classes.iter().any(|class| class.version > CURRENT_VERSION) {
+                return Err(VMError::new(VMErrorKind::UnsupportedClassVersion));
             }
 
-            let runtime_class = Class::from(class, &mut vm.string_pool);
+            for class in classes.into_iter() {
+                let runtime_class = Class::from(*class, &mut vm.string_pool);
 
-            let package_name = vm.string_pool.lookup(runtime_class.package).to_owned();
-            let name = vm.string_pool.lookup(runtime_class.name);
+                let package_name = vm.string_pool.lookup(runtime_class.package).to_owned();
+                let name = vm.string_pool.lookup(runtime_class.name);
 
-            let qualified_name = package_name + name;
+                let qualified_name = package_name + name;
 
-            vm.classes.insert(qualified_name, runtime_class);
+                vm.classes.insert(qualified_name, runtime_class);
+            }
         }
 
         Ok(vm)
     }
 
     pub fn run(&mut self, main_class_name: String) -> usize {
-        let main_class = self.classes.get(&*main_class_name).expect("The specified main class is not loaded into the VM!");
+        let main_class: &Class = self.classes.get(&*main_class_name).expect("The specified main class is not loaded into the VM!");
         let main_method = main_class.get_main_method().expect("Main class did not provide a main() method!");
         
         let call_frame = CallFrame {

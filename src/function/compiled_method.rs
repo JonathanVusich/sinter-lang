@@ -1,5 +1,5 @@
-use std::io::{BufRead, BufReader, ErrorKind};
-use crate::bytes::serializers::ByteReader;
+use std::io::{BufRead, BufReader, Error, ErrorKind};
+use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
 use crate::class::constant_pool::ConstantPoolEntry;
 use crate::types::types::{CompiledType, Type};
@@ -20,15 +20,16 @@ pub struct CompiledMethodDescriptor {
 }
 
 impl Serializable for CompiledMethod {
-    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+
+    fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let name = ConstantPoolEntry::read(byte_reader)?;
         let descriptor = CompiledMethodDescriptor::read(byte_reader)?;
-        let max_stack_size = u16::load(byte_reader)?;
-        let max_locals = u16::load(byte_reader)?;
+        let max_stack_size = u16::read(byte_reader)?;
+        let max_locals = u16::read(byte_reader)?;
 
         let code = Box::<[u8]>::read(byte_reader)?;
 
-        Some(Self {
+        Ok(Self {
             name,
             descriptor,
             max_stack_size,
@@ -36,16 +37,30 @@ impl Serializable for CompiledMethod {
             code,
         })
     }
+
+    fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
+        self.name.write(byte_writer)?;
+        self.descriptor.write(byte_writer)?;
+        self.max_stack_size.write(byte_writer)?;
+        self.max_locals.write(byte_writer)?;
+        self.code.write(byte_writer)
+    }
 }
 
 impl Serializable for CompiledMethodDescriptor {
-    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+
+    fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let return_type = CompiledType::read(byte_reader)?;
         let parameters = Box::<[CompiledType]>::read(byte_reader)?;
 
-        Some(Self {
+        Ok(Self {
             return_type,
             parameters,
         })
+    }
+
+    fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
+        self.return_type.write(byte_writer)?;
+        self.parameters.write(byte_writer)
     }
 }

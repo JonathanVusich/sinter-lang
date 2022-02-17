@@ -9,7 +9,7 @@ pub struct VMError {
 
 #[derive(Debug, Copy, Clone)]
 pub enum VMErrorKind {
-    UnsupportedClassVersion(Version),
+    UnsupportedClassVersion,
     MalformedClassFile,
 }
 

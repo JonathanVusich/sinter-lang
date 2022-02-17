@@ -1,5 +1,5 @@
-use std::io::ErrorKind;
-use crate::bytes::serializers::ByteReader;
+use std::io::{Error, ErrorKind};
+use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
 use crate::class::constant_pool::{ConstantPool, ConstantPoolEntry};
 use crate::class::field::{CompiledField, Field};
@@ -28,18 +28,18 @@ impl CompiledClass {
 
 impl Serializable for CompiledClass {
 
-    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+    fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let version = Version::read(byte_reader)?;
         let constant_pool = ConstantPool::read(byte_reader)?;
 
         let package = ConstantPoolEntry::read(byte_reader)?;
         let name = ConstantPoolEntry::read(byte_reader)?;
-        let size = u64::load(byte_reader)?;
+        let size = u64::read(byte_reader)?;
 
         let fields = Box::<[CompiledField]>::read(byte_reader)?;
         let methods = Box::<[CompiledMethod]>::read(byte_reader)?;
 
-        Some(Self {
+        Ok(Self {
             version,
             constant_pool,
             package,
@@ -48,5 +48,15 @@ impl Serializable for CompiledClass {
             fields,
             methods,
         })
+    }
+
+    fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
+        self.version.write(byte_writer)?;
+        self.constant_pool.write(byte_writer)?;
+        self.package.write(byte_writer)?;
+        self.name.write(byte_writer)?;
+        self.size.write(byte_writer)?;
+        self.fields.write(byte_writer)?;
+        self.methods.write(byte_writer)
     }
 }

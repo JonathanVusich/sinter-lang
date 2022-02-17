@@ -5,8 +5,8 @@ use crate::errors::vm_error::{VMError, VMErrorKind};
 
 pub trait ByteReader {
 
-    fn read_exact<const LEN: usize>(&mut self) -> Result<[u8; LEN], Error>;
-    fn read_variable(&mut self, bytes: usize) -> Result<Box<[u8]>, Error>;
+    fn read_array<const LEN: usize>(&mut self) -> Result<[u8; LEN], Error>;
+    fn read_vec(&mut self, bytes: usize) -> Result<Box<[u8]>, Error>;
 }
 
 pub trait ByteWriter {
@@ -16,13 +16,13 @@ pub trait ByteWriter {
 
 impl<T: Read> ByteReader for BufReader<T> {
 
-    fn read_exact<const LEN: usize>(&mut self) -> Result<[u8; LEN], Error> {
+    fn read_array<const LEN: usize>(&mut self) -> Result<[u8; LEN], Error> {
         let mut buffer: [u8; LEN] = [0u8; LEN];
         self.read_exact(&mut buffer)?;
         Ok(buffer)
     }
 
-    fn read_variable(&mut self, bytes: usize) -> Result<Box<[u8]>, Error> {
+    fn read_vec(&mut self, bytes: usize) -> Result<Box<[u8]>, Error> {
         let mut buffer = Vec::<u8>::with_capacity(bytes);
         self.read_exact(&mut buffer)?;
         Ok(buffer.into_boxed_slice())

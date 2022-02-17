@@ -117,6 +117,10 @@ impl Class {
             methods,
         }
     }
+
+    pub fn get_main_method(&self) -> Option<&Method> {
+        todo!()
+    }
 }
 
 fn load_str(entry: ConstantPoolEntry, constant_pool: &ConstantPool, string_pool: &mut StringPool) -> InternalString {

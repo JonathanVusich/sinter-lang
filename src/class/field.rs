@@ -1,5 +1,5 @@
-use std::io::ErrorKind;
-use crate::bytes::serializers::ByteReader;
+use std::io::{Error, ErrorKind};
+use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
 use crate::class::constant_pool::ConstantPoolEntry;
 use crate::class::references::{InlineReference, Reference};
@@ -56,17 +56,24 @@ impl CompiledField {
 
 impl Serializable for CompiledField {
 
-    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+    fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let name = ConstantPoolEntry::read(byte_reader)?;
         let type_descriptor = CompiledType::read(byte_reader)?;
-        let offset = u64::load(byte_reader)?;
-        let size = u64::load(byte_reader)?;
+        let offset = u64::read(byte_reader)?;
+        let size = u64::read(byte_reader)?;
 
-        Some(Self {
+        Ok(Self {
             name,
             type_descriptor,
             offset,
             size,
         })
+    }
+
+    fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
+        self.name.write(byte_writer)?;
+        self.type_descriptor.write(byte_writer)?;
+        self.offset.write(byte_writer)?;
+        self.size.write(byte_writer)
     }
 }

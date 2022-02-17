@@ -15,7 +15,7 @@ macro_rules! serializable_primitive {
             impl Serializable for $typ {
 
                 fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
-                    let bytes = byte_reader.read_exact::<{ std::mem::size_of::<$typ>() }>()?;
+                    let bytes = byte_reader.read_array::<{ std::mem::size_of::<$typ>() }>()?;
                     Ok(<$typ>::from_ne_bytes(bytes))
                 }
 

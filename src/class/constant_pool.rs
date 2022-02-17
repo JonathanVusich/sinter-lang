@@ -1,5 +1,5 @@
-use std::io::ErrorKind;
-use crate::bytes::serializers::ByteReader;
+use std::io::{Error, ErrorKind};
+use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
 
 #[repr(transparent)]
@@ -27,11 +27,15 @@ impl ConstantPool {
 
 impl Serializable for ConstantPool {
 
-    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
+    fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let pool = Box::<[u8]>::read(byte_reader)?;
-        Some(Self {
+        Ok(Self {
             pool
         })
+    }
+
+    fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
+        self.pool.write(byte_writer)
     }
 }
 
@@ -47,13 +51,19 @@ impl ConstantPoolEntry {
 
 impl Serializable for ConstantPoolEntry {
     
-    fn read(byte_reader: &mut impl ByteReader) -> Option<Self> {
-        let offset = u16::from_ne_bytes(byte_reader.read_exact::<2>()?);
-        let size = u16::from_ne_bytes(byte_reader.read_exact::<2>()?);
-        Some(
+    fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
+        let offset = u16::read(byte_reader)?;
+        let size = u16::read(byte_reader)?;
+        Ok(
             Self {
                 offset,
                 size,
             })
+    }
+
+    fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
+        self.offset.write(byte_writer)?;
+        self.size.write(byte_writer)?;
+        Ok(())
     }
 }
