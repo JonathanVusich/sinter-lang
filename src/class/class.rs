@@ -28,9 +28,9 @@ pub struct Class {
     pub size_class: SizeClass,
     pub mark_word: MarkWord,
 
-    pub fields: Box<[Field]>,
-    pub references: Box<[Field]>,
-    pub methods: Box<[Method]>,
+    pub fields: &'static [Field],
+    pub references: &'static [Field],
+    pub methods: &'static [Method],
 }
 
 impl Class {
@@ -52,24 +52,24 @@ impl Class {
             size: object_size,
             size_class: SizeClass::from(object_size),
             mark_word,
-            fields: Vec::new().into_boxed_slice(),
-            references: Vec::new().into_boxed_slice(),
-            methods: Vec::new().into_boxed_slice(),
+            fields: Box::leak(Vec::new().into_boxed_slice()),
+            references: Box::leak(Vec::new().into_boxed_slice()),
+            methods: Box::leak(Vec::new().into_boxed_slice()),
         }
     }
 
     pub fn from(compiled_class: CompiledClass, string_pool: &mut StringPool) -> Self {
         let version = compiled_class.version;
 
-        let fields = compiled_class.fields.iter().map(|compiled_field| {
+        let fields = Box::leak(compiled_class.fields.iter().map(|compiled_field| {
             let name = load_str(compiled_field.name, &compiled_class.constant_pool, string_pool);
             let actual_type = load_type(&compiled_field.type_descriptor, &compiled_class.constant_pool, string_pool);
 
             Field::new(name, actual_type, compiled_field.offset, compiled_field.size)
         }).collect::<Vec<Field>>()
-          .into_boxed_slice();
+          .into_boxed_slice());
 
-        let references = fields.iter()
+        let references = Box::leak(fields.iter()
             .filter(|field| {
                 return match field.type_descriptor {
                     Trait(b) | Class(b) => true,
@@ -78,9 +78,9 @@ impl Class {
             })
             .cloned()
             .collect::<Vec<Field>>()
-            .into_boxed_slice();
+            .into_boxed_slice());
 
-        let methods = compiled_class.methods.iter().map(|method| {
+        let methods = Box::leak(compiled_class.methods.iter().map(|method| {
             let name = load_str(method.name, &compiled_class.constant_pool, string_pool);
 
             let return_type = load_type(&&method.descriptor.return_type, &compiled_class.constant_pool, string_pool);
@@ -92,7 +92,8 @@ impl Class {
             let descriptor = MethodDescriptor::new(return_type, parameters);
 
             Method::new(name, descriptor, method.max_stack_size, method.max_locals, method.code.clone())
-        }).collect();
+        }).collect::<Vec<Method>>()
+          .into_boxed_slice());
 
         let size_class = SizeClass::from(compiled_class.size as usize);
         let mark_word = if size_class == SizeClass::Small {
@@ -118,8 +119,8 @@ impl Class {
         }
     }
 
-    pub fn get_main_method(&self) -> Option<&Method> {
-        todo!()
+    pub fn get_main_method(&self, string_pool: &StringPool) -> Option<&'static Method> {
+        self.methods.iter().find(|method| method.is_main_method(string_pool))
     }
 }
 

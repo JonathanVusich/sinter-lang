@@ -110,6 +110,6 @@ mod tests {
         }));
 
         let mut stack = Stack::new();
-        let val = stack.pop();
+        let val: HeapPointer = stack.pop().into();
     }
 }

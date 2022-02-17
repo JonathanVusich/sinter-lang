@@ -20,7 +20,7 @@ macro_rules! serializable_primitive {
                 }
 
                 fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
-                    byte_writer.write(&self.to_ne_bytes())
+                    byte_writer.write_bytes(&self.to_ne_bytes())
                 }
             }
         )*

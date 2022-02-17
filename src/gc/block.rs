@@ -25,7 +25,7 @@ pub const BYTES_PER_BLOCK: usize = LINE_SIZE * LINES_PER_BLOCK;
 /// The mask to apply to go from a heap pointer to the block pointer.
 /// This is HIGHLY UNSAFE! There must be strict tests to ensure that this
 /// invariant is maintained.
-pub const BLOCK_BYTEMASK: usize = !(BLOCK_SIZE - 1) as usize;
+pub const BLOCK_BYTEMASK: u64 = !(BLOCK_SIZE - 1) as u64;
 
 #[repr(C, align(32768))]
 pub struct Block {

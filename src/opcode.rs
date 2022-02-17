@@ -51,22 +51,34 @@ mod tests {
     #[test]
     fn test_enum() {
         assert_eq!(OpCode::ReturnVoid, OpCode::from(0));
-        assert_eq!(OpCode::Return32, OpCode::from(1));
-        assert_eq!(OpCode::Return64, OpCode::from(2));
-        assert_eq!(OpCode::Pop32, OpCode::from(3));
-        assert_eq!(OpCode::Pop64, OpCode::from(4));
-        assert_eq!(OpCode::GetConstant32, OpCode::from(5));
-        assert_eq!(OpCode::GetConstant64, OpCode::from(6));
-        assert_eq!(OpCode::SetLocal32, OpCode::from(7));
-        assert_eq!(OpCode::SetLocal64, OpCode::from(8));
-        assert_eq!(OpCode::GetLocal32, OpCode::from(9));
-        assert_eq!(OpCode::GetLocal64, OpCode::from(10));
 
-        assert_eq!(OpCode::Jump, OpCode::from(11));
-        assert_eq!(OpCode::JumpBack, OpCode::from(12));
-        assert_eq!(OpCode::Call, OpCode::from(13));
+        assert_eq!(OpCode::Return8, OpCode::from(1));
+        assert_eq!(OpCode::Return16, OpCode::from(2));
+        assert_eq!(OpCode::Return32, OpCode::from(3));
+        assert_eq!(OpCode::Return64, OpCode::from(4));
 
+        assert_eq!(OpCode::Pop8, OpCode::from(5));
+        assert_eq!(OpCode::Pop16, OpCode::from(6));
+        assert_eq!(OpCode::Pop32, OpCode::from(7));
+        assert_eq!(OpCode::Pop64, OpCode::from(8));
 
+        assert_eq!(OpCode::GetConstant8, OpCode::from(9));
+        assert_eq!(OpCode::GetConstant16, OpCode::from(10));
+        assert_eq!(OpCode::GetConstant32, OpCode::from(11));
+        assert_eq!(OpCode::GetConstant64, OpCode::from(12));
 
+        assert_eq!(OpCode::SetLocal8, OpCode::from(13));
+        assert_eq!(OpCode::SetLocal16, OpCode::from(14));
+        assert_eq!(OpCode::SetLocal32, OpCode::from(15));
+        assert_eq!(OpCode::SetLocal64, OpCode::from(16));
+
+        assert_eq!(OpCode::GetLocal8, OpCode::from(17));
+        assert_eq!(OpCode::GetLocal16, OpCode::from(18));
+        assert_eq!(OpCode::GetLocal32, OpCode::from(19));
+        assert_eq!(OpCode::GetLocal64, OpCode::from(20));
+
+        assert_eq!(OpCode::Jump, OpCode::from(21));
+        assert_eq!(OpCode::JumpBack, OpCode::from(22));
+        assert_eq!(OpCode::Call, OpCode::from(23));
     }
 }

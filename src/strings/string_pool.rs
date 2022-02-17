@@ -25,7 +25,7 @@ impl StringPool {
             return id;
         }
         let name = self.alloc(name);
-        let id = self.map.len() as InternalString;
+        let id = InternalString(self.map.len() as u32);
         self.map.insert(name, id);
         self.vec.push(name);
 
@@ -36,7 +36,7 @@ impl StringPool {
     }
 
     pub fn lookup(&self, id: InternalString) -> &'static str {
-        self.vec[id as usize]
+        self.vec[id.0 as usize]
     }
 
     fn alloc(&mut self, name: &str) -> &'static str {
@@ -55,6 +55,6 @@ impl StringPool {
             &self.buf[start..]
         };
 
-        interned
+        unsafe { &*(interned as *const str) }
     }
 }

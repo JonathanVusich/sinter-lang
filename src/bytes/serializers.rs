@@ -11,7 +11,7 @@ pub trait ByteReader {
 
 pub trait ByteWriter {
 
-    fn write(&mut self, bytes: &[u8]) -> Result<(), Error>;
+    fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), Error>;
 }
 
 impl<T: Read> ByteReader for BufReader<T> {
@@ -31,7 +31,7 @@ impl<T: Read> ByteReader for BufReader<T> {
 
 impl<T: Write> ByteWriter for BufWriter<T> {
 
-    fn write(&mut self, bytes: &[u8]) -> Result<(), Error> {
+    fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), Error> {
         self.write(bytes)?;
         Ok(())
     }

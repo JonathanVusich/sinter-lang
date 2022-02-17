@@ -3,7 +3,10 @@ use std::io::{Error, ErrorKind};
 use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
 
-pub const CURRENT_VERSION: Version = Version::new(0, 1);
+pub const CURRENT_VERSION: Version = Version {
+    major: 0,
+    minor: 1,
+};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Version {

@@ -48,21 +48,21 @@ impl<T> Pointer<T> {
 impl<T> From<Pointer<T>> for [u8; WORD] {
 
     fn from(pointer: Pointer<T>) -> Self {
-        (pointer.pointer as usize).to_ne_bytes().try_into().unwrap()
+        (pointer.pointer as usize).to_ne_bytes()
     }
 }
 
-impl<T> From<Pointer<T>> for usize {
+impl<T> From<Pointer<T>> for u64 {
 
     fn from(pointer: Pointer<T>) -> Self {
-        pointer.pointer as usize
+        pointer.pointer as u64
     }
 }
 
 impl<T> From<[u8; WORD]> for Pointer<T> {
 
     fn from(bytes: [u8; WORD]) -> Pointer<T> {
-        Pointer { pointer: usize::from_ne_bytes(bytes) as *mut T }
+        Pointer { pointer: u64::from_ne_bytes(bytes) as *mut T }
     }
 }
 
