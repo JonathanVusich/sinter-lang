@@ -24,6 +24,12 @@ impl Version {
     }
 }
 
+impl Default for Version {
+    fn default() -> Self {
+        CURRENT_VERSION
+    }
+}
+
 impl Serializable for Version {
 
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {

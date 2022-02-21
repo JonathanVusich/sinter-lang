@@ -35,29 +35,6 @@ pub struct Class {
 
 impl Class {
 
-    pub fn new(object_size: usize) -> Class {
-        let small_object = object_size < LINE_SIZE;
-        let mark_word = if small_object {
-            0b00000100.into()
-        } else {
-            0b00001100.into()
-        };
-
-        Class {
-            version: CURRENT_VERSION,
-
-            package: InternalString(0),
-            name: InternalString(0),
-
-            size: object_size,
-            size_class: SizeClass::from(object_size),
-            mark_word,
-            fields: Box::leak(Vec::new().into_boxed_slice()),
-            references: Box::leak(Vec::new().into_boxed_slice()),
-            methods: Box::leak(Vec::new().into_boxed_slice()),
-        }
-    }
-
     pub fn from(compiled_class: CompiledClass, string_pool: &mut StringPool) -> Self {
         let version = compiled_class.version;
 

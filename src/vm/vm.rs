@@ -32,45 +32,53 @@ pub struct VM {
 
 impl VM {
 
-    pub fn new(module_readers: Vec<impl ByteReader>) -> Result<Self, VMError> {
-        let mut vm = Self {
-            classes: HashMap::new(),
-            thread_stack: Stack::new(),
-            call_frames: [Default::default(); MAX_CALL_FRAMES],
-            current_frame: 0,
-            current_class: unsafe { &*(std::ptr::null() as *const Class) } ,
-            current_method: unsafe { &*(std::ptr::null() as *const Method) } ,
-            current_code: unsafe { &*(std::ptr::null() as *const &[u8]) } ,
-            string_pool: StringPool::with_capacity(8192),
-        };
+    pub fn new(main_class_name: &str, module_readers: Vec<impl ByteReader>) -> Result<Self, VMError> {
+        let mut class_map: HashMap<String, &'static Class> = HashMap::new();
+        let mut string_pool = StringPool::with_capacity(8192);
 
         for mut reader in module_readers.into_iter() {
 
             let classes = Box::<[CompiledClass]>::read(&mut reader)
-                .or_else(move |err| Err(VMError::new(VMErrorKind::MalformedClassFile)))?;
+                .map_err(move |err| VMError::new(VMErrorKind::MalformedClassFile))?;
 
             if classes.iter().any(|class| class.version > CURRENT_VERSION) {
                 return Err(VMError::new(VMErrorKind::UnsupportedClassVersion));
             }
 
             for class in classes.into_vec().drain(..) {
-                let runtime_class = Box::leak(Box::new(Class::from(class, &mut vm.string_pool)));
-                let package_name = vm.string_pool.lookup(runtime_class.package).to_owned();
-                let name = vm.string_pool.lookup(runtime_class.name);
+                let runtime_class = Box::leak(Box::new(Class::from(class, &mut string_pool)));
+                let package_name = string_pool.lookup(runtime_class.package).to_owned();
+                let name = string_pool.lookup(runtime_class.name);
 
                 let qualified_name = package_name + name;
 
-                vm.classes.insert(qualified_name, runtime_class);
+                class_map.insert(qualified_name, runtime_class);
             }
         }
+
+        let current_class = *class_map.get(&*main_class_name)
+            .ok_or_else(move || VMError::new(VMErrorKind::MissingMainClass))?;
+
+        let current_method = current_class.get_main_method(&string_pool)
+            .ok_or_else(move || VMError::new(VMErrorKind::MissingMainMethod))?;
+
+        let current_code = &current_method.code;
+
+        let vm = Self {
+            classes: class_map,
+            thread_stack: Stack::new(),
+            call_frames: [Default::default(); MAX_CALL_FRAMES],
+            current_frame: 0,
+            current_class,
+            current_method,
+            current_code,
+            string_pool,
+        };
 
         Ok(vm)
     }
 
-    pub fn run(&mut self, main_class_name: String) -> usize {
-        let main_class = self.classes.get(&*main_class_name).expect("The specified main class is not loaded into the VM!");
-        let main_method = main_class.get_main_method(&self.string_pool).expect("Main class did not provide a main() method!");
-        
+    pub fn run(&mut self, args: &[&'static str]) -> usize {
         let call_frame = CallFrame {
             ip: 0,
             address: 0,
@@ -118,8 +126,7 @@ impl VM {
         0
     }
 
-
-
+    #[inline(always)]
     fn read_short(&mut self) -> u16 {
         let call_frame = self.call_frames.get_mut(self.current_frame).unwrap();
         let first_byte = *self.current_code.get(call_frame.ip).unwrap();
@@ -129,6 +136,7 @@ impl VM {
         short
     }
 
+    #[inline(always)]
     fn read_byte(&mut self) -> u8 {
         let mut call_frame = self.call_frames.get_mut(self.current_frame).unwrap();
         let byte = *self.current_code.get(call_frame.ip).unwrap();
@@ -136,6 +144,7 @@ impl VM {
         byte
     }
 
+    #[inline(always)]
     fn read_opcode(&mut self) -> OpCode {
         let instruction = self.read_byte();
         OpCode::from(instruction)

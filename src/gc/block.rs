@@ -126,6 +126,7 @@ mod tests {
     use std::ptr::addr_of;
 
     use crate::class::class::Class;
+    use crate::class::class_builder::ClassBuilder;
     use crate::gc::block::{Block, BLOCK_BYTEMASK, BLOCK_SIZE, BYTES_PER_BLOCK, LINE_SIZE, LINES_PER_BLOCK};
     use crate::gc::block_state::BlockState;
     use crate::heap::region::Region;
@@ -169,6 +170,8 @@ mod tests {
         let mut block = region.allocate_block().unwrap();
 
         let mut start_cursor = block.cursor;
+
+        let class = ClassBuilder::new().set_size(16).build();
 
         let class = Class::new(16);
 

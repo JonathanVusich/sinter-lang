@@ -11,6 +11,8 @@ pub struct VMError {
 pub enum VMErrorKind {
     UnsupportedClassVersion,
     MalformedClassFile,
+    MissingMainClass,
+    MissingMainMethod,
 }
 
 impl VMError {

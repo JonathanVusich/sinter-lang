@@ -35,6 +35,8 @@ pub (crate) enum OpCode {
 }
 
 impl From<u8> for OpCode {
+
+    #[inline(always)]
     fn from(byte: u8) -> Self {
         let opcode: OpCode;
         unsafe {

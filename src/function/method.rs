@@ -10,17 +10,17 @@ use crate::types::types::Type;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Method {
-    name: InternalString,
-    descriptor: MethodDescriptor,
-    max_stack_size: u16,
-    max_locals: u16,
-    code: Box<[u8]>,
+    pub name: InternalString,
+    pub descriptor: MethodDescriptor,
+    pub max_stack_size: u16,
+    pub max_locals: u16,
+    pub code: Box<[u8]>,
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct MethodDescriptor {
-    return_type: Type,
-    parameters: Box<[Type]>,
+    pub return_type: Type,
+    pub parameters: Box<[Type]>,
 }
 
 impl Method {
