@@ -1,20 +1,17 @@
-use flux_lang::class::class::Class;
-use flux_lang::gc::block::Block;
+use flux_lang::class::{class::Class, class_builder::ClassBuilder};
+use flux_lang::gc::block::{Block, BLOCK_SIZE};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-
-fn whole_block_allocation(c: &mut Criterion) {
-    c.bench_function("Block allocation", |b| b.iter(|| {
-        black_box(Block::boxed().unwrap())
-    }));
-}
+use flux_lang::heap::region::Region;
+use flux_lang::strings::internal_string::InternalString;
 
 fn small_class_allocation(c: &mut Criterion) {
 
-    let small_class = Class::new(64);
+    let small_class = ClassBuilder::new().set_size(64).build(|val| InternalString(0));
+    let region = Region::new(BLOCK_SIZE).unwrap();
+    let mut block = region.allocate_block().unwrap();
 
     c.bench_function("Small class allocation", |b| b.iter(|| {
-        let mut block = black_box(Block::boxed().unwrap());
         let mut heap_ptr = block.allocate(&small_class);
         while heap_ptr.is_some() {
             heap_ptr = block.allocate(&small_class);
@@ -25,10 +22,11 @@ fn small_class_allocation(c: &mut Criterion) {
 
 fn large_class_allocation(c: &mut Criterion) {
 
-    let small_class = Class::new(256);
+    let small_class = ClassBuilder::new().set_size(256).build(|val| InternalString(0));
+    let region = Region::new(BLOCK_SIZE).unwrap();
+    let mut block = region.allocate_block().unwrap();
 
     c.bench_function("Large class allocation", |b| b.iter(|| {
-        let mut block = black_box(Block::boxed().unwrap());
         let mut heap_ptr = block.allocate(&small_class);
         while heap_ptr.is_some() {
             heap_ptr = block.allocate(&small_class);
@@ -37,5 +35,5 @@ fn large_class_allocation(c: &mut Criterion) {
     }));
 }
 
-criterion_group!(block_allocation, whole_block_allocation, small_class_allocation, large_class_allocation);
+criterion_group!(block_allocation, small_class_allocation, large_class_allocation);
 criterion_main!(block_allocation);

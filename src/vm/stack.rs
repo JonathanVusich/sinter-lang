@@ -51,7 +51,7 @@ impl Display for Stack {
 
 #[cfg(test)]
 mod tests {
-    use crate::class::class::Class;
+    use crate::{class::{class::Class, class_builder::ClassBuilder}, strings::internal_string::InternalString};
 
     use super::*;
 
@@ -75,7 +75,8 @@ mod tests {
 
         let mut heap_value = 0i128;
         let ptr: *mut i128 = &mut heap_value;
-        let heap_ptr = HeapPointer::new(&Class::new(8), ptr.cast());
+        let class = ClassBuilder::new().set_size(8).build(|val| InternalString(0));
+        let heap_ptr = HeapPointer::new(&class, ptr.cast());
 
         heap_ptr.start_address().write(123);
 

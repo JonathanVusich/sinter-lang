@@ -20,7 +20,7 @@ impl HeapPointer {
     pub fn new(class: &Class, ptr: *mut u8) -> Self {
         let byte: u8 = class.mark_word.into();
         let shifted_mark_word = (byte as u64) << 56;
-        let tagged_ptr = ptr as u64 | shifted_mark_word;
+        let tagged_ptr = shifted_mark_word | ptr as u64;
 
         let heap_pointer = HeapPointer { ptr: Pointer::from_raw(ptr) };
         heap_pointer.ptr.cast::<u64>().write(tagged_ptr);
@@ -138,14 +138,16 @@ impl From<HeapPointer> for [u8; WORD] {
 
 mod tests {
     use crate::class::class::Class;
+    use crate::class::class_builder::ClassBuilder;
     use crate::gc::block::{Block, LINE_SIZE};
     use crate::pointers::heap_pointer::HeapPointer;
+    use crate::strings::internal_string::InternalString;
 
     #[test]
     pub fn constructor() {
         let mut val: u64 = 128;
         let raw_ptr: *mut u64 = &mut val;
-        let class = Class::new(2);
+        let class = ClassBuilder::new().set_size(2).build(|val| InternalString(0));
         let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
     }
 
@@ -154,7 +156,7 @@ mod tests {
         let mut val: u64 = 128;
         let raw_ptr: *mut u64 = &mut val;
 
-        let class = Class::new(2);
+        let class = ClassBuilder::new().set_size(2).build(|val| InternalString(0));
 
         let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
@@ -168,7 +170,7 @@ mod tests {
         let mut val: u64 = 128;
         let raw_ptr: *mut u64 = &mut val;
 
-        let class = Class::new(2);
+        let class = ClassBuilder::new().set_size(2).build(|val| InternalString(0));
 
         let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
@@ -178,7 +180,7 @@ mod tests {
         assert!(!heap_pointer.mark_word().is_bit_set(5));
         assert!(!heap_pointer.spans_lines());
 
-        let large_class = Class::new(LINE_SIZE);
+        let large_class = ClassBuilder::new().set_size(LINE_SIZE).build(|val| InternalString(0));
 
         assert!(large_class.mark_word.is_bit_set(5));
 

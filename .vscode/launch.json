@@ -1,0 +1,65 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'flux-lang'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=flux-lang"
+                ],
+                "filter": {
+                    "name": "flux-lang",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'block_allocation'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bench=block_allocation",
+                    "--package=flux-lang"
+                ],
+                "filter": {
+                    "name": "block_allocation",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmark 'pointer'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bench=pointer",
+                    "--package=flux-lang"
+                ],
+                "filter": {
+                    "name": "pointer",
+                    "kind": "bench"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

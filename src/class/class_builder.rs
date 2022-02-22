@@ -57,7 +57,7 @@ impl ClassBuilder {
         self.methods.push(method)
     }
     
-    pub fn build<T: AsRef<str>, F: FnMut(T) -> InternalString>(self, mut string_interner: F) -> Class {
+    pub fn build<F: FnMut(String) -> InternalString>(self, mut string_interner: F) -> Class {
 
         let object_size = self.size.unwrap_or_default();
         let small_object = object_size < LINE_SIZE;
@@ -79,8 +79,8 @@ impl ClassBuilder {
 
         Class {
             version: self.version.unwrap_or_default(),
-            package: self.package.map_or_else(|| InternalString(0), |val| string_interner.call_mut(&val)),
-            name: self.name.map_or_else(|| InternalString(0), |val| string_interner.call_mut(&val)),
+            package: self.package.map_or_else(|| InternalString(0), |val| string_interner(val)),
+            name: self.name.map_or_else(|| InternalString(0), |val| string_interner(val)),
             size: self.size.unwrap_or_default(),
             size_class: SizeClass::from(self.size.unwrap_or_default()),
             mark_word,

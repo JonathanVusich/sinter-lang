@@ -76,8 +76,10 @@ impl Region {
 
 mod tests {
     use crate::class::class::Class;
+    use crate::class::class_builder::ClassBuilder;
     use crate::gc::block::BLOCK_SIZE;
     use crate::heap::region::Region;
+    use crate::strings::internal_string::InternalString;
 
     #[test]
     pub fn huge_region() {
@@ -109,7 +111,7 @@ mod tests {
         let empty_block = region.allocate_block();
         assert!(empty_block.is_none());
 
-        let size_class = Class::new(16);
+        let size_class = ClassBuilder::new().set_size(16).build(|val| InternalString(0));
 
         let heap_ptr = block_1.allocate(&size_class).unwrap();
 

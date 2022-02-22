@@ -27,9 +27,5 @@ name = "block_allocation"
 harness = false
 
 [[bench]]
-name = "tagged_pointer"
-harness = false
-
-[[bench]]
 name = "pointer"
 harness = false
