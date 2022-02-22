@@ -20,7 +20,7 @@ impl HeapPointer {
     pub fn new(class: &Class, ptr: *mut u8) -> Self {
         let byte: u8 = class.mark_word.into();
         let shifted_mark_word = (byte as u64) << 56;
-        let tagged_ptr = shifted_mark_word | ptr as u64;
+        let tagged_ptr = shifted_mark_word | class as *const Class as u64;
 
         let heap_pointer = HeapPointer { ptr: Pointer::from_raw(ptr) };
         heap_pointer.ptr.cast::<u64>().write(tagged_ptr);
