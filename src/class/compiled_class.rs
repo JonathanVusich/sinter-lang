@@ -8,6 +8,8 @@ use crate::function::compiled_method::CompiledMethod;
 use crate::function::method::Method;
 use crate::types::types::CompiledType;
 
+use super::class::Class;
+
 #[derive(Clone)]
 pub struct CompiledClass {
     pub version: Version,
@@ -20,10 +22,6 @@ pub struct CompiledClass {
 
     pub fields: Box<[CompiledField]>,
     pub methods: Box<[CompiledMethod]>,
-}
-
-impl CompiledClass {
-    
 }
 
 impl Serializable for CompiledClass {

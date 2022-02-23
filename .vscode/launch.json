@@ -26,18 +26,32 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug benchmark 'block_allocation'",
+            "name": "Debug unit tests in library 'flux-lang'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bench=block_allocation",
+                    "--lib",
                     "--package=flux-lang"
                 ],
                 "filter": {
-                    "name": "block_allocation",
-                    "kind": "bench"
+                    "name": "flux-lang",
+                    "kind": "lib"
                 }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug benchmarks 'block_allocation'",
+            "cargo": {
+                "args": [
+                    "bench",
+                    "--bench=block_allocation",
+                    "--package=flux-lang"
+                ]
             },
             "args": [],
             "cwd": "${workspaceFolder}"
@@ -48,15 +62,9 @@
             "name": "Debug benchmark 'pointer'",
             "cargo": {
                 "args": [
-                    "test",
-                    "--no-run",
                     "--bench=pointer",
                     "--package=flux-lang"
-                ],
-                "filter": {
-                    "name": "pointer",
-                    "kind": "bench"
-                }
+                ]
             },
             "args": [],
             "cwd": "${workspaceFolder}"

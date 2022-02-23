@@ -29,11 +29,10 @@ impl<T: Read> ByteReader for BufReader<T> {
     }
 }
 
-impl<T: Write> ByteWriter for BufWriter<T> {
+impl<T: Write> ByteWriter for T {
 
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), Error> {
-        self.write(bytes)?;
-        Ok(())
+        self.write_all(bytes)
     }
 }
 

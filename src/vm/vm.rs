@@ -13,7 +13,7 @@ use crate::class::version::{CURRENT_VERSION, Version};
 use crate::errors::vm_error::{VMError, VMErrorKind};
 use crate::function::method::Method;
 use crate::opcode::OpCode;
-use crate::strings::string_pool::StringPool;
+use crate::pool::string_pool::StringPool;
 use crate::vm::call_frame::CallFrame;
 use crate::vm::stack::Stack;
 
@@ -39,7 +39,7 @@ impl VM {
         for mut reader in module_readers.into_iter() {
 
             let classes = Box::<[CompiledClass]>::read(&mut reader)
-                .map_err(move |err| VMError::new(VMErrorKind::MalformedClassFile))?;
+                .map_err(move |err| VMError::new(VMErrorKind::MalformedModuleFile))?;
 
             if classes.iter().any(|class| class.version > CURRENT_VERSION) {
                 return Err(VMError::new(VMErrorKind::UnsupportedClassVersion));
@@ -63,6 +63,8 @@ impl VM {
             .ok_or_else(move || VMError::new(VMErrorKind::MissingMainMethod))?;
 
         let current_code = &current_method.code;
+
+        // Need to perform linking and constant folding here.
 
         let vm = Self {
             classes: class_map,
@@ -91,25 +93,55 @@ impl VM {
             let opcode = self.read_opcode();
             match opcode {
                 OpCode::ReturnVoid => {
-                    self.current_frame -= 1;
-                    if self.current_frame == 0 {
+                    if self.do_return::<0>() {
                         return 0;
                     }
-                    break;
                 }
 
-                OpCode::Return8 => {}
-                OpCode::Return16 => {}
-                OpCode::Return32 => {}
-                OpCode::Return64 => {}
-                OpCode::Pop8 => {}
-                OpCode::Pop16 => {}
-                OpCode::Pop32 => {}
-                OpCode::Pop64 => {}
-                OpCode::GetConstant8 => {}
-                OpCode::GetConstant16 => {}
-                OpCode::GetConstant32 => {}
-                OpCode::GetConstant64 => {}
+                OpCode::Return8 => {
+                    if self.do_return::<1>() {
+                        return 0;
+                    }
+                }
+                OpCode::Return16 => {
+                    if self.do_return::<2>() {
+                        return 0;
+                    }
+                }
+                OpCode::Return32 => {
+                    if self.do_return::<4>() {
+                        return 0;
+                    }
+                }
+                OpCode::Return64 => {
+                    if self.do_return::<8>() {
+                        return 0;
+                    }
+                }
+                OpCode::Pop8 => {
+                    self.pop::<1>();
+                }
+                OpCode::Pop16 => {
+                    self.pop::<2>();
+                }
+                OpCode::Pop32 => {
+                    self.pop::<4>();
+                }
+                OpCode::Pop64 => {
+                    self.pop::<8>();
+                }
+                OpCode::GetConstant8 => {
+                    
+                }
+                OpCode::GetConstant16 => {
+                    
+                }
+                OpCode::GetConstant32 => {
+                    
+                }
+                OpCode::GetConstant64 => {
+                    
+                }
                 OpCode::SetLocal8 => {}
                 OpCode::SetLocal16 => {}
                 OpCode::SetLocal32 => {}
@@ -123,7 +155,29 @@ impl VM {
                 OpCode::Call => {}
             }
         }
-        0
+    }
+
+    #[inline(always)]
+    fn do_return<const LEN: usize>(&mut self) -> bool {
+        if LEN == 0 {
+            self.current_frame -= 1;
+            return self.current_frame == 0;
+        } else {
+            let result = self.thread_stack.pop::<LEN>();
+            self.current_frame -= 1;
+            self.thread_stack.push(result);
+        }
+        return self.current_frame == 0;
+    } 
+
+    #[inline(always)]
+    fn pop<const LEN: usize>(&mut self) {
+        self.thread_stack.pop::<LEN>();
+    }
+
+    #[inline(always)]
+    fn read_constant<const LEN: usize>(&mut self) {
+        // let constant = self.current_class.constant_pool
     }
 
     #[inline(always)]
