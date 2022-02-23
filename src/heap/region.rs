@@ -79,7 +79,7 @@ mod tests {
     use crate::class::class_builder::ClassBuilder;
     use crate::gc::block::BLOCK_SIZE;
     use crate::heap::region::Region;
-    use crate::strings::internal_string::InternalString;
+    use crate::pool::internal_string::InternalString;
 
     #[test]
     pub fn huge_region() {

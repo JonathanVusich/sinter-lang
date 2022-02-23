@@ -20,6 +20,6 @@ pub mod function;
 pub mod vm;
 pub mod bytes;
 pub mod types;
-pub mod strings;
+pub mod pool;
 pub mod traits;
 pub mod errors;

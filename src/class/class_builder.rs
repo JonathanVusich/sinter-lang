@@ -4,8 +4,8 @@ use crate::class::size_class::SizeClass;
 use crate::class::version::Version;
 use crate::function::method::Method;
 use crate::gc::block::LINE_SIZE;
-use crate::strings::internal_string::InternalString;
-use crate::strings::string_pool::StringPool;
+use crate::pool::internal_string::InternalString;
+use crate::pool::string_pool::StringPool;
 use crate::types::types::Type;
 
 pub struct ClassBuilder {

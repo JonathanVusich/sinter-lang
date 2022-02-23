@@ -1,5 +1,5 @@
 use crate::function::method::Method;
-use crate::strings::internal_string::InternalString;
+use crate::pool::internal_string::InternalString;
 
 pub struct Trait {
     package: InternalString,

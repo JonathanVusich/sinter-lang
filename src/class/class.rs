@@ -12,8 +12,8 @@ use crate::gc::block::{BLOCK_SIZE, LINE_SIZE};
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::mark_word::MarkWord;
 use crate::pointers::pointer::Pointer;
-use crate::strings::internal_string::InternalString;
-use crate::strings::string_pool::StringPool;
+use crate::pool::internal_string::InternalString;
+use crate::pool::string_pool::StringPool;
 use crate::types::types::{CompiledBaseType, CompiledType, Type};
 use crate::types::types::Type::*;
 

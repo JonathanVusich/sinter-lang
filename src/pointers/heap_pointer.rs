@@ -141,7 +141,7 @@ mod tests {
     use crate::class::class_builder::ClassBuilder;
     use crate::gc::block::{Block, LINE_SIZE};
     use crate::pointers::heap_pointer::HeapPointer;
-    use crate::strings::internal_string::InternalString;
+    use crate::pool::internal_string::InternalString;
 
     #[test]
     pub fn constructor() {

@@ -131,7 +131,7 @@ mod tests {
     use crate::gc::block_state::BlockState;
     use crate::heap::region::Region;
     use crate::pointers::pointer::Pointer;
-    use crate::strings::internal_string::InternalString;
+    use crate::pool::internal_string::InternalString;
 
     #[test]
     pub fn size() {

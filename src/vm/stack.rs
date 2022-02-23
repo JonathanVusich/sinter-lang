@@ -51,7 +51,7 @@ impl Display for Stack {
 
 #[cfg(test)]
 mod tests {
-    use crate::{class::{class::Class, class_builder::ClassBuilder}, strings::internal_string::InternalString};
+    use crate::{class::{class::Class, class_builder::ClassBuilder}, pool::internal_string::InternalString};
 
     use super::*;
 

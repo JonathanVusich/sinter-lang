@@ -1,8 +1,9 @@
-use rustc_hash::FxHashMap;
-use crate::strings::internal_string::InternalString;
+use std::collections::HashMap;
+
+use crate::pool::internal_string::InternalString;
 
 pub struct StringPool {
-    map: FxHashMap<&'static str, InternalString>,
+    map: HashMap<&'static str, InternalString>,
     vec: Vec<&'static str>,
     buf: String,
     full: Vec<String>
@@ -13,7 +14,7 @@ impl StringPool {
     pub fn with_capacity(cap: usize) -> Self {
         let cap = cap.next_power_of_two();
         Self {
-            map: FxHashMap::default(),
+            map: HashMap::default(),
             vec: Vec::new(),
             buf: String::with_capacity(cap),
             full: Vec::new(),
