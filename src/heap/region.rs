@@ -7,11 +7,6 @@ use std::sync::atomic::Ordering::SeqCst;
 use std::sync::Once;
 
 use region::{alloc, Allocation, Protection};
-use winapi::um::memoryapi::{
-    VirtualAlloc, VirtualFree, VirtualLock, VirtualProtect, VirtualQuery, VirtualUnlock,
-};
-use winapi::um::sysinfoapi::{GetNativeSystemInfo, SYSTEM_INFO};
-use winapi::um::winnt::{MEM_COMMIT, MEM_RELEASE, MEM_RESERVE, MEMORY_BASIC_INFORMATION};
 
 use crate::gc::block::{Block, BLOCK_SIZE};
 use crate::heap::page;
@@ -47,7 +42,7 @@ impl Region {
             },
         };
 
-        let region_ptr = unsafe { os::alloc(std::ptr::null::<>(), size) };
+        let region_ptr = unsafe { os::alloc(size) };
         let ptr = region_ptr.cast::<u8>();
 
         if ptr.is_null() {

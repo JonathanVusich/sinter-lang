@@ -75,8 +75,6 @@ mod tests {
 
         mark_word.set_bit(1);
 
-        println!("{:?}", mark_word);
-
         assert!(mark_word.is_bit_set(1));
 
         mark_word.clear_bit(1);

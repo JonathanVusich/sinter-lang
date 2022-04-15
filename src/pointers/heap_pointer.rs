@@ -176,7 +176,6 @@ mod tests {
 
         assert!(!class.mark_word.is_bit_set(5));
 
-        println!("{:?}", heap_pointer.mark_word());
         assert!(!heap_pointer.mark_word().is_bit_set(5));
         assert!(!heap_pointer.spans_lines());
 

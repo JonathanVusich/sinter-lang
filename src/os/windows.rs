@@ -7,17 +7,17 @@ use winapi::um::memoryapi::{
     VirtualAlloc, VirtualFree, VirtualLock, VirtualProtect, VirtualQuery, VirtualUnlock,
 };
 use winapi::um::sysinfoapi::{GetNativeSystemInfo, SYSTEM_INFO};
-use winapi::um::winnt::{MEM_COMMIT, MEM_RELEASE, MEM_RESERVE, MEMORY_BASIC_INFORMATION, PAGE_READWRITE};
+use winapi::um::winnt::{MEM_COMMIT, MEM_RELEASE, MEM_RESERVE, PAGE_READWRITE};
 
-pub unsafe fn alloc(base: *const (), size: usize) -> *const () {
+pub unsafe fn alloc(size: usize) -> *mut u8 {
     let allocation = VirtualAlloc(
-        base as winapi::um::winnt::PVOID,
+        std::ptr::null() as winapi::um::winnt::PVOID,
         size,
         MEM_COMMIT | MEM_RESERVE,
         PAGE_READWRITE,
     );
 
-    allocation as *const ()
+    allocation as *mut u8
 }
 
 pub fn page_size() -> usize {
