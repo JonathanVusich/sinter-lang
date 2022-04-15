@@ -8,6 +8,7 @@ use winapi::um::memoryapi::{
 };
 use winapi::um::sysinfoapi::{GetNativeSystemInfo, SYSTEM_INFO};
 use winapi::um::winnt::{MEM_COMMIT, MEM_RELEASE, MEM_RESERVE, PAGE_READWRITE};
+use crate::gc::block::BLOCK_SIZE;
 
 pub unsafe fn alloc(size: usize) -> *mut u8 {
     let allocation = VirtualAlloc(
@@ -17,7 +18,12 @@ pub unsafe fn alloc(size: usize) -> *mut u8 {
         PAGE_READWRITE,
     );
 
-    allocation as *mut u8
+    let ptr = allocation as *mut u8;
+    if (ptr as usize) % BLOCK_SIZE != 0 {
+        panic!("The allocated address is not aligned to the block size!")
+    }
+
+    ptr
 }
 
 pub fn page_size() -> usize {

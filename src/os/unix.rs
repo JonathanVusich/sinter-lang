@@ -5,7 +5,14 @@ use crate::gc::block::BLOCK_SIZE;
 pub unsafe fn alloc(size: usize) -> *mut u8 {
     let mut allocation: *mut c_void = std::ptr::null_mut();
     posix_memalign(&mut allocation, BLOCK_SIZE, size);
-    allocation as *mut u8
+
+    let ptr = allocation as *mut u8;
+
+    if (ptr as usize) % BLOCK_SIZE != 0 {
+        panic!("The allocated address is not aligned to the block size!")
+    }
+
+    ptr
 }
 
 pub fn page_size() -> usize {
