@@ -33,11 +33,20 @@ impl Stack {
     }
 
     pub fn pop<const NUM: usize>(&mut self) -> [u8; NUM] {
-        let end = self.index;
+        let val = self.peek::<NUM>();
         self.index -= NUM;
-        let start = self.index;
+        val
+    }
+
+    pub fn peek<const NUM: usize>(&mut self) -> [u8; NUM] {
+        let end = self.index;
+        let start = self.index - NUM;
 
         self.internal[start..end].try_into().unwrap()
+    }
+
+    pub fn write<const NUM: usize>(&mut self, offset: usize, bytes: [u8; NUM]) {
+        self.internal[offset..offset + NUM].copy_from_slice(&bytes)
     }
 }
 

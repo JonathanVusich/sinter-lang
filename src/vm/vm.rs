@@ -99,50 +99,52 @@ impl VM {
                 }
 
                 OpCode::Return8 => {
-                    if self.do_return::<1>() {
-                        return 0;
-                    }
-                }
-                OpCode::Return16 => {
-                    if self.do_return::<2>() {
-                        return 0;
-                    }
-                }
-                OpCode::Return32 => {
-                    if self.do_return::<4>() {
-                        return 0;
-                    }
-                }
-                OpCode::Return64 => {
                     if self.do_return::<8>() {
                         return 0;
                     }
                 }
+                OpCode::Return16 => {
+                    if self.do_return::<16>() {
+                        return 0;
+                    }
+                }
+                OpCode::Return32 => {
+                    if self.do_return::<32>() {
+                        return 0;
+                    }
+                }
+                OpCode::Return64 => {
+                    if self.do_return::<64>() {
+                        return 0;
+                    }
+                }
                 OpCode::Pop8 => {
-                    self.pop::<1>();
-                }
-                OpCode::Pop16 => {
-                    self.pop::<2>();
-                }
-                OpCode::Pop32 => {
-                    self.pop::<4>();
-                }
-                OpCode::Pop64 => {
                     self.pop::<8>();
                 }
+                OpCode::Pop16 => {
+                    self.pop::<16>();
+                }
+                OpCode::Pop32 => {
+                    self.pop::<32>();
+                }
+                OpCode::Pop64 => {
+                    self.pop::<64>();
+                }
                 OpCode::GetConstant8 => {
-                    
+                    self.get_constant::<8>();
                 }
                 OpCode::GetConstant16 => {
-                    
+                    self.get_constant::<16>();
                 }
                 OpCode::GetConstant32 => {
-                    
+                    self.get_constant::<32>();
                 }
                 OpCode::GetConstant64 => {
-                    
+                    self.get_constant::<64>()
                 }
-                OpCode::SetLocal8 => {}
+                OpCode::SetLocal8 => {
+
+                }
                 OpCode::SetLocal16 => {}
                 OpCode::SetLocal32 => {}
                 OpCode::SetLocal64 => {}
@@ -159,11 +161,13 @@ impl VM {
 
     #[inline(always)]
     fn do_return<const LEN: usize>(&mut self) -> bool {
-        if LEN == 0 {
+        const SIZE: usize = LEN / 8;
+
+        if SIZE == 0 {
             self.current_frame -= 1;
             return self.current_frame == 0;
         } else {
-            let result = self.thread_stack.pop::<LEN>();
+            let result = self.thread_stack.pop::<SIZE>();
             self.current_frame -= 1;
             self.thread_stack.push(result);
         }
@@ -172,30 +176,32 @@ impl VM {
 
     #[inline(always)]
     fn pop<const LEN: usize>(&mut self) {
-        self.thread_stack.pop::<LEN>();
+        const SIZE: usize = LEN / 8;
+        self.thread_stack.pop::<SIZE>();
+    }
+
+    fn get_constant<const SIZE: usize>(&mut self) {
+        const BYTES: usize = SIZE / 8;
+        let bytes = self.read_bytes::<BYTES>();
+        self.thread_stack.push(bytes);
+    }
+
+    fn set_local<const SIZE: usize>(&mut self) {
+        let call_frame = self.get_call_frame();
+        let offset = u32::from_be_bytes(self.read_bytes::<4>());
+        self.thread_stack.write(call_frame.address + offset, self.thread_stack.pop::<SIZE>());
+    }
+
+    fn read_bytes<const SIZE: usize>(&mut self) -> [u8; SIZE] {
+        let call_frame = self.get_call_frame();
+        let bytes: [u8; SIZE] = self.current_code[call_frame.ip..call_frame.ip + SIZE].try_into().unwrap();
+        call_frame.ip += SIZE;
+        bytes
     }
 
     #[inline(always)]
-    fn read_constant<const LEN: usize>(&mut self) {
-        // let constant = self.current_class.constant_pool
-    }
-
-    #[inline(always)]
-    fn read_short(&mut self) -> u16 {
-        let call_frame = self.call_frames.get_mut(self.current_frame).unwrap();
-        let first_byte = *self.current_code.get(call_frame.ip).unwrap();
-        let second_byte = *self.current_code.get(call_frame.ip + 1).unwrap();
-        let short: u16 = ((first_byte as u16) << 8) | (second_byte as u16);
-        call_frame.ip += 2;
-        short
-    }
-
-    #[inline(always)]
-    fn read_byte(&mut self) -> u8 {
-        let mut call_frame = self.call_frames.get_mut(self.current_frame).unwrap();
-        let byte = *self.current_code.get(call_frame.ip).unwrap();
-        call_frame.ip += 1;
-        byte
+    fn get_call_frame(&mut self) -> &mut CallFrame {
+        self.call_frames.get_mut(self.current_frame).unwrap()
     }
 
     #[inline(always)]
