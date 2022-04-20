@@ -1,5 +1,6 @@
 use std::cell::Cell;
 use std::collections::HashMap;
+use std::env::var;
 use std::error::Error;
 use std::io::ErrorKind;
 use std::iter::Map;
@@ -131,16 +132,16 @@ impl VM {
                     self.pop::<64>();
                 }
                 OpCode::GetConstant8 => {
-                    self.get_constant::<8>();
+                    self.get_constant::<1>();
                 }
                 OpCode::GetConstant16 => {
-                    self.get_constant::<16>();
+                    self.get_constant::<2>();
                 }
                 OpCode::GetConstant32 => {
-                    self.get_constant::<32>();
+                    self.get_constant::<4>();
                 }
                 OpCode::GetConstant64 => {
-                    self.get_constant::<64>()
+                    self.get_constant::<8>()
                 }
                 OpCode::SetLocal8 => {
 
@@ -161,13 +162,11 @@ impl VM {
 
     #[inline(always)]
     fn do_return<const LEN: usize>(&mut self) -> bool {
-        const SIZE: usize = LEN / 8;
-
-        if SIZE == 0 {
+        if LEN == 0 {
             self.current_frame -= 1;
             return self.current_frame == 0;
         } else {
-            let result = self.thread_stack.pop::<SIZE>();
+            let result = self.thread_stack.pop::<LEN>();
             self.current_frame -= 1;
             self.thread_stack.push(result);
         }
@@ -176,26 +175,36 @@ impl VM {
 
     #[inline(always)]
     fn pop<const LEN: usize>(&mut self) {
-        const SIZE: usize = LEN / 8;
-        self.thread_stack.pop::<SIZE>();
+        self.thread_stack.pop::<LEN>();
     }
 
-    fn get_constant<const SIZE: usize>(&mut self) {
-        const BYTES: usize = SIZE / 8;
-        let bytes = self.read_bytes::<BYTES>();
+    fn get_constant<const LEN: usize>(&mut self) {
+        let bytes = self.read_bytes::<LEN>();
         self.thread_stack.push(bytes);
     }
 
     fn set_local<const SIZE: usize>(&mut self) {
+        let address = self.get_call_frame().address;
+        let offset = u32::from_be_bytes(self.read_bytes::<4>()) as usize;
+        let bytes = self.thread_stack.pop::<SIZE>();
+        self.thread_stack.write(address + offset, bytes);
+    }
+
+    fn read_byte(&mut self) -> u8 {
         let call_frame = self.get_call_frame();
-        let offset = u32::from_be_bytes(self.read_bytes::<4>());
-        self.thread_stack.write(call_frame.address + offset, self.thread_stack.pop::<SIZE>());
+        let addr = call_frame.ip;
+        call_frame.ip += 1;
+
+        let byte = self.current_code[addr];
+        byte
     }
 
     fn read_bytes<const SIZE: usize>(&mut self) -> [u8; SIZE] {
         let call_frame = self.get_call_frame();
-        let bytes: [u8; SIZE] = self.current_code[call_frame.ip..call_frame.ip + SIZE].try_into().unwrap();
+        let start = call_frame.ip;
         call_frame.ip += SIZE;
+        let end = call_frame.ip;
+        let bytes: [u8; SIZE] = self.current_code[start..end].try_into().unwrap();
         bytes
     }
 
@@ -206,7 +215,7 @@ impl VM {
 
     #[inline(always)]
     fn read_opcode(&mut self) -> OpCode {
-        let instruction = self.read_byte();
+        let instruction = self.read_bytes::<1>()[0];
         OpCode::from(instruction)
     }
 }
