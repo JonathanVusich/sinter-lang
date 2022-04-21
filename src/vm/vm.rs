@@ -100,62 +100,44 @@ impl VM {
                 }
 
                 OpCode::Return8 => {
-                    if self.do_return::<8>() {
+                    if self.do_return::<1>() {
                         return 0;
                     }
                 }
                 OpCode::Return16 => {
-                    if self.do_return::<16>() {
+                    if self.do_return::<2>() {
                         return 0;
                     }
                 }
                 OpCode::Return32 => {
-                    if self.do_return::<32>() {
+                    if self.do_return::<4>() {
                         return 0;
                     }
                 }
                 OpCode::Return64 => {
-                    if self.do_return::<64>() {
+                    if self.do_return::<8>() {
                         return 0;
                     }
                 }
-                OpCode::Pop8 => {
-                    self.pop::<8>();
-                }
-                OpCode::Pop16 => {
-                    self.pop::<16>();
-                }
-                OpCode::Pop32 => {
-                    self.pop::<32>();
-                }
-                OpCode::Pop64 => {
-                    self.pop::<64>();
-                }
-                OpCode::GetConstant8 => {
-                    self.get_constant::<1>();
-                }
-                OpCode::GetConstant16 => {
-                    self.get_constant::<2>();
-                }
-                OpCode::GetConstant32 => {
-                    self.get_constant::<4>();
-                }
-                OpCode::GetConstant64 => {
-                    self.get_constant::<8>()
-                }
-                OpCode::SetLocal8 => {
-
-                }
-                OpCode::SetLocal16 => {}
-                OpCode::SetLocal32 => {}
-                OpCode::SetLocal64 => {}
-                OpCode::GetLocal8 => {}
-                OpCode::GetLocal16 => {}
-                OpCode::GetLocal32 => {}
-                OpCode::GetLocal64 => {}
-                OpCode::Jump => {}
-                OpCode::JumpBack => {}
-                OpCode::Call => {}
+                OpCode::Pop8 => self.pop::<1>(),
+                OpCode::Pop16 => self.pop::<2>(),
+                OpCode::Pop32 => self.pop::<4>(),
+                OpCode::Pop64 => self.pop::<8>(),
+                OpCode::GetConstant8 => self.get_constant::<1>(),
+                OpCode::GetConstant16 => self.get_constant::<2>(),
+                OpCode::GetConstant32 => self.get_constant::<4>(),
+                OpCode::GetConstant64 => self.get_constant::<8>(),
+                OpCode::SetLocal8 => self.set_local::<1>(),
+                OpCode::SetLocal16 => self.set_local::<2>(),
+                OpCode::SetLocal32 => self.set_local::<4>(),
+                OpCode::SetLocal64 => self.set_local::<8>(),
+                OpCode::GetLocal8 => self.get_local::<1>(),
+                OpCode::GetLocal16 => self.get_local::<2>(),
+                OpCode::GetLocal32 => self.get_local::<4>(),
+                OpCode::GetLocal64 => self.get_local::<8>(),
+                OpCode::Jump => self.jump(),
+                OpCode::JumpBack => self.jump_back(),
+                OpCode::Call => self.call()
             }
         }
     }
@@ -190,6 +172,28 @@ impl VM {
         self.thread_stack.write(address + offset, bytes);
     }
 
+    fn get_local<const SIZE: usize>(&mut self) {
+        let address = self.get_call_frame().address;
+        let offset = u32::from_be_bytes(self.read_bytes::<4>()) as usize;
+        let bytes = self.thread_stack.read::<SIZE>(address + offset);
+        self.thread_stack.push(bytes);
+    }
+
+    fn jump(&mut self) {
+        let offset = u32::from_be_bytes(self.read_bytes::<4>()) as usize;
+        self.get_call_frame().ip += offset;
+    }
+
+    fn jump_back(&mut self) {
+        let offset = u32::from_be_bytes(self.read_bytes::<4>()) as usize;
+        self.get_call_frame().ip -= offset;
+    }
+
+    fn call(&mut self) {
+        
+    }
+
+
     fn read_byte(&mut self) -> u8 {
         let call_frame = self.get_call_frame();
         let addr = call_frame.ip;
@@ -215,7 +219,7 @@ impl VM {
 
     #[inline(always)]
     fn read_opcode(&mut self) -> OpCode {
-        let instruction = self.read_bytes::<1>()[0];
+        let instruction = self.read_byte();
         OpCode::from(instruction)
     }
 }

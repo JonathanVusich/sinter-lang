@@ -48,6 +48,10 @@ impl Stack {
     pub fn write<const NUM: usize>(&mut self, offset: usize, bytes: [u8; NUM]) {
         self.internal[offset..offset + NUM].copy_from_slice(&bytes)
     }
+
+    pub fn read<const NUM: usize>(&mut self, offset: usize) -> [u8; NUM] {
+        self.internal[offset..offset + NUM].try_into().unwrap()
+    }
 }
 
 impl Display for Stack {

@@ -8,7 +8,6 @@
 #![feature(nonnull_slice_from_raw_parts)]
 #![feature(buf_read_has_data_left)]
 #![feature(fn_traits)]
-#![feature(generic_const_exprs)]
 
 pub mod opcode;
 pub mod gc;
