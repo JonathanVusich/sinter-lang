@@ -21,8 +21,12 @@ impl Stack {
         }
     }
 
-    pub fn set(&mut self, index: usize) {
+    pub fn set_index(&mut self, index: usize) {
         self.index = index;
+    }
+
+    pub fn get_index(&self) -> usize {
+        self.index
     }
 
     pub fn push<const NUM: usize>(&mut self, value: [u8; NUM]) {
