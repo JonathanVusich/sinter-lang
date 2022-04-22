@@ -6,12 +6,26 @@ pub (crate) enum OpCode {
 
     Pop,
 
-    Add,
-    Subtract,
-    Multiply,
-    Divide,
+    AddUnsigned,
+    SubtractUnsigned,
+    MultiplyUnsigned,
+    DivideUnsigned,
 
-    Negate,
+    AddSigned,
+    SubtractSigned,
+    MultiplySigned,
+    DivideSigned,
+
+    AddFloat,
+    SubtractFloat,
+    MultiplyFloat,
+    DivideFloat,
+
+    NegateInteger,
+    NegateFloat,
+
+    IntegerToFloat,
+    FloatToInteger,
 
     GetConstant,
 
@@ -37,30 +51,54 @@ impl From<u8> for OpCode {
     }
 }
 
+impl From<OpCode> for u8 {
+
+    #[inline(always)]
+    fn from(opcode: OpCode) -> Self {
+        opcode as u8
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use libc::chdir;
     use super::*;
 
     #[test]
     fn test_enum() {
-        assert_eq!(OpCode::ReturnVoid, OpCode::from(0));
+        macro_rules! check_transmution {
+            ($identifier:ident) => {
+                assert_eq!(OpCode::$identifier, OpCode::from(OpCode::$identifier as u8));
+            }
+        }
 
-        assert_eq!(OpCode::Return, OpCode::from(1));
+        check_transmution!(ReturnVoid);
+        check_transmution!(Return);
+        check_transmution!(Pop);
 
-        assert_eq!(OpCode::Pop, OpCode::from(2));
+        check_transmution!(AddUnsigned);
+        check_transmution!(SubtractUnsigned);
+        check_transmution!(MultiplyUnsigned);
+        check_transmution!(DivideUnsigned);
 
-        assert_eq!(OpCode::Add, OpCode::from(3));
-        assert_eq!(OpCode::Subtract, OpCode::from(4));
-        assert_eq!(OpCode::Multiply, OpCode::from(5));
-        assert_eq!(OpCode::Divide, OpCode::from(6));
+        check_transmution!(AddSigned);
+        check_transmution!(SubtractSigned);
+        check_transmution!(MultiplySigned);
+        check_transmution!(DivideSigned);
 
-        assert_eq!(OpCode::Negate, OpCode::from(7));
+        check_transmution!(AddFloat);
+        check_transmution!(SubtractFloat);
+        check_transmution!(MultiplyFloat);
+        check_transmution!(DivideFloat);
 
-        assert_eq!(OpCode::GetConstant, OpCode::from(8));
-        assert_eq!(OpCode::SetLocal, OpCode::from(9));
-        assert_eq!(OpCode::GetLocal, OpCode::from(10));
-        assert_eq!(OpCode::Jump, OpCode::from(11));
-        assert_eq!(OpCode::JumpBack, OpCode::from(12));
-        assert_eq!(OpCode::Call, OpCode::from(13));
+        check_transmution!(NegateInteger);
+        check_transmution!(NegateFloat);
+
+        check_transmution!(GetConstant);
+        check_transmution!(SetLocal);
+        check_transmution!(GetLocal);
+        check_transmution!(Jump);
+        check_transmution!(JumpBack);
+        check_transmution!(Call);
     }
 }

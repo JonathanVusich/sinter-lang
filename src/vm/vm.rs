@@ -7,6 +7,7 @@ use std::io::ErrorKind::WouldBlock;
 use std::iter::Map;
 use std::mem::size_of;
 use std::slice::SliceIndex;
+use libc::bind;
 use region::page::size;
 use crate::bytes::serializers::ByteReader;
 use crate::bytes::serializable::Serializable;
@@ -33,15 +34,31 @@ pub struct VM {
     call_frames: Vec<CallFrame>,
     current_frame: usize,
     string_pool: StringPool,
-    current_code: [u8; 0]
+    current_code: &'static [u8]
 }
 
-macro_rules! numeric_operation {
+macro_rules! binary_operation {
     ($self:ident, $typ:ty, $op:tt) => {
         let val2 = <$typ>::from_be_bytes($self.thread_stack.pop());
         let val1 = <$typ>::from_be_bytes($self.thread_stack.pop());
 
         let result = val1 $op val2;
+        $self.thread_stack.push(result.to_be_bytes());
+    }
+}
+
+macro_rules! unary_operation {
+    ($self:ident, $typ:ty, $op:tt) => {
+        let val = <$typ>::from_be_bytes($self.thread_stack.pop());
+        let result = $op val;
+        $self.thread_stack.push(result.to_be_bytes());
+    }
+}
+
+macro_rules! cast_operation {
+    ($self:ident, $typ:ty, $newtyp:ty) => {
+        let val = <$typ>::from_be_bytes($self.thread_stack.pop());
+        let result = val as $newtyp;
         $self.thread_stack.push(result.to_be_bytes());
     }
 }
@@ -56,7 +73,7 @@ impl VM {
             call_frames: Vec::new(),
             current_frame: 0,
             string_pool: StringPool::with_capacity(8192),
-            current_code: [],
+            current_code: &[],
         }
     }
 
@@ -96,10 +113,10 @@ impl VM {
         let main_method_name = self.string_pool.intern(main_method);
 
         let main_class = self.classes.get(&main_class_name)
-            .ok_or(VMError::new(VMErrorKind::MissingMainClass))?;
+            .ok_or_else(|| VMError::new(VMErrorKind::MissingMainClass))?;
         let main_method = main_class.methods.iter()
             .find(|method| method.name == main_method_name)
-            .ok_or(VMError::new(VMErrorKind::MissingMainMethod))?;
+            .ok_or_else(|| VMError::new(VMErrorKind::MissingMainMethod))?;
 
         let call_frame = CallFrame::new(main_method, 0);
 
@@ -120,21 +137,57 @@ impl VM {
                     }
                 }
                 OpCode::Pop => self.pop(),
-                OpCode::Add => {
-                    numeric_operation!(self, u64, +);
-                },
-                OpCode::Subtract => {
-                    numeric_operation!(self, u64, -);
-                },
-                OpCode::Multiply => {
-                    numeric_operation!(self, u64, *);
-                },
-                OpCode::Divide => {
-                    numeric_operation!(self, u64, /);
-                },
-                OpCode::Negate => {
-                    numeric_operation!(self, u64, -);
-                },
+                OpCode::AddUnsigned => {
+                    binary_operation!(self, u64, +);
+                }
+                OpCode::SubtractUnsigned => {
+                    binary_operation!(self, u64, -);
+                }
+                OpCode::MultiplyUnsigned => {
+                    binary_operation!(self, u64, *);
+                }
+                OpCode::DivideUnsigned => {
+                    binary_operation!(self, u64, /);
+                }
+                OpCode::AddSigned => {
+                    binary_operation!(self, i64, +);
+                }
+                OpCode::SubtractSigned => {
+                    binary_operation!(self, i64, -);
+                }
+                OpCode::MultiplySigned => {
+                    binary_operation!(self, i64, *);
+                }
+                OpCode::DivideSigned => {
+                    binary_operation!(self, i64, /);
+                }
+                OpCode::AddFloat => {
+                    binary_operation!(self, f64, +);
+                }
+                OpCode::SubtractFloat => {
+                    binary_operation!(self, f64, -);
+                }
+                OpCode::MultiplyFloat => {
+                    binary_operation!(self, f64, *);
+                }
+                OpCode::DivideFloat => {
+                    binary_operation!(self, f64, /);
+                }
+
+                OpCode::NegateInteger => {
+                    unary_operation!(self, i64, -);
+                }
+                OpCode::NegateFloat => {
+                    unary_operation!(self, f64, -);
+                }
+
+                OpCode::IntegerToFloat => {
+                    cast_operation!(self, i64, f64);
+                }
+                OpCode::FloatToInteger => {
+                    cast_operation!(self, f64, i64);
+                }
+
                 OpCode::GetConstant => self.get_constant(),
                 OpCode::SetLocal => self.set_local(),
                 OpCode::GetLocal => self.get_local(),
@@ -236,10 +289,84 @@ impl VM {
     }
 }
 
+impl Default for VM {
+    fn default() -> Self {
+        Self {
+            classes: Default::default(),
+            args: vec![],
+            thread_stack: Stack::new(),
+            call_frames: vec![],
+            current_frame: 0,
+            string_pool: StringPool::with_capacity(8192),
+            current_code: &[]
+        }
+    }
+}
+
 mod tests {
+    use crate::opcode::OpCode;
+    use crate::vm::vm::VM;
 
     #[test]
-    pub fn numeric_operations() {
+    pub fn addition() {
+        let mut vm = VM::default();
 
+        vm.thread_stack.push(12u64.to_be_bytes());
+        vm.thread_stack.push(12u64.to_be_bytes());
+
+        binary_operation!(vm, u64, +);
+
+        let val: u64 = u64::from_be_bytes(vm.thread_stack.pop());
+        assert_eq!(24, val);
+    }
+
+    #[test]
+    pub fn subtraction() {
+        let mut vm = VM::default();
+
+        vm.thread_stack.push(24u64.to_be_bytes());
+        vm.thread_stack.push(12u64.to_be_bytes());
+
+        binary_operation!(vm, u64, -);
+
+        let val = u64::from_be_bytes(vm.thread_stack.pop());
+        assert_eq!(12, val);
+    }
+
+    #[test]
+    pub fn multiplication() {
+        let mut vm = VM::default();
+
+        vm.thread_stack.push(12u64.to_be_bytes());
+        vm.thread_stack.push(12u64.to_be_bytes());
+
+        binary_operation!(vm, u64, *);
+
+        let val = u64::from_be_bytes(vm.thread_stack.pop());
+
+        assert_eq!(144, val);
+    }
+
+    #[test]
+    pub fn division() {
+        let mut vm = VM::default();
+
+        vm.thread_stack.push(12u64.to_be_bytes());
+        vm.thread_stack.push(12u64.to_be_bytes());
+
+        binary_operation!(vm, u64, /);
+
+        let val = u64::from_be_bytes(vm.thread_stack.pop());
+
+        assert_eq!(1, val);
+
+        vm.thread_stack.push(2u64.to_be_bytes());
+        vm.thread_stack.push(4u64.to_be_bytes());
+
+        binary_operation!(vm, u64, /);
+
+        let second_val = u64::from_be_bytes(vm.thread_stack.pop());
+
+        assert_eq!(0, second_val);
     }
 }
