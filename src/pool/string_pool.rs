@@ -41,9 +41,10 @@ impl StringPool {
     }
 
     fn alloc<T: AsRef<str>>(&mut self, name: T) -> &'static str {
+        let str = name.as_ref();
         let cap = self.buf.capacity();
-        if cap < self.buf.len() + name.as_ref().len() {
-            let new_cap = (cap.max(name.as_ref().len()) + 1)
+        if cap < self.buf.len() + str.len() {
+            let new_cap = (cap.max(str.len()) + 1)
                 .next_power_of_two();
             let new_buf = String::with_capacity(new_cap);
             let old_buf = std::mem::replace(&mut self.buf, new_buf);
@@ -52,7 +53,7 @@ impl StringPool {
 
         let interned = {
             let start = self.buf.len();
-            self.buf.push_str(name.as_ref());
+            self.buf.push_str(str);
             &self.buf[start..]
         };
 

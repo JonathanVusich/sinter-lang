@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::env::var;
 use std::error::Error;
 use std::io::ErrorKind;
+use std::io::ErrorKind::WouldBlock;
 use std::iter::Map;
 use std::mem::size_of;
 use std::slice::SliceIndex;
@@ -33,6 +34,16 @@ pub struct VM {
     current_frame: usize,
     string_pool: StringPool,
     current_code: [u8; 0]
+}
+
+macro_rules! numeric_operation {
+    ($self:ident, $typ:ty, $op:tt) => {
+        let val2 = <$typ>::from_be_bytes($self.thread_stack.pop());
+        let val1 = <$typ>::from_be_bytes($self.thread_stack.pop());
+
+        let result = val1 $op val2;
+        $self.thread_stack.push(result.to_be_bytes());
+    }
 }
 
 impl VM {
@@ -98,47 +109,35 @@ impl VM {
             let opcode = self.read_opcode();
             match opcode {
                 OpCode::ReturnVoid => {
-                    if self.return_op::<0>() {
+                    if self.void_return() {
                         return Ok(());
                     }
                 }
 
-                OpCode::Return8 => {
-                    if self.return_op::<1>() {
+                OpCode::Return => {
+                    if self.var_return() {
                         return Ok(());
                     }
                 }
-                OpCode::Return16 => {
-                    if self.return_op::<2>() {
-                        return Ok(());
-                    }
-                }
-                OpCode::Return32 => {
-                    if self.return_op::<4>() {
-                        return Ok(());
-                    }
-                }
-                OpCode::Return64 => {
-                    if self.return_op::<8>() {
-                        return Ok(());
-                    }
-                }
-                OpCode::Pop8 => self.pop::<1>(),
-                OpCode::Pop16 => self.pop::<2>(),
-                OpCode::Pop32 => self.pop::<4>(),
-                OpCode::Pop64 => self.pop::<8>(),
-                OpCode::GetConstant8 => self.get_constant::<1>(),
-                OpCode::GetConstant16 => self.get_constant::<2>(),
-                OpCode::GetConstant32 => self.get_constant::<4>(),
-                OpCode::GetConstant64 => self.get_constant::<8>(),
-                OpCode::SetLocal8 => self.set_local::<1>(),
-                OpCode::SetLocal16 => self.set_local::<2>(),
-                OpCode::SetLocal32 => self.set_local::<4>(),
-                OpCode::SetLocal64 => self.set_local::<8>(),
-                OpCode::GetLocal8 => self.get_local::<1>(),
-                OpCode::GetLocal16 => self.get_local::<2>(),
-                OpCode::GetLocal32 => self.get_local::<4>(),
-                OpCode::GetLocal64 => self.get_local::<8>(),
+                OpCode::Pop => self.pop(),
+                OpCode::Add => {
+                    numeric_operation!(self, u64, +);
+                },
+                OpCode::Subtract => {
+                    numeric_operation!(self, u64, -);
+                },
+                OpCode::Multiply => {
+                    numeric_operation!(self, u64, *);
+                },
+                OpCode::Divide => {
+                    numeric_operation!(self, u64, /);
+                },
+                OpCode::Negate => {
+                    numeric_operation!(self, u64, -);
+                },
+                OpCode::GetConstant => self.get_constant(),
+                OpCode::SetLocal => self.set_local(),
+                OpCode::GetLocal => self.get_local(),
                 OpCode::Jump => self.jump(),
                 OpCode::JumpBack => self.jump_back(),
                 OpCode::Call => self.call()
@@ -147,39 +146,39 @@ impl VM {
     }
 
     #[inline(always)]
-    fn return_op<const LEN: usize>(&mut self) -> bool {
-        if LEN == 0 {
-            self.current_frame -= 1;
-            return self.current_frame == 0;
-        } else {
-            let result = self.thread_stack.pop::<LEN>();
-            self.current_frame -= 1;
-            self.thread_stack.push(result);
-        }
-        return self.current_frame == 0;
-    } 
-
-    #[inline(always)]
-    fn pop<const LEN: usize>(&mut self) {
-        self.thread_stack.pop::<LEN>();
+    fn void_return(&mut self) -> bool {
+        self.current_frame -= 1;
+        self.current_frame == 0
     }
 
-    fn get_constant<const LEN: usize>(&mut self) {
-        let bytes = self.read_bytes::<LEN>();
+    fn var_return(&mut self) -> bool {
+        let result = self.thread_stack.pop::<WORD>();
+        self.current_frame -= 1;
+        self.thread_stack.push(result);
+        self.current_frame == 0
+    }
+
+    #[inline(always)]
+    fn pop(&mut self) {
+        self.thread_stack.pop::<WORD>();
+    }
+
+    fn get_constant(&mut self) {
+        let bytes = self.read_bytes::<WORD>();
         self.thread_stack.push(bytes);
     }
 
-    fn set_local<const SIZE: usize>(&mut self) {
+    fn set_local(&mut self) {
         let address = self.get_call_frame().address();
         let offset = self.read_offset() as usize;
-        let bytes = self.thread_stack.pop::<SIZE>();
+        let bytes = self.thread_stack.pop::<WORD>();
         self.thread_stack.write(address + offset, bytes);
     }
 
-    fn get_local<const SIZE: usize>(&mut self) {
+    fn get_local(&mut self) {
         let address = self.get_call_frame().address();
         let offset = self.read_offset() as usize;
-        let bytes = self.thread_stack.read::<SIZE>(address + offset);
+        let bytes = self.thread_stack.read::<WORD>(address + offset);
         self.thread_stack.push(bytes);
     }
 
@@ -234,5 +233,13 @@ impl VM {
     fn read_opcode(&mut self) -> OpCode {
         let instruction = self.read_byte();
         OpCode::from(instruction)
+    }
+}
+
+mod tests {
+
+    #[test]
+    pub fn numeric_operations() {
+
     }
 }
