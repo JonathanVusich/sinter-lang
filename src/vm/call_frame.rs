@@ -24,8 +24,12 @@ impl CallFrame {
         self.ip
     }
 
-    pub fn move_ip(&mut self, delta: isize) {
+    pub fn increment_ip(&mut self, delta: usize) {
         self.ip += delta;
+    }
+
+    pub fn decrement_ip(&mut self, delta: usize) {
+        self.ip -= delta;
     }
 
     pub fn address(&self) -> usize {

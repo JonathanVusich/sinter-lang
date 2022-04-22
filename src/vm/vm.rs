@@ -17,19 +17,22 @@ use crate::function::method::Method;
 use crate::opcode::OpCode;
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::pointer::Pointer;
+use crate::pool::internal_string::InternalString;
 use crate::pool::string_pool::StringPool;
+use crate::util::constants::WORD;
 use crate::vm::call_frame::CallFrame;
 use crate::vm::stack::Stack;
 
 pub const MAX_CALL_FRAMES: usize = 1024;
 
 pub struct VM {
-    classes: HashMap<String, &'static Class>,
+    classes: HashMap<InternalString, &'static Class>,
     args: Vec<&'static str>,
     thread_stack: Stack,
     call_frames: Vec<CallFrame>,
     current_frame: usize,
     string_pool: StringPool,
+    current_code: [u8; 0]
 }
 
 impl VM {
@@ -42,6 +45,7 @@ impl VM {
             call_frames: Vec::new(),
             current_frame: 0,
             string_pool: StringPool::with_capacity(8192),
+            current_code: [],
         }
     }
 
@@ -56,13 +60,15 @@ impl VM {
             }
 
             for class in classes.into_vec().drain(..) {
-                let runtime_class = Box::leak(Box::new(Class::from(class, &mut string_pool)));
+                let runtime_class = Box::leak(Box::new(Class::from(class, &mut self.string_pool)));
                 let package_name = self.string_pool.lookup(runtime_class.package).to_owned();
                 let name = self.string_pool.lookup(runtime_class.name);
 
-                let qualified_name = package_name + name;
+                let qualified_name = self.string_pool.intern(package_name + name);
 
-                class_map.insert(qualified_name, runtime_class);
+
+
+                self.classes.insert(qualified_name, runtime_class);
             }
         }
         Ok(self)
@@ -74,43 +80,47 @@ impl VM {
         self
     }
 
-    pub fn run(mut self) -> usize {
-        let call_frame = CallFrame {
-            method: &Method {},
-            ip: 0,
-            address: 0,
-            size: 8 // This is the size of the pointer to the args array
-        };
+    pub fn run(mut self, main_class: &str, main_method: &str) -> Result<(), VMError> {
+        let main_class_name = self.string_pool.intern(main_class);
+        let main_method_name = self.string_pool.intern(main_method);
 
-        self.call_frames[self.current_frame] = call_frame;
+        let main_class = self.classes.get(&main_class_name)
+            .ok_or(VMError::new(VMErrorKind::MissingMainClass))?;
+        let main_method = main_class.methods.iter()
+            .find(|method| method.name == main_method_name)
+            .ok_or(VMError::new(VMErrorKind::MissingMainMethod))?;
+
+        let call_frame = CallFrame::new(main_method, 0);
+
+        self.call_frames.push(call_frame);
 
         loop {
             let opcode = self.read_opcode();
             match opcode {
                 OpCode::ReturnVoid => {
                     if self.return_op::<0>() {
-                        return 0;
+                        return Ok(());
                     }
                 }
 
                 OpCode::Return8 => {
                     if self.return_op::<1>() {
-                        return 0;
+                        return Ok(());
                     }
                 }
                 OpCode::Return16 => {
                     if self.return_op::<2>() {
-                        return 0;
+                        return Ok(());
                     }
                 }
                 OpCode::Return32 => {
                     if self.return_op::<4>() {
-                        return 0;
+                        return Ok(());
                     }
                 }
                 OpCode::Return64 => {
                     if self.return_op::<8>() {
-                        return 0;
+                        return Ok(());
                     }
                 }
                 OpCode::Pop8 => self.pop::<1>(),
@@ -174,19 +184,19 @@ impl VM {
     }
 
     fn jump(&mut self) {
-        let offset = self.read_offset() as isize;
-        self.get_call_frame().move_ip(offset);
+        let offset = self.read_offset() as usize;
+        self.get_call_frame().increment_ip(offset);
     }
 
     fn jump_back(&mut self) {
-        let offset = self.read_offset() as isize;
-        self.get_call_frame().move_ip(-offset);
+        let offset = self.read_offset() as usize;
+        self.get_call_frame().decrement_ip(offset);
     }
 
     fn call(&mut self) {
         let method_ptr: Pointer<&'static Method> = self.thread_stack.pop::<8>().into();
         self.current_frame += 1;
-        let address = self.thread_stack.get_index() - method_ptr.descriptor.parameter_size;
+        let address = self.thread_stack.get_index() - (method_ptr.descriptor.parameters.len() * WORD);
 
         let call_frame = CallFrame::new(&method_ptr, address);
         self.call_frames.push(call_frame);
@@ -196,7 +206,7 @@ impl VM {
     fn read_byte(&mut self) -> u8 {
         let call_frame = self.get_call_frame();
         let addr = call_frame.ip();
-        call_frame.move_ip(1);
+        call_frame.increment_ip(1);
 
         let byte = self.current_code[addr];
         byte
@@ -205,7 +215,7 @@ impl VM {
     fn read_bytes<const SIZE: usize>(&mut self) -> [u8; SIZE] {
         let call_frame = self.get_call_frame();
         let start = call_frame.ip();
-        call_frame.move_ip(SIZE as isize);
+        call_frame.increment_ip(SIZE);
         let end = call_frame.ip();
         let bytes: [u8; SIZE] = self.current_code[start..end].try_into().unwrap();
         bytes

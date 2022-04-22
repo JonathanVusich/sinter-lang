@@ -21,7 +21,6 @@ pub struct Method {
 pub struct MethodDescriptor {
     pub return_type: Type,
     pub parameters: Box<[Type]>,
-    pub parameter_size: usize,
 }
 
 impl Method {
@@ -48,11 +47,10 @@ impl Method {
 
 impl MethodDescriptor {
     
-    pub fn new(return_type: Type, parameters: Box<[Type]>, parameter_size: usize) -> Self {
+    pub fn new(return_type: Type, parameters: Box<[Type]>) -> Self {
         Self {
             return_type,
             parameters,
-            parameter_size,
         }
     }
 }

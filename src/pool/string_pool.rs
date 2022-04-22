@@ -21,11 +21,11 @@ impl StringPool {
         }
     }
 
-    pub fn intern(&mut self, name: &str) -> InternalString {
-        if let Some(&id) = self.map.get(name) {
+    pub fn intern<T: AsRef<str>>(&mut self, name: T) -> InternalString {
+        if let Some(&id) = self.map.get(name.as_ref()) {
             return id;
         }
-        let name = self.alloc(name);
+        let name = self.alloc(&name);
         let id = InternalString(self.map.len() as u32);
         self.map.insert(name, id);
         self.vec.push(name);
@@ -40,10 +40,10 @@ impl StringPool {
         self.vec[id.0 as usize]
     }
 
-    fn alloc(&mut self, name: &str) -> &'static str {
+    fn alloc<T: AsRef<str>>(&mut self, name: T) -> &'static str {
         let cap = self.buf.capacity();
-        if cap < self.buf.len() + name.len() {
-            let new_cap = (cap.max(name.len()) + 1)
+        if cap < self.buf.len() + name.as_ref().len() {
+            let new_cap = (cap.max(name.as_ref().len()) + 1)
                 .next_power_of_two();
             let new_buf = String::with_capacity(new_cap);
             let old_buf = std::mem::replace(&mut self.buf, new_buf);
@@ -52,7 +52,7 @@ impl StringPool {
 
         let interned = {
             let start = self.buf.len();
-            self.buf.push_str(name);
+            self.buf.push_str(name.as_ref());
             &self.buf[start..]
         };
 
