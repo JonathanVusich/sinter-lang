@@ -122,6 +122,10 @@ impl VM {
 
         self.call_frames.push(call_frame);
 
+        self.run_interpreter_loop()
+    }
+
+    fn run_interpreter_loop(&mut self) -> Result<(), VMError> {
         loop {
             let opcode = self.read_opcode();
             match opcode {
@@ -200,15 +204,15 @@ impl VM {
 
     #[inline(always)]
     fn void_return(&mut self) -> bool {
-        self.current_frame -= 1;
-        self.current_frame == 0
+        self.current_frame = self.current_frame.wrapping_sub(1);
+        self.current_frame == usize::MAX
     }
 
     fn var_return(&mut self) -> bool {
         let result = self.thread_stack.pop::<WORD>();
-        self.current_frame -= 1;
+        self.current_frame = self.current_frame.wrapping_sub(1);
         self.thread_stack.push(result);
-        self.current_frame == 0
+        self.current_frame == usize::MAX
     }
 
     #[inline(always)]
@@ -260,8 +264,7 @@ impl VM {
         let addr = call_frame.ip();
         call_frame.increment_ip(1);
 
-        let byte = self.current_code[addr];
-        byte
+        self.current_code[addr]
     }
 
     fn read_bytes<const SIZE: usize>(&mut self) -> [u8; SIZE] {
@@ -304,11 +307,17 @@ impl Default for VM {
 }
 
 mod tests {
+    use crate::function::method::{Method, MethodDescriptor};
     use crate::opcode::OpCode;
+    use crate::pointers::pointer::Pointer;
+    use crate::pool::internal_string::InternalString;
+    use crate::types::types::Type;
+    use crate::types::types::Type::Void;
+    use crate::vm::call_frame::CallFrame;
     use crate::vm::vm::VM;
 
     #[test]
-    pub fn addition() {
+    pub fn unsigned_addition() {
         let mut vm = VM::default();
 
         vm.thread_stack.push(12u64.to_be_bytes());
@@ -321,7 +330,7 @@ mod tests {
     }
 
     #[test]
-    pub fn subtraction() {
+    pub fn unsigned_subtraction() {
         let mut vm = VM::default();
 
         vm.thread_stack.push(24u64.to_be_bytes());
@@ -334,7 +343,7 @@ mod tests {
     }
 
     #[test]
-    pub fn multiplication() {
+    pub fn unsigned_multiplication() {
         let mut vm = VM::default();
 
         vm.thread_stack.push(12u64.to_be_bytes());
@@ -348,7 +357,7 @@ mod tests {
     }
 
     #[test]
-    pub fn division() {
+    pub fn unsigned_division() {
         let mut vm = VM::default();
 
         vm.thread_stack.push(12u64.to_be_bytes());
@@ -368,5 +377,37 @@ mod tests {
         let second_val = u64::from_be_bytes(vm.thread_stack.pop());
 
         assert_eq!(0, second_val);
+    }
+
+    #[test]
+    pub fn function_call() {
+        let mut vm = VM::default();
+
+        let blank_str = InternalString(0);
+
+        let method = Method::new(blank_str,
+                                 MethodDescriptor::new(Type::Void, vec![Type::Void].into_boxed_slice()),
+                                 2,
+                                 2,
+                                 vec![OpCode::AddSigned.into(), OpCode::Return.into()].into_boxed_slice());
+
+        let static_method: &'static Method = Box::leak(Box::new(method));
+
+        let first_call_frame = CallFrame::new(static_method, 0);
+
+        vm.call_frames.push(first_call_frame);
+
+        let method_ptr = Pointer::new(static_method);
+
+        vm.thread_stack.push(3u64.to_be_bytes());
+        vm.thread_stack.push(5u64.to_be_bytes());
+
+        vm.thread_stack.push(method_ptr.into());
+
+        vm.current_code = &static_method.code;
+
+        assert!(vm.run_interpreter_loop().is_ok());
+
+        assert_eq!(8u64.to_be_bytes(), vm.thread_stack.pop());
     }
 }
