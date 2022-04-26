@@ -250,7 +250,7 @@ impl VM {
     }
 
     fn call(&mut self) {
-        let method_ptr: Pointer<&'static Method> = self.thread_stack.pop::<8>().into();
+        let method_ptr: Pointer<&'static Method> = self.thread_stack.pop().into();
         self.current_frame += 1;
         let address = self.thread_stack.get_index() - (method_ptr.descriptor.parameters.len() * WORD);
 
@@ -401,8 +401,6 @@ mod tests {
 
         vm.thread_stack.push(3u64.to_be_bytes());
         vm.thread_stack.push(5u64.to_be_bytes());
-
-        vm.thread_stack.push(method_ptr.into());
 
         vm.current_code = &static_method.code;
 
