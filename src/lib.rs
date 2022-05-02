@@ -23,3 +23,4 @@ pub mod types;
 pub mod pool;
 pub mod traits;
 pub mod errors;
+pub mod token;
