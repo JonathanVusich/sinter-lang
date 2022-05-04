@@ -48,13 +48,13 @@ impl Tokenizer {
             tokens.push(token);
         }
 
-        return tokens;
+        tokens
     }
 
     fn scan_token(&mut self, source_chars: &[&str]) -> Token {
         let char = self.advance(source_chars);
 
-        let token = match char {
+        match char {
             "(" => self.create_token(TokenType::LeftParentheses),
             ")" => self.create_token(TokenType::RightParentheses),
             "{" => self.create_token(TokenType::LeftBrace),
@@ -96,36 +96,77 @@ impl Tokenizer {
                     self.create_token(TokenType::Greater)
                 }
             },
-            "\"" => {
-                while self.peek(source_chars) != "\"" && !self.is_at_end(source_chars) {
-                    if self.peek(source_chars) == "\n" {
-                        self.line_num += 1;
-                    }
-                    self.advance(source_chars);
-                }
+            "\"" => self.parse_string(source_chars),
+            "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => self.parse_num(source_chars),
+            _ => self.parse_identifier(source_chars)
+        }
+    }
 
-                if self.is_at_end(source_chars) {
-                    return self.create_unrecognized_token("Unterminated string.");
-                }
-
+    fn parse_identifier(&mut self, source_chars: &[&str]) -> Token {
+        let token_type = match source_chars[self.start] {
+            "b" => self.check_keyword(source_chars, 1, "nd", TokenType::And),
+            _ => None
+        }.unwrap_or_else(|| {
+            while self.peek(source_chars) != " " {
                 self.advance(source_chars);
-
-                let string = source_chars[self.start..self.current].join("");
-                let static_string: &'static str = Box::leak(string.into_boxed_str());
-
-                self.create_token(TokenType::String(static_string))
-            },
-
-            "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => {
-                todo!()
             }
 
-            
+            let identifier = source_chars[self.start..self.current].join("");
+            let static_ident = Box::leak(identifier.into_boxed_str());
+            TokenType::Identifier(static_ident)
+        });
 
-            _ => self.create_unrecognized_token("Unrecognized token!")
-        };
-        
-        token
+        self.create_token(token_type)
+    }
+
+    fn check_keyword(&mut self, source_chars: &[&str], start: usize, remainder: &'static str, token_type: TokenType) -> Option<TokenType> {
+        None
+    }
+
+    fn parse_num(&mut self, source_chars: &[&str]) -> Token {
+        while is_digit(self.peek(source_chars)) {
+            self.advance(source_chars);
+        }
+
+        if self.peek(source_chars) == "." && is_digit(self.peek(source_chars)) {
+            self.advance(source_chars);
+
+            while is_digit(self.peek(source_chars)) {
+                self.advance(source_chars);
+            }
+
+            let token_type: TokenType = source_chars[self.start..self.current].join("").parse::<f64>()
+                .map(TokenType::Float)
+                .unwrap_or(TokenType::Unrecognized("Invalid float."));
+
+            return self.create_token(token_type);
+        }
+
+        let token_type: TokenType = source_chars[self.start..self.current].join("").parse::<f64>()
+            .map(TokenType::Float)
+            .unwrap_or(TokenType::Unrecognized("Invalid integer."));
+
+        self.create_token(token_type)
+    }
+
+    fn parse_string(&mut self, source_chars: &[&str]) -> Token {
+        while self.peek(source_chars) != "\"" && !self.is_at_end(source_chars) {
+            if self.peek(source_chars) == "\n" {
+                self.line_num += 1;
+            }
+            self.advance(source_chars);
+        }
+
+        if self.is_at_end(source_chars) {
+            return self.create_unrecognized_token("Unterminated string.");
+        }
+
+        self.advance(source_chars);
+
+        let string = source_chars[self.start..self.current].join("");
+        let static_string: &'static str = Box::leak(string.into_boxed_str());
+
+        self.create_token(TokenType::String(static_string))
     }
 
     fn skip_whitespace(&mut self, source_chars: &[&str]) {
@@ -172,7 +213,7 @@ impl Tokenizer {
 
     fn peek_next<'a>(&mut self, source_chars: &[&'a str]) -> Option<&'a str> {
         if self.is_at_end(source_chars) {
-            return None
+            None
         } else {
             Some(source_chars[self.current + 1])
         }
@@ -196,4 +237,8 @@ impl Tokenizer {
     fn create_token(&self, token_type: TokenType) -> Token {
         Token::new(token_type, self.line_num, self.line_pos)
     }
+}
+
+fn is_digit(word: &str) -> bool {
+    matches!(word, "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9")
 }
