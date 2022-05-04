@@ -43,11 +43,15 @@ pub enum TokenType {
     Class,
     Fn,
 
+    Break,
+    Continue,
+
     And,
     Or,
 
     Else,
     If,
+    In,
     False,
     True,
 
@@ -58,6 +62,20 @@ pub enum TokenType {
     Val,
 
     While,
+    Return,
+    SelfLowercase,
+    SelfCapitalized,
+
+    Native,
+
+    Enum,
+    Impl,
+    Match,
+
+    Pub,
+    Static,
+
+    Inline,
 }
 
 impl Token {

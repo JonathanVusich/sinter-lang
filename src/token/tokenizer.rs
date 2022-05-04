@@ -103,8 +103,53 @@ impl Tokenizer {
     }
 
     fn parse_identifier(&mut self, source_chars: &[&str]) -> Token {
-        let token_type = match source_chars[self.start] {
-            "b" => self.check_keyword(source_chars, 1, "nd", TokenType::And),
+        let token_type = match self.advance(source_chars) {
+            "a" => self.check_keyword(source_chars, 1, "nd", TokenType::And),
+            "b" => self.check_keyword(source_chars, 1, "reak", TokenType::Break),
+            "c" => self.check_keyword(source_chars, 1, "ontinue", TokenType::Continue),
+            "e" => {
+                match self.peek(source_chars) {
+                    "l" => self.check_keyword(source_chars, 2, "se", TokenType::Else),
+                    "n" => self.check_keyword(source_chars, 2, "um", TokenType::Enum),
+                    _ => None
+                }
+            },
+            "f" => {
+                match self.peek(source_chars) {
+                    "a" => self.check_keyword(source_chars, 2, "lse", TokenType::False),
+                    "o" => self.check_keyword(source_chars, 2, "r", TokenType::For),
+                    "n" => Some(TokenType::Fn),
+                    _ => None
+                }
+            },
+            "i" => {
+                match self.peek(source_chars) {
+                    "f" => Some(TokenType::If),
+                    "m" => self.check_keyword(source_chars, 2, "pl", TokenType::Impl),
+                    "n" => {
+                        match self.peek_next(source_chars) {
+                            Some(x) if x == "l" => self.check_keyword(source_chars, 3, "ine", TokenType::Inline),
+                            _ => Some(TokenType::In)
+                        }
+                    },
+                    _ => None
+                }
+            },
+            "o" => self.check_keyword(source_chars, 1, "r", TokenType::Or),
+            "n" => self.check_keyword(source_chars, 1, "ative", TokenType::Native),
+            "m" => self.check_keyword(source_chars, 1, "atch", TokenType::Match),
+            "p" => self.check_keyword(source_chars, 1, "ub", TokenType::Pub),
+            "r" => self.check_keyword(source_chars, 1, "eturn", TokenType::Return),
+            "s" => {
+                match self.peek(source_chars) {
+                    "e" => self.check_keyword(source_chars, 2, "lf", TokenType::SelfLowercase),
+                    "t" => self.check_keyword(source_chars, 2, "atic", TokenType::Static),
+                    _ => None
+                }
+            },
+            "S" => self.check_keyword(source_chars, 1, "elf", TokenType::SelfCapitalized),
+
+
             _ => None
         }.unwrap_or_else(|| {
             while self.peek(source_chars) != " " {
