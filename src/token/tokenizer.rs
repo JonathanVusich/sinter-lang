@@ -161,7 +161,7 @@ impl<'this> Tokenizer<'this> {
             "w" => self.check_keyword(1, "hile", TokenType::While),
             _ => None
         }.unwrap_or_else(|| {
-            while self.peek() != " " {
+            while !self.is_at_end() && self.is_valid_identifier() {
                 self.advance();
             }
 
@@ -175,7 +175,7 @@ impl<'this> Tokenizer<'this> {
 
     fn check_keyword(&mut self, start: usize, remainder: &'static str, token_type: TokenType) -> Option<TokenType> {
         let end = self.start + start + remainder.len();
-        if end >= self.source_chars.len() {
+        if end > self.source_chars.len() {
             return None;
         }
         let next_chars = self.source_chars[self.start + start..end].join("");
@@ -293,6 +293,14 @@ impl<'this> Tokenizer<'this> {
         true
     }
 
+    fn is_valid_identifier(&self) -> bool {
+        !matches!(self.source_chars[self.current], "\r" | "\t" | "\n" | " " | "~" | "`" | "!" | "@"
+            | "#" | "$" | "%" | "^" | "&" | "*" | "(" | ")" | "-" | "+"
+            | "=" | "[" | "]" | "{" | "}" | "\\" | "|" | ";" | ":" | "'"
+            | "\"" | "<" | ">" | "," | "." | "?" | "/"
+        )
+    }
+
     fn create_unrecognized_token(&self, error_message: &'static str) -> Token {
         Token::new(TokenType::Unrecognized(error_message), self.line_num, self.line_pos)
     }
@@ -315,16 +323,26 @@ mod tests {
 
     #[test]
     pub fn token_generation() {
-        let source = "pub class Random {}";
-
-        let tokens = Tokenizer::new(source).read_tokens();
-
         assert_eq!(vec![
             Token::new(TokenType::Pub, 0, 0),
             Token::new(TokenType::Class, 0, 4),
             Token::new(TokenType::Identifier("Random"), 0, 10),
             Token::new(TokenType::LeftBrace, 0, 17),
             Token::new(TokenType::RightBrace, 0, 18),
-        ], tokens);
+        ], Tokenizer::new("pub class Random {}").read_tokens());
+
+        assert_eq!(vec![
+            Token::new(TokenType::Impl, 0, 0),
+            Token::new(TokenType::Enum, 0, 5),
+            Token::new(TokenType::Identifier("Reader"), 1, 1),
+            Token::new(TokenType::LeftBracket, 2, 1),
+            Token::new(TokenType::RightBracket, 2, 3)
+        ], Tokenizer::new("impl enum \n Reader \n [ ]").read_tokens());
+
+        assert_eq!(vec![
+            Token::new(TokenType::Native, 0, 0),
+            Token::new(TokenType::Identifier("nativer"), 0, 7),
+            Token::new(TokenType::Identifier("enative"), 0, 15),
+        ], Tokenizer::new("native nativer enative").read_tokens());
     }
 }
