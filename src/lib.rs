@@ -9,6 +9,8 @@
 #![feature(buf_read_has_data_left)]
 #![feature(fn_traits)]
 
+extern crate core;
+
 pub mod opcode;
 pub mod gc;
 pub mod pointers;

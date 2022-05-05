@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io;
 use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
+use std::thread::current;
 
 use anyhow::Result;
 use unicode_segmentation::UnicodeSegmentation;
@@ -13,11 +14,12 @@ use crate::token::token::{Token, TokenType};
 pub fn read_tokens(path: &Path) -> Result<Vec<Token>> {
     let source_file = fs::read_to_string(path)?;
 
-    let tokenizer = Tokenizer::new();
-    Ok(tokenizer.read_tokens(&source_file))
+    let tokenizer = Tokenizer::new(&source_file);
+    Ok(tokenizer.read_tokens())
 }
 
-struct Tokenizer {
+struct Tokenizer<'this> {
+    source_chars: Vec<&'this str>,
     start: usize,
     current: usize,
     line_num: usize,
@@ -25,10 +27,12 @@ struct Tokenizer {
 }
 
 
-impl Tokenizer {
+impl<'this> Tokenizer<'this> {
 
-    pub fn new() -> Self {
+    pub fn new(source: &'this str) -> Self {
+        let source_chars = source.graphemes(true).collect::<Vec<&'this str>>();
         Self {
+            source_chars,
             start: 0,
             current: 0,
             line_num: 0,
@@ -36,23 +40,23 @@ impl Tokenizer {
         }
     }
 
-    pub fn read_tokens(mut self, source_file: &str) -> Vec<Token> {
+    pub fn read_tokens(mut self) -> Vec<Token> {
         let mut tokens: Vec<Token> = Vec::new();
 
-        let source_chars = source_file.graphemes(true)
-            .collect::<Vec<&str>>();
+        while !self.is_at_end() {
+            self.skip_whitespace();
 
-        while !self.is_at_end(&source_chars) {
-            self.skip_whitespace(&source_chars);
-            let token = self.scan_token(&source_chars);
+            println!("{}", self.current);
+
+            let token = self.scan_token();
             tokens.push(token);
         }
 
         tokens
     }
 
-    fn scan_token(&mut self, source_chars: &[&str]) -> Token {
-        let char = self.advance(source_chars);
+    fn scan_token(&mut self) -> Token {
+        let char = self.advance();
 
         match char {
             "(" => self.create_token(TokenType::LeftParentheses),
@@ -69,94 +73,103 @@ impl Tokenizer {
             "/" => self.create_token(TokenType::Slash),
             "*" => self.create_token(TokenType::Star),
             "!" => {
-                if self.matches("=", source_chars) {
+                if self.matches("=") {
                     self.create_token(TokenType::BangEqual)
                 } else {
                     self.create_token(TokenType::Bang)
                 }
             },
             "=" => {
-                if self.matches("=", source_chars) {
+                if self.matches("=") {
                     self.create_token(TokenType::EqualEqual)
                 } else {
                     self.create_token(TokenType::Equal)
                 }
             },
             "<" => {
-                if self.matches("=", source_chars) {
+                if self.matches("=") {
                     self.create_token(TokenType::LessEqual)
                 } else {
                     self.create_token(TokenType::Less)
                 }
             },
             ">" => {
-                if self.matches("=", source_chars) {
+                if self.matches("=") {
                     self.create_token(TokenType::GreaterEqual)
                 } else {
                     self.create_token(TokenType::Greater)
                 }
             },
-            "\"" => self.parse_string(source_chars),
-            "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => self.parse_num(source_chars),
-            _ => self.parse_identifier(source_chars)
+            "\"" => self.parse_string(),
+            "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => self.parse_num(),
+            _ => self.parse_identifier(char)
         }
     }
 
-    fn parse_identifier(&mut self, source_chars: &[&str]) -> Token {
-        let token_type = match self.advance(source_chars) {
-            "a" => self.check_keyword(source_chars, 1, "nd", TokenType::And),
-            "b" => self.check_keyword(source_chars, 1, "reak", TokenType::Break),
-            "c" => self.check_keyword(source_chars, 1, "ontinue", TokenType::Continue),
+    fn parse_identifier(&mut self, character: &str) -> Token {
+        println!("{}", character);
+
+        let token_type = match character {
+            "a" => self.check_keyword(1, "nd", TokenType::And),
+            "b" => self.check_keyword( 1, "reak", TokenType::Break),
+            "c" => {
+                match self.peek() {
+                    "l" => self.check_keyword(2, "ass", TokenType::Class),
+                    "o" => self.check_keyword(2, "ntinue", TokenType::Continue),
+                    _ => None
+                }
+            },
             "e" => {
-                match self.peek(source_chars) {
-                    "l" => self.check_keyword(source_chars, 2, "se", TokenType::Else),
-                    "n" => self.check_keyword(source_chars, 2, "um", TokenType::Enum),
+                match self.peek() {
+                    "l" => self.check_keyword(2, "se", TokenType::Else),
+                    "n" => self.check_keyword(2, "um", TokenType::Enum),
                     _ => None
                 }
             },
             "f" => {
-                match self.peek(source_chars) {
-                    "a" => self.check_keyword(source_chars, 2, "lse", TokenType::False),
-                    "o" => self.check_keyword(source_chars, 2, "r", TokenType::For),
+                match self.peek() {
+                    "a" => self.check_keyword(2, "lse", TokenType::False),
+                    "o" => self.check_keyword(2, "r", TokenType::For),
                     "n" => Some(TokenType::Fn),
                     _ => None
                 }
             },
             "i" => {
-                match self.peek(source_chars) {
+                match self.peek() {
                     "f" => Some(TokenType::If),
-                    "m" => self.check_keyword(source_chars, 2, "pl", TokenType::Impl),
+                    "m" => self.check_keyword(2, "pl", TokenType::Impl),
                     "n" => {
-                        match self.peek_next(source_chars) {
-                            Some(x) if x == "l" => self.check_keyword(source_chars, 3, "ine", TokenType::Inline),
+                        match self.peek_next() {
+                            Some(x) if x == "l" => self.check_keyword(3, "ine", TokenType::Inline),
                             _ => Some(TokenType::In)
                         }
                     },
                     _ => None
                 }
             },
-            "o" => self.check_keyword(source_chars, 1, "r", TokenType::Or),
-            "n" => self.check_keyword(source_chars, 1, "ative", TokenType::Native),
-            "m" => self.check_keyword(source_chars, 1, "atch", TokenType::Match),
-            "p" => self.check_keyword(source_chars, 1, "ub", TokenType::Pub),
-            "r" => self.check_keyword(source_chars, 1, "eturn", TokenType::Return),
+            "o" => self.check_keyword(1, "r", TokenType::Or),
+            "n" => self.check_keyword(1, "ative", TokenType::Native),
+            "m" => self.check_keyword(1, "atch", TokenType::Match),
+            "p" => self.check_keyword(1, "ub", TokenType::Pub),
+            "r" => self.check_keyword(1, "eturn", TokenType::Return),
             "s" => {
-                match self.peek(source_chars) {
-                    "e" => self.check_keyword(source_chars, 2, "lf", TokenType::SelfLowercase),
-                    "t" => self.check_keyword(source_chars, 2, "atic", TokenType::Static),
+                match self.peek() {
+                    "e" => self.check_keyword(2, "lf", TokenType::SelfLowercase),
+                    "t" => self.check_keyword(2, "atic", TokenType::Static),
                     _ => None
                 }
             },
-            "S" => self.check_keyword(source_chars, 1, "elf", TokenType::SelfCapitalized),
-
-
+            "S" => self.check_keyword(1, "elf", TokenType::SelfCapitalized),
+            "t" => self.check_keyword(1, "ype", TokenType::Type),
+            "u" => self.check_keyword(1, "se", TokenType::Use),
+            "w" => self.check_keyword(1, "hile", TokenType::While),
             _ => None
         }.unwrap_or_else(|| {
-            while self.peek(source_chars) != " " {
-                self.advance(source_chars);
+            while self.peek() != " " {
+                self.advance();
             }
 
-            let identifier = source_chars[self.start..self.current].join("");
+            let identifier = self.source_chars[self.start..self.current].join("");
             let static_ident = Box::leak(identifier.into_boxed_str());
             TokenType::Identifier(static_ident)
         });
@@ -164,73 +177,82 @@ impl Tokenizer {
         self.create_token(token_type)
     }
 
-    fn check_keyword(&mut self, source_chars: &[&str], start: usize, remainder: &'static str, token_type: TokenType) -> Option<TokenType> {
+    fn check_keyword(&mut self, start: usize, remainder: &'static str, token_type: TokenType) -> Option<TokenType> {
+        let end = self.start + start + remainder.len();
+        if end >= self.source_chars.len() {
+            return None;
+        }
+        let next_chars = self.source_chars[self.start + start..end].join("");
+        println!("{}", next_chars);
+        if next_chars == remainder && end < self.source_chars.len() && self.source_chars[end] == " " {
+            return Some(token_type);
+        }
         None
     }
 
-    fn parse_num(&mut self, source_chars: &[&str]) -> Token {
-        while is_digit(self.peek(source_chars)) {
-            self.advance(source_chars);
+    fn parse_num(&mut self) -> Token {
+        while is_digit(self.peek()) {
+            self.advance();
         }
 
-        if self.peek(source_chars) == "." && is_digit(self.peek(source_chars)) {
-            self.advance(source_chars);
+        if self.peek() == "." && is_digit(self.peek()) {
+            self.advance();
 
-            while is_digit(self.peek(source_chars)) {
-                self.advance(source_chars);
+            while is_digit(self.peek()) {
+                self.advance();
             }
 
-            let token_type: TokenType = source_chars[self.start..self.current].join("").parse::<f64>()
+            let token_type: TokenType = self.source_chars[self.start..self.current].join("").parse::<f64>()
                 .map(TokenType::Float)
                 .unwrap_or(TokenType::Unrecognized("Invalid float."));
 
             return self.create_token(token_type);
         }
 
-        let token_type: TokenType = source_chars[self.start..self.current].join("").parse::<f64>()
+        let token_type: TokenType = self.source_chars[self.start..self.current].join("").parse::<f64>()
             .map(TokenType::Float)
             .unwrap_or(TokenType::Unrecognized("Invalid integer."));
 
         self.create_token(token_type)
     }
 
-    fn parse_string(&mut self, source_chars: &[&str]) -> Token {
-        while self.peek(source_chars) != "\"" && !self.is_at_end(source_chars) {
-            if self.peek(source_chars) == "\n" {
+    fn parse_string(&mut self) -> Token {
+        while self.peek() != "\"" && !self.is_at_end() {
+            if self.peek() == "\n" {
                 self.line_num += 1;
             }
-            self.advance(source_chars);
+            self.advance();
         }
 
-        if self.is_at_end(source_chars) {
+        if self.is_at_end() {
             return self.create_unrecognized_token("Unterminated string.");
         }
 
-        self.advance(source_chars);
+        self.advance();
 
-        let string = source_chars[self.start..self.current].join("");
+        let string = self.source_chars[self.start..self.current].join("");
         let static_string: &'static str = Box::leak(string.into_boxed_str());
 
         self.create_token(TokenType::String(static_string))
     }
 
-    fn skip_whitespace(&mut self, source_chars: &[&str]) {
+    fn skip_whitespace(&mut self) {
         loop {
-            let char = self.peek(source_chars);
+            let char = self.peek();
             match char {
                 " " | "\r" | "\t" => {
-                    self.advance(source_chars);
+                    self.advance();
                     break;
                 }
                 "\n" => {
                     self.line_num += 1;
-                    self.advance(source_chars);
+                    self.advance();
                     break;
                 }
                 "/" => {
-                    if let Some("/") = self.peek_next(source_chars) {
-                        while self.peek(source_chars) != "\n" && !self.is_at_end(source_chars) {
-                            self.advance(source_chars);
+                    if let Some("/") = self.peek_next() {
+                        while self.peek() != "\n" && !self.is_at_end() {
+                            self.advance();
                         }
                     } else {
                         break;
@@ -243,32 +265,32 @@ impl Tokenizer {
         }
     }
 
-    fn is_at_end(&self, source_chars: &[&str]) -> bool {
-        self.current == source_chars.len()
+    fn is_at_end(&self) -> bool {
+        self.current == self.source_chars.len()
     }
 
-    fn advance<'a>(&mut self, source_chars: &[&'a str]) -> &'a str {
+    fn advance(&mut self) -> &'this str {
         self.current += 1;
-        source_chars[self.current - 1]
+        self.source_chars[self.current - 1]
     }
 
-    fn peek<'a>(&mut self, source_chars: &[&'a str]) -> &'a str {
-        source_chars[self.current]
+    fn peek(&mut self) -> &'this str {
+        self.source_chars[self.current]
     }
 
-    fn peek_next<'a>(&mut self, source_chars: &[&'a str]) -> Option<&'a str> {
-        if self.is_at_end(source_chars) {
+    fn peek_next(&mut self) -> Option<&'this str> {
+        if self.is_at_end() {
             None
         } else {
-            Some(source_chars[self.current + 1])
+            Some(self.source_chars[self.current + 1])
         }
     }
 
-    fn matches<'a>(&mut self, expected: &str, source_chars: &[&'a str]) -> bool {
-        if self.is_at_end(source_chars) {
+    fn matches(&mut self, expected: &str) -> bool {
+        if self.is_at_end() {
             return false;
         }
-        if expected != source_chars[self.current] {
+        if expected != self.source_chars[self.current] {
             return false;
         }
         self.current += 1;
@@ -286,4 +308,24 @@ impl Tokenizer {
 
 fn is_digit(word: &str) -> bool {
     matches!(word, "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9")
+}
+
+mod tests {
+    use crate::token::token::{Token, TokenType};
+    use crate::token::tokenizer::Tokenizer;
+
+    #[test]
+    pub fn token_generation() {
+        let source = "pub class Random {}";
+
+        let tokens = Tokenizer::new(source).read_tokens();
+
+        assert_eq!(vec![
+            Token::new(TokenType::Pub, 0, 0),
+            Token::new(TokenType::Class, 0, 4),
+            Token::new(TokenType::Identifier("Random"), 0, 10),
+            Token::new(TokenType::LeftBrace, 0, 17),
+            Token::new(TokenType::RightBrace, 0, 18),
+        ], tokens);
+    }
 }

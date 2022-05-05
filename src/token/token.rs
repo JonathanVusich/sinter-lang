@@ -1,9 +1,11 @@
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Token {
     token_type: TokenType,
     line: usize,
     pos: usize,
 }
 
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum TokenType {
     Unrecognized(&'static str),
 
@@ -74,6 +76,9 @@ pub enum TokenType {
 
     Pub,
     Static,
+
+    Type,
+    Use,
 
     Inline,
 }
