@@ -46,8 +46,6 @@ impl<'this> Tokenizer<'this> {
         while !self.is_at_end() {
             self.skip_whitespace();
 
-            println!("{}", self.current);
-
             let token = self.scan_token();
             tokens.push(token);
         }
@@ -107,8 +105,6 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn parse_identifier(&mut self, character: &str) -> Token {
-        println!("{}", character);
-
         let token_type = match character {
             "a" => self.check_keyword(1, "nd", TokenType::And),
             "b" => self.check_keyword( 1, "reak", TokenType::Break),
@@ -183,9 +179,9 @@ impl<'this> Tokenizer<'this> {
             return None;
         }
         let next_chars = self.source_chars[self.start + start..end].join("");
-        println!("{}", next_chars);
-        if next_chars == remainder && end < self.source_chars.len() && self.source_chars[end] == " " {
-            return Some(token_type);
+        if next_chars == remainder && (end == self.source_chars.len() || end < self.source_chars.len() && self.source_chars[end] == " ") {
+            self.current = end;
+            return Some(token_type)
         }
         None
     }
@@ -220,6 +216,7 @@ impl<'this> Tokenizer<'this> {
         while self.peek() != "\"" && !self.is_at_end() {
             if self.peek() == "\n" {
                 self.line_num += 1;
+                self.line_pos = 0;
             }
             self.advance();
         }
@@ -242,20 +239,18 @@ impl<'this> Tokenizer<'this> {
             match char {
                 " " | "\r" | "\t" => {
                     self.advance();
-                    break;
+                    self.line_pos += 1;
                 }
                 "\n" => {
                     self.line_num += 1;
+                    self.line_pos = 0;
                     self.advance();
-                    break;
                 }
                 "/" => {
                     if let Some("/") = self.peek_next() {
                         while self.peek() != "\n" && !self.is_at_end() {
                             self.advance();
                         }
-                    } else {
-                        break;
                     }
                 }
                 _ => {
@@ -263,6 +258,7 @@ impl<'this> Tokenizer<'this> {
                 }
             }
         }
+        self.start = self.current;
     }
 
     fn is_at_end(&self) -> bool {
@@ -301,8 +297,11 @@ impl<'this> Tokenizer<'this> {
         Token::new(TokenType::Unrecognized(error_message), self.line_num, self.line_pos)
     }
 
-    fn create_token(&self, token_type: TokenType) -> Token {
-        Token::new(token_type, self.line_num, self.line_pos)
+    fn create_token(&mut self, token_type: TokenType) -> Token {
+        let token = Token::new(token_type, self.line_num, self.line_pos);
+        self.line_pos += self.current - self.start;
+        self.start = self.current;
+        token
     }
 }
 
