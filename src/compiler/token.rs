@@ -1,8 +1,7 @@
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Token {
-    token_type: TokenType,
-    line: usize,
-    pos: usize,
+    pub token_type: TokenType,
+    pub pos: usize,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -37,7 +36,6 @@ pub enum TokenType {
 
     Identifier(&'static str),
     String(&'static str),
-    UnsignedInteger(u64),
     SignedInteger(i64),
     Float(f64),
 
@@ -85,10 +83,9 @@ pub enum TokenType {
 
 impl Token {
 
-    pub fn new(token_type: TokenType, line: usize, pos: usize) -> Self {
+    pub fn new(token_type: TokenType, pos: usize) -> Self {
         Self {
             token_type,
-            line,
             pos,
         }
     }

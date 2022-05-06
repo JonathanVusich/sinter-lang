@@ -2,28 +2,27 @@ use std::error::Error;
 use std::fs;
 use std::fs::File;
 use std::io;
-use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
-use std::thread::current;
 
 use anyhow::Result;
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::token::token::{Token, TokenType};
+use crate::compiler::token::{Token, TokenType};
+use crate::compiler::tokenized_file::TokenizedFile;
 
-pub fn read_tokens(path: &Path) -> Result<Vec<Token>> {
+pub fn read_tokens(path: &Path) -> Result<TokenizedFile> {
     let source_file = fs::read_to_string(path)?;
 
     let tokenizer = Tokenizer::new(&source_file);
-    Ok(tokenizer.read_tokens())
+    Ok(tokenizer.into())
 }
 
+#[derive(Debug)]
 struct Tokenizer<'this> {
     source_chars: Vec<&'this str>,
+    tokenized_file: TokenizedFile,
     start: usize,
     current: usize,
-    line_num: usize,
-    line_pos: usize,
 }
 
 
@@ -33,27 +32,22 @@ impl<'this> Tokenizer<'this> {
         let source_chars = source.graphemes(true).collect::<Vec<&'this str>>();
         Self {
             source_chars,
+            tokenized_file: TokenizedFile::new(),
             start: 0,
             current: 0,
-            line_num: 0,
-            line_pos: 0,
         }
     }
 
-    pub fn read_tokens(mut self) -> Vec<Token> {
-        let mut tokens: Vec<Token> = Vec::new();
-
+    pub fn into(mut self) -> TokenizedFile {
         while !self.is_at_end() {
             self.skip_whitespace();
-
-            let token = self.scan_token();
-            tokens.push(token);
+            self.scan_token();
         }
 
-        tokens
+        self.tokenized_file
     }
 
-    fn scan_token(&mut self) -> Token {
+    fn scan_token(&mut self) {
         let char = self.advance();
 
         match char {
@@ -66,7 +60,13 @@ impl<'this> Tokenizer<'this> {
             ";" => self.create_token(TokenType::Semicolon),
             "," => self.create_token(TokenType::Comma),
             "." => self.create_token(TokenType::Dot),
-            "-" => self.create_token(TokenType::Minus),
+            "-" => {
+                if self.matcher(is_digit) {
+                    self.parse_num()
+                } else {
+                    self.create_token(TokenType::Minus)
+                }
+            },
             "+" => self.create_token(TokenType::Plus),
             "/" => self.create_token(TokenType::Slash),
             "*" => self.create_token(TokenType::Star),
@@ -104,7 +104,7 @@ impl<'this> Tokenizer<'this> {
         }
     }
 
-    fn parse_identifier(&mut self, character: &str) -> Token {
+    fn parse_identifier(&mut self, character: &str) {
         let token_type = match character {
             "a" => self.check_keyword(1, "nd", TokenType::And),
             "b" => self.check_keyword( 1, "reak", TokenType::Break),
@@ -170,7 +170,7 @@ impl<'this> Tokenizer<'this> {
             TokenType::Identifier(static_ident)
         });
 
-        self.create_token(token_type)
+        self.create_token(token_type);
     }
 
     fn check_keyword(&mut self, start: usize, remainder: &'static str, token_type: TokenType) -> Option<TokenType> {
@@ -186,15 +186,15 @@ impl<'this> Tokenizer<'this> {
         None
     }
 
-    fn parse_num(&mut self) -> Token {
-        while is_digit(self.peek()) {
+    fn parse_num(&mut self) {
+        while !self.is_at_end() && is_digit(self.peek()) {
             self.advance();
         }
 
-        if self.peek() == "." && is_digit(self.peek()) {
+        if !self.is_at_end() && self.peek() == "." && is_digit(self.peek_next().unwrap_or("")) {
             self.advance();
 
-            while is_digit(self.peek()) {
+            while !self.is_at_end() && is_digit(self.peek()) {
                 self.advance();
             }
 
@@ -202,27 +202,28 @@ impl<'this> Tokenizer<'this> {
                 .map(TokenType::Float)
                 .unwrap_or(TokenType::Unrecognized("Invalid float."));
 
-            return self.create_token(token_type);
+            self.create_token(token_type);
+            return;
         }
 
-        let token_type: TokenType = self.source_chars[self.start..self.current].join("").parse::<f64>()
-            .map(TokenType::Float)
+        let token_type: TokenType = self.source_chars[self.start..self.current].join("").parse::<i64>()
+            .map(TokenType::SignedInteger)
             .unwrap_or(TokenType::Unrecognized("Invalid integer."));
 
-        self.create_token(token_type)
+        self.create_token(token_type);
     }
 
-    fn parse_string(&mut self) -> Token {
+    fn parse_string(&mut self) {
         while self.peek() != "\"" && !self.is_at_end() {
             if self.peek() == "\n" {
-                self.line_num += 1;
-                self.line_pos = 0;
+                self.tokenized_file.add_line_break(self.current);
             }
             self.advance();
         }
 
         if self.is_at_end() {
-            return self.create_unrecognized_token("Unterminated string.");
+            self.create_unrecognized_token("Unterminated string.");
+            return;
         }
 
         self.advance();
@@ -230,7 +231,7 @@ impl<'this> Tokenizer<'this> {
         let string = self.source_chars[self.start..self.current].join("");
         let static_string: &'static str = Box::leak(string.into_boxed_str());
 
-        self.create_token(TokenType::String(static_string))
+        self.create_token(TokenType::String(static_string));
     }
 
     fn skip_whitespace(&mut self) {
@@ -239,11 +240,9 @@ impl<'this> Tokenizer<'this> {
             match char {
                 " " | "\r" | "\t" => {
                     self.advance();
-                    self.line_pos += 1;
                 }
                 "\n" => {
-                    self.line_num += 1;
-                    self.line_pos = 0;
+                    self.tokenized_file.add_line_break(self.current);
                     self.advance();
                 }
                 "/" => {
@@ -275,7 +274,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn peek_next(&mut self) -> Option<&'this str> {
-        if self.is_at_end() {
+        if self.current >= self.source_chars.len() - 1 {
             None
         } else {
             Some(self.source_chars[self.current + 1])
@@ -293,6 +292,19 @@ impl<'this> Tokenizer<'this> {
         true
     }
 
+    fn matcher<T: FnOnce(&str) -> bool>(&mut self, func: T) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+        let result = func(self.source_chars[self.current]);
+        if result {
+            self.current += 1;
+        }
+        result
+    }
+
+
+
     fn is_valid_identifier(&self) -> bool {
         !matches!(self.source_chars[self.current], "\r" | "\t" | "\n" | " " | "~" | "`" | "!" | "@"
             | "#" | "$" | "%" | "^" | "&" | "*" | "(" | ")" | "-" | "+"
@@ -301,15 +313,14 @@ impl<'this> Tokenizer<'this> {
         )
     }
 
-    fn create_unrecognized_token(&self, error_message: &'static str) -> Token {
-        Token::new(TokenType::Unrecognized(error_message), self.line_num, self.line_pos)
+    fn create_unrecognized_token(&mut self, error_message: &'static str) {
+        self.create_token(TokenType::Unrecognized(error_message));
     }
 
-    fn create_token(&mut self, token_type: TokenType) -> Token {
-        let token = Token::new(token_type, self.line_num, self.line_pos);
-        self.line_pos += self.current - self.start;
+    fn create_token(&mut self, token_type: TokenType) {
+        let token = Token::new(token_type, self.start);
         self.start = self.current;
-        token
+        self.tokenized_file.add_token(token);
     }
 }
 
@@ -318,31 +329,58 @@ fn is_digit(word: &str) -> bool {
 }
 
 mod tests {
-    use crate::token::token::{Token, TokenType};
-    use crate::token::tokenizer::Tokenizer;
+    use crate::compiler::token::{Token, TokenType};
+    use crate::compiler::tokenizer::Tokenizer;
 
     #[test]
     pub fn token_generation() {
         assert_eq!(vec![
-            Token::new(TokenType::Pub, 0, 0),
-            Token::new(TokenType::Class, 0, 4),
-            Token::new(TokenType::Identifier("Random"), 0, 10),
-            Token::new(TokenType::LeftBrace, 0, 17),
-            Token::new(TokenType::RightBrace, 0, 18),
-        ], Tokenizer::new("pub class Random {}").read_tokens());
+            Token::new(TokenType::Pub, 0),
+            Token::new(TokenType::Class, 4),
+            Token::new(TokenType::Identifier("Random"), 10),
+            Token::new(TokenType::LeftBrace, 17),
+            Token::new(TokenType::RightBrace, 18),
+        ], Tokenizer::new("pub class Random {}").into().tokens());
 
         assert_eq!(vec![
-            Token::new(TokenType::Impl, 0, 0),
-            Token::new(TokenType::Enum, 0, 5),
-            Token::new(TokenType::Identifier("Reader"), 1, 1),
-            Token::new(TokenType::LeftBracket, 2, 1),
-            Token::new(TokenType::RightBracket, 2, 3)
-        ], Tokenizer::new("impl enum \n Reader \n [ ]").read_tokens());
+            Token::new(TokenType::Impl, 0),
+            Token::new(TokenType::Enum, 5),
+            Token::new(TokenType::Identifier("Reader"), 1),
+            Token::new(TokenType::LeftBracket, 1),
+            Token::new(TokenType::RightBracket, 3)
+        ], Tokenizer::new("impl enum \n Reader \n [ ]").into().tokens());
 
         assert_eq!(vec![
-            Token::new(TokenType::Native, 0, 0),
-            Token::new(TokenType::Identifier("nativer"), 0, 7),
-            Token::new(TokenType::Identifier("enative"), 0, 15),
-        ], Tokenizer::new("native nativer enative").read_tokens());
+            Token::new(TokenType::Native, 0),
+            Token::new(TokenType::Identifier("nativer"), 7),
+            Token::new(TokenType::Identifier("enative"), 15),
+        ], Tokenizer::new("native nativer enative").into().tokens());
+    }
+
+    #[test]
+    pub fn float_parsing() {
+        assert_eq!(vec![
+            Token::new(TokenType::Float(123.45), 0),
+        ], Tokenizer::new("123.45").into().tokens());
+
+        assert_eq!(vec![
+            Token::new(TokenType::Float(123.01), 1),
+        ], Tokenizer::new(" 123.01").into().tokens());
+    }
+
+    #[test]
+    pub fn int_parsing() {
+        assert_eq!(vec![
+            Token::new(TokenType::SignedInteger(-123),  0),
+        ], Tokenizer::new("-123").into().tokens());
+
+        assert_eq!(vec![
+            Token::new(TokenType::SignedInteger(123), 0),
+        ], Tokenizer::new("123").into().tokens());
+
+        assert_eq!(vec![
+            Token::new(TokenType::SignedInteger(123),  0),
+            Token::new(TokenType::Dot, 3),
+        ], Tokenizer::new("123.").into().tokens());
     }
 }
