@@ -9,6 +9,12 @@ pub struct TokenizedFile {
     line_counter: usize,
 }
 
+#[derive(Eq, PartialEq, Debug)]
+pub struct TokenPosition {
+    pub line: usize,
+    pub pos: usize,
+}
+
 impl TokenizedFile {
 
     pub fn new() -> Self {
@@ -23,8 +29,15 @@ impl TokenizedFile {
         &self.tokens
     }
 
-    pub fn line_for_pos(&self, pos: usize) -> usize {
-        self.line_map.partition_point(|&line_pos| line_pos <= pos)
+    pub fn token_position(&self, pos: usize) -> TokenPosition {
+        let line = self.line_map.partition_point(|&line_pos| line_pos <= pos);
+
+        let line_pos = if line > 0 {
+            pos - self.line_map[line - 1]
+        } else {
+            pos
+        };
+        TokenPosition::new(line, line_pos)
     }
 
     pub fn add_line_break(&mut self, pos: usize) {
@@ -37,8 +50,18 @@ impl TokenizedFile {
     }
 }
 
+impl TokenPosition {
+
+    pub fn new(line: usize, pos: usize) -> Self {
+        Self {
+            line,
+            pos,
+        }
+    }
+}
+
 mod tests {
-    use crate::compiler::tokenized_file::TokenizedFile;
+    use crate::compiler::tokenized_file::{TokenizedFile, TokenPosition};
 
     #[test]
     pub fn line_map() {
@@ -47,11 +70,11 @@ mod tests {
         tokenized_file.add_line_break(2);
         tokenized_file.add_line_break(5);
 
-        assert_eq!(0, tokenized_file.line_for_pos(0));
-        assert_eq!(0, tokenized_file.line_for_pos(1));
-        assert_eq!(1, tokenized_file.line_for_pos(2));
-        assert_eq!(1, tokenized_file.line_for_pos(3));
-        assert_eq!(1, tokenized_file.line_for_pos(4));
-        assert_eq!(2, tokenized_file.line_for_pos(5));
+        assert_eq!(TokenPosition::new(0, 0), tokenized_file.token_position(0));
+        assert_eq!(TokenPosition::new(0, 1), tokenized_file.token_position(1));
+        assert_eq!(TokenPosition::new(1, 0), tokenized_file.token_position(2));
+        assert_eq!(TokenPosition::new(1, 1), tokenized_file.token_position(3));
+        assert_eq!(TokenPosition::new(1, 2), tokenized_file.token_position(4));
+        assert_eq!(TokenPosition::new(2, 0), tokenized_file.token_position(5));
     }
 }

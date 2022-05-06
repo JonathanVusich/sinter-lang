@@ -345,9 +345,9 @@ mod tests {
         assert_eq!(vec![
             Token::new(TokenType::Impl, 0),
             Token::new(TokenType::Enum, 5),
-            Token::new(TokenType::Identifier("Reader"), 1),
-            Token::new(TokenType::LeftBracket, 1),
-            Token::new(TokenType::RightBracket, 3)
+            Token::new(TokenType::Identifier("Reader"), 12),
+            Token::new(TokenType::LeftBracket, 21),
+            Token::new(TokenType::RightBracket, 23)
         ], Tokenizer::new("impl enum \n Reader \n [ ]").into().tokens());
 
         assert_eq!(vec![
