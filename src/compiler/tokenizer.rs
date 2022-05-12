@@ -8,9 +8,9 @@ use anyhow::Result;
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::compiler::token::{Token, TokenType};
-use crate::compiler::tokenized_file::TokenizedFile;
+use crate::compiler::tokenized_file::TokenizedInput;
 
-pub fn read_tokens(path: &Path) -> Result<TokenizedFile> {
+pub fn read_tokens(path: &Path) -> Result<TokenizedInput> {
     let source_file = fs::read_to_string(path)?;
 
     let tokenizer = Tokenizer::new(&source_file);
@@ -20,7 +20,7 @@ pub fn read_tokens(path: &Path) -> Result<TokenizedFile> {
 #[derive(Debug)]
 struct Tokenizer<'this> {
     source_chars: Vec<&'this str>,
-    tokenized_file: TokenizedFile,
+    tokenized_file: TokenizedInput,
     start: usize,
     current: usize,
 }
@@ -32,13 +32,13 @@ impl<'this> Tokenizer<'this> {
         let source_chars = source.graphemes(true).collect::<Vec<&'this str>>();
         Self {
             source_chars,
-            tokenized_file: TokenizedFile::new(),
+            tokenized_file: TokenizedInput::new(),
             start: 0,
             current: 0,
         }
     }
 
-    pub fn into(mut self) -> TokenizedFile {
+    pub fn into(mut self) -> TokenizedInput {
         while !self.is_at_end() {
             self.skip_whitespace();
             self.scan_token();

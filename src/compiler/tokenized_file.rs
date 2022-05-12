@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 use crate::compiler::token::Token;
 use crate::compiler::token::TokenType::Pub;
 
-#[derive(Debug)]
-pub struct TokenizedFile {
+#[derive(Debug, Default)]
+pub struct TokenizedInput {
     tokens: Vec<Token>,
     line_map: Vec<usize>,
     line_counter: usize,
@@ -15,7 +15,7 @@ pub struct TokenPosition {
     pub pos: usize,
 }
 
-impl TokenizedFile {
+impl TokenizedInput {
 
     pub fn new() -> Self {
         Self {
@@ -61,11 +61,11 @@ impl TokenPosition {
 }
 
 mod tests {
-    use crate::compiler::tokenized_file::{TokenizedFile, TokenPosition};
+    use crate::compiler::tokenized_file::{TokenizedInput, TokenPosition};
 
     #[test]
     pub fn line_map() {
-        let mut tokenized_file = TokenizedFile::new();
+        let mut tokenized_file = TokenizedInput::new();
 
         tokenized_file.add_line_break(2);
         tokenized_file.add_line_break(5);
