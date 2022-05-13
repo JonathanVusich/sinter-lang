@@ -24,7 +24,7 @@ fn main() {
 
 A main argument that takes in a string array is also valid. The parameters given to the Flux VM at startup are passed to this method.
 ```ignorelang
-fn main(arguments: [String]) {
+fn main(arguments: [str]) {
     print(arguments.to_string());
 }
 ```
@@ -64,29 +64,59 @@ x += 1;
 
 Variables can be defined within a struct or function definition.
 
-### Defining structs and instances
+### Defining classes and instances
 
-To define a struct, use the `struct` keyword.
+To define a class, use the `class` keyword.
 
 ```ignorelang
-struct Shape
+class Shape
 ```
 
-Properties of a struct are listed in its declaration.
+Properties of a class are listed in its declaration.
 
 ```ignorelang
-struct Rectangle(width: f64, length: f64) {
+class Rectangle(width: f64, length: f64) {
     fn perimeter() {
         return (height + length) * 2
     }
 }
 ```
 
-The default constructor with the struct parameters is available automatically.
+The default constructor with the class parameters is available automatically.
 
 ```ignorelang
 val rectangle = Rectangle(5.0, 2.0)
 println("The perimeter is {rectangle.perimeter()}")
+```
+
+### Defining enums
+
+To define an enum, use the `enum` keyword.
+
+```ignorelang
+enum Planet {
+    Mercury,
+    Venus,
+    Earth,
+    Mars,
+    Jupiter,
+    Saturn,
+    Uranus,
+    Neptune,
+}
+```
+
+Enums can also contain a payload and functions that are specific to each member.
+
+```ignorelang
+enum Message {
+    Text(message: str),
+    Photo(caption: str, photo: SerializedPhoto) {
+        fn size() {
+            return photo.size()
+        }
+    },
+}
 ```
 
 ### Comments
