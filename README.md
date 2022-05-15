@@ -29,6 +29,37 @@ fn main(arguments: [str]) {
 }
 ```
 
+### Built-in Types
+
+Flux provides a number of built-in types in order to simplify application development.
+
+
+#### Unsigned integer types
+`u8`, `u16`, `u32`, `u64`
+
+#### Signed integer types
+`i8`, `i16`, `i32`, `i64`
+
+#### Floating point types
+`f32`, `f64`
+
+#### Object types
+The `str` type is an internal class that contains an immutable array of bytes that represent a UTF-8 encoded string.
+This type can be created through a literal or from an array of bytes.
+
+```ignorelang
+val greeting = "Hello world!"; // `str` type is inferred
+
+val bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];
+val greeting_from_array = str(bytearray); // "Hello world!"
+```
+
+
+The `[]` type is a generic array type that can contain both integer and floating point types
+in addition to inline classes and references.
+
+
+
 ### Functions
 An example function that returns the sum of two integers.
 
@@ -83,23 +114,36 @@ fn print(text: str) {
 }
 ```
 
-Functions that may return an empty value can use a question mark to denote the potential
-absence of a value.
+Functions may return an alternate type such as an error or empty value should use the `|` operator
+to separate the different types.
 
 ```ignorelang
-fn find_user(user_name: str) -> User? {
-    ... 
+fn find_user(user_name: str) -> User | None {
+    ...
 }
 
-val user = find_user(""); // 'User?' type is inferred
-if user {
-    
+fn load_user_info(user: User) -> UserInfo | LoadError {
+    ...
 }
 
+enum LoadError {
+    Timeout,
+    ConnectionClosed,
+}
 ```
 
-Functions cannot throw exceptions. It is recommended to use an `enum` to return values
-where various error conditions may occur.
+
+
+Functions that may return an error . It is recommended to use an `enum` to return values
+where various error conditions may occur. 
+
+```ignorelang
+enum ReadResult {
+    Result(contents: str),
+    FileNotFound,
+    FileLockInterrupted,
+}
+```
 
 ### Defining classes and instances
 
@@ -142,8 +186,6 @@ enum Planet {
     Neptune,
 }
 ```
-
-
 
 Enums can also contain a payload and functions that are specific to each member.
 
