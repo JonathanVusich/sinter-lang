@@ -54,11 +54,17 @@ val bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];
 val greeting_from_array = str(bytearray); // "Hello world!"
 ```
 
-
 The `[]` type is a generic array type that can contain both integer and floating point types
-in addition to inline classes and references.
+in addition to inline classes, enums and references.
 
+```ignorelang
+inline class Point(x: f64, y: f64);
+class Node;
 
+val i32_array: [i32] = [1, 2, 3];
+val point_array = [Point(1.0, 2.0), Point(1.5, 2.5)];
+val node_array = [Node(), Node()];
+```
 
 ### Functions
 An example function that returns the sum of two integers.
@@ -114,16 +120,21 @@ fn print(text: str) {
 }
 ```
 
-Functions may return an alternate type such as an error or empty value should use the `|` operator
-to separate the different types.
+Functions may return alternate types such as an error or empty value by using the `|` operator.
 
 ```ignorelang
 fn find_user(user_name: str) -> User | None {
     ...
 }
 
-fn load_user_info(user: User) -> UserInfo | LoadError {
+fn load_user_info(user: User) -> UserInfo | None | LoadError {
     ...
+}
+
+match load_user_info(...) {
+    UserInfo info => {...},
+    LoadError error => {...},
+    None => {...},
 }
 
 enum LoadError {
@@ -132,25 +143,12 @@ enum LoadError {
 }
 ```
 
-
-
-Functions that may return an error . It is recommended to use an `enum` to return values
-where various error conditions may occur. 
-
-```ignorelang
-enum ReadResult {
-    Result(contents: str),
-    FileNotFound,
-    FileLockInterrupted,
-}
-```
-
 ### Defining classes and instances
 
 To define a class, use the `class` keyword.
 
 ```ignorelang
-class Shape
+class Shape;
 ```
 
 Properties of a class are listed in its declaration.
@@ -166,8 +164,8 @@ class Rectangle(width: f64, length: f64) {
 The default constructor with the class parameters is available automatically.
 
 ```ignorelang
-val rectangle = Rectangle(5.0, 2.0)
-println("The perimeter is {rectangle.perimeter()}")
+val rectangle = Rectangle(5.0, 2.0);
+println("The perimeter is {rectangle.perimeter()}");
 ```
 
 ### Defining enums
@@ -218,6 +216,32 @@ trait Describable {
 }
 ```
 
+### Generic types
+
+Functions and class can use generic type definitions in order to allow usability with
+many concrete types. 
+
+```ignorelang
+fn maybe<T>(instance: T) -> T | None {
+    ...
+}
+
+class Point<T>(first: T, second: T);
+class Point<T, U>(first: T, second: U);
+```
+
+Generic type definitions can also be restricted by trait bounds.
+
+```ignorelang
+trait Sortable {
+    ...
+}
+
+fn sort<T: Sortable>(list: MutableList<T>) {
+    ...
+}
+```
+
 ### Comments
 Like most languages, Flux supports single-line (or end-of-line) and multi-line (block) comments.
 
@@ -227,86 +251,3 @@ Like most languages, Flux supports single-line (or end-of-line) and multi-line (
 /* This is a block comment
    on multiple lines. */
 ```
-
-
-## Bytecode reference
-
-### Opcodes
-```ignorelang
-OpCode::ReturnVoid
-```
-This opcode is used to terminate execution of a function with no return value.
-
-```ignorelang
-OpCode::Return32
-```
-This opcode is used to terminate execution of a function and return a 32-bit value to the callee.
-
-```ignorelang
-OpCode::Return64
-```
-This opcode is used to terminate execution of a function and return a 64-bit value to the callee.
-
-```ignorelang
-OpCode::Pop32
-```
-This opcode is used to pop a 32-bit value off of the stack and discard it.
-
-```ignorelang
-OpCode::Pop64
-```
-This opcode is used to pop a 64-bit value off of the stack and discard it.
-
-```ignorelang
-OpCode::GetConstant32
-```
-This opcode is used to push a 32-bit global variable onto the stack. It must be followed by a 24-bit index that 
-corresponds to the index into the constant pool.
-
-```ignorelang
-OpCode::GetConstant64
-```
-This opcode is used to push a 64-bit global variable onto the stack. It must be followed by a 24-bit index that
-corresponds to the index into the constant pool.
-
-```ignorelang
-OpCode::SetLocal32
-```
-This opcode is used to set a 32-bit local variable from the value currently on the stack. It must be followed by a
-byte-sized index that corresponds to the index into the local variable storage in the stackframe.
-
-```ignorelang
-OpCode::SetLocal64
-```
-This opcode is used to set a 64-bit local variable from the value currently on the stack. It must be followed by a
-byte-sized index that corresponds to the index into the local variable storage in the stackframe.
-
-```ignorelang
-OpCode::GetLocal32
-```
-This opcode is used to push a 32-bit local variable onto the stack. It must be followed by a
-byte-sized index that corresponds to the index into the local variable storage in the stackframe. 
-
-```ignorelang
-OpCode::GetLocal64
-```
-This opcode is used to push a 64-bit local variable onto the stack. It must be followed by a
-byte-sized index that corresponds to the index into the local variable storage in the stackframe.
-
-```ignorelang
-OpCode::Jump
-```
-This opcode is used to jump to the given offset within the executable code. It must be followed by a 24-bit offset
-that corresponds to the byte index to jump to.
-
-```ignorelang
-OpCode::JumpBack
-```
-This opcode is used to jump to the given offset within the executable code. It must be followed by a 24-bit offset
-that corresponds to the byte index to jump to.
-
-```ignorelang
-OpCode::Call
-```
-This opcode is used to call a procedure. It must be followed by a 24-bit offset specifying the amount of stack space to 
-allocate to the stackframe followed by a 32-bit offset to jump to.
