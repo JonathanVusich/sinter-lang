@@ -143,6 +143,30 @@ enum LoadError {
 }
 ```
 
+Functions can operate on types that implement traits through either the use of generic types
+or through a direct reference to the trait itself.
+
+```ignorelang
+trait Loggable {
+    fn format_log_message() -> str;
+}
+
+fn log_message<T: Loggable>(message: T) {
+    println(message.format_log_message());
+}
+
+fn log_message(message: Loggable) {
+    println(message.format_log_message());
+}
+```
+
+Using a generic type allows specialized code to be generated for each
+concrete type which improves performance at the expense of compile time
+code generation.
+
+Using a trait reference directly will force all types to be pointer-sized,
+which may incur a boxing penalty.
+
 ### Defining classes and instances
 
 To define a class, use the `class` keyword.
@@ -237,9 +261,15 @@ trait Sortable {
     ...
 }
 
+trait Hashable {
+    ...
+}
+
 fn sort<T: Sortable>(list: MutableList<T>) {
     ...
 }
+
+class SortedMap<T: Sortable + Hashable>;
 ```
 
 ### Comments
