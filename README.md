@@ -30,17 +30,17 @@ fn main(arguments: [str]) {
 ```
 
 ### Functions
-An example function with two signed 32-bit integer parameters and a signed 64-bit integer return type.
+An example function that returns the sum of two integers.
 
 ```ignorelang
-fn sum(a: i32, b: i32) -> i64 {
-    return (a as i64) + (b as i64);
+fn sum(a: i64, b: i64) -> i64 {
+    return a + b;
 }
 ```
 
 A function that returns no meaningful value.
 ```ignorelang
-fn print_sum(a: i32, b: i32) {
+fn print_sum(a: i64, b: i64) {
     print("sum of {a} and {b} is {a + b}.");
 }
 ```
@@ -49,20 +49,57 @@ fn print_sum(a: i32, b: i32) {
 Read-only local variables are defined using the keyword `val`. They can be assigned a value once.
 
 ```ignorelang
-val a: i32 = 1; // Immediate assignment
-val b = 2; // `i32` type is inferred
-val c: i32; // Type is required when no initializer is provided
+val a: i64 = 1; // Immediate assignment
+val b = 2; // `i64` type is inferred
+val c: i64; // Type is required when no initializer is provided
 c = 3; // Deferred assignment
 ```
 
 Variables that can be reassigned use the `var` keyword.
 
 ```ignorelang
-var x = 5; // `i32` type is inferred
+var x = 5; // `i64` type is inferred
 x += 1;
 ```
 
 Variables can be defined within a struct or function definition.
+
+### Functions
+
+To define a  function, use the `fn` keyword.
+
+```ignorelang
+fn add(a: i64, b: i64) -> i64 {
+    return a + b;
+} 
+```
+
+Functions that do not return a value can omit the return value in the 
+function signature.
+
+```ignorelang
+fn print(text: str) {
+    println(text);
+}
+```
+
+Functions that may return an empty value can use a question mark to denote the potential
+absence of a value.
+
+```ignorelang
+fn find_user(user_name: str) -> User? {
+    ... 
+}
+
+val user = find_user(""); // 'User?' type is inferred
+if user {
+    
+}
+
+```
+
+Functions cannot throw exceptions. It is recommended to use an `enum` to return values
+where various error conditions may occur.
 
 ### Defining classes and instances
 
@@ -106,6 +143,8 @@ enum Planet {
 }
 ```
 
+
+
 Enums can also contain a payload and functions that are specific to each member.
 
 ```ignorelang
@@ -116,6 +155,24 @@ enum Message {
             return photo.size()
         }
     },
+}
+```
+
+### Traits
+
+Traits are used to describe behavior about a type in a way that allows
+them to be used in a more generic way.
+
+They can only contain function declarations or function implementation.
+
+```ignorelang
+trait Describable {
+    fn name() -> str;
+    fn description() -> str;
+
+    fn describe() -> str {
+        return "Name: {name()}, Description: {description()}";
+    }
 }
 ```
 
