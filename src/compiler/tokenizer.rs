@@ -57,6 +57,7 @@ impl<'this> Tokenizer<'this> {
             "}" => self.create_token(TokenType::RightBrace),
             "[" => self.create_token(TokenType::LeftBracket),
             "]" => self.create_token(TokenType::RightBracket),
+            ":" => self.create_token(TokenType::Colon),
             ";" => self.create_token(TokenType::Semicolon),
             "," => self.create_token(TokenType::Comma),
             "." => self.create_token(TokenType::Dot),
@@ -69,6 +70,7 @@ impl<'this> Tokenizer<'this> {
             },
             "+" => self.create_token(TokenType::Plus),
             "/" => self.create_token(TokenType::Slash),
+            "|" => self.create_token(TokenType::Pipe),
             "*" => self.create_token(TokenType::Star),
             "!" => {
                 if self.matches("=") {
@@ -80,6 +82,8 @@ impl<'this> Tokenizer<'this> {
             "=" => {
                 if self.matches("=") {
                     self.create_token(TokenType::EqualEqual)
+                } else if self.matches(">") {
+                    self.create_token(TokenType::RightArrow)
                 } else {
                     self.create_token(TokenType::Equal)
                 }
@@ -126,7 +130,10 @@ impl<'this> Tokenizer<'this> {
                 match self.peek() {
                     "a" => self.check_keyword(2, "lse", TokenType::False),
                     "o" => self.check_keyword(2, "r", TokenType::For),
-                    "n" => Some(TokenType::Fn),
+                    "n" => {
+                        self.advance();
+                        Some(TokenType::Fn)
+                    },
                     _ => None
                 }
             },
@@ -145,6 +152,7 @@ impl<'this> Tokenizer<'this> {
             },
             "o" => self.check_keyword(1, "r", TokenType::Or),
             "n" => self.check_keyword(1, "ative", TokenType::Native),
+            "N" => self.check_keyword(1, "one", TokenType::None),
             "m" => self.check_keyword(1, "atch", TokenType::Match),
             "p" => self.check_keyword(1, "ub", TokenType::Pub),
             "r" => self.check_keyword(1, "eturn", TokenType::Return),
@@ -156,7 +164,13 @@ impl<'this> Tokenizer<'this> {
                 }
             },
             "S" => self.check_keyword(1, "elf", TokenType::SelfCapitalized),
-            "t" => self.check_keyword(1, "ype", TokenType::Type),
+            "t" => {
+                match self.peek() {
+                    "y" => self.check_keyword(2, "pe", TokenType::Type),
+                    "r" => self.check_keyword(2, "ait", TokenType::Trait),
+                    _ => None
+                }
+            },
             "u" => self.check_keyword(1, "se", TokenType::Use),
             "w" => self.check_keyword(1, "hile", TokenType::While),
             _ => None
@@ -178,8 +192,9 @@ impl<'this> Tokenizer<'this> {
         if end > self.source_chars.len() {
             return None;
         }
+
         let next_chars = self.source_chars[self.start + start..end].join("");
-        if next_chars == remainder && (end == self.source_chars.len() || end < self.source_chars.len() && self.source_chars[end] == " ") {
+        if next_chars == remainder && (end == self.source_chars.len() || end < self.source_chars.len() && is_delimiter(self.source_chars[end])) {
             self.current = end;
             return Some(token_type)
         }
@@ -303,8 +318,6 @@ impl<'this> Tokenizer<'this> {
         result
     }
 
-
-
     fn is_valid_identifier(&self) -> bool {
         !matches!(self.source_chars[self.current], "\r" | "\t" | "\n" | " " | "~" | "`" | "!" | "@"
             | "#" | "$" | "%" | "^" | "&" | "*" | "(" | ")" | "-" | "+"
@@ -326,6 +339,15 @@ impl<'this> Tokenizer<'this> {
 
 fn is_digit(word: &str) -> bool {
     matches!(word, "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9")
+}
+
+fn is_delimiter(char: &str) -> bool {
+    match char {
+        " " | "\r" | "\t" | "\n" | ";" => {
+            true
+        }
+        _ => false
+    }
 }
 
 mod tests {
@@ -355,6 +377,36 @@ mod tests {
             Token::new(TokenType::Identifier("nativer"), 7),
             Token::new(TokenType::Identifier("enative"), 15),
         ], Tokenizer::new("native nativer enative").into().tokens());
+
+        assert_eq!(vec![
+            Token::new(TokenType::Trait, 0),
+            Token::new(TokenType::Identifier("Serializable"), 6),
+            Token::new(TokenType::LeftBrace, 19),
+            Token::new(TokenType::RightBrace, 21),
+        ], Tokenizer::new("trait Serializable { }").into().tokens());
+
+        assert_eq!(vec![
+            Token::new(TokenType::Trait, 0),
+            Token::new(TokenType::Identifier("Iterator"), 6),
+            Token::new(TokenType::Less, 14),
+            Token::new(TokenType::Identifier("T"), 15),
+            Token::new(TokenType::Greater, 16),
+            Token::new(TokenType::LeftBrace, 18),
+            Token::new(TokenType::Fn, 20),
+            Token::new(TokenType::Identifier("next"), 23),
+            Token::new(TokenType::LeftParentheses, 27),
+            Token::new(TokenType::RightParentheses, 28),
+            Token::new(TokenType::RightArrow, 30),
+            Token::new(TokenType::Identifier("T"), 33),
+            Token::new(TokenType::Pipe, 35),
+            Token::new(TokenType::None, 37),
+            Token::new(TokenType::Semicolon, 41),
+            Token::new(TokenType::RightBrace, 43),
+        ], Tokenizer::new(
+            "trait Iterator<T> { \
+                         fn next() => T | None; \
+                     }"
+        ).into().tokens())
     }
 
     #[test]

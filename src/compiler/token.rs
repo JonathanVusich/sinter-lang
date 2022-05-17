@@ -20,14 +20,18 @@ pub enum TokenType {
     Minus,
     Plus,
 
+    Colon,
     Semicolon,
     Slash,
     Star,
+    Pipe,
 
     Bang,
     BangEqual,
     Equal,
     EqualEqual,
+
+    RightArrow,
 
     Greater,
     GreaterEqual,
@@ -76,7 +80,9 @@ pub enum TokenType {
     Static,
 
     Type,
+    Trait,
     Use,
+    None,
 
     Inline,
 }

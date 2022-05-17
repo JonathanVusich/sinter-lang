@@ -70,7 +70,7 @@ val node_array = [Node(), Node()];
 An example function that returns the sum of two integers.
 
 ```ignorelang
-fn sum(a: i64, b: i64) -> i64 {
+fn sum(a: i64, b: i64) => i64 {
     return a + b;
 }
 ```
@@ -106,7 +106,7 @@ Variables can be defined within a struct or function definition.
 To define a  function, use the `fn` keyword.
 
 ```ignorelang
-fn add(a: i64, b: i64) -> i64 {
+fn add(a: i64, b: i64) => i64 {
     return a + b;
 } 
 ```
@@ -123,11 +123,11 @@ fn print(text: str) {
 Functions may return alternate types such as an error or empty value by using the `|` operator.
 
 ```ignorelang
-fn find_user(user_name: str) -> User | None {
+fn find_user(user_name: str) => User | None {
     ...
 }
 
-fn load_user_info(user: User) -> UserInfo | None | LoadError {
+fn load_user_info(user: User) => UserInfo | None | LoadError {
     ...
 }
 
@@ -148,7 +148,7 @@ or through a direct reference to the trait itself.
 
 ```ignorelang
 trait Loggable {
-    fn format_log_message() -> str;
+    fn format_log_message() => str;
 }
 
 fn send_message<T: Serializable>(message: T, server: Server) {
@@ -237,7 +237,7 @@ They can only contain function declarations or function implementation.
 
 ```ignorelang
 trait StringIterator {
-    fn next() -> str | None;
+    fn next() => str | None;
 }
 ```
 
@@ -245,7 +245,7 @@ Traits can also use generic parameters in order to improve usability.
 
 ```ignorelang
 trait Iterator<T> {
-    fn next() -> T | None;
+    fn next() => T | None;
 }
 
 class MutableList<T> {
@@ -268,7 +268,7 @@ Functions and class can use generic type definitions in order to allow usability
 many concrete types. 
 
 ```ignorelang
-fn maybe<T>(instance: T) -> T | None {
+fn maybe<T>(instance: T) => T | None {
     ...
 }
 
@@ -301,9 +301,9 @@ to be mixed with other types.
 
 ```ignorelang
 trait Node {
-    fn bounds() -> Bounds;
+    fn bounds() => Bounds;
     fn draw(Graphics g);
-    fn children() -> MutableList<Node>;
+    fn children() => MutableList<Node>;
 }
 
 fn draw_frame(nodes: List<Node>) {
