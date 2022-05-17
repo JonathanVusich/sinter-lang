@@ -151,12 +151,18 @@ trait Loggable {
     fn format_log_message() -> str;
 }
 
-fn log_message<T: Loggable>(message: T) {
-    println(message.format_log_message());
+fn send_message<T: Serializable>(message: T, server: Server) {
+    ...
 }
 
-fn log_message(message: Loggable) {
+fn log_message<T: Loggable + Serializable>(message: T) {
     println(message.format_log_message());
+    send_message(message, logging_server);
+}
+
+fn log_message(message: Loggable + Serializable) {
+    println(message.format_log_message());
+    send_message(message, logging_server);
 }
 ```
 
@@ -230,12 +236,28 @@ them to be used in a more generic way.
 They can only contain function declarations or function implementation.
 
 ```ignorelang
-trait Describable {
-    fn name() -> str;
-    fn description() -> str;
+trait StringIterator {
+    fn next() -> str | None;
+}
+```
 
-    fn describe() -> str {
-        return "Name: {name()}, Description: {description()}";
+Traits can also use generic parameters in order to improve usability.
+
+```ignorelang
+trait Iterator<T> {
+    fn next() -> T | None;
+}
+
+class MutableList<T> {
+    ...
+    
+    fn extend<I: Iterator<T>>(iterator: I) {
+        while true {
+            match iterator.next() {
+                T item => self.add(item),
+                None => break;
+            }
+        }
     }
 }
 ```
@@ -270,6 +292,23 @@ fn sort<T: Sortable>(list: MutableList<T>) {
 }
 
 class SortedMap<T: Sortable + Hashable>;
+```
+
+Trait bounds can also be used to directly describe mixed types. This will incur a performance
+penalty for non-reference types since they will need to be wrapped in a reference pointer in order
+to be mixed with other types.
+
+
+```ignorelang
+trait Node {
+    fn bounds() -> Bounds;
+    fn draw(Graphics g);
+    fn children() -> MutableList<Node>;
+}
+
+fn draw_frame(nodes: List<Node>) {
+    ...
+}
 ```
 
 ### Comments
