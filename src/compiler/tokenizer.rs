@@ -352,10 +352,44 @@ fn is_delimiter(char: &str) -> bool {
 
 mod tests {
     use crate::compiler::token::{Token, TokenType};
+    use crate::compiler::token::TokenType::Identifier;
     use crate::compiler::tokenizer::Tokenizer;
+
+    macro_rules! make_token {
+        ($token_ident:expr, $pos:tt) => {
+            Token::new($token_ident, $pos)
+        }
+    }
+
+    macro_rules! tokenize {
+        ($($token_ident:expr, $pos:literal),*) => {
+            vec![
+                $(
+                    make_token!($token_ident, $pos),
+                )*
+            ]
+        }
+    }
+
+    macro_rules! token_test {
+        ($tokens:expr, $matching_text:literal) => {
+            assert_eq!($tokens, Tokenizer::new($matching_text).into().tokens());
+        }
+    }
 
     #[test]
     pub fn token_generation() {
+        token_test!(
+            tokenize!(
+                TokenType::Pub, 0,
+                TokenType::Class, 4,
+                TokenType::Identifier("Random"), 10,
+                TokenType::LeftBrace, 17,
+                TokenType::RightBrace, 18
+            ),
+            "pub class Random {}"
+        );
+
         assert_eq!(vec![
             Token::new(TokenType::Pub, 0),
             Token::new(TokenType::Class, 4),
@@ -406,7 +440,27 @@ mod tests {
             "trait Iterator<T> { \
                          fn next() => T | None; \
                      }"
-        ).into().tokens())
+        ).into().tokens());
+
+        assert_eq!(vec![
+            Token::new(TokenType::Class, 0),
+            Token::new(TokenType::Identifier("Point"), 6),
+            Token::new(TokenType::Less, 11),
+            Token::new(Identifier("T"), 12),
+            Token::new(TokenType::Comma, 13),
+            Token::new(TokenType::Identifier("U"), 15),
+            Token::new(TokenType::Greater, 16),
+            Token::new(TokenType::LeftParentheses, 17),
+            Token::new(TokenType::Identifier("x"), 18),
+            Token::new(TokenType::Colon, 19),
+            Token::new(TokenType::Identifier("T"), 21),
+            Token::new(TokenType::Comma, 22),
+            Token::new(TokenType::Identifier("y"), 24),
+            Token::new(TokenType::Colon, 25),
+            Token::new(TokenType::Identifier("U"), 27),
+            Token::new(TokenType::RightParentheses, 28),
+            Token::new(TokenType::Semicolon, 29),
+        ], Tokenizer::new("class Point<T, U>(x: T, y: U);").into().tokens());
     }
 
     #[test]
