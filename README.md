@@ -222,7 +222,7 @@ enum Message {
     Text(message: str),
     Photo(caption: str, photo: SerializedPhoto) {
         fn size() {
-            return photo.size()
+            return photo.size();
         }
     },
 }

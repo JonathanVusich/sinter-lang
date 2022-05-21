@@ -1,6 +1,4 @@
-use std::collections::BTreeMap;
-use crate::compiler::token::Token;
-use crate::compiler::token::TokenType::Pub;
+use crate::compiler::tokens::token::Token;
 
 #[derive(Debug, Default)]
 pub struct TokenizedInput {
@@ -61,20 +59,20 @@ impl TokenPosition {
 }
 
 mod tests {
-    use crate::compiler::tokenized_file::{TokenizedInput, TokenPosition};
+    use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
 
     #[test]
     pub fn line_map() {
-        let mut tokenized_file = TokenizedInput::new();
+        let mut tokenized_input = TokenizedInput::new();
 
-        tokenized_file.add_line_break(2);
-        tokenized_file.add_line_break(5);
+        tokenized_input.add_line_break(2);
+        tokenized_input.add_line_break(5);
 
-        assert_eq!(TokenPosition::new(0, 0), tokenized_file.token_position(0));
-        assert_eq!(TokenPosition::new(0, 1), tokenized_file.token_position(1));
-        assert_eq!(TokenPosition::new(1, 0), tokenized_file.token_position(2));
-        assert_eq!(TokenPosition::new(1, 1), tokenized_file.token_position(3));
-        assert_eq!(TokenPosition::new(1, 2), tokenized_file.token_position(4));
-        assert_eq!(TokenPosition::new(2, 0), tokenized_file.token_position(5));
+        assert_eq!(TokenPosition::new(0, 0), tokenized_input.token_position(0));
+        assert_eq!(TokenPosition::new(0, 1), tokenized_input.token_position(1));
+        assert_eq!(TokenPosition::new(1, 0), tokenized_input.token_position(2));
+        assert_eq!(TokenPosition::new(1, 1), tokenized_input.token_position(3));
+        assert_eq!(TokenPosition::new(1, 2), tokenized_input.token_position(4));
+        assert_eq!(TokenPosition::new(2, 0), tokenized_input.token_position(5));
     }
 }

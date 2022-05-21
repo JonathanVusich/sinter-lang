@@ -8,6 +8,7 @@
 #![feature(nonnull_slice_from_raw_parts)]
 #![feature(buf_read_has_data_left)]
 #![feature(fn_traits)]
+#![feature(entry_insert)]
 
 extern crate core;
 

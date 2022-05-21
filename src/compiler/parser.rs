@@ -1,9 +1,9 @@
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::AbstractSyntaxTree;
+use crate::compiler::ast::Module;
 use anyhow::Result;
-use crate::compiler::tokenized_file::TokenizedInput;
+use crate::compiler::tokens::tokenized_file::TokenizedInput;
 
-pub fn parse(input: TokenizedInput) -> Result<AbstractSyntaxTree> {
+pub fn parse<'ctx>(input: TokenizedInput) -> Result<Module<'ctx>> {
     todo!()
 }
 
