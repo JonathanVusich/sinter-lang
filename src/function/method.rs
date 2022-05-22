@@ -3,54 +3,36 @@ use crate::bytes::serializers::ByteReader;
 use crate::bytes::serializable::Serializable;
 use crate::class::compiled_class::CompiledClass;
 use crate::class::constant_pool::{ConstantPool, ConstantPoolEntry};
+use crate::compiler::types::types::Type;
 use crate::function::compiled_method::CompiledMethodDescriptor;
 use crate::pool::internal_string::InternalString;
 use crate::pool::string_pool::StringPool;
-use crate::types::types::Type;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct Method {
     pub name: InternalString,
-    pub descriptor: MethodDescriptor,
+    pub param_size: u16,
     pub max_stack_size: u16,
     pub max_locals: u16,
+    pub is_main_method: bool,
     pub code: Box<[u8]>,
-}
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-pub struct MethodDescriptor {
-    pub return_type: Type,
-    pub parameters: Box<[Type]>,
 }
 
 impl Method {
 
-    pub fn new(name: InternalString, 
-               descriptor: MethodDescriptor,
+    pub fn new(name: InternalString,
+               param_size: u16,
                max_stack_size: u16,
                max_locals: u16,
+               is_main_method: bool,
                code: Box<[u8]>) -> Self {
         Self {
             name,
-            descriptor,
+            param_size,
             max_stack_size,
             max_locals,
+            is_main_method,
             code,
-        }
-    }
-    
-    pub fn is_main_method(&self, pool: &StringPool) -> bool {
-        let method_name = pool.lookup(self.name);
-        method_name == "main" && self.descriptor.return_type == Type::Void
-    }
-}
-
-impl MethodDescriptor {
-    
-    pub fn new(return_type: Type, parameters: Box<[Type]>) -> Self {
-        Self {
-            return_type,
-            parameters,
         }
     }
 }

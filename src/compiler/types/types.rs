@@ -1,43 +1,20 @@
-use string_interner::symbol::SymbolUsize;
+use string_interner::DefaultBackend;
+use string_interner::symbol::{DefaultSymbol};
 
-type Identifier = SymbolUsize;
+pub type Identifier = DefaultSymbol;
 
-#[derive(Copy, Clone, Debug)]
-pub struct Type<'ctx> {
-    type_description: &'ctx TypeDescription,
-}
-
-impl<'ctx> Type<'ctx> {
-
-    pub fn new(type_description: &'ctx TypeDescription) -> Self {
-        Self {
-            type_description,
-        }
-    }
-}
-
-impl<'ctx> Eq for Type<'ctx> {
-
-}
-
-impl<'ctx> PartialEq<Self> for Type<'ctx> {
-    fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(self.type_description, other.type_description)
-    }
-}
-
-#[derive(Eq, PartialEq, Debug)]
-pub enum TypeDescription {
-    Array(Box<TypeDescription>),
+#[derive(Eq, PartialEq, Debug, Hash)]
+pub enum Type {
+    Array(Box<Type>),
     Enum(Identifier),
     Trait(Identifier),
     TraitBounds(Vec<Identifier>),
-    Union(Vec<TypeDescription>),
+    Union(Vec<Type>),
     Class(Identifier),
     Basic(BasicType),
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, Hash)]
 pub enum BasicType {
     U8,
     U16,

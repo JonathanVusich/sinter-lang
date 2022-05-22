@@ -9,6 +9,7 @@
 #![feature(buf_read_has_data_left)]
 #![feature(fn_traits)]
 #![feature(entry_insert)]
+#![feature(hash_set_entry)]
 
 extern crate core;
 

@@ -6,14 +6,6 @@ use crate::class::constant_pool::ConstantPoolEntry;
 use crate::pool::internal_string::InternalString;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub enum Type {
-    Void,
-    InlineClass(InternalString),
-    Class(InternalString),
-    Trait(InternalString),
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct CompiledType {
     pub base_type: CompiledBaseType,
     pub actual_type: ConstantPoolEntry,

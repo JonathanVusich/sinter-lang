@@ -29,6 +29,19 @@ macro_rules! serializable_primitive {
 
 serializable_primitive!(u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, f32, f64);
 
+impl Serializable for bool {
+    fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
+        let byte = u8::read(byte_reader)?;
+        Ok(byte == 1)
+    }
+
+    fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
+        let byte: u8 = if *self { 1 } else { 0 };
+        byte.write(byte_writer)?;
+        Ok(())
+    }
+}
+
 impl<T: Serializable> Serializable for Box<[T]> {
 
     fn read(byte_reader: &mut impl ByteReader) -> Result<Box<[T]>, Error> {

@@ -3,15 +3,16 @@ use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
 use crate::class::constant_pool::ConstantPoolEntry;
 use crate::class::references::{InlineReference, Reference};
+use crate::compiler::types::types::Type;
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::pointer::Pointer;
 use crate::pool::internal_string::InternalString;
-use crate::types::types::{CompiledType, Type};
+use crate::types::types::{CompiledType};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Field {
     pub name: InternalString,
-    pub type_descriptor: Type,
+    pub is_reference: bool,
     pub offset: u64,
     pub size: u64,
 }
@@ -27,12 +28,12 @@ pub struct CompiledField {
 impl Field {
 
     pub fn new(name: InternalString,
-               type_descriptor: Type,
+               is_reference: bool,
                offset: u64,
                size: u64,) -> Self {
         Self {
             name,
-            type_descriptor,
+            is_reference,
             offset,
             size,
         }

@@ -6,7 +6,6 @@ use crate::function::method::Method;
 use crate::gc::block::LINE_SIZE;
 use crate::pool::internal_string::InternalString;
 use crate::pool::string_pool::StringPool;
-use crate::types::types::Type;
 
 pub struct ClassBuilder {
     version: Option<Version>,
@@ -70,7 +69,7 @@ impl ClassBuilder {
         let fields = Box::leak(self.fields.into_boxed_slice());
 
         let references = Box::leak(fields.iter()
-            .filter(|field| matches!(field.type_descriptor, Type::Trait(b) | Type::Class(b)))
+            .filter(|field| field.is_reference)
             .cloned()
             .collect::<Vec<Field>>()
             .into_boxed_slice());

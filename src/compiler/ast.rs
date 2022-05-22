@@ -1,79 +1,74 @@
 use string_interner::symbol::SymbolUsize;
-use crate::compiler::types::types::Type;
+use crate::compiler::types::types::{Identifier, Type};
 use crate::traits::traits::Trait;
 
-type Identifier = SymbolUsize;
-
-pub struct Module<'ctx> {
-    type_declarations: Vec<TypeDecl<'ctx>>,
-    function_declarations: Vec<FunctionDecl<'ctx>>,
+pub struct Module {
+    type_declarations: Vec<TypeDecl>,
+    function_declarations: Vec<FunctionDecl>,
 }
 
-pub enum TypeDecl<'ctx> {
+pub enum TypeDecl {
     Enum(EnumDecl),
-    InlineClass(InlineClassDecl<'ctx>),
-    Class(ClassDecl<'ctx>),
+    InlineClass(InlineClassDecl),
+    Class(ClassDecl),
     Trait(TraitDecl)
 }
 
-pub struct InlineClassDecl<'ctx> {
+pub struct InlineClassDecl {
     name: Identifier,
     generic_types: Vec<GenericTypeDecl>,
-    members: Vec<MemberDecl<'ctx>>,
-    member_functions: Vec<MemberFunctionDecl<'ctx>>,
+    members: Vec<MemberDecl>,
+    member_functions: Vec<MemberFunctionDecl>,
 }
 
-pub struct ClassDecl<'ctx> {
+pub struct ClassDecl {
     name: Identifier,
     generic_types: Vec<GenericTypeDecl>,
-    members: Vec<MemberDecl<'ctx>>,
-    member_functions: Vec<MemberFunctionDecl<'ctx>>,
+    members: Vec<MemberDecl>,
+    member_functions: Vec<MemberFunctionDecl>,
 }
 
 pub struct EnumDecl {
-
+    ident: Identifier,
+    members: Vec<EnumMemberDecl>,
 }
 
 pub struct TraitDecl {
-
+    ident: Identifier,
+    functions: Vec<MemberFunctionDecl>,
 }
 
-pub struct FunctionDecl<'ctx> {
+pub struct FunctionDecl {
     ident: Identifier,
     generic_types: Vec<GenericTypeDecl>,
-    parameters: Vec<ParameterDecl<'ctx>>,
-
+    parameters: Vec<ParameterDecl>,
+    return_type: Type,
 }
 
 pub struct GenericTypeDecl {
     ident: Identifier,
-    trait_bound: Option<TraitBound>,
+    type_ref: Type,
 }
 
-pub struct TraitBound {
-    trait_refs: Vec<TraitRef>,
-}
-
-pub struct TraitRef {
+pub struct MemberDecl {
     ident: Identifier,
+    type_ref: Type,
 }
 
-
-
-
-pub struct MemberDecl<'ctx> {
+pub struct EnumMemberDecl {
     ident: Identifier,
-    type_ref: Type<'ctx>,
+    parameters: Vec<ParameterDecl>,
+    member_functions: Vec<MemberFunctionDecl>,
 }
 
-pub struct MemberFunctionDecl<'ctx> {
+pub struct MemberFunctionDecl {
     ident: Identifier,
     generic_types: Vec<GenericTypeDecl>,
-    parameters: Vec<ParameterDecl<'ctx>>,
-    return_type: Type<'ctx>,
+    parameters: Vec<ParameterDecl>,
+    return_type: Type,
 }
 
-pub struct ParameterDecl<'ctx> {
-    ident: &'static str,
-    type_ref: Type<'ctx>,
+pub struct ParameterDecl {
+    ident: Identifier,
+    ty: Type,
 }

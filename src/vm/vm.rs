@@ -246,7 +246,7 @@ impl VM {
     fn call(&mut self) {
         let method_ptr: Pointer<&'static Method> = self.thread_stack.pop().into();
         self.current_frame += 1;
-        let address = self.thread_stack.get_index() - (method_ptr.descriptor.parameters.len() * WORD);
+        let address = self.thread_stack.get_index() - (method_ptr.param_size as usize * WORD);
 
         let call_frame = CallFrame::new(&method_ptr, address);
         self.call_frames.push(call_frame);
@@ -301,12 +301,11 @@ impl Default for VM {
 }
 
 mod tests {
-    use crate::function::method::{Method, MethodDescriptor};
+    use crate::compiler::types::types::Type;
+    use crate::function::method::{Method};
     use crate::opcode::OpCode;
     use crate::pointers::pointer::Pointer;
     use crate::pool::internal_string::InternalString;
-    use crate::types::types::Type;
-    use crate::types::types::Type::Void;
     use crate::vm::call_frame::CallFrame;
     use crate::vm::vm::VM;
 
@@ -380,9 +379,10 @@ mod tests {
         let blank_str = InternalString(0);
 
         let method = Method::new(blank_str,
-                                 MethodDescriptor::new(Type::Void, vec![Type::Void].into_boxed_slice()),
                                  2,
                                  2,
+                                 2,
+                                 false,
                                  vec![OpCode::AddSigned.into(), OpCode::Return.into()].into_boxed_slice());
 
         let static_method: &'static Method = Box::leak(Box::new(method));

@@ -7,15 +7,16 @@ use crate::class::references::Reference;
 
 use crate::class::size_class::SizeClass;
 use crate::class::version::{CURRENT_VERSION, Version};
-use crate::function::method::{Method, MethodDescriptor};
+use crate::compiler::types::types::Type;
+use crate::function::method::{Method};
 use crate::gc::block::{BLOCK_SIZE, LINE_SIZE};
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::mark_word::MarkWord;
 use crate::pointers::pointer::Pointer;
 use crate::pool::internal_string::InternalString;
 use crate::pool::string_pool::StringPool;
-use crate::types::types::{CompiledBaseType, CompiledType, Type};
-use crate::types::types::Type::*;
+use crate::types::types::{CompiledBaseType, CompiledType};
+use crate::types::types::CompiledBaseType::Void;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct Class {
@@ -40,35 +41,20 @@ impl Class {
 
         let fields = Box::leak(compiled_class.fields.iter().map(|compiled_field| {
             let name = load_str(compiled_field.name, &compiled_class.constant_pool, string_pool);
-            let actual_type = load_type(&compiled_field.type_descriptor, &compiled_class.constant_pool, string_pool);
 
-            Field::new(name, actual_type, compiled_field.offset, compiled_field.size)
+            Field::new(name, false, compiled_field.offset, compiled_field.size)
         }).collect::<Vec<Field>>()
           .into_boxed_slice());
 
         let references = Box::leak(fields.iter()
-            .filter(|field| {
-                return match field.type_descriptor {
-                    Trait(b) | Class(b) => true,
-                    _ => false
-                }
-            })
+            .filter(|field| field.is_reference)
             .cloned()
             .collect::<Vec<Field>>()
             .into_boxed_slice());
 
         let methods = Box::leak(compiled_class.methods.iter().map(|method| {
             let name = load_str(method.name, &compiled_class.constant_pool, string_pool);
-
-            let return_type = load_type(&&method.descriptor.return_type, &compiled_class.constant_pool, string_pool);
-            let parameters = method.descriptor.parameters.iter().map(|compiled_type| {
-                load_type(compiled_type, &compiled_class.constant_pool, string_pool)
-            }).collect::<Vec<Type>>()
-              .into_boxed_slice();
-
-            let descriptor = MethodDescriptor::new(return_type, parameters);
-
-            Method::new(name, descriptor, method.max_stack_size, method.max_locals, method.code.clone())
+            Method::new(name, method.param_size, method.max_stack_size, method.max_locals, method.is_main_method, method.code.clone())
         }).collect::<Vec<Method>>()
           .into_boxed_slice());
 
@@ -96,25 +82,13 @@ impl Class {
         }
     }
 
-    pub fn get_main_method(&self, string_pool: &StringPool) -> Option<&'static Method> {
-        self.methods.iter().find(|method| method.is_main_method(string_pool))
+    pub fn get_main_method(&self) -> Option<&'static Method> {
+        self.methods.iter().find(|method| method.is_main_method)
     }
 }
 
 fn load_str(entry: ConstantPoolEntry, constant_pool: &ConstantPool, string_pool: &mut StringPool) -> InternalString {
     let string = constant_pool.load_str(entry);
     string_pool.intern(string)
-}
-
-fn load_type(compiled_type: &CompiledType, constant_pool: &ConstantPool, string_pool: &mut StringPool) -> Type {
-    let actual_type = constant_pool.load_str(compiled_type.actual_type);
-    let interned_type = string_pool.intern(actual_type);
-
-    return match compiled_type.base_type {
-        CompiledBaseType::Void => Void,
-        CompiledBaseType::InlineClass => InlineClass(interned_type),
-        CompiledBaseType::Class => Class(interned_type),
-        CompiledBaseType::Trait => Trait(interned_type),
-    }
 }
 

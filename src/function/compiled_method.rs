@@ -2,14 +2,16 @@ use std::io::{BufRead, BufReader, Error, ErrorKind};
 use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
 use crate::class::constant_pool::ConstantPoolEntry;
-use crate::types::types::{CompiledType, Type};
+use crate::types::types::{CompiledType};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct CompiledMethod {
     pub name: ConstantPoolEntry,
     pub descriptor: CompiledMethodDescriptor,
+    pub param_size: u16,
     pub max_stack_size: u16,
     pub max_locals: u16,
+    pub is_main_method: bool,
     pub code: Box<[u8]>,
 }
 
@@ -24,16 +26,20 @@ impl Serializable for CompiledMethod {
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let name = ConstantPoolEntry::read(byte_reader)?;
         let descriptor = CompiledMethodDescriptor::read(byte_reader)?;
+        let param_size = u16::read(byte_reader)?;
         let max_stack_size = u16::read(byte_reader)?;
         let max_locals = u16::read(byte_reader)?;
+        let is_main_method = bool::read(byte_reader)?;
 
         let code = Box::<[u8]>::read(byte_reader)?;
 
         Ok(Self {
             name,
             descriptor,
+            param_size,
             max_stack_size,
             max_locals,
+            is_main_method,
             code,
         })
     }
