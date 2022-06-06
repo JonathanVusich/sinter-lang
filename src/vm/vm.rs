@@ -1,13 +1,8 @@
-
-use std::collections::HashMap;
-use std::mem::size_of;
-use std::slice::SliceIndex;
-use region::page::size;
-use crate::bytes::serializers::ByteReader;
 use crate::bytes::serializable::Serializable;
+use crate::bytes::serializers::ByteReader;
 use crate::class::class::Class;
 use crate::class::compiled_class::CompiledClass;
-use crate::class::version::{CURRENT_VERSION, Version};
+use crate::class::version::{Version, CURRENT_VERSION};
 use crate::errors::vm_error::{VMError, VMErrorKind};
 use crate::function::method::Method;
 use crate::opcode::OpCode;
@@ -18,6 +13,10 @@ use crate::pool::string_pool::StringPool;
 use crate::util::constants::WORD;
 use crate::vm::call_frame::CallFrame;
 use crate::vm::stack::Stack;
+use region::page::size;
+use std::collections::HashMap;
+use std::mem::size_of;
+use std::slice::SliceIndex;
 
 pub const MAX_CALL_FRAMES: usize = 1024;
 
@@ -28,7 +27,7 @@ pub struct VM {
     call_frames: Vec<CallFrame>,
     current_frame: usize,
     string_pool: StringPool,
-    current_code: &'static [u8]
+    current_code: &'static [u8],
 }
 
 macro_rules! binary_operation {
@@ -54,11 +53,10 @@ macro_rules! cast_operation {
         let val = <$typ>::from_be_bytes($self.thread_stack.pop());
         let result = val as $newtyp;
         $self.thread_stack.push(result.to_be_bytes());
-    }
+    };
 }
 
 impl VM {
-
     pub fn new() -> Self {
         Self {
             classes: HashMap::new(),
@@ -73,7 +71,6 @@ impl VM {
 
     pub fn load_classes(mut self, module_readers: Vec<impl ByteReader>) -> Result<Self, VMError> {
         for mut reader in module_readers.into_iter() {
-
             let classes = Box::<[CompiledClass]>::read(&mut reader)
                 .map_err(move |err| VMError::new(VMErrorKind::MalformedModuleFile))?;
 
@@ -87,8 +84,6 @@ impl VM {
                 let name = self.string_pool.lookup(runtime_class.name);
 
                 let qualified_name = self.string_pool.intern(package_name + name);
-
-
 
                 self.classes.insert(qualified_name, runtime_class);
             }
@@ -106,9 +101,13 @@ impl VM {
         let main_class_name = self.string_pool.intern(main_class);
         let main_method_name = self.string_pool.intern(main_method);
 
-        let main_class = self.classes.get(&main_class_name)
+        let main_class = self
+            .classes
+            .get(&main_class_name)
             .ok_or_else(|| VMError::new(VMErrorKind::MissingMainClass))?;
-        let main_method = main_class.methods.iter()
+        let main_method = main_class
+            .methods
+            .iter()
             .find(|method| method.name == main_method_name)
             .ok_or_else(|| VMError::new(VMErrorKind::MissingMainMethod))?;
 
@@ -191,7 +190,7 @@ impl VM {
                 OpCode::GetLocal => self.get_local(),
                 OpCode::Jump => self.jump(),
                 OpCode::JumpBack => self.jump_back(),
-                OpCode::Call => self.call()
+                OpCode::Call => self.call(),
             }
         }
     }
@@ -252,7 +251,6 @@ impl VM {
         self.call_frames.push(call_frame);
     }
 
-
     fn read_byte(&mut self) -> u8 {
         let call_frame = self.get_call_frame();
         let addr = call_frame.ip();
@@ -295,14 +293,14 @@ impl Default for VM {
             call_frames: vec![],
             current_frame: 0,
             string_pool: StringPool::with_capacity(8192),
-            current_code: &[]
+            current_code: &[],
         }
     }
 }
 
 mod tests {
     use crate::compiler::types::types::Type;
-    use crate::function::method::{Method};
+    use crate::function::method::Method;
     use crate::opcode::OpCode;
     use crate::pointers::pointer::Pointer;
     use crate::pool::internal_string::InternalString;
@@ -378,12 +376,14 @@ mod tests {
 
         let blank_str = InternalString(0);
 
-        let method = Method::new(blank_str,
-                                 2,
-                                 2,
-                                 2,
-                                 false,
-                                 vec![OpCode::AddSigned.into(), OpCode::Return.into()].into_boxed_slice());
+        let method = Method::new(
+            blank_str,
+            2,
+            2,
+            2,
+            false,
+            vec![OpCode::AddSigned.into(), OpCode::Return.into()].into_boxed_slice(),
+        );
 
         let static_method: &'static Method = Box::leak(Box::new(method));
 

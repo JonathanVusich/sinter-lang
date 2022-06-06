@@ -1,21 +1,18 @@
-use std::io;
-use std::io::{BufRead, BufReader, BufWriter, Error, ErrorKind, Read, Write};
 use crate::bytes::serializable::Serializable;
 use crate::errors::vm_error::{VMError, VMErrorKind};
+use std::io;
+use std::io::{BufRead, BufReader, BufWriter, Error, ErrorKind, Read, Write};
 
 pub trait ByteReader {
-
     fn read_array<const LEN: usize>(&mut self) -> Result<[u8; LEN], Error>;
     fn read_vec(&mut self, bytes: usize) -> Result<Box<[u8]>, Error>;
 }
 
 pub trait ByteWriter {
-
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), Error>;
 }
 
 impl<T: Read> ByteReader for BufReader<T> {
-
     fn read_array<const LEN: usize>(&mut self) -> Result<[u8; LEN], Error> {
         let mut buffer: [u8; LEN] = [0u8; LEN];
         self.read_exact(&mut buffer)?;
@@ -30,7 +27,6 @@ impl<T: Read> ByteReader for BufReader<T> {
 }
 
 impl<T: Write> ByteWriter for T {
-
     fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), Error> {
         self.write_all(bytes)
     }

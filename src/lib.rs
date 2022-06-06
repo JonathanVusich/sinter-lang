@@ -13,18 +13,18 @@
 
 extern crate core;
 
-pub mod opcode;
-pub mod gc;
-pub mod pointers;
-pub mod class;
-pub mod util;
-pub mod heap;
-pub mod os;
-pub mod function;
-pub mod vm;
 pub mod bytes;
-pub mod types;
+pub mod class;
+pub mod compiler;
+pub mod errors;
+pub mod function;
+pub mod gc;
+pub mod heap;
+pub mod opcode;
+pub mod os;
+pub mod pointers;
 pub mod pool;
 pub mod traits;
-pub mod errors;
-pub mod compiler;
+pub mod types;
+pub mod util;
+pub mod vm;

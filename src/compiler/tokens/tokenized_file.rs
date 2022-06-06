@@ -14,7 +14,6 @@ pub struct TokenPosition {
 }
 
 impl TokenizedInput {
-
     pub fn new() -> Self {
         Self {
             tokens: Vec::new(),
@@ -49,17 +48,13 @@ impl TokenizedInput {
 }
 
 impl TokenPosition {
-
     pub fn new(line: usize, pos: usize) -> Self {
-        Self {
-            line,
-            pos,
-        }
+        Self { line, pos }
     }
 }
 
 mod tests {
-    use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
+    use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 
     #[test]
     pub fn line_map() {

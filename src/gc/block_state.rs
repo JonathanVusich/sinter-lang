@@ -1,6 +1,6 @@
 #[derive(PartialEq, Debug)]
-pub (crate) enum BlockState {
+pub(crate) enum BlockState {
     Full,
     Free,
-    Recycled
+    Recycled,
 }

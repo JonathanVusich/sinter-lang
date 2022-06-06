@@ -1,6 +1,6 @@
-use std::io::{Error, ErrorKind};
-use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
+use crate::bytes::serializers::{ByteReader, ByteWriter};
+use std::io::{Error, ErrorKind};
 
 #[repr(transparent)]
 #[derive(Clone)]
@@ -15,7 +15,6 @@ pub struct ConstantPoolEntry {
 }
 
 impl ConstantPool {
-
     pub fn load_bytes(&self, entry: ConstantPoolEntry) -> &[u8] {
         &self.pool[entry.start()..entry.end()]
     }
@@ -26,12 +25,9 @@ impl ConstantPool {
 }
 
 impl Serializable for ConstantPool {
-
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let pool = Box::<[u8]>::read(byte_reader)?;
-        Ok(Self {
-            pool
-        })
+        Ok(Self { pool })
     }
 
     fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
@@ -50,15 +46,10 @@ impl ConstantPoolEntry {
 }
 
 impl Serializable for ConstantPoolEntry {
-    
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let offset = u16::read(byte_reader)?;
         let size = u16::read(byte_reader)?;
-        Ok(
-            Self {
-                offset,
-                size,
-            })
+        Ok(Self { offset, size })
     }
 
     fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {

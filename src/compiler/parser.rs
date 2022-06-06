@@ -1,11 +1,14 @@
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::{ClassStatement, FunctionStatement, UseStatement, Module, TypeStatement};
-use anyhow::{anyhow, Result};
-use string_interner::StringInterner;
+use crate::compiler::ast::{
+    ClassStatement, FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module,
+    TypeStatement, UseStatement,
+};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
 use crate::compiler::tokens::tokenizer::read_tokens;
 use crate::compiler::types::types::{Identifier, Type};
+use anyhow::{anyhow, Result};
+use string_interner::StringInterner;
 
 pub fn parse(input: TokenizedInput) -> Result<Module> {
     let parser = Parser::new(input);
@@ -18,8 +21,17 @@ struct Parser {
     pos: usize,
 }
 
-impl Parser {
+struct TysAndFns {
+    tys: Vec<TypeStatement>,
+    fns: Vec<FunctionStatement>,
+}
 
+enum ClassType {
+    Reference,
+    Inline,
+}
+
+impl Parser {
     fn new(tokenized_input: TokenizedInput) -> Self {
         Self {
             string_interner: StringInterner::default(),
@@ -31,7 +43,7 @@ impl Parser {
     fn parse(mut self) -> Result<Module> {
         let use_stmts = self.parse_use_stmts()?;
         let tys_and_fns = self.parse_tys_fns()?;
-        Ok(Module::new(use_stmts, tys_and_fns.0, tys_and_fns.1))
+        Ok(Module::new(use_stmts, tys_and_fns.tys, tys_and_fns.fns))
     }
 
     fn parse_use_stmts(&mut self) -> Result<Vec<UseStatement>> {
@@ -40,12 +52,63 @@ impl Parser {
             self.munch();
             let identifier = self.identifier()?;
             stmts.push(UseStatement::new(identifier));
-            self.munch_semicolon()?;
+            self.expect(TokenType::Semicolon)?;
         }
         Ok(stmts)
     }
 
-    fn parse_tys_fns(&mut self) -> Result<(Vec<TypeStatement>, Vec<FunctionStatement>)> {
+    fn parse_tys_fns(&mut self) -> Result<TysAndFns> {
+        let mut tys_and_fns = TysAndFns::default();
+        while !self.is_at_end() {
+            match self.current_type() {
+                TokenType::Inline => tys_and_fns.tys.push(self.parse_inline_class()?),
+                TokenType::Class => tys_and_fns.tys.push(self.parse_reference_class()?),
+                TokenType::Enum => tys_and_fns.tys.push(self.parse_enum()),
+                TokenType::Trait => tys_and_fns.tys.push(self.parse_trait()),
+                TokenType::Fn => tys_and_fns.fns.push(self.parse_fn()),
+                _ => {
+                    return Err(anyhow!("Unrecognized token!"));
+                },
+            }
+        }
+        Ok(tys_and_fns)
+    }
+
+    fn parse_inline_class(&mut self) -> Result<TypeStatement> {
+        self.munch();
+        self.parse_class(ClassType::Inline)
+    }
+
+    fn parse_reference_class(&mut self) -> Result<TypeStatement> {
+        self.parse_class(ClassType::Reference)
+    }
+
+    fn parse_class(&mut self, class_type: ClassType) -> Result<TypeStatement> {
+        self.expect(TokenType::Class)?;
+        let name = self.identifier()?;
+        let generic_types = self.generic_tys()?;
+        let members = self.members()?;
+        let member_functions = self.member_functions()?;
+
+        let class_stmt = Box::new(ClassStatement::new(
+            name,
+            generic_types,
+            members,
+            member_functions,
+        ));
+
+        Ok(TypeStatement::Class(class_stmt))
+    }
+
+    fn parse_enum(&mut self) -> TypeStatement {
+        todo!()
+    }
+
+    fn parse_trait(&mut self) -> TypeStatement {
+        todo!()
+    }
+
+    fn parse_fn(&mut self) -> FunctionStatement {
         todo!()
     }
 
@@ -53,17 +116,51 @@ impl Parser {
         todo!()
     }
 
+    fn generic_tys(&mut self) -> Result<Vec<GenericTypeDecl>> {
+        if self.matches(TokenType::Less) {
+            let mut type_decls = Vec::new();
+            while !self.matches(TokenType::Comma) || !self.matches(TokenType::Greater) {
+                let ident = self.identifier()?;
+                if self.matches(TokenType::Colon) {
+                    self.munch();
+                    let trait_bound = self.trait_bound()?;
+                    let type_decl = GenericTypeDecl::new(ident, Some(trait_bound));
+                    type_decls.push(type_decl);
+                }
+            }
+            Ok(type_decls)
+        } else {
+            Ok(Vec::new())
+        }
+    }
+
+    fn members(&mut self) -> Result<Vec<MemberDecl>> {
+        todo!()
+    }
+
+    fn member_functions(&mut self) -> Result<Vec<MemberFunctionDecl>> {
+        todo!()
+    }
+
+    fn trait_bound(&mut self) -> Result<Type> {
+        todo!()
+    }
+
     fn current(&mut self) -> Token {
         self.tokenized_input.tokens()[self.pos]
+    }
+
+    fn current_type(&mut self) -> TokenType {
+        self.tokenized_input.tokens()[self.pos].token_type
     }
 
     fn munch(&mut self) {
         self.pos += 1;
     }
 
-    fn munch_semicolon(&mut self) -> Result<()> {
-        if self.current().token_type != TokenType::Semicolon {
-            Err(anyhow!("Expected semicolon"))
+    fn expect(&mut self, token_type: TokenType) -> Result<()> {
+        if self.is_at_end() || self.current_type() != token_type {
+            Err(anyhow!(format!("Expected {:?}!", token_type)))
         } else {
             self.munch();
             Ok(())
@@ -71,6 +168,25 @@ impl Parser {
     }
 
     fn matches(&mut self, token_type: TokenType) -> bool {
-        self.current().token_type == token_type
+        !self.is_at_end() && self.current_type() == token_type
+    }
+
+    fn is_at_end(&self) -> bool {
+        self.pos >= self.tokenized_input.tokens().len()
+    }
+}
+
+impl TysAndFns {
+    pub fn new() -> Self {
+        Self {
+            tys: Vec::new(),
+            fns: Vec::new(),
+        }
+    }
+}
+
+impl Default for TysAndFns {
+    fn default() -> Self {
+        Self::new()
     }
 }

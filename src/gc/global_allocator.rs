@@ -1,7 +1,7 @@
-use std::sync::Arc;
-use std::sync::atomic::AtomicPtr;
 use crate::gc::block::Block;
 use crate::gc::garbage_collector::GarbageCollector;
+use std::sync::atomic::AtomicPtr;
+use std::sync::Arc;
 
 use crate::heap::region::Region;
 use crate::pointers::pointer::Pointer;
@@ -9,18 +9,21 @@ use crate::pointers::pointer::Pointer;
 pub struct GlobalAllocator {
     garbage_collector: Arc<GarbageCollector>,
     large_object_space: Region,
-    heap: Region
+    heap: Region,
 }
 
 impl GlobalAllocator {
-
-    pub fn new(garbage_collector: Arc<GarbageCollector>, los_size: usize, heap_size: usize) -> Self {
+    pub fn new(
+        garbage_collector: Arc<GarbageCollector>,
+        los_size: usize,
+        heap_size: usize,
+    ) -> Self {
         let large_object_space = Region::new(los_size).unwrap();
         let heap = Region::new(heap_size).unwrap();
         Self {
             garbage_collector,
             large_object_space,
-            heap
+            heap,
         }
     }
 

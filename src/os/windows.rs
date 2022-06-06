@@ -3,16 +3,16 @@ use std::io::Error;
 use std::mem::MaybeUninit;
 use std::sync::Once;
 
+use crate::gc::block::BLOCK_SIZE;
 use winapi::um::memoryapi::{
     VirtualAlloc, VirtualFree, VirtualLock, VirtualProtect, VirtualQuery, VirtualUnlock,
 };
 use winapi::um::sysinfoapi::{GetNativeSystemInfo, SYSTEM_INFO};
 use winapi::um::winnt::{MEM_COMMIT, MEM_RELEASE, MEM_RESERVE, PAGE_READWRITE};
-use crate::gc::block::BLOCK_SIZE;
 
 pub unsafe fn alloc(size: usize) -> *mut u8 {
     let allocation = VirtualAlloc(
-        std::ptr::null() as winapi::um::winnt::PVOID,
+        std::ptr::null::<()>() as winapi::um::winnt::PVOID,
         size,
         MEM_COMMIT | MEM_RESERVE,
         PAGE_READWRITE,

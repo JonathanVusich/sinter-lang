@@ -6,11 +6,10 @@ pub struct StringPool {
     map: HashMap<&'static str, InternalString>,
     vec: Vec<&'static str>,
     buf: String,
-    full: Vec<String>
+    full: Vec<String>,
 }
 
 impl StringPool {
-
     pub fn with_capacity(cap: usize) -> Self {
         let cap = cap.next_power_of_two();
         Self {
@@ -44,8 +43,7 @@ impl StringPool {
         let str = name.as_ref();
         let cap = self.buf.capacity();
         if cap < self.buf.len() + str.len() {
-            let new_cap = (cap.max(str.len()) + 1)
-                .next_power_of_two();
+            let new_cap = (cap.max(str.len()) + 1).next_power_of_two();
             let new_buf = String::with_capacity(new_cap);
             let old_buf = std::mem::replace(&mut self.buf, new_buf);
             self.full.push(old_buf);

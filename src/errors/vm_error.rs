@@ -1,6 +1,6 @@
+use crate::class::version::Version;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
-use crate::class::version::Version;
 
 #[derive(Debug, Copy, Clone)]
 pub struct VMError {
@@ -16,11 +16,8 @@ pub enum VMErrorKind {
 }
 
 impl VMError {
-
     pub fn new(error_kind: VMErrorKind) -> Self {
-        Self {
-            error_kind,
-        }
+        Self { error_kind }
     }
 }
 
@@ -30,6 +27,4 @@ impl Display for VMError {
     }
 }
 
-impl Error for VMError {
-
-}
+impl Error for VMError {}

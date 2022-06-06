@@ -1,12 +1,9 @@
+use crate::bytes::serializable::Serializable;
+use crate::bytes::serializers::{ByteReader, ByteWriter};
 use std::cmp::Ordering;
 use std::io::{Error, ErrorKind};
-use crate::bytes::serializers::{ByteReader, ByteWriter};
-use crate::bytes::serializable::Serializable;
 
-pub const CURRENT_VERSION: Version = Version {
-    major: 0,
-    minor: 1,
-};
+pub const CURRENT_VERSION: Version = Version { major: 0, minor: 1 };
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Version {
@@ -15,12 +12,8 @@ pub struct Version {
 }
 
 impl Version {
-    
     pub fn new(major: u16, minor: u16) -> Self {
-        Self {
-            major, 
-            minor
-        }
+        Self { major, minor }
     }
 }
 
@@ -31,15 +24,11 @@ impl Default for Version {
 }
 
 impl Serializable for Version {
-
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let major = u16::read(byte_reader)?;
         let minor = u16::read(byte_reader)?;
 
-        Ok(Self {
-            major,
-            minor,
-        })
+        Ok(Self { major, minor })
     }
 
     fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error> {
@@ -56,6 +45,9 @@ impl PartialOrd<Self> for Version {
 
 impl Ord for Version {
     fn cmp(&self, other: &Self) -> Ordering {
-        return self.major.cmp(&other.major).cmp(&self.minor.cmp(&other.minor))
+        return self
+            .major
+            .cmp(&other.major)
+            .cmp(&self.minor.cmp(&other.minor));
     }
 }

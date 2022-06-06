@@ -9,15 +9,14 @@ pub const STACK_SIZE: usize = 4 * 1024;
 #[derive(Debug)]
 pub struct Stack {
     internal: [u8; STACK_SIZE],
-    index: usize
+    index: usize,
 }
 
 impl Stack {
-
     pub(crate) fn new() -> Self {
         Stack {
             internal: [0; STACK_SIZE],
-            index: 0
+            index: 0,
         }
     }
 
@@ -59,16 +58,21 @@ impl Stack {
 }
 
 impl Display for Stack {
-
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Stack[index: {}, stack: {:?}]", self.index, self.internal)
+        write!(
+            f,
+            "Stack[index: {}, stack: {:?}]",
+            self.index, self.internal
+        )
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::{class::{class::Class, class_builder::ClassBuilder}, pool::internal_string::InternalString};
+    use crate::{
+        class::{class::Class, class_builder::ClassBuilder},
+        pool::internal_string::InternalString,
+    };
 
     use super::*;
 
@@ -92,7 +96,9 @@ mod tests {
 
         let mut heap_value = 0i128;
         let ptr: *mut i128 = &mut heap_value;
-        let class = ClassBuilder::new().set_size(8).build(|val| InternalString(0));
+        let class = ClassBuilder::new()
+            .set_size(8)
+            .build(|val| InternalString(0));
         let heap_ptr = HeapPointer::new(&class, ptr.cast());
 
         heap_ptr.start_address().write(123);
@@ -123,9 +129,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn read_uninit_value() {
-        std::panic::set_hook(Box::new(|info| {
-
-        }));
+        std::panic::set_hook(Box::new(|info| {}));
 
         let mut stack = Stack::new();
         let val: HeapPointer = stack.pop().into();

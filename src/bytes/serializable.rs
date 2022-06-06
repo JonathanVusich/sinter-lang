@@ -1,10 +1,9 @@
-use std::io::{Error, ErrorKind, Read};
-use std::mem;
 use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::class::constant_pool::ConstantPoolEntry;
+use std::io::{Error, ErrorKind, Read};
+use std::mem;
 
 pub trait Serializable: Sized {
-
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error>;
     fn write(&self, byte_writer: &mut impl ByteWriter) -> Result<(), Error>;
 }
@@ -43,7 +42,6 @@ impl Serializable for bool {
 }
 
 impl<T: Serializable> Serializable for Box<[T]> {
-
     fn read(byte_reader: &mut impl ByteReader) -> Result<Box<[T]>, Error> {
         let size = u64::read(byte_reader)?;
 

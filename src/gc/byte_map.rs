@@ -1,12 +1,14 @@
 use crate::gc::block::LINES_PER_BLOCK;
 
 pub struct ByteMap {
-    map: [u8; LINES_PER_BLOCK]
+    map: [u8; LINES_PER_BLOCK],
 }
 
 impl ByteMap {
     pub fn new() -> Self {
-        ByteMap { map: [0; LINES_PER_BLOCK] }
+        ByteMap {
+            map: [0; LINES_PER_BLOCK],
+        }
     }
 
     pub fn mark(&mut self, line: usize) {
@@ -31,4 +33,3 @@ mod tests {
         assert_eq!(std::mem::size_of::<ByteMap>(), LINES_PER_BLOCK);
     }
 }
-

@@ -1,2 +1,2 @@
-pub mod region;
 mod page;
+pub mod region;

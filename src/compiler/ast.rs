@@ -1,6 +1,6 @@
-use string_interner::symbol::SymbolUsize;
 use crate::compiler::types::types::{Identifier, Type};
 use crate::traits::traits::Trait;
+use string_interner::symbol::SymbolUsize;
 
 pub struct Module {
     use_stmts: Vec<UseStatement>,
@@ -9,8 +9,11 @@ pub struct Module {
 }
 
 impl Module {
-
-    pub fn new(use_stmts: Vec<UseStatement>, tys: Vec<TypeStatement>, fns: Vec<FunctionStatement>) -> Self {
+    pub fn new(
+        use_stmts: Vec<UseStatement>,
+        tys: Vec<TypeStatement>,
+        fns: Vec<FunctionStatement>,
+    ) -> Self {
         Self {
             use_stmts,
             tys,
@@ -24,11 +27,8 @@ pub struct UseStatement {
 }
 
 impl UseStatement {
-
     pub fn new(ident: Identifier) -> Self {
-        Self {
-            ident,
-        }
+        Self { ident }
     }
 }
 
@@ -53,6 +53,21 @@ pub struct ClassStatement {
     member_functions: Vec<MemberFunctionDecl>,
 }
 
+impl ClassStatement {
+
+    pub fn new(name: Identifier,
+               generic_types: Vec<GenericTypeDecl>,
+               members: Vec<MemberDecl>,
+               member_functions: Vec<MemberFunctionDecl>) -> Self {
+        Self {
+            name,
+            generic_types,
+            members,
+            member_functions,
+        }
+    }
+}
+
 pub struct EnumStatement {
     ident: Identifier,
     members: Vec<EnumMemberDecl>,
@@ -72,7 +87,17 @@ pub struct FunctionStatement {
 
 pub struct GenericTypeDecl {
     ident: Identifier,
-    type_ref: Type,
+    trait_bound: Option<Type>,
+}
+
+impl GenericTypeDecl {
+
+    pub fn new(ident: Identifier, trait_bound: Option<Type>) -> Self {
+        Self {
+            ident,
+            trait_bound,
+        }
+    }
 }
 
 pub struct MemberDecl {
@@ -117,7 +142,7 @@ pub struct LocalVarDecl {
 
 pub enum VarInitializer {
     Array(Vec<VarInitializer>),
-    Statement(Statement)
+    Statement(Statement),
 }
 
 pub struct Expression {
@@ -149,7 +174,7 @@ pub enum PrimaryExpression {
     ClassInitializer {
         ident: Identifier,
         arguments: Vec<ArgumentDecl>,
-    }
+    },
 }
 
 pub enum Selector {
@@ -159,7 +184,7 @@ pub enum Selector {
     },
     Expression {
         expr: Box<Expression>,
-    }
+    },
 }
 
 pub enum Literal {
@@ -246,9 +271,9 @@ mod tests {
 
     #[test]
     pub fn check_size() {
-        assert_eq!(48, std::mem::size_of::<Module>());
+        assert_eq!(72, std::mem::size_of::<Module>());
         assert_eq!(16, std::mem::size_of::<TypeStatement>());
 
-        assert_eq!(0, std::mem::size_of::<Expression>());
+        assert_eq!(280, std::mem::size_of::<Expression>());
     }
 }

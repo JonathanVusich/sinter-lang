@@ -41,7 +41,6 @@ unsafe impl Send for Block {}
 unsafe impl Sync for Block {}
 
 impl Block {
-
     pub unsafe fn initialize(block: *mut Block) {
         let lines_ptr: *mut [u8; BYTES_PER_BLOCK] = addr_of_mut!((*block).lines);
         let start_address_ptr: *mut *const u8 = addr_of_mut!((*block).start_address);
@@ -84,38 +83,28 @@ impl Block {
 
     #[inline(always)]
     fn line_for_address(&self, address: *mut u8) -> isize {
-        unsafe {
-            address.offset_from(self.start_address) / LINE_SIZE as isize
-        }
+        unsafe { address.offset_from(self.start_address) / LINE_SIZE as isize }
     }
 
     #[inline(always)]
     fn end_cursor(&self, object_size: usize) -> *mut u8 {
-        unsafe {
-            self.cursor.add(object_size)
-        }
+        unsafe { self.cursor.add(object_size) }
     }
 }
 
 #[inline(always)]
 fn object_fits(end_address: *const u8, end_cursor: *mut u8) -> bool {
-    unsafe {
-        end_address.offset_from(end_cursor) >= 0
-    }
+    unsafe { end_address.offset_from(end_cursor) >= 0 }
 }
 
 #[inline(always)]
 fn end_cursor(cursor: *mut u8, object_size: usize) -> *mut u8 {
-    unsafe {
-        cursor.add(object_size)
-    }
+    unsafe { cursor.add(object_size) }
 }
 
 #[inline(always)]
 fn end_of_object(start_cursor: *mut u8, object_size: usize) -> *mut u8 {
-    unsafe {
-        start_cursor.add(object_size - 1)
-    }
+    unsafe { start_cursor.add(object_size - 1) }
 }
 
 mod tests {
@@ -127,7 +116,9 @@ mod tests {
 
     use crate::class::class::Class;
     use crate::class::class_builder::ClassBuilder;
-    use crate::gc::block::{Block, BLOCK_BYTEMASK, BLOCK_SIZE, BYTES_PER_BLOCK, LINE_SIZE, LINES_PER_BLOCK};
+    use crate::gc::block::{
+        Block, BLOCK_BYTEMASK, BLOCK_SIZE, BYTES_PER_BLOCK, LINES_PER_BLOCK, LINE_SIZE,
+    };
     use crate::gc::block_state::BlockState;
     use crate::heap::region::Region;
     use crate::pointers::pointer::Pointer;
@@ -172,7 +163,9 @@ mod tests {
 
         let mut start_cursor = block.cursor;
 
-        let class = ClassBuilder::new().set_size(16).build(|val| InternalString(0));
+        let class = ClassBuilder::new()
+            .set_size(16)
+            .build(|val| InternalString(0));
 
         let pointer = block.allocate(&class).unwrap();
 
@@ -182,7 +175,9 @@ mod tests {
             assert_eq!(16, offset);
         }
 
-        let larger_class = ClassBuilder::new().set_size(32).build(|val| InternalString(0));
+        let larger_class = ClassBuilder::new()
+            .set_size(32)
+            .build(|val| InternalString(0));
 
         start_cursor = block.cursor;
         let second_pointer = block.allocate(&larger_class).unwrap();
@@ -199,7 +194,9 @@ mod tests {
         let region = Region::new(BLOCK_SIZE).unwrap();
         let mut block = region.allocate_block().unwrap();
 
-        let class = ClassBuilder::new().set_size(16).build(|val| InternalString(0));
+        let class = ClassBuilder::new()
+            .set_size(16)
+            .build(|val| InternalString(0));
 
         let pointer = block.allocate(&class).unwrap();
 
@@ -217,8 +214,12 @@ mod tests {
         let region = Region::new(BLOCK_SIZE).unwrap();
         let mut block = region.allocate_block().unwrap();
 
-        let class_half_line = ClassBuilder::new().set_size(LINE_SIZE / 2).build(|val| InternalString(0));
-        let class_full_line = ClassBuilder::new().set_size(LINE_SIZE).build(|val| InternalString(0));
+        let class_half_line = ClassBuilder::new()
+            .set_size(LINE_SIZE / 2)
+            .build(|val| InternalString(0));
+        let class_full_line = ClassBuilder::new()
+            .set_size(LINE_SIZE)
+            .build(|val| InternalString(0));
 
         let pointer = block.allocate(&class_half_line).unwrap();
 
@@ -242,12 +243,16 @@ mod tests {
         let region = Region::new(BLOCK_SIZE).unwrap();
         let mut block = region.allocate_block().unwrap();
 
-        let class = ClassBuilder::new().set_size(BYTES_PER_BLOCK).build(|val| InternalString(0));
+        let class = ClassBuilder::new()
+            .set_size(BYTES_PER_BLOCK)
+            .build(|val| InternalString(0));
 
         let heap_pointer = block.allocate(&class);
         assert!(heap_pointer.is_some());
 
-        let small_class = ClassBuilder::new().set_size(BYTES_PER_BLOCK).build(|val| InternalString(0));
+        let small_class = ClassBuilder::new()
+            .set_size(BYTES_PER_BLOCK)
+            .build(|val| InternalString(0));
 
         let no_pointer = block.allocate(&small_class);
 
@@ -259,7 +264,9 @@ mod tests {
         let region = Region::new(BLOCK_SIZE).unwrap();
         let mut block = region.allocate_block().unwrap();
 
-        let class = ClassBuilder::new().set_size(16).build(|val| InternalString(0));
+        let class = ClassBuilder::new()
+            .set_size(16)
+            .build(|val| InternalString(0));
 
         let raw_block_ptr: *mut Block = &mut *block;
         let block_pointer = Pointer::from_raw(raw_block_ptr);
@@ -271,9 +278,7 @@ mod tests {
                     let ptr_block = ptr.block();
                     assert!(ptr_block == block_pointer);
                 }
-                None => {
-                    return
-                }
+                None => return,
             }
         }
     }

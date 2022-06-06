@@ -1,4 +1,4 @@
-use std::alloc::{Allocator, AllocError, Global, Layout};
+use std::alloc::{AllocError, Allocator, Global, Layout};
 use std::sync::Arc;
 
 use crate::class::class::Class;
@@ -13,7 +13,7 @@ pub struct ThreadAllocator {
     global_allocator: Arc<GlobalAllocator>,
     current_block: Option<Pointer<Block>>,
     overflow_block: Option<Pointer<Block>>,
-    blocks_in_use: Vec<Pointer<Block>>
+    blocks_in_use: Vec<Pointer<Block>>,
 }
 
 impl ThreadAllocator {
@@ -22,7 +22,7 @@ impl ThreadAllocator {
             global_allocator,
             current_block: None,
             overflow_block: None,
-            blocks_in_use: vec![]
+            blocks_in_use: vec![],
         }
     }
 
@@ -38,9 +38,7 @@ impl ThreadAllocator {
                         let overflow_block = self.get_overflow_block();
                         let overflow_alloc = overflow_block.allocate(object);
                         let pointer: HeapPointer = match overflow_alloc {
-                            Some(overflow_ptr) => {
-                                overflow_ptr
-                            },
+                            Some(overflow_ptr) => overflow_ptr,
                             None => {
                                 self.blocks_in_use.push(self.overflow_block.take().unwrap());
                                 let new_overflow = self.get_overflow_block();
@@ -89,6 +87,8 @@ impl ThreadAllocator {
     fn deallocate_large_object(&self, object: HeapPointer) {
         let class = object.class_pointer();
         let layout = Layout::array::<u8>(class.size).unwrap();
-        unsafe { Global.deallocate(object.to_raw(), layout); }
+        unsafe {
+            Global.deallocate(object.to_raw(), layout);
+        }
     }
 }

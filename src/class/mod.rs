@@ -1,9 +1,9 @@
 pub mod class;
-pub mod size_class;
-pub mod field;
-pub mod references;
-pub mod compiled_class;
-pub mod version;
-pub mod constant_pool;
-pub mod inline_class;
 pub mod class_builder;
+pub mod compiled_class;
+pub mod constant_pool;
+pub mod field;
+pub mod inline_class;
+pub mod references;
+pub mod size_class;
+pub mod version;

@@ -1,9 +1,9 @@
-use std::alloc::{Allocator, AllocError, Layout};
+use std::alloc::{AllocError, Allocator, Layout};
 use std::mem::MaybeUninit;
 use std::path::Component::Prefix;
-use std::ptr::{NonNull, slice_from_raw_parts};
-use std::sync::atomic::{AtomicPtr, AtomicU8, AtomicUsize};
+use std::ptr::{slice_from_raw_parts, NonNull};
 use std::sync::atomic::Ordering::SeqCst;
+use std::sync::atomic::{AtomicPtr, AtomicU8, AtomicUsize};
 use std::sync::Once;
 
 use region::{alloc, Allocation, Protection};
@@ -17,42 +17,39 @@ use crate::pointers::pointer::Pointer;
 pub struct Region {
     start: *const u8,
     num_blocks: usize,
-    block_cursor: AtomicUsize
+    block_cursor: AtomicUsize,
 }
 
 #[derive(Debug)]
 pub enum Error {
     SizeTooSmall,
     SizeTooLarge,
-    AllocationFailed
+    AllocationFailed,
 }
 
 impl Region {
-
     pub fn new(size: usize) -> Result<Self, Error> {
         let num_blocks = size / BLOCK_SIZE;
         if num_blocks == 0 {
-            return Err(SizeTooSmall)
+            return Err(SizeTooSmall);
         }
         let min_size = num_blocks * BLOCK_SIZE;
         let size = match min_size.checked_add(page::size()) {
             Some(offset) => ((offset - 1) & !(page::size() - 1)),
-            None => {
-                return Err(SizeTooLarge)
-            },
+            None => return Err(SizeTooLarge),
         };
 
         let region_ptr = unsafe { os::alloc(size) };
         let ptr = region_ptr.cast::<u8>();
 
         if ptr.is_null() {
-            return Err(AllocationFailed)
+            return Err(AllocationFailed);
         }
 
         Ok(Self {
             start: ptr,
             num_blocks,
-            block_cursor: AtomicUsize::new(0)
+            block_cursor: AtomicUsize::new(0),
         })
     }
 
@@ -106,7 +103,9 @@ mod tests {
         let empty_block = region.allocate_block();
         assert!(empty_block.is_none());
 
-        let size_class = ClassBuilder::new().set_size(16).build(|val| InternalString(0));
+        let size_class = ClassBuilder::new()
+            .set_size(16)
+            .build(|val| InternalString(0));
 
         let heap_ptr = block_1.allocate(&size_class).unwrap();
 

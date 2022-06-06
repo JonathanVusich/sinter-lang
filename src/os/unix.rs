@@ -1,6 +1,9 @@
-use std::sync::Once;
-use libc::{_SC_PAGESIZE, sysconf, posix_memalign, MAP_ANONYMOUS, MAP_SHARED, MAP_PRIVATE, PROT_READ, PROT_WRITE, c_void, off_t, MAP_ANON, mmap};
 use crate::gc::block::BLOCK_SIZE;
+use libc::{
+    c_void, mmap, off_t, posix_memalign, sysconf, MAP_ANON, MAP_ANONYMOUS, MAP_PRIVATE, MAP_SHARED,
+    PROT_READ, PROT_WRITE, _SC_PAGESIZE,
+};
+use std::sync::Once;
 
 pub unsafe fn alloc(size: usize) -> *mut u8 {
     let mut allocation: *mut c_void = std::ptr::null_mut();

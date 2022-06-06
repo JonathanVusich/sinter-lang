@@ -170,8 +170,9 @@ Using a generic type allows specialized code to be generated for each
 concrete type which improves performance at the expense of compile time
 code generation.
 
-Using a trait reference directly will force all types to be pointer-sized,
-which may incur a boxing penalty.
+Using a trait reference allows dynamic dispatch, but has the limitation of being compatible
+only with reference classes. Inline classes do not contain runtime type information and thus 
+cannot be used for dynamic dispatch.
 
 ### Defining classes and instances
 

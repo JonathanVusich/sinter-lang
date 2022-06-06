@@ -10,7 +10,6 @@ pub struct CallFrame {
 }
 
 impl CallFrame {
-
     pub fn new(method: &'static Method, address: usize) -> Self {
         Self {
             method,
@@ -40,4 +39,3 @@ impl CallFrame {
         self.size
     }
 }
-

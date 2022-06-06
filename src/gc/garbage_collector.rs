@@ -6,20 +6,17 @@ use crate::gc::thread_allocator::ThreadAllocator;
 use crate::pointers::heap_pointer::HeapPointer;
 
 pub struct GarbageCollector {
-    thread_stacks: Vec<Arc<Thread>>
+    thread_stacks: Vec<Arc<Thread>>,
 }
 
 impl GarbageCollector {
-
     pub fn new() -> Self {
         GarbageCollector {
-            thread_stacks: vec![]
+            thread_stacks: vec![],
         }
     }
 
-    pub fn collect(&self) {
-
-    }
+    pub fn collect(&self) {}
 }
 
 fn trace(root: HeapPointer) {

@@ -22,7 +22,9 @@ impl HeapPointer {
         let shifted_mark_word = (byte as u64) << 56;
         let tagged_ptr = shifted_mark_word | class as *const Class as u64;
 
-        let heap_pointer = HeapPointer { ptr: Pointer::from_raw(ptr) };
+        let heap_pointer = HeapPointer {
+            ptr: Pointer::from_raw(ptr),
+        };
         heap_pointer.ptr.cast::<u64>().write(tagged_ptr);
         heap_pointer
     }
@@ -58,7 +60,8 @@ impl HeapPointer {
         mark_word.set_bit(4);
         self.set_mark_word(mark_word);
 
-        self.block().mark_instance(&*self.class_pointer(), self.start_address().to_raw());
+        self.block()
+            .mark_instance(&*self.class_pointer(), self.start_address().to_raw());
     }
 
     pub fn spans_lines(&self) -> bool {
@@ -147,7 +150,9 @@ mod tests {
     pub fn constructor() {
         let mut val: u64 = 128;
         let raw_ptr: *mut u64 = &mut val;
-        let class = ClassBuilder::new().set_size(2).build(|val| InternalString(0));
+        let class = ClassBuilder::new()
+            .set_size(2)
+            .build(|val| InternalString(0));
         let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
     }
 
@@ -156,7 +161,9 @@ mod tests {
         let mut val: u64 = 128;
         let raw_ptr: *mut u64 = &mut val;
 
-        let class = ClassBuilder::new().set_size(2).build(|val| InternalString(0));
+        let class = ClassBuilder::new()
+            .set_size(2)
+            .build(|val| InternalString(0));
 
         let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
@@ -170,7 +177,9 @@ mod tests {
         let mut val: u64 = 128;
         let raw_ptr: *mut u64 = &mut val;
 
-        let class = ClassBuilder::new().set_size(2).build(|val| InternalString(0));
+        let class = ClassBuilder::new()
+            .set_size(2)
+            .build(|val| InternalString(0));
 
         let heap_pointer = HeapPointer::new(&class, raw_ptr.cast::<u8>());
 
@@ -179,7 +188,9 @@ mod tests {
         assert!(!heap_pointer.mark_word().is_bit_set(5));
         assert!(!heap_pointer.spans_lines());
 
-        let large_class = ClassBuilder::new().set_size(LINE_SIZE).build(|val| InternalString(0));
+        let large_class = ClassBuilder::new()
+            .set_size(LINE_SIZE)
+            .build(|val| InternalString(0));
 
         assert!(large_class.mark_word.is_bit_set(5));
 
@@ -188,4 +199,3 @@ mod tests {
         assert!(heap_pointer.spans_lines());
     }
 }
-

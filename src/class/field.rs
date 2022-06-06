@@ -1,13 +1,13 @@
-use std::io::{Error, ErrorKind};
-use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
+use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::class::constant_pool::ConstantPoolEntry;
 use crate::class::references::{InlineReference, Reference};
 use crate::compiler::types::types::Type;
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::pointer::Pointer;
 use crate::pool::internal_string::InternalString;
-use crate::types::types::{CompiledType};
+use crate::types::types::CompiledType;
+use std::io::{Error, ErrorKind};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Field {
@@ -26,11 +26,7 @@ pub struct CompiledField {
 }
 
 impl Field {
-
-    pub fn new(name: InternalString,
-               is_reference: bool,
-               offset: u64,
-               size: u64,) -> Self {
+    pub fn new(name: InternalString, is_reference: bool, offset: u64, size: u64) -> Self {
         Self {
             name,
             is_reference,
@@ -41,11 +37,12 @@ impl Field {
 }
 
 impl CompiledField {
-
-    pub fn new(name: ConstantPoolEntry,
-               type_descriptor: CompiledType,
-               offset: u64,
-               size: u64,) -> Self {
+    pub fn new(
+        name: ConstantPoolEntry,
+        type_descriptor: CompiledType,
+        offset: u64,
+        size: u64,
+    ) -> Self {
         Self {
             name,
             type_descriptor,
@@ -56,7 +53,6 @@ impl CompiledField {
 }
 
 impl Serializable for CompiledField {
-
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let name = ConstantPoolEntry::read(byte_reader)?;
         let type_descriptor = CompiledType::read(byte_reader)?;

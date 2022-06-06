@@ -18,7 +18,6 @@ pub struct ClassBuilder {
 }
 
 impl ClassBuilder {
-
     pub fn new() -> Self {
         Self {
             version: None,
@@ -55,9 +54,8 @@ impl ClassBuilder {
     pub fn add_method(&mut self, method: Method) {
         self.methods.push(method)
     }
-    
-    pub fn build<F: FnMut(String) -> InternalString>(self, mut string_interner: F) -> Class {
 
+    pub fn build<F: FnMut(String) -> InternalString>(self, mut string_interner: F) -> Class {
         let object_size = self.size.unwrap_or_default();
         let small_object = object_size < LINE_SIZE;
         let mark_word = if small_object {
@@ -68,18 +66,25 @@ impl ClassBuilder {
 
         let fields = Box::leak(self.fields.into_boxed_slice());
 
-        let references = Box::leak(fields.iter()
-            .filter(|field| field.is_reference)
-            .cloned()
-            .collect::<Vec<Field>>()
-            .into_boxed_slice());
+        let references = Box::leak(
+            fields
+                .iter()
+                .filter(|field| field.is_reference)
+                .cloned()
+                .collect::<Vec<Field>>()
+                .into_boxed_slice(),
+        );
 
         let methods = Box::leak(self.methods.into_boxed_slice());
 
         Class {
             version: self.version.unwrap_or_default(),
-            package: self.package.map_or_else(|| InternalString(0), |val| string_interner(val)),
-            name: self.name.map_or_else(|| InternalString(0), |val| string_interner(val)),
+            package: self
+                .package
+                .map_or_else(|| InternalString(0), |val| string_interner(val)),
+            name: self
+                .name
+                .map_or_else(|| InternalString(0), |val| string_interner(val)),
             size: self.size.unwrap_or_default(),
             size_class: SizeClass::from(self.size.unwrap_or_default()),
             mark_word,
@@ -87,5 +92,5 @@ impl ClassBuilder {
             references,
             methods,
         }
-    } 
+    }
 }

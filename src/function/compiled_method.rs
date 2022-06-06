@@ -1,8 +1,8 @@
-use std::io::{BufRead, BufReader, Error, ErrorKind};
-use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
+use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::class::constant_pool::ConstantPoolEntry;
-use crate::types::types::{CompiledType};
+use crate::types::types::CompiledType;
+use std::io::{BufRead, BufReader, Error, ErrorKind};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct CompiledMethod {
@@ -22,7 +22,6 @@ pub struct CompiledMethodDescriptor {
 }
 
 impl Serializable for CompiledMethod {
-
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let name = ConstantPoolEntry::read(byte_reader)?;
         let descriptor = CompiledMethodDescriptor::read(byte_reader)?;
@@ -54,7 +53,6 @@ impl Serializable for CompiledMethod {
 }
 
 impl Serializable for CompiledMethodDescriptor {
-
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let return_type = CompiledType::read(byte_reader)?;
         let parameters = Box::<[CompiledType]>::read(byte_reader)?;

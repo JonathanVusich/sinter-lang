@@ -1,3 +1,3 @@
 pub mod token;
-pub mod tokenizer;
 pub mod tokenized_file;
+pub mod tokenizer;

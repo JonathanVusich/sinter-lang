@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Token {
     pub token_type: TokenType,
@@ -89,7 +91,6 @@ pub enum TokenType {
 }
 
 impl Token {
-
     pub fn new(token_type: TokenType, start: usize, end: usize) -> Self {
         Self {
             token_type,

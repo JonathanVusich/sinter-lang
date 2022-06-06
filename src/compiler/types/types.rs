@@ -1,5 +1,5 @@
+use string_interner::symbol::DefaultSymbol;
 use string_interner::DefaultBackend;
-use string_interner::symbol::{DefaultSymbol};
 
 pub type Identifier = DefaultSymbol;
 
@@ -26,5 +26,5 @@ pub enum BasicType {
     I64,
     F32,
     F64,
-    None
+    None,
 }

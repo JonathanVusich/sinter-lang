@@ -1,8 +1,8 @@
-use std::io::{Error, ErrorKind, Read};
-use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
+use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::class::constant_pool::ConstantPoolEntry;
 use crate::function::compiled_method::CompiledMethod;
+use std::io::{Error, ErrorKind, Read};
 
 pub struct CompiledTrait {
     package: ConstantPoolEntry,
@@ -11,7 +11,6 @@ pub struct CompiledTrait {
 }
 
 impl Serializable for CompiledTrait {
-
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let package = ConstantPoolEntry::read(byte_reader)?;
         let name = ConstantPoolEntry::read(byte_reader)?;
@@ -31,4 +30,3 @@ impl Serializable for CompiledTrait {
         self.methods.write(byte_writer)
     }
 }
-

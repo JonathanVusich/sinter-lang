@@ -1,6 +1,6 @@
 #[repr(u8)]
 #[derive(PartialOrd, PartialEq, Eq, Debug)]
-pub (crate) enum OpCode {
+pub(crate) enum OpCode {
     ReturnVoid,
     Return,
 
@@ -40,7 +40,6 @@ pub (crate) enum OpCode {
 }
 
 impl From<u8> for OpCode {
-
     #[inline(always)]
     fn from(byte: u8) -> Self {
         let opcode: OpCode;
@@ -52,7 +51,6 @@ impl From<u8> for OpCode {
 }
 
 impl From<OpCode> for u8 {
-
     #[inline(always)]
     fn from(opcode: OpCode) -> Self {
         opcode as u8
@@ -61,15 +59,15 @@ impl From<OpCode> for u8 {
 
 #[cfg(test)]
 mod tests {
-    use libc::chdir;
     use super::*;
+    use libc::chdir;
 
     #[test]
     fn test_enum() {
         macro_rules! check_transmution {
             ($identifier:ident) => {
                 assert_eq!(OpCode::$identifier, OpCode::from(OpCode::$identifier as u8));
-            }
+            };
         }
 
         check_transmution!(ReturnVoid);

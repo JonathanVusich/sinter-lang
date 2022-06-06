@@ -1,12 +1,12 @@
-use std::io::{Error, ErrorKind};
-use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::bytes::serializable::Serializable;
+use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::class::constant_pool::{ConstantPool, ConstantPoolEntry};
 use crate::class::field::{CompiledField, Field};
 use crate::class::version::Version;
 use crate::function::compiled_method::CompiledMethod;
 use crate::function::method::Method;
 use crate::types::types::CompiledType;
+use std::io::{Error, ErrorKind};
 
 use super::class::Class;
 
@@ -25,7 +25,6 @@ pub struct CompiledClass {
 }
 
 impl Serializable for CompiledClass {
-
     fn read(byte_reader: &mut impl ByteReader) -> Result<Self, Error> {
         let version = Version::read(byte_reader)?;
         let constant_pool = ConstantPool::read(byte_reader)?;

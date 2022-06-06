@@ -9,11 +9,10 @@ const BIT_8_MASK: u8 = compute_mask(8);
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct MarkWord {
-    word: u8
+    word: u8,
 }
 
 impl MarkWord {
-
     pub fn set_bit(&mut self, bit: u8) {
         let mask = get_mask(bit);
         self.word |= mask
@@ -41,7 +40,7 @@ const fn get_mask(bit: u8) -> u8 {
         6 => BIT_6_MASK,
         7 => BIT_7_MASK,
         8 => BIT_8_MASK,
-        _ => panic!("Unsupported bit index!")
+        _ => panic!("Unsupported bit index!"),
     }
 }
 
@@ -53,14 +52,12 @@ const fn compute_mask(bit: u8) -> u8 {
 }
 
 impl From<u8> for MarkWord {
-
     fn from(word: u8) -> Self {
         Self { word }
     }
 }
 
 impl From<MarkWord> for u8 {
-
     fn from(word: MarkWord) -> Self {
         word.word
     }
@@ -97,9 +94,7 @@ mod tests {
     #[test]
     #[should_panic]
     pub fn bit_too_low() {
-        std::panic::set_hook(Box::new(|info| {
-
-        }));
+        std::panic::set_hook(Box::new(|info| {}));
 
         let mut mark_word = MarkWord::from(0);
         mark_word.set_bit(0);
@@ -108,9 +103,7 @@ mod tests {
     #[test]
     #[should_panic]
     pub fn bit_too_high() {
-        std::panic::set_hook(Box::new(|info| {
-
-        }));
+        std::panic::set_hook(Box::new(|info| {}));
 
         let mut mark_word = MarkWord::from(0);
         mark_word.set_bit(9);

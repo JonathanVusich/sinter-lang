@@ -1,19 +1,21 @@
-use std::ops::{Deref, DerefMut};
-use std::ptr::NonNull;
 use crate::class::class::Class;
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::util::constants::WORD;
+use std::ops::{Deref, DerefMut};
+use std::ptr::NonNull;
 
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct Pointer<T> {
     /// The underlying raw pointer.
-    pointer: *mut T
+    pointer: *mut T,
 }
 
 impl<T> Pointer<T> {
     pub fn new(value: &T) -> Self {
-        Self { pointer: value as *const T as *mut T }
+        Self {
+            pointer: value as *const T as *mut T,
+        }
     }
 
     pub fn from_raw(ptr: *mut T) -> Self {
@@ -25,15 +27,25 @@ impl<T> Pointer<T> {
     }
 
     pub fn add(&self, offset: usize) -> Self {
-        unsafe { Self { pointer: self.pointer.add(offset) } }
+        unsafe {
+            Self {
+                pointer: self.pointer.add(offset),
+            }
+        }
     }
 
     pub fn offset(&self, offset: isize) -> Self {
-        unsafe { Self { pointer: self.pointer.offset(offset) } }
+        unsafe {
+            Self {
+                pointer: self.pointer.offset(offset),
+            }
+        }
     }
 
     pub fn cast<U>(&self) -> Pointer<U> {
-        Pointer { pointer: self.pointer.cast::<U>() }
+        Pointer {
+            pointer: self.pointer.cast::<U>(),
+        }
     }
 
     pub fn read(&self) -> T {
@@ -46,28 +58,26 @@ impl<T> Pointer<T> {
 }
 
 impl<T> From<Pointer<T>> for [u8; WORD] {
-
     fn from(pointer: Pointer<T>) -> Self {
         (pointer.pointer as usize).to_ne_bytes()
     }
 }
 
 impl<T> From<Pointer<T>> for u64 {
-
     fn from(pointer: Pointer<T>) -> Self {
         pointer.pointer as u64
     }
 }
 
 impl<T> From<[u8; WORD]> for Pointer<T> {
-
     fn from(bytes: [u8; WORD]) -> Pointer<T> {
-        Pointer { pointer: u64::from_ne_bytes(bytes) as *mut T }
+        Pointer {
+            pointer: u64::from_ne_bytes(bytes) as *mut T,
+        }
     }
 }
 
 impl<T> From<Pointer<T>> for NonNull<T> {
-
     fn from(pointer: Pointer<T>) -> Self {
         unsafe { NonNull::new_unchecked(pointer.pointer) }
     }
