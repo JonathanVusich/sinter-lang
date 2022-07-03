@@ -1,6 +1,6 @@
-use crate::compiler::types::types::{Identifier, Type};
-use crate::traits::traits::Trait;
+use crate::compiler::types::types::{Ident, Type};
 use string_interner::symbol::SymbolUsize;
+use crate::traits::traits::Trait;
 
 pub struct Module {
     use_stmts: Vec<UseStatement>,
@@ -22,13 +22,29 @@ impl Module {
     }
 }
 
+pub struct QualifiedIdent {
+    idents: Vec<Ident>,
+}
+
+impl QualifiedIdent {
+
+    pub fn new(idents: Vec<Ident>) -> Self {
+        Self {
+            idents,
+        }
+    }
+}
+
 pub struct UseStatement {
-    ident: Identifier,
+    ident: QualifiedIdent,
 }
 
 impl UseStatement {
-    pub fn new(ident: Identifier) -> Self {
-        Self { ident }
+
+    pub fn new(ident: QualifiedIdent) -> Self {
+        Self {
+            ident,
+        }
     }
 }
 
@@ -40,14 +56,14 @@ pub enum TypeStatement {
 }
 
 pub struct InlineClassStatement {
-    name: Identifier,
+    name: Ident,
     generic_types: Vec<GenericTypeDecl>,
     members: Vec<MemberDecl>,
     member_functions: Vec<MemberFunctionDecl>,
 }
 
 pub struct ClassStatement {
-    name: Identifier,
+    name: Ident,
     generic_types: Vec<GenericTypeDecl>,
     members: Vec<MemberDecl>,
     member_functions: Vec<MemberFunctionDecl>,
@@ -55,7 +71,7 @@ pub struct ClassStatement {
 
 impl ClassStatement {
 
-    pub fn new(name: Identifier,
+    pub fn new(name: Ident,
                generic_types: Vec<GenericTypeDecl>,
                members: Vec<MemberDecl>,
                member_functions: Vec<MemberFunctionDecl>) -> Self {
@@ -69,30 +85,30 @@ impl ClassStatement {
 }
 
 pub struct EnumStatement {
-    ident: Identifier,
+    ident: Ident,
     members: Vec<EnumMemberDecl>,
 }
 
 pub struct TraitStatement {
-    ident: Identifier,
+    ident: Ident,
     functions: Vec<MemberFunctionDecl>,
 }
 
 pub struct FunctionStatement {
-    ident: Identifier,
+    ident: Ident,
     generic_types: Vec<GenericTypeDecl>,
     parameters: Vec<ParameterDecl>,
     return_type: Type,
 }
 
 pub struct GenericTypeDecl {
-    ident: Identifier,
+    ident: Ident,
     trait_bound: Option<Type>,
 }
 
 impl GenericTypeDecl {
 
-    pub fn new(ident: Identifier, trait_bound: Option<Type>) -> Self {
+    pub fn new(ident: Ident, trait_bound: Option<Type>) -> Self {
         Self {
             ident,
             trait_bound,
@@ -101,18 +117,18 @@ impl GenericTypeDecl {
 }
 
 pub struct MemberDecl {
-    ident: Identifier,
+    ident: Ident,
     type_ref: Type,
 }
 
 pub struct EnumMemberDecl {
-    ident: Identifier,
+    ident: Ident,
     parameters: Vec<ParameterDecl>,
     member_functions: Vec<MemberFunctionDecl>,
 }
 
 pub struct MemberFunctionDecl {
-    ident: Identifier,
+    ident: Ident,
     generic_types: Vec<GenericTypeDecl>,
     parameters: Vec<ParameterDecl>,
     return_type: Type,
@@ -120,12 +136,12 @@ pub struct MemberFunctionDecl {
 }
 
 pub struct ParameterDecl {
-    ident: Identifier,
+    ident: Ident,
     ty: Type,
 }
 
 pub struct ArgumentDecl {
-    ident: Identifier,
+    ident: Ident,
     ty: Type,
 }
 
@@ -135,7 +151,7 @@ pub enum BlockStatement {
 }
 
 pub struct LocalVarDecl {
-    ident: Identifier,
+    ident: Ident,
     ty: Type,
     initializer: Option<VarInitializer>,
 }
@@ -172,14 +188,14 @@ pub enum PrimaryExpression {
         initializers: Vec<VarInitializer>,
     },
     ClassInitializer {
-        ident: Identifier,
+        ident: Ident,
         arguments: Vec<ArgumentDecl>,
     },
 }
 
 pub enum Selector {
     FunctionCall {
-        ident: Identifier,
+        ident: Ident,
         arguments: Vec<ArgumentDecl>,
     },
     Expression {
@@ -191,7 +207,7 @@ pub enum Literal {
     IntegerLiteral(i64),
     FloatingPointerLiteral(f64),
     BooleanLiteral(bool),
-    StringLiteral(Identifier),
+    StringLiteral(Ident),
     None,
 }
 
@@ -251,7 +267,7 @@ pub struct MatchStatement {
 
 pub struct MatchArm {
     ty: Type,
-    ident: Identifier,
+    ident: Ident,
     statement: Statement,
 }
 
@@ -261,7 +277,7 @@ pub struct WhileStatement {
 }
 
 pub struct ForStatement {
-    ident: Identifier,
+    ident: Ident,
     loop_expr: Box<Expression>,
     statement: Statement,
 }

@@ -383,7 +383,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn create_token(&mut self, token_type: TokenType) {
-        let token = Token::new(token_type, self.start, self.current - 1);
+        let token = Token::new(token_type, self.start, self.current);
         self.start = self.current;
         self.tokenized_file.add_token(token);
     }
@@ -410,17 +410,17 @@ mod tests {
 
     #[allow(unused_macros)]
     macro_rules! make_token {
-        ($token_ident:expr, $start:tt, $end:tt) => {
-            Token::new($token_ident, $start, $end)
-        };
+        ($token_ident:expr, $start:tt, $current:tt) => {
+            Token::new($token_ident, $start, $current)
+        }
     }
 
     #[allow(unused_macros)]
     macro_rules! tokenize {
-        ($($token_ident:expr, $start:literal, $end:literal),*) => {
+        ($($token_ident:expr, $start:literal, $current:literal),*) => {
             vec![
                 $(
-                    make_token!($token_ident, $start, $end),
+                    make_token!($token_ident, $start, $current),
                 )*
             ]
         }
@@ -440,96 +440,63 @@ mod tests {
     pub fn token_generation() {
         test!(
             tokenize!(
-                TokenType::Pub,
-                0, 2,
-                TokenType::Class,
-                4, 8,
-                TokenType::Identifier("Random"),
-                10, 15,
-                TokenType::LeftBrace,
-                17, 17,
-                TokenType::RightBrace,
-                18, 18
+                TokenType::Pub, 0, 3,
+                TokenType::Class, 4, 9,
+                TokenType::Identifier("Random"), 10, 16,
+                TokenType::LeftBrace, 17, 18,
+                TokenType::RightBrace, 18, 19
             ),
             "pub class Random {}"
         );
 
         test!(
             tokenize!(
-                TokenType::Impl,
-                0, 3,
-                TokenType::Enum,
-                5, 8,
-                TokenType::Identifier("Reader"),
-                12, 17,
-                TokenType::LeftBracket,
-                21, 21,
-                TokenType::RightBracket,
-                23, 23
+                TokenType::Impl, 0, 4,
+                TokenType::Enum, 5, 9,
+                TokenType::Identifier("Reader"), 12, 18,
+                TokenType::LeftBracket, 21, 22,
+                TokenType::RightBracket, 23, 24
             ),
             "impl enum \n Reader \n [ ]"
         );
 
         test!(
             tokenize!(
-                TokenType::Native,
-                0, 5,
-                TokenType::Identifier("nativer"),
-                7, 13,
-                TokenType::Identifier("enative"),
-                15, 21
+                TokenType::Native, 0, 6,
+                TokenType::Identifier("nativer"), 7, 14,
+                TokenType::Identifier("enative"), 15, 22
             ),
             "native nativer enative"
         );
 
         test!(
             tokenize!(
-                TokenType::Trait,
-                0, 4,
-                TokenType::Identifier("Serializable"),
-                6, 17,
-                TokenType::LeftBrace,
-                19, 19,
-                TokenType::RightBrace,
-                21, 21
+                TokenType::Trait, 0, 5,
+                TokenType::Identifier("Serializable"), 6, 18,
+                TokenType::LeftBrace, 19, 20,
+                TokenType::RightBrace, 21, 22
             ),
             "trait Serializable { }"
         );
 
         test!(
             tokenize!(
-                TokenType::Trait,
-                0, 4,
-                TokenType::Identifier("Iterator"),
-                6, 13,
-                TokenType::Less,
-                14, 14,
-                TokenType::Identifier("T"),
-                15, 15,
-                TokenType::Greater,
-                16, 16,
-                TokenType::LeftBrace,
-                18, 18,
-                TokenType::Fn,
-                20, 21,
-                TokenType::Identifier("next"),
-                23, 26,
-                TokenType::LeftParentheses,
-                27, 27,
-                TokenType::RightParentheses,
-                28, 28,
-                TokenType::RightArrow,
-                30, 31,
-                TokenType::Identifier("T"),
-                33, 33,
-                TokenType::Pipe,
-                35, 35,
-                TokenType::None,
-                37, 40,
-                TokenType::Semicolon,
-                41, 41,
-                TokenType::RightBrace,
-                43, 43
+                TokenType::Trait, 0, 5,
+                TokenType::Identifier("Iterator"), 6, 14,
+                TokenType::Less, 14, 15,
+                TokenType::Identifier("T"), 15, 16,
+                TokenType::Greater, 16, 17,
+                TokenType::LeftBrace, 18, 19,
+                TokenType::Fn, 20, 22,
+                TokenType::Identifier("next"), 23, 27,
+                TokenType::LeftParentheses, 27, 28,
+                TokenType::RightParentheses, 28, 29,
+                TokenType::RightArrow, 30, 32,
+                TokenType::Identifier("T"), 33, 34,
+                TokenType::Pipe, 35, 36,
+                TokenType::None, 37, 41,
+                TokenType::Semicolon, 41, 42,
+                TokenType::RightBrace, 43, 44
             ),
             "trait Iterator<T> { \
                  fn next() => T | None; \
@@ -538,86 +505,49 @@ mod tests {
 
         test!(
             tokenize!(
-                TokenType::Class,
-                0, 4,
-                TokenType::Identifier("Point"),
-                6, 10,
-                TokenType::Less,
-                11, 11,
-                TokenType::Identifier("T"),
-                12, 12,
-                TokenType::Comma,
-                13, 13,
-                TokenType::Identifier("U"),
-                15, 15,
-                TokenType::Greater,
-                16, 16,
-                TokenType::LeftParentheses,
-                17, 17,
-                TokenType::Identifier("x"),
-                18, 18,
-                TokenType::Colon,
-                19, 19,
-                TokenType::Identifier("T"),
-                21, 21,
-                TokenType::Comma,
-                22, 22,
-                TokenType::Identifier("y"),
-                24, 24,
-                TokenType::Colon,
-                25, 25,
-                TokenType::Identifier("U"),
-                27, 27,
-                TokenType::RightParentheses,
-                28, 28,
-                TokenType::Semicolon,
-                29, 29
+                TokenType::Class, 0, 5,
+                TokenType::Identifier("Point"), 6, 11,
+                TokenType::Less, 11, 12,
+                TokenType::Identifier("T"), 12, 13,
+                TokenType::Comma, 13, 14,
+                TokenType::Identifier("U"), 15, 16,
+                TokenType::Greater, 16, 17,
+                TokenType::LeftParentheses, 17, 18,
+                TokenType::Identifier("x"), 18, 19,
+                TokenType::Colon, 19, 20,
+                TokenType::Identifier("T"), 21, 22,
+                TokenType::Comma, 22, 23,
+                TokenType::Identifier("y"), 24, 25,
+                TokenType::Colon, 25, 26,
+                TokenType::Identifier("U"), 27, 28,
+                TokenType::RightParentheses, 28, 29,
+                TokenType::Semicolon, 29, 30
             ),
             "class Point<T, U>(x: T, y: U);"
         );
 
         test!(
             tokenize!(
-                TokenType::Fn,
-                0, 1,
-                TokenType::Identifier("main"),
-                3, 6,
-                TokenType::LeftParentheses,
-                7, 7,
-                TokenType::Identifier("arguments"),
-                8, 16,
-                TokenType::Colon,
-                17, 17,
-                TokenType::LeftBracket,
-                19, 19,
-                TokenType::Identifier("str"),
-                20, 22,
-                TokenType::RightBracket,
-                23, 23,
-                TokenType::RightParentheses,
-                24, 24,
-                TokenType::LeftBrace,
-                26, 26,
-                TokenType::Identifier("print"),
-                28, 32,
-                TokenType::LeftParentheses,
-                33, 33,
-                TokenType::Identifier("arguments"),
-                34, 42,
-                TokenType::Dot,
-                43, 43,
-                TokenType::Identifier("to_string"),
-                44, 52,
-                TokenType::LeftParentheses,
-                53, 53,
-                TokenType::RightParentheses,
-                54, 54,
-                TokenType::RightParentheses,
-                55, 55,
-                TokenType::Semicolon,
-                56, 56,
-                TokenType::RightBrace,
-                58, 58
+                TokenType::Fn, 0, 2,
+                TokenType::Identifier("main"), 3, 7,
+                TokenType::LeftParentheses, 7, 8,
+                TokenType::Identifier("arguments"), 8, 17,
+                TokenType::Colon, 17, 18,
+                TokenType::LeftBracket, 19, 20,
+                TokenType::Identifier("str"), 20, 23,
+                TokenType::RightBracket, 23, 24,
+                TokenType::RightParentheses, 24, 25,
+                TokenType::LeftBrace, 26, 27,
+                TokenType::Identifier("print"), 28, 33,
+                TokenType::LeftParentheses, 33, 34,
+                TokenType::Identifier("arguments"), 34, 43,
+                TokenType::Dot, 43, 44,
+                TokenType::Identifier("to_string"), 44, 53,
+                TokenType::LeftParentheses, 53, 54,
+                TokenType::RightParentheses, 54, 55,
+                TokenType::RightParentheses, 55, 56,
+                TokenType::Semicolon, 56, 57,
+                TokenType::RightBrace, 58, 59
             ),
             "fn main(arguments: [str]) { \
                  print(arguments.to_string()); \
@@ -626,98 +556,52 @@ mod tests {
 
         test!(
             tokenize!(
-                TokenType::Val,
-                0, 2,
-                TokenType::Identifier("greeting"),
-                4, 11,
-                TokenType::Equal,
-                13, 13,
-                TokenType::String("Hello world!"),
-                15, 28,
-                TokenType::Semicolon,
-                29, 29,
-                TokenType::Val,
-                57, 59,
-                TokenType::Identifier("bytearray"),
-                61, 69,
-                TokenType::Colon,
-                70, 70,
-                TokenType::LeftBracket,
-                72, 72,
-                TokenType::Identifier("u8"),
-                73, 74,
-                TokenType::RightBracket,
-                75, 75,
-                TokenType::Equal,
-                77, 77,
-                TokenType::LeftBracket,
-                79, 79,
-                TokenType::SignedInteger(72),
-                80, 81,
-                TokenType::Comma,
-                82, 82,
-                TokenType::SignedInteger(101),
-                84, 86,
-                TokenType::Comma,
-                87, 87,
-                TokenType::SignedInteger(108),
-                89, 91,
-                TokenType::Comma,
-                92, 92,
-                TokenType::SignedInteger(108),
-                94, 96,
-                TokenType::Comma,
-                97, 97,
-                TokenType::SignedInteger(111),
-                99, 101,
-                TokenType::Comma,
-                102, 102,
-                TokenType::SignedInteger(32),
-                104, 105,
-                TokenType::Comma,
-                106, 106,
-                TokenType::SignedInteger(119),
-                108, 110,
-                TokenType::Comma,
-                111, 111,
-                TokenType::SignedInteger(111),
-                113, 115,
-                TokenType::Comma,
-                116, 116,
-                TokenType::SignedInteger(114),
-                118, 120,
-                TokenType::Comma,
-                121, 121,
-                TokenType::SignedInteger(108),
-                123, 125,
-                TokenType::Comma,
-                126, 126,
-                TokenType::SignedInteger(100),
-                128, 130,
-                TokenType::Comma,
-                131, 131,
-                TokenType::SignedInteger(33),
-                133, 134,
-                TokenType::RightBracket,
-                135, 135,
-                TokenType::Semicolon,
-                136, 136,
-                TokenType::Val,
-                138, 140,
-                TokenType::Identifier("greeting_from_array"),
-                142, 160,
-                TokenType::Equal,
-                162, 162,
-                TokenType::Identifier("str"),
-                164, 166,
-                TokenType::LeftParentheses,
-                167, 167,
-                TokenType::Identifier("bytearray"),
-                168, 176,
-                TokenType::RightParentheses,
-                177, 177,
-                TokenType::Semicolon,
-                178, 178
+                TokenType::Val, 0, 3,
+                TokenType::Identifier("greeting"), 4, 12,
+                TokenType::Equal, 13, 14,
+                TokenType::String("Hello world!"), 15, 29,
+                TokenType::Semicolon, 29, 30,
+                TokenType::Val, 57, 60,
+                TokenType::Identifier("bytearray"), 61, 70,
+                TokenType::Colon, 70, 71,
+                TokenType::LeftBracket, 72, 73,
+                TokenType::Identifier("u8"), 73, 75,
+                TokenType::RightBracket, 75, 76,
+                TokenType::Equal, 77, 78,
+                TokenType::LeftBracket, 79, 80,
+                TokenType::SignedInteger(72), 80, 82,
+                TokenType::Comma, 82, 83,
+                TokenType::SignedInteger(101), 84, 87,
+                TokenType::Comma, 87, 88,
+                TokenType::SignedInteger(108), 89, 92,
+                TokenType::Comma, 92, 93,
+                TokenType::SignedInteger(108), 94, 97,
+                TokenType::Comma, 97, 98,
+                TokenType::SignedInteger(111), 99, 102,
+                TokenType::Comma, 102, 103,
+                TokenType::SignedInteger(32), 104, 106,
+                TokenType::Comma, 106, 107,
+                TokenType::SignedInteger(119), 108, 111,
+                TokenType::Comma, 111, 112,
+                TokenType::SignedInteger(111), 113, 116,
+                TokenType::Comma, 116, 117,
+                TokenType::SignedInteger(114), 118, 121,
+                TokenType::Comma, 121, 122,
+                TokenType::SignedInteger(108), 123, 126,
+                TokenType::Comma, 126, 127,
+                TokenType::SignedInteger(100), 128, 131,
+                TokenType::Comma, 131, 132,
+                TokenType::SignedInteger(33), 133, 135,
+                TokenType::RightBracket, 135, 136,
+                TokenType::Semicolon, 136, 137,
+                TokenType::Val, 138, 141,
+                TokenType::Identifier("greeting_from_array"), 142, 161,
+                TokenType::Equal, 162, 163,
+                TokenType::Identifier("str"), 164, 167,
+                TokenType::LeftParentheses, 167, 168,
+                TokenType::Identifier("bytearray"), 168, 177,
+                TokenType::RightParentheses, 177, 178,
+                TokenType::Semicolon, 178, 179
             ),
             concat!(
                 r#"val greeting = "Hello world!"; // 'str' type is inferred"#,
@@ -728,92 +612,62 @@ mod tests {
             )
         );
 
-        test!(tokenize!(TokenType::String(""), 0, 1), r#""""#);
-
-        test!(tokenize!(TokenType::String("a"), 0, 2), r#""a""#);
+        test!(
+            tokenize!(
+                TokenType::String(""), 0, 2
+            ),
+            r#""""#
+        );
 
         test!(
             tokenize!(
-                TokenType::Trait,
-                0, 4,
-                TokenType::Identifier("Node"),
-                6, 9,
-                TokenType::LeftBrace,
-                11, 11,
-                TokenType::Fn,
-                16, 17,
-                TokenType::Identifier("bounds"),
-                19, 24,
-                TokenType::LeftParentheses,
-                25, 25,
-                TokenType::RightParentheses,
-                26, 26,
-                TokenType::RightArrow,
-                28, 29,
-                TokenType::Identifier("Bounds"),
-                31, 36,
-                TokenType::Semicolon,
-                37, 37,
-                TokenType::Fn,
-                42, 43,
-                TokenType::Identifier("draw"),
-                45, 48,
-                TokenType::LeftParentheses,
-                49, 49,
-                TokenType::Identifier("Graphics"),
-                50, 57,
-                TokenType::Identifier("g"),
-                59, 59,
-                TokenType::RightParentheses,
-                60, 60,
-                TokenType::Semicolon,
-                61, 61,
-                TokenType::Fn,
-                66, 67,
-                TokenType::Identifier("children"),
-                69, 76,
-                TokenType::LeftParentheses,
-                77, 77,
-                TokenType::RightParentheses,
-                78, 78,
-                TokenType::RightArrow,
-                80, 81,
-                TokenType::Identifier("MutableList"),
-                83, 93,
-                TokenType::Less,
-                94, 94,
-                TokenType::Identifier("Node"),
-                95, 98,
-                TokenType::Greater,
-                99, 99,
-                TokenType::Semicolon,
-                100, 100,
-                TokenType::RightBrace,
-                102, 102,
-                TokenType::Fn,
-                105, 106,
-                TokenType::Identifier("draw_frame"),
-                108, 117,
-                TokenType::LeftParentheses,
-                118, 118,
-                TokenType::Identifier("nodes"),
-                119, 123,
-                TokenType::Colon,
-                124, 124,
-                TokenType::Identifier("List"),
-                126, 129,
-                TokenType::Less,
-                130, 130,
-                TokenType::Identifier("Node"),
-                131, 134,
-                TokenType::Greater,
-                135, 135,
-                TokenType::RightParentheses,
-                136, 136,
-                TokenType::LeftBrace,
-                138, 138,
-                TokenType::RightBrace,
-                140, 140
+                TokenType::String("a"), 0, 3
+            ),
+            r#""a""#
+        );
+
+        test!(
+            tokenize!(
+                TokenType::Trait, 0, 5,
+                TokenType::Identifier("Node"), 6, 10,
+                TokenType::LeftBrace, 11, 12,
+                TokenType::Fn, 16, 18,
+                TokenType::Identifier("bounds"), 19, 25,
+                TokenType::LeftParentheses, 25, 26,
+                TokenType::RightParentheses, 26, 27,
+                TokenType::RightArrow, 28, 30,
+                TokenType::Identifier("Bounds"), 31, 37,
+                TokenType::Semicolon, 37, 38,
+                TokenType::Fn, 42, 44,
+                TokenType::Identifier("draw"), 45, 49,
+                TokenType::LeftParentheses, 49, 50,
+                TokenType::Identifier("Graphics"), 50, 58,
+                TokenType::Identifier("g"), 59, 60,
+                TokenType::RightParentheses, 60, 61,
+                TokenType::Semicolon, 61, 62,
+                TokenType::Fn, 66, 68,
+                TokenType::Identifier("children"), 69, 77,
+                TokenType::LeftParentheses, 77, 78,
+                TokenType::RightParentheses, 78, 79,
+                TokenType::RightArrow, 80, 82,
+                TokenType::Identifier("MutableList"), 83, 94,
+                TokenType::Less, 94, 95,
+                TokenType::Identifier("Node"), 95, 99,
+                TokenType::Greater, 99, 100,
+                TokenType::Semicolon, 100, 101,
+                TokenType::RightBrace, 102, 103,
+                TokenType::Fn, 105, 107,
+                TokenType::Identifier("draw_frame"), 108, 118,
+                TokenType::LeftParentheses, 118, 119,
+                TokenType::Identifier("nodes"), 119, 124,
+                TokenType::Colon, 124, 125,
+                TokenType::Identifier("List"), 126, 130,
+                TokenType::Less, 130, 131,
+                TokenType::Identifier("Node"), 131, 135,
+                TokenType::Greater, 135, 136,
+                TokenType::RightParentheses, 136, 137,
+                TokenType::LeftBrace, 138, 139,
+                TokenType::RightBrace, 140, 141
             ),
             concat!(
                 "trait Node {\n",
@@ -828,106 +682,59 @@ mod tests {
 
         test!(
             tokenize!(
-                TokenType::Class,
-                0, 4,
-                TokenType::Identifier("SortedMap"),
-                6, 14,
-                TokenType::Less,
-                15, 15,
-                TokenType::Identifier("T"),
-                16, 16,
-                TokenType::Colon,
-                17, 17,
-                TokenType::Identifier("Sortable"),
-                19, 26,
-                TokenType::Plus,
-                28, 28,
-                TokenType::Identifier("Hashable"),
-                30, 37,
-                TokenType::Greater,
-                38, 38,
-                TokenType::Semicolon,
-                39, 39
+                TokenType::Class, 0, 5,
+                TokenType::Identifier("SortedMap"), 6, 15,
+                TokenType::Less, 15, 16,
+                TokenType::Identifier("T"), 16, 17,
+                TokenType::Colon, 17, 18,
+                TokenType::Identifier("Sortable"), 19, 27,
+                TokenType::Plus, 28, 29,
+                TokenType::Identifier("Hashable"), 30, 38,
+                TokenType::Greater, 38, 39,
+                TokenType::Semicolon, 39, 40
             ),
             "class SortedMap<T: Sortable + Hashable>;"
         );
 
         test!(
             tokenize!(
-                TokenType::Enum,
-                0, 3,
-                TokenType::Identifier("Message"),
-                5, 11,
-                TokenType::LeftBrace,
-                13, 13,
-                TokenType::Identifier("Text"),
-                19, 22,
-                TokenType::LeftParentheses,
-                23, 23,
-                TokenType::Identifier("message"),
-                24, 30,
-                TokenType::Colon,
-                31, 31,
-                TokenType::Identifier("str"),
-                33, 35,
-                TokenType::RightParentheses,
-                36, 36,
-                TokenType::Comma,
-                37, 37,
-                TokenType::Identifier("Photo"),
-                43, 47,
-                TokenType::LeftParentheses,
-                48, 48,
-                TokenType::Identifier("caption"),
-                49, 55,
-                TokenType::Colon,
-                56, 56,
-                TokenType::Identifier("str"),
-                58, 60,
-                TokenType::Comma,
-                61, 61,
-                TokenType::Identifier("photo"),
-                63, 67,
-                TokenType::Colon,
-                68, 68,
-                TokenType::Identifier("SerializedPhoto"),
-                70, 84,
-                TokenType::RightParentheses,
-                85, 85,
-                TokenType::LeftBrace,
-                87, 87,
-                TokenType::Fn,
-                97, 98,
-                TokenType::Identifier("size"),
-                100, 103,
-                TokenType::LeftParentheses,
-                104, 104,
-                TokenType::RightParentheses,
-                105, 105,
-                TokenType::LeftBrace,
-                107, 107,
-                TokenType::Return,
-                121, 126,
-                TokenType::Identifier("photo"),
-                128, 132,
-                TokenType::Dot,
-                133, 133,
-                TokenType::Identifier("size"),
-                134, 137,
-                TokenType::LeftParentheses,
-                138, 138,
-                TokenType::RightParentheses,
-                139, 139,
-                TokenType::Semicolon,
-                140, 140,
-                TokenType::RightBrace,
-                150, 150,
-                TokenType::RightBrace,
-                156, 156,
-                TokenType::Comma,
-                157, 157,
-                TokenType::RightBrace,
-                159, 159
+                TokenType::Enum, 0, 4,
+                TokenType::Identifier("Message"), 5, 12,
+                TokenType::LeftBrace, 13, 14,
+                TokenType::Identifier("Text"), 19, 23,
+                TokenType::LeftParentheses, 23, 24,
+                TokenType::Identifier("message"), 24, 31,
+                TokenType::Colon, 31, 32,
+                TokenType::Identifier("str"), 33, 36,
+                TokenType::RightParentheses, 36, 37,
+                TokenType::Comma, 37, 38,
+                TokenType::Identifier("Photo"), 43, 48,
+                TokenType::LeftParentheses, 48, 49,
+                TokenType::Identifier("caption"), 49, 56,
+                TokenType::Colon, 56, 57,
+                TokenType::Identifier("str"), 58, 61,
+                TokenType::Comma, 61, 62,
+                TokenType::Identifier("photo"), 63, 68,
+                TokenType::Colon, 68, 69,
+                TokenType::Identifier("SerializedPhoto"), 70, 85,
+                TokenType::RightParentheses, 85, 86,
+                TokenType::LeftBrace, 87, 88,
+                TokenType::Fn, 97, 99,
+                TokenType::Identifier("size"), 100, 104,
+                TokenType::LeftParentheses, 104, 105,
+                TokenType::RightParentheses, 105, 106,
+                TokenType::LeftBrace, 107, 108,
+                TokenType::Return, 121, 127,
+                TokenType::Identifier("photo"), 128, 133,
+                TokenType::Dot, 133, 134,
+                TokenType::Identifier("size"), 134, 138,
+                TokenType::LeftParentheses, 138, 139,
+                TokenType::RightParentheses, 139, 140,
+                TokenType::Semicolon, 140, 141,
+                TokenType::RightBrace, 150, 151,
+                TokenType::RightBrace, 156, 157,
+                TokenType::Comma, 157, 158,
+                TokenType::RightBrace, 159, 160
             ),
             concat!(
                 "enum Message {\n",
@@ -944,22 +751,43 @@ mod tests {
 
     #[test]
     pub fn float_parsing() {
-        test!(tokenize!(TokenType::Float(123.45), 0, 5), "123.45");
+        test!(
+            tokenize!(
+                TokenType::Float(123.45), 0, 6
+            ),
+            "123.45"
+        );
 
-        test!(tokenize!(TokenType::Float(123.01), 1, 6), " 123.01");
+        test!(
+            tokenize!(
+                TokenType::Float(123.01), 1, 7
+            ),
+            " 123.01"
+        );
     }
 
     #[test]
     pub fn int_parsing() {
-        test!(tokenize!(TokenType::SignedInteger(-123), 0, 3), "-123");
-
-        test!(tokenize!(TokenType::SignedInteger(123), 0, 2), "123");
+        test!(
+            tokenize!(
+                TokenType::SignedInteger(-123), 0, 4
+            ),
+            "-123"
+        );
 
         test!(
             tokenize!(
-                TokenType::SignedInteger(123), 0, 2,
-                TokenType::Dot, 3, 3
-            ), "123."
+                TokenType::SignedInteger(123), 0, 3
+            ),
+            "123"
+        );
+
+        test!(
+            tokenize!(
+                TokenType::SignedInteger(123), 0, 3,
+                TokenType::Dot, 3, 4
+            ),
+            "123."
         );
     }
 }

@@ -1,14 +1,11 @@
-use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::{
-    ClassStatement, FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module,
-    TypeStatement, UseStatement,
-};
-use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::TokenizedInput;
-use crate::compiler::tokens::tokenizer::read_tokens;
-use crate::compiler::types::types::{Identifier, Type};
 use anyhow::{anyhow, Result};
 use string_interner::StringInterner;
+use crate::class::compiled_class::CompiledClass;
+use crate::compiler::ast::{ClassStatement, FunctionStatement, UseStatement, Module, TypeStatement, QualifiedIdent, GenericTypeDecl, MemberDecl, MemberFunctionDecl};
+use crate::compiler::tokens::token::{Token, TokenType};
+use crate::compiler::tokens::token::TokenType::Identifier;
+use crate::compiler::tokens::tokenized_file::TokenizedInput;
+use crate::compiler::types::types::{Ident, Type};
 
 pub fn parse(input: TokenizedInput) -> Result<Module> {
     let parser = Parser::new(input);
@@ -49,8 +46,7 @@ impl Parser {
     fn parse_use_stmts(&mut self) -> Result<Vec<UseStatement>> {
         let mut stmts = Vec::<UseStatement>::new();
         while self.matches(TokenType::Use) {
-            self.munch();
-            let identifier = self.identifier()?;
+            let identifier = self.qualified_ident()?;
             stmts.push(UseStatement::new(identifier));
             self.expect(TokenType::Semicolon)?;
         }
@@ -75,7 +71,7 @@ impl Parser {
     }
 
     fn parse_inline_class(&mut self) -> Result<TypeStatement> {
-        self.munch();
+        self.advance();
         self.parse_class(ClassType::Inline)
     }
 
@@ -112,8 +108,44 @@ impl Parser {
         todo!()
     }
 
-    fn identifier(&mut self) -> Result<Identifier> {
-        todo!()
+    fn identifier(&mut self) -> Result<Ident> {
+        if self.is_at_end() {
+            return Err(anyhow!("Expected identifier!"));
+        }
+        return match self.current_type() {
+            Identifier(ident) => {
+                Ok(self.string_interner.get_or_intern(ident))
+            }
+            _ => {
+                Err(anyhow!("Expected identifier!"))
+            }
+        }
+    }
+
+    fn qualified_ident(&mut self) -> Result<QualifiedIdent> {
+        let mut idents = Vec::new();
+
+        loop {
+            if let Identifier(ident) = self.current().token_type {
+                idents.push(self.string_interner.get_or_intern(ident));
+                if self.remaining() > 2 {
+                    if self.next(1).token_type == TokenType::Colon &&
+                        self.next(2).token_type == TokenType::Colon {
+                        self.pos += 3;
+                    } else {
+                        self.pos += 1;
+                        break;
+                    }
+                } else {
+                    self.pos += 1;
+                    break;
+                }
+            } else {
+                return Err(anyhow!("Expected qualified identifier!"));
+            }
+        }
+
+        Ok(QualifiedIdent::new(idents))
     }
 
     fn generic_tys(&mut self) -> Result<Vec<GenericTypeDecl>> {
@@ -122,7 +154,7 @@ impl Parser {
             while !self.matches(TokenType::Comma) || !self.matches(TokenType::Greater) {
                 let ident = self.identifier()?;
                 if self.matches(TokenType::Colon) {
-                    self.munch();
+                    self.advance();
                     let trait_bound = self.trait_bound()?;
                     let type_decl = GenericTypeDecl::new(ident, Some(trait_bound));
                     type_decls.push(type_decl);
@@ -154,7 +186,7 @@ impl Parser {
         self.tokenized_input.tokens()[self.pos].token_type
     }
 
-    fn munch(&mut self) {
+    fn advance(&mut self) {
         self.pos += 1;
     }
 
@@ -162,7 +194,7 @@ impl Parser {
         if self.is_at_end() || self.current_type() != token_type {
             Err(anyhow!(format!("Expected {:?}!", token_type)))
         } else {
-            self.munch();
+            self.pos += 1;
             Ok(())
         }
     }
@@ -173,6 +205,14 @@ impl Parser {
 
     fn is_at_end(&self) -> bool {
         self.pos >= self.tokenized_input.tokens().len()
+    }
+
+    fn remaining(&self) -> usize {
+        self.tokenized_input.tokens().len() - self.pos
+    }
+
+    fn next(&self, delta: usize) -> Token {
+        self.tokenized_input.tokens()[self.pos + delta]
     }
 }
 
@@ -188,5 +228,16 @@ impl TysAndFns {
 impl Default for TysAndFns {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+mod tests {
+    use crate::compiler::parser::Parser;
+    use crate::compiler::tokens::tokenized_file::TokenizedInput;
+
+    #[test]
+    pub fn use_statements() {
+        let tokenized_input = TokenizedInput::new();
+        let parser = Parser::new(tokenized_input);
     }
 }

@@ -1,16 +1,16 @@
 use string_interner::symbol::DefaultSymbol;
 use string_interner::DefaultBackend;
 
-pub type Identifier = DefaultSymbol;
+pub type Ident = DefaultSymbol;
 
 #[derive(Eq, PartialEq, Debug, Hash)]
 pub enum Type {
     Array(Box<Type>),
-    Enum(Identifier),
-    Trait(Identifier),
-    TraitBounds(Vec<Identifier>),
+    Enum(Ident),
+    Trait(Ident),
+    TraitBounds(Vec<Ident>),
     Union(Vec<Type>),
-    Class(Identifier),
+    Class(Ident),
     Basic(BasicType),
 }
 
