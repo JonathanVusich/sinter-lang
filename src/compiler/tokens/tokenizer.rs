@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::concat;
 use std::error::Error;
 use std::fs;
@@ -10,12 +11,19 @@ use crate::compiler::tokens::tokenized_file::TokenizedInput;
 use anyhow::Result;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub fn read_tokens(path: &Path) -> Result<TokenizedInput> {
+pub fn tokenize_file(path: &Path) -> Result<TokenizedInput> {
     let source_file = fs::read_to_string(path)?;
-
     let tokenizer = Tokenizer::new(&source_file);
     Ok(tokenizer.into())
 }
+
+pub fn tokenize<T: AsRef<str>>(input: T) -> Result<TokenizedInput> {
+    let source_file = input.as_ref();
+    let tokenizer = Tokenizer::new(&source_file);
+    Ok(tokenizer.into())
+}
+
+
 
 #[derive(Debug)]
 struct Tokenizer<'this> {
@@ -404,9 +412,10 @@ fn is_delimiter(char: &str) -> bool {
 }
 
 mod tests {
-
+    use libc::stat;
     use crate::compiler::tokens::token::{Token, TokenType};
-    use crate::compiler::tokens::tokenizer::Tokenizer;
+    use crate::compiler::tokens::tokenized_file::TokenizedInput;
+    use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
 
     #[allow(unused_macros)]
     macro_rules! make_token {
@@ -434,6 +443,23 @@ mod tests {
         ($tokens:expr, $matching_text:expr) => {
             assert_eq!($tokens, Tokenizer::new($matching_text).into().tokens());
         };
+    }
+
+    #[test]
+    pub fn tokenize_strings() {
+        let static_str = "pub class Random {}";
+        let string = String::from(static_str);
+
+        let expected = tokenize!(
+            TokenType::Pub, 0, 3,
+            TokenType::Class, 4, 9,
+            TokenType::Identifier("Random"), 10, 16,
+            TokenType::LeftBrace, 17, 18,
+            TokenType::RightBrace, 18, 19
+        );
+
+        assert_eq!(expected, tokenize(string).unwrap().tokens());
+        assert_eq!(expected, tokenize(static_str).unwrap().tokens());
     }
 
     #[test]

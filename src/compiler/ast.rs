@@ -1,5 +1,4 @@
 use crate::compiler::types::types::{Ident, Type};
-use string_interner::symbol::SymbolUsize;
 use crate::traits::traits::Trait;
 
 pub struct Module {
@@ -20,8 +19,21 @@ impl Module {
             fns,
         }
     }
+
+    pub fn use_statements(&self) -> &[UseStatement] {
+        &self.use_stmts
+    }
+
+    pub fn tys(&self) -> &[TypeStatement] {
+        &self.tys
+    }
+
+    pub fn fns(&self) -> &[FunctionStatement] {
+        &self.fns
+    }
 }
 
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct QualifiedIdent {
     idents: Vec<Ident>,
 }
@@ -35,6 +47,7 @@ impl QualifiedIdent {
     }
 }
 
+#[derive(Debug, Eq, PartialEq, Hash)]
 pub struct UseStatement {
     ident: QualifiedIdent,
 }

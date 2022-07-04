@@ -1,7 +1,6 @@
-use string_interner::symbol::DefaultSymbol;
-use string_interner::DefaultBackend;
+use lasso::Spur;
 
-pub type Ident = DefaultSymbol;
+pub type Ident = Spur;
 
 #[derive(Eq, PartialEq, Debug, Hash)]
 pub enum Type {

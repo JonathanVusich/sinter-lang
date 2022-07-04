@@ -1,14 +1,15 @@
+use std::sync::Arc;
 use anyhow::{anyhow, Result};
-use string_interner::StringInterner;
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::{ClassStatement, FunctionStatement, UseStatement, Module, TypeStatement, QualifiedIdent, GenericTypeDecl, MemberDecl, MemberFunctionDecl};
+use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::token::TokenType::Identifier;
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
 use crate::compiler::types::types::{Ident, Type};
 
-pub fn parse(input: TokenizedInput) -> Result<Module> {
-    let parser = Parser::new(input);
+pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
+    let parser = Parser::new(string_interner, input);
     parser.parse()
 }
 
@@ -29,9 +30,9 @@ enum ClassType {
 }
 
 impl Parser {
-    fn new(tokenized_input: TokenizedInput) -> Self {
+    fn new(string_interner: StringInterner, tokenized_input: TokenizedInput) -> Self {
         Self {
-            string_interner: StringInterner::default(),
+            string_interner,
             tokenized_input,
             pos: 0,
         }
@@ -232,12 +233,37 @@ impl Default for TysAndFns {
 }
 
 mod tests {
+    use std::sync::Arc;
+    use anyhow::Result;
+    use crate::compiler::ast::{Module, QualifiedIdent, UseStatement};
     use crate::compiler::parser::Parser;
+    use crate::compiler::StringInterner;
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
+    use crate::compiler::tokens::tokenizer::tokenize;
 
     #[test]
     pub fn use_statements() {
-        let tokenized_input = TokenizedInput::new();
-        let parser = Parser::new(tokenized_input);
+        let string_interner = StringInterner::default();
+
+        let code = concat!(
+            "use std::vector;",
+            "use std::array;"
+        );
+
+        let parser = Parser::new(string_interner.clone(), tokenize(code).unwrap());
+
+        let module = parser.parse().unwrap();
+
+        let std_ident = string_interner.get("std").unwrap();
+        let vector_ident = string_interner.get("vector").unwrap();
+        let array_ident = string_interner.get("array").unwrap();
+
+        let first_use_qualified_ident = QualifiedIdent::new(vec![std_ident, vector_ident]);
+        let second_use_qualified_ident = QualifiedIdent::new(vec![std_ident, array_ident]);
+
+        assert_eq!(vec![
+            UseStatement::new(first_use_qualified_ident),
+            UseStatement::new(second_use_qualified_ident)
+        ], module.use_statements());
     }
 }
