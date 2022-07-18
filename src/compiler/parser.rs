@@ -19,6 +19,7 @@ struct Parser {
     pos: usize,
 }
 
+#[derive(Default)]
 struct TysAndFns {
     tys: Vec<TypeStatement>,
     fns: Vec<FunctionStatement>,
@@ -47,6 +48,7 @@ impl Parser {
     fn parse_use_stmts(&mut self) -> Result<Vec<UseStatement>> {
         let mut stmts = Vec::<UseStatement>::new();
         while self.matches(TokenType::Use) {
+            self.advance();
             let identifier = self.qualified_ident()?;
             stmts.push(UseStatement::new(identifier));
             self.expect(TokenType::Semicolon)?;
@@ -65,7 +67,7 @@ impl Parser {
                 TokenType::Fn => tys_and_fns.fns.push(self.parse_fn()),
                 _ => {
                     return Err(anyhow!("Unrecognized token!"));
-                },
+                }
             }
         }
         Ok(tys_and_fns)
@@ -120,25 +122,25 @@ impl Parser {
             _ => {
                 Err(anyhow!("Expected identifier!"))
             }
-        }
+        };
     }
 
     fn qualified_ident(&mut self) -> Result<QualifiedIdent> {
         let mut idents = Vec::new();
 
         loop {
-            if let Identifier(ident) = self.current().token_type {
+            if let Identifier(ident) = self.current_type() {
                 idents.push(self.string_interner.get_or_intern(ident));
                 if self.remaining() > 2 {
                     if self.next(1).token_type == TokenType::Colon &&
                         self.next(2).token_type == TokenType::Colon {
-                        self.pos += 3;
+                        self.advance_multiple(3);
                     } else {
-                        self.pos += 1;
+                        self.advance();
                         break;
                     }
                 } else {
-                    self.pos += 1;
+                    self.advance();
                     break;
                 }
             } else {
@@ -191,11 +193,15 @@ impl Parser {
         self.pos += 1;
     }
 
+    fn advance_multiple(&mut self, amount: usize) {
+        self.pos += amount;
+    }
+
     fn expect(&mut self, token_type: TokenType) -> Result<()> {
         if self.is_at_end() || self.current_type() != token_type {
             Err(anyhow!(format!("Expected {:?}!", token_type)))
         } else {
-            self.pos += 1;
+            self.advance();
             Ok(())
         }
     }
@@ -226,12 +232,6 @@ impl TysAndFns {
     }
 }
 
-impl Default for TysAndFns {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 mod tests {
     use std::sync::Arc;
     use anyhow::Result;
@@ -241,29 +241,42 @@ mod tests {
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
     use crate::compiler::tokens::tokenizer::tokenize;
 
-    #[test]
-    pub fn use_statements() {
+    macro_rules! qualified_ident {
+        ($interner:expr, $($string:literal),*) => {
+                QualifiedIdent::new(vec![
+                    $(
+                        $interner.get($string).unwrap(),
+                    )*
+                ])
+        }
+    }
+
+    fn parse_code(code: &str) -> (StringInterner, Module) {
         let string_interner = StringInterner::default();
 
-        let code = concat!(
-            "use std::vector;",
-            "use std::array;"
-        );
+        let tokens = tokenize(code).unwrap();
 
-        let parser = Parser::new(string_interner.clone(), tokenize(code).unwrap());
+        let parser = Parser::new(string_interner.clone(), tokens);
 
         let module = parser.parse().unwrap();
 
-        let std_ident = string_interner.get("std").unwrap();
-        let vector_ident = string_interner.get("vector").unwrap();
-        let array_ident = string_interner.get("array").unwrap();
+        (string_interner, module)
+    }
 
-        let first_use_qualified_ident = QualifiedIdent::new(vec![std_ident, vector_ident]);
-        let second_use_qualified_ident = QualifiedIdent::new(vec![std_ident, array_ident]);
+    #[test]
+    pub fn use_statements() {
+        let code = concat!(
+            "use std::vector;",
+            "use std::array;",
+            "use std::map::HashMap;"
+        );
+
+        let (string_interner, module) = parse_code(code);
 
         assert_eq!(vec![
-            UseStatement::new(first_use_qualified_ident),
-            UseStatement::new(second_use_qualified_ident)
+            UseStatement::new(qualified_ident!(string_interner, "std", "vector")),
+            UseStatement::new(qualified_ident!(string_interner, "std", "array")),
+            UseStatement::new(qualified_ident!(string_interner, "std", "map", "HashMap"))
         ], module.use_statements());
     }
 }
