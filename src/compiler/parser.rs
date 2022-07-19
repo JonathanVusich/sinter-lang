@@ -215,7 +215,7 @@ impl Parser {
     }
 
     fn remaining(&self) -> usize {
-        self.tokenized_input.tokens().len() - self.pos
+        self.tokenized_input.tokens().len() - self.pos - 1
     }
 
     fn next(&self, delta: usize) -> Token {
@@ -251,16 +251,22 @@ mod tests {
         }
     }
 
-    fn parse_code(code: &str) -> (StringInterner, Module) {
+    fn parse_code(code: &str) -> Result<(StringInterner, Module)> {
         let string_interner = StringInterner::default();
-
         let tokens = tokenize(code).unwrap();
-
         let parser = Parser::new(string_interner.clone(), tokens);
+        let (string_interner, parser) = (string_interner, parser);
+        let module = parser.parse()?;
 
-        let module = parser.parse().unwrap();
+        Ok((string_interner, module))
+    }
 
-        (string_interner, module)
+    #[test]
+    pub fn invalid_qualified_ident() {
+        let code = "use std::vector::";
+        let err = parse_code(code).unwrap_err();
+        todo!()
+        // assert_eq!();
     }
 
     #[test]
@@ -271,7 +277,7 @@ mod tests {
             "use std::map::HashMap;"
         );
 
-        let (string_interner, module) = parse_code(code);
+        let (string_interner, module) = parse_code(code).unwrap();
 
         assert_eq!(vec![
             UseStatement::new(qualified_ident!(string_interner, "std", "vector")),
