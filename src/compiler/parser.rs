@@ -1,11 +1,14 @@
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 use anyhow::{anyhow, Result};
+use thiserror::Error;
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::{ClassStatement, FunctionStatement, UseStatement, Module, TypeStatement, QualifiedIdent, GenericTypeDecl, MemberDecl, MemberFunctionDecl};
 use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::token::TokenType::Identifier;
-use crate::compiler::tokens::tokenized_file::TokenizedInput;
+use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
 use crate::compiler::types::types::{Ident, Type};
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
@@ -17,6 +20,12 @@ struct Parser {
     string_interner: StringInterner,
     tokenized_input: TokenizedInput,
     pos: usize,
+}
+
+#[derive(Error, Debug)]
+enum ParseError {
+    #[error("Expected identifier at {0.line}:{0.pos}!")]
+    ExpectedQualifiedIdent(TokenPosition),
 }
 
 #[derive(Default)]
@@ -144,7 +153,8 @@ impl Parser {
                     break;
                 }
             } else {
-                return Err(anyhow!("Expected qualified identifier!"));
+
+                return ParseError::ExpectedQualifiedIdent(self.current_position());
             }
         }
 
@@ -187,6 +197,10 @@ impl Parser {
 
     fn current_type(&mut self) -> TokenType {
         self.tokenized_input.tokens()[self.pos].token_type
+    }
+
+    fn current_position(&mut self) -> TokenPosition {
+        self.tokenized_input.token_position(self.current().start)
     }
 
     fn advance(&mut self) {
@@ -264,9 +278,14 @@ mod tests {
     #[test]
     pub fn invalid_qualified_ident() {
         let code = "use std::vector::";
-        let err = parse_code(code).unwrap_err();
-        todo!()
-        // assert_eq!();
+        match parse_code(code) {
+            Ok((string_interner, module)) => {
+                panic!()
+            }
+            Err(error) => {
+                println!("{:?}", error);
+            }
+        }
     }
 
     #[test]
