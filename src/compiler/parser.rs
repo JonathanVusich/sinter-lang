@@ -24,8 +24,10 @@ struct Parser {
 
 #[derive(Error, Debug)]
 enum ParseError {
-    #[error("Expected identifier at {0.line}:{0.pos}!")]
+    #[error("Expected identifier at {}:{}!", .0.line, .0.pos)]
     ExpectedQualifiedIdent(TokenPosition),
+    #[error("Unrecognized token at {}:{}!", .0.line, .0.pos)]
+    UnrecognizedToken(TokenPosition)
 }
 
 #[derive(Default)]
@@ -153,8 +155,7 @@ impl Parser {
                     break;
                 }
             } else {
-
-                return ParseError::ExpectedQualifiedIdent(self.current_position());
+                return Err(ParseError::ExpectedQualifiedIdent(self.current_position()).into());
             }
         }
 
@@ -200,7 +201,8 @@ impl Parser {
     }
 
     fn current_position(&mut self) -> TokenPosition {
-        self.tokenized_input.token_position(self.current().start)
+        let token = self.current();
+        self.tokenized_input.token_position(token.start)
     }
 
     fn advance(&mut self) {
@@ -247,6 +249,7 @@ impl TysAndFns {
 }
 
 mod tests {
+    use std::any::Any;
     use std::sync::Arc;
     use anyhow::Result;
     use crate::compiler::ast::{Module, QualifiedIdent, UseStatement};
