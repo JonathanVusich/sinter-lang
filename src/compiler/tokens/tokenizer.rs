@@ -60,6 +60,13 @@ impl<'this> Tokenizer<'this> {
         let char = self.advance();
 
         match char {
+            "&" => {
+                if self.matches("&") {
+                    self.create_token(TokenType::And)
+                } else {
+                    self.create_unrecognized_token("&")
+                }
+            }
             "(" => self.create_token(TokenType::LeftParentheses),
             ")" => self.create_token(TokenType::RightParentheses),
             "{" => self.create_token(TokenType::LeftBrace),
@@ -79,7 +86,13 @@ impl<'this> Tokenizer<'this> {
             }
             "+" => self.create_token(TokenType::Plus),
             "/" => self.create_token(TokenType::Slash),
-            "|" => self.create_token(TokenType::Pipe),
+            "|" => {
+                if self.matches("|") {
+                    self.create_token(TokenType::Or)
+                } else {
+                    self.create_token(TokenType::Pipe)
+                }
+            },
             "*" => self.create_token(TokenType::Star),
             "!" => {
                 if self.matches("=") {
@@ -119,7 +132,6 @@ impl<'this> Tokenizer<'this> {
 
     fn parse_identifier(&mut self, character: &str) {
         let token_type = match character {
-            "a" => self.check_keyword(1, "nd", TokenType::And),
             "b" => self.check_keyword(1, "reak", TokenType::Break),
             "c" => match self.peek() {
                 "l" => self.check_keyword(2, "ass", TokenType::Class),
@@ -143,13 +155,9 @@ impl<'this> Tokenizer<'this> {
             "i" => match self.peek() {
                 "f" => Some(TokenType::If),
                 "m" => self.check_keyword(2, "pl", TokenType::Impl),
-                "n" => match self.peek_next() {
-                    Some(x) if x == "l" => self.check_keyword(3, "ine", TokenType::Inline),
-                    _ => Some(TokenType::In),
-                },
+                "n" => self.check_keyword(4, "line", TokenType::Inline),
                 _ => None,
             },
-            "o" => self.check_keyword(1, "r", TokenType::Or),
             "n" => self.check_keyword(1, "ative", TokenType::Native),
             "N" => self.check_keyword(1, "one", TokenType::None),
             "m" => self.check_keyword(1, "atch", TokenType::Match),
@@ -405,10 +413,7 @@ fn is_digit(word: &str) -> bool {
 }
 
 fn is_delimiter(char: &str) -> bool {
-    match char {
-        " " | "\r" | "\t" | "\n" | ";" => true,
-        _ => false,
-    }
+    matches!(char, " " | "\r" | "\t" | "\n" | ";")
 }
 
 mod tests {

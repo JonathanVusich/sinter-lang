@@ -2,9 +2,9 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 use anyhow::{anyhow, Result};
-use thiserror::Error;
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::{ClassStatement, FunctionStatement, UseStatement, Module, TypeStatement, QualifiedIdent, GenericTypeDecl, MemberDecl, MemberFunctionDecl};
+use crate::compiler::parser::ParseError::{ExpectedIdent, ExpectedToken, UnrecognizedToken};
 use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::token::TokenType::Identifier;
@@ -22,11 +22,10 @@ struct Parser {
     pos: usize,
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug)]
 enum ParseError {
-    #[error("Expected identifier at {}:{}!", .0.line, .0.pos)]
-    ExpectedQualifiedIdent(TokenPosition),
-    #[error("Unrecognized token at {}:{}!", .0.line, .0.pos)]
+    ExpectedToken(TokenType, TokenPosition),
+    ExpectedIdent(TokenPosition),
     UnrecognizedToken(TokenPosition)
 }
 
@@ -77,7 +76,7 @@ impl Parser {
                 TokenType::Trait => tys_and_fns.tys.push(self.parse_trait()),
                 TokenType::Fn => tys_and_fns.fns.push(self.parse_fn()),
                 _ => {
-                    return Err(anyhow!("Unrecognized token!"));
+                    return Err(UnrecognizedToken(self.current_position()).into());
                 }
             }
         }
@@ -124,7 +123,7 @@ impl Parser {
 
     fn identifier(&mut self) -> Result<Ident> {
         if self.is_at_end() {
-            return Err(anyhow!("Expected identifier!"));
+            return Err(ExpectedIdent(self.current_position()).into());
         }
         return match self.current_type() {
             Identifier(ident) => {
@@ -140,9 +139,11 @@ impl Parser {
         let mut idents = Vec::new();
 
         loop {
-            if let Identifier(ident) = self.current_type() {
+            if self.is_at_end() {
+                return Err(ExpectedIdent(self.last_position()).into());
+            } else if let Identifier(ident) = self.current_type() {
                 idents.push(self.string_interner.get_or_intern(ident));
-                if self.remaining() > 2 {
+                if self.remaining() >= 2 {
                     if self.next(1).token_type == TokenType::Colon &&
                         self.next(2).token_type == TokenType::Colon {
                         self.advance_multiple(3);
@@ -155,7 +156,7 @@ impl Parser {
                     break;
                 }
             } else {
-                return Err(ParseError::ExpectedQualifiedIdent(self.current_position()).into());
+                return Err(ExpectedIdent(self.current_position()).into());
             }
         }
 
@@ -205,6 +206,15 @@ impl Parser {
         self.tokenized_input.token_position(token.start)
     }
 
+    fn last(&mut self) -> Token {
+        self.tokenized_input.tokens()[self.tokenized_input.tokens().len() - 1]
+    }
+
+    fn last_position(&mut self) -> TokenPosition {
+        let token = self.last();
+        self.tokenized_input.token_position(token.end)
+    }
+
     fn advance(&mut self) {
         self.pos += 1;
     }
@@ -231,7 +241,7 @@ impl Parser {
     }
 
     fn remaining(&self) -> usize {
-        self.tokenized_input.tokens().len() - self.pos - 1
+        self.tokenized_input.tokens().len() - (self.pos + 1)
     }
 
     fn next(&self, delta: usize) -> Token {
@@ -247,6 +257,18 @@ impl TysAndFns {
         }
     }
 }
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        return match self {
+            ExpectedIdent(err) => write!(f, "expected identifier at {}:{}!", err.line, err.pos),
+            ExpectedToken(token_type, err) => write!(f, "expected token {} at {}:{}!", token_type, err.line, err.pos),
+            UnrecognizedToken(err) => write!(f, "unrecognized token at {}:{}!", err.line, err.pos)
+        }
+    }
+}
+
+impl Error for ParseError {}
 
 mod tests {
     use std::any::Any;
