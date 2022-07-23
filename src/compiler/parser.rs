@@ -1,15 +1,18 @@
+use crate::class::compiled_class::CompiledClass;
+use crate::compiler::ast::{
+    ClassStatement, FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module,
+    QualifiedIdent, TypeStatement, UseStatement,
+};
+use crate::compiler::parser::ParseError::{ExpectedIdent, ExpectedToken, UnrecognizedToken};
+use crate::compiler::tokens::token::TokenType::Identifier;
+use crate::compiler::tokens::token::{Token, TokenType};
+use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
+use crate::compiler::types::types::{Ident, Type};
+use crate::compiler::StringInterner;
+use anyhow::{anyhow, Result};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
-use anyhow::{anyhow, Result};
-use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::{ClassStatement, FunctionStatement, UseStatement, Module, TypeStatement, QualifiedIdent, GenericTypeDecl, MemberDecl, MemberFunctionDecl};
-use crate::compiler::parser::ParseError::{ExpectedIdent, ExpectedToken, UnrecognizedToken};
-use crate::compiler::StringInterner;
-use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::token::TokenType::Identifier;
-use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
-use crate::compiler::types::types::{Ident, Type};
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
     let parser = Parser::new(string_interner, input);
@@ -26,7 +29,7 @@ struct Parser {
 enum ParseError {
     ExpectedToken(TokenType, TokenPosition),
     ExpectedIdent(TokenPosition),
-    UnrecognizedToken(TokenPosition)
+    UnrecognizedToken(TokenPosition),
 }
 
 #[derive(Default)]
@@ -126,12 +129,8 @@ impl Parser {
             return Err(ExpectedIdent(self.current_position()).into());
         }
         return match self.current_type() {
-            Identifier(ident) => {
-                Ok(self.string_interner.get_or_intern(ident))
-            }
-            _ => {
-                Err(anyhow!("Expected identifier!"))
-            }
+            Identifier(ident) => Ok(self.string_interner.get_or_intern(ident)),
+            _ => Err(anyhow!("Expected identifier!")),
         };
     }
 
@@ -144,8 +143,9 @@ impl Parser {
             } else if let Identifier(ident) = self.current_type() {
                 idents.push(self.string_interner.get_or_intern(ident));
                 if self.remaining() >= 2 {
-                    if self.next(1).token_type == TokenType::Colon &&
-                        self.next(2).token_type == TokenType::Colon {
+                    if self.next(1).token_type == TokenType::Colon
+                        && self.next(2).token_type == TokenType::Colon
+                    {
                         self.advance_multiple(3);
                     } else {
                         self.advance();
@@ -262,23 +262,33 @@ impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         return match self {
             ExpectedIdent(err) => write!(f, "expected identifier at {}:{}!", err.line, err.pos),
-            ExpectedToken(token_type, err) => write!(f, "expected token {} at {}:{}!", token_type, err.line, err.pos),
-            UnrecognizedToken(err) => write!(f, "unrecognized token at {}:{}!", err.line, err.pos)
-        }
+            ExpectedToken(token_type, err) => write!(
+                f,
+                "expected token {} at {}:{}!",
+                token_type, err.line, err.pos
+            ),
+            UnrecognizedToken(err) => write!(f, "unrecognized token at {}:{}!", err.line, err.pos),
+        };
     }
 }
 
 impl Error for ParseError {}
 
+unsafe impl Send for ParseError {}
+unsafe impl Sync for ParseError {}
+
 mod tests {
-    use std::any::Any;
-    use std::sync::Arc;
-    use anyhow::Result;
     use crate::compiler::ast::{Module, QualifiedIdent, UseStatement};
-    use crate::compiler::parser::Parser;
-    use crate::compiler::StringInterner;
-    use crate::compiler::tokens::tokenized_file::TokenizedInput;
+    use crate::compiler::parser::ParseError::{ExpectedIdent, ExpectedToken};
+    use crate::compiler::parser::{ParseError, Parser};
+    use crate::compiler::tokens::token::TokenType;
+    use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
+    use crate::compiler::StringInterner;
+    use anyhow::Result;
+    use std::any::Any;
+    use std::error::Error;
+    use std::sync::Arc;
 
     macro_rules! qualified_ident {
         ($interner:expr, $($string:literal),*) => {
@@ -305,11 +315,28 @@ mod tests {
         let code = "use std::vector::";
         match parse_code(code) {
             Ok((string_interner, module)) => {
-                panic!()
+                assert!(false);
             }
-            Err(error) => {
-                println!("{:?}", error);
-            }
+            Err(error) => match error.downcast_ref::<ParseError>() {
+                Some(ExpectedIdent(_)) => {}
+                _ => {
+                    assert!(false);
+                }
+            },
+        }
+    }
+
+    #[test]
+    pub fn expected_semicolon() {
+        let code = "use std::vector::Vector";
+        match parse_code(code) {
+            Ok(_) => assert!(false),
+            Err(error) => match error.downcast_ref::<ParseError>() {
+                Some(ExpectedToken(token, _)) => {
+                    assert_eq!(*token, TokenType::Semicolon)
+                }
+                _ => assert!(false),
+            },
         }
     }
 
@@ -323,10 +350,13 @@ mod tests {
 
         let (string_interner, module) = parse_code(code).unwrap();
 
-        assert_eq!(vec![
-            UseStatement::new(qualified_ident!(string_interner, "std", "vector")),
-            UseStatement::new(qualified_ident!(string_interner, "std", "array")),
-            UseStatement::new(qualified_ident!(string_interner, "std", "map", "HashMap"))
-        ], module.use_statements());
+        assert_eq!(
+            vec![
+                UseStatement::new(qualified_ident!(string_interner, "std", "vector")),
+                UseStatement::new(qualified_ident!(string_interner, "std", "array")),
+                UseStatement::new(qualified_ident!(string_interner, "std", "map", "HashMap"))
+            ],
+            module.use_statements()
+        );
     }
 }
