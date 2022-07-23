@@ -98,8 +98,20 @@ impl ClassStatement {
 }
 
 pub struct EnumStatement {
-    ident: Ident,
+    name: Ident,
+    generic_types: Vec<GenericTypeDecl>,
     members: Vec<EnumMemberDecl>,
+}
+
+impl EnumStatement {
+
+    pub fn new(name: Ident, generic_types: Vec<GenericTypeDecl>, members: Vec<EnumMemberDecl>) -> Self {
+        Self {
+            name,
+            generic_types,
+            members
+        }
+    }
 }
 
 pub struct TraitStatement {

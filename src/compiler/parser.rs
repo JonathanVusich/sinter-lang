@@ -1,10 +1,7 @@
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::{
-    ClassStatement, FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module,
-    QualifiedIdent, TypeStatement, UseStatement,
-};
+use crate::compiler::ast::{ClassStatement, EnumMemberDecl, EnumStatement, FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module, ParameterDecl, QualifiedIdent, TypeStatement, UseStatement};
 use crate::compiler::parser::ParseError::{ExpectedIdent, ExpectedToken, UnrecognizedToken};
-use crate::compiler::tokens::token::TokenType::Identifier;
+use crate::compiler::tokens::token::TokenType::{ Identifier, RightBracket };
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::{Ident, Type};
@@ -27,7 +24,7 @@ struct Parser {
 
 #[derive(Debug)]
 enum ParseError {
-    ExpectedToken(TokenType, TokenPosition),
+    ExpectedToken(Vec<TokenType>, TokenPosition),
     ExpectedIdent(TokenPosition),
     UnrecognizedToken(TokenPosition),
 }
@@ -75,7 +72,7 @@ impl Parser {
             match self.current_type() {
                 TokenType::Inline => tys_and_fns.tys.push(self.parse_inline_class()?),
                 TokenType::Class => tys_and_fns.tys.push(self.parse_reference_class()?),
-                TokenType::Enum => tys_and_fns.tys.push(self.parse_enum()),
+                TokenType::Enum => tys_and_fns.tys.push(self.parse_enum()?),
                 TokenType::Trait => tys_and_fns.tys.push(self.parse_trait()),
                 TokenType::Fn => tys_and_fns.fns.push(self.parse_fn()),
                 _ => {
@@ -112,8 +109,19 @@ impl Parser {
         Ok(TypeStatement::Class(class_stmt))
     }
 
-    fn parse_enum(&mut self) -> TypeStatement {
-        todo!()
+    fn parse_enum(&mut self) -> Result<TypeStatement> {
+        self.expect(TokenType::Enum)?;
+        let name = self.identifier()?;
+        let generic_types = self.generic_tys()?;
+        let enum_members = self.enum_members()?;
+
+        let enum_stmt = Box::new(EnumStatement::new(
+            name,
+            generic_types,
+            enum_members,
+        ));
+
+        Ok(TypeStatement::Enum(enum_stmt))
     }
 
     fn parse_trait(&mut self) -> TypeStatement {
@@ -126,7 +134,7 @@ impl Parser {
 
     fn identifier(&mut self) -> Result<Ident> {
         if self.is_at_end() {
-            return Err(ExpectedIdent(self.current_position()).into());
+            return Err(ExpectedIdent(self.last_position()).into());
         }
         return match self.current_type() {
             Identifier(ident) => Ok(self.string_interner.get_or_intern(ident)),
@@ -193,6 +201,42 @@ impl Parser {
         todo!()
     }
 
+    fn enum_members(&mut self) -> Result<Vec<EnumMemberDecl>> {
+        let mut members = Vec::new();
+        loop {
+            if self.is_at_end() {
+                return Err(ExpectedIdent(self.last_position()).into());
+            } else {
+                match self.current_type() {
+                    Identifier(ident) => {
+                        let params = self.parameters()?;
+                        let member_funcs = self.member_functions()?;
+                        members.push(EnumMemberDecl::new(
+                            ident,
+                            params,
+                            member_funcs
+                        ));
+                        if self.matches(TokenType::Comma) {
+                            self.advance();
+                        }
+                    }
+                    RightBracket => {
+                        self.advance();
+                        break;
+                    }
+                    token => {
+                        Err(token, self.current_position()).into())
+                    }
+                }
+            }
+        }
+        Ok(members)
+    }
+
+    fn parameters(&mut self) -> Result<Vec<ParameterDecl>> {
+        todo!()
+    }
+
     fn current(&mut self) -> Token {
         self.tokenized_input.tokens()[self.pos]
     }
@@ -224,8 +268,10 @@ impl Parser {
     }
 
     fn expect(&mut self, token_type: TokenType) -> Result<()> {
-        if self.is_at_end() || self.current_type() != token_type {
-            Err(anyhow!(format!("Expected {:?}!", token_type)))
+        if self.is_at_end() {
+            Err(ExpectedToken(token_type, self.last_position()).into())
+        } else if self.current_type() != token_type {
+            Err(ExpectedToken(token_type, self.current_position()).into())
         } else {
             self.advance();
             Ok(())
@@ -311,32 +357,43 @@ mod tests {
     }
 
     #[test]
-    pub fn invalid_qualified_ident() {
-        let code = "use std::vector::";
-        match parse_code(code) {
+    pub fn invalid_use_stmts() {
+        match parse_code("use std::vector::") {
             Ok((string_interner, module)) => {
-                assert!(false);
+                panic!();
             }
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedIdent(_)) => {}
                 _ => {
-                    assert!(false);
+                    panic!();
                 }
             },
         }
-    }
 
-    #[test]
-    pub fn expected_semicolon() {
-        let code = "use std::vector::Vector";
-        match parse_code(code) {
-            Ok(_) => assert!(false),
+        match parse_code("use std::vector::Vector") {
+            Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedToken(token, _)) => {
                     assert_eq!(*token, TokenType::Semicolon)
                 }
-                _ => assert!(false),
+                _ => panic!(),
             },
+        }
+
+        match parse_code("use;") {
+            Ok(_) => panic!(),
+            Err(error) => match error.downcast_ref::<ParseError>() {
+                Some(ExpectedIdent(_)) => {},
+                _ => panic!()
+            }
+        }
+
+        match parse_code("use") {
+            Ok(_) => panic!(),
+            Err(error) => match error.downcast_ref::<ParseError>() {
+                Some(ExpectedIdent(_)) => {},
+                _ => panic!()
+            }
         }
     }
 
@@ -358,5 +415,29 @@ mod tests {
             ],
             module.use_statements()
         );
+    }
+
+    #[test]
+    pub fn tys() {
+        let code = concat!(
+            "enum Planet {",
+            "    Mercury",
+            "    Venus",
+            "    Earth",
+            "    Mars",
+            "    Jupiter",
+            "    Saturn",
+            "    Uranus",
+            "    Neptune",
+            "    Pluto",
+            "}"
+        );
+
+        match parse_code(code) {
+            Ok((string_interner, module)) => {
+
+            }
+            _ => panic!()
+        }
     }
 }
