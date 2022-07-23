@@ -1,7 +1,7 @@
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::{ClassStatement, EnumMemberDecl, EnumStatement, FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module, ParameterDecl, QualifiedIdent, TypeStatement, UseStatement};
-use crate::compiler::parser::ParseError::{ExpectedIdent, ExpectedToken, UnrecognizedToken};
-use crate::compiler::tokens::token::TokenType::{ Identifier, RightBracket };
+use crate::compiler::parser::ParseError::{ExpectedIdent, ExpectedToken, UnexpectedToken};
+use crate::compiler::tokens::token::TokenType::{Colon, Comma, Identifier, LeftBrace, LeftParentheses, RightBrace, RightBracket};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::{Ident, Type};
@@ -24,9 +24,9 @@ struct Parser {
 
 #[derive(Debug)]
 enum ParseError {
-    ExpectedToken(Vec<TokenType>, TokenPosition),
+    ExpectedToken(TokenType, TokenPosition),
     ExpectedIdent(TokenPosition),
-    UnrecognizedToken(TokenPosition),
+    UnexpectedToken(TokenType, TokenPosition),
 }
 
 #[derive(Default)]
@@ -75,8 +75,8 @@ impl Parser {
                 TokenType::Enum => tys_and_fns.tys.push(self.parse_enum()?),
                 TokenType::Trait => tys_and_fns.tys.push(self.parse_trait()),
                 TokenType::Fn => tys_and_fns.fns.push(self.parse_fn()),
-                _ => {
-                    return Err(UnrecognizedToken(self.current_position()).into());
+                token => {
+                    return Err(UnexpectedToken(token,self.current_position()).into());
                 }
             }
         }
@@ -209,23 +209,31 @@ impl Parser {
             } else {
                 match self.current_type() {
                     Identifier(ident) => {
-                        let params = self.parameters()?;
-                        let member_funcs = self.member_functions()?;
+                        let name = self.string_interner.get_or_intern(ident);
+
+                        let mut params = Vec::new();
+                        if self.matches(LeftParentheses) {
+                            params = self.parameters()?;
+                        }
+
+                        let mut member_funcs = Vec::new();
+                        if self.matches(LeftBrace) {
+                            member_funcs = self.member_functions()?;
+                        }
                         members.push(EnumMemberDecl::new(
-                            ident,
+                            name,
                             params,
                             member_funcs
                         ));
-                        if self.matches(TokenType::Comma) {
+                        if !self.matches(Comma) {
+                            self.expect(RightBrace)?;
+                            break;
+                        } else {
                             self.advance();
                         }
                     }
-                    RightBracket => {
-                        self.advance();
-                        break;
-                    }
                     token => {
-                        Err(token, self.current_position()).into())
+                        return Err(UnexpectedToken(token, self.current_position()).into());
                     }
                 }
             }
@@ -234,6 +242,34 @@ impl Parser {
     }
 
     fn parameters(&mut self) -> Result<Vec<ParameterDecl>> {
+        let mut parameters = Vec::new();
+        loop {
+            if self.is_at_end() {
+                return Err(ExpectedIdent(self.last_position()).into());
+            } else {
+                parameters.push(self.parameter()?);
+                if !self.matches(Comma) {
+                    break;
+                } else {
+                    self.advance();
+                }
+            }
+        }
+        Ok(parameters)
+    }
+
+    fn parameter(&mut self) -> Result<ParameterDecl> {
+        let ident = self.identifier()?;
+        self.expect(Colon)?;
+        let ty = self.parse_ty()?;
+
+        Ok(ParameterDecl::new(
+            ident,
+            ty,
+        ))
+    }
+
+    fn parse_ty(&mut self) -> Result<Type> {
         todo!()
     }
 
@@ -313,7 +349,7 @@ impl Display for ParseError {
                 "expected token {} at {}:{}!",
                 token_type, err.line, err.pos
             ),
-            UnrecognizedToken(err) => write!(f, "unrecognized token at {}:{}!", err.line, err.pos),
+            UnexpectedToken(token_type, err) => write!(f, "unrecognized token {} at {}:{}!", token_type, err.line, err.pos),
         };
     }
 }
@@ -421,23 +457,18 @@ mod tests {
     pub fn tys() {
         let code = concat!(
             "enum Planet {",
-            "    Mercury",
-            "    Venus",
-            "    Earth",
-            "    Mars",
-            "    Jupiter",
-            "    Saturn",
-            "    Uranus",
-            "    Neptune",
-            "    Pluto",
+            "    Mercury,",
+            "    Venus,",
+            "    Earth,",
+            "    Mars,",
+            "    Jupiter,",
+            "    Saturn,",
+            "    Uranus,",
+            "    Neptune,",
+            "    Pluto,",
             "}"
         );
 
-        match parse_code(code) {
-            Ok((string_interner, module)) => {
-
-            }
-            _ => panic!()
-        }
+        let (string_interner, module) = parse_code(code).unwrap();
     }
 }

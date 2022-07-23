@@ -147,9 +147,20 @@ pub struct MemberDecl {
 }
 
 pub struct EnumMemberDecl {
-    ident: Ident,
+    name: Ident,
     parameters: Vec<ParameterDecl>,
     member_functions: Vec<MemberFunctionDecl>,
+}
+
+impl EnumMemberDecl {
+
+    pub fn new(name: Ident, parameters: Vec<ParameterDecl>, member_functions: Vec<MemberFunctionDecl>) -> Self {
+        Self {
+            name,
+            parameters,
+            member_functions,
+        }
+    }
 }
 
 pub struct MemberFunctionDecl {
@@ -161,8 +172,18 @@ pub struct MemberFunctionDecl {
 }
 
 pub struct ParameterDecl {
-    ident: Ident,
+    name: Ident,
     ty: Type,
+}
+
+impl ParameterDecl {
+    
+    pub fn new(name: Ident, ty: Type) -> Self {
+        Self {
+            name, 
+            ty,
+        }
+    }
 }
 
 pub struct ArgumentDecl {
