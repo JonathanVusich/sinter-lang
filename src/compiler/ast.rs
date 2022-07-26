@@ -1,4 +1,5 @@
 use crate::compiler::types::types::{Ident, Type};
+use crate::gc::block::Block;
 use crate::traits::traits::Trait;
 
 pub struct Module {
@@ -39,11 +40,8 @@ pub struct QualifiedIdent {
 }
 
 impl QualifiedIdent {
-
     pub fn new(idents: Vec<Ident>) -> Self {
-        Self {
-            idents,
-        }
+        Self { idents }
     }
 }
 
@@ -53,11 +51,8 @@ pub struct UseStatement {
 }
 
 impl UseStatement {
-
     pub fn new(ident: QualifiedIdent) -> Self {
-        Self {
-            ident,
-        }
+        Self { ident }
     }
 }
 
@@ -83,11 +78,12 @@ pub struct ClassStatement {
 }
 
 impl ClassStatement {
-
-    pub fn new(name: Ident,
-               generic_types: Vec<GenericTypeDecl>,
-               members: Vec<MemberDecl>,
-               member_functions: Vec<MemberFunctionDecl>) -> Self {
+    pub fn new(
+        name: Ident,
+        generic_types: Vec<GenericTypeDecl>,
+        members: Vec<MemberDecl>,
+        member_functions: Vec<MemberFunctionDecl>,
+    ) -> Self {
         Self {
             name,
             generic_types,
@@ -104,12 +100,15 @@ pub struct EnumStatement {
 }
 
 impl EnumStatement {
-
-    pub fn new(name: Ident, generic_types: Vec<GenericTypeDecl>, members: Vec<EnumMemberDecl>) -> Self {
+    pub fn new(
+        name: Ident,
+        generic_types: Vec<GenericTypeDecl>,
+        members: Vec<EnumMemberDecl>,
+    ) -> Self {
         Self {
             name,
             generic_types,
-            members
+            members,
         }
     }
 }
@@ -132,12 +131,8 @@ pub struct GenericTypeDecl {
 }
 
 impl GenericTypeDecl {
-
     pub fn new(ident: Ident, trait_bound: Option<Type>) -> Self {
-        Self {
-            ident,
-            trait_bound,
-        }
+        Self { ident, trait_bound }
     }
 }
 
@@ -153,8 +148,11 @@ pub struct EnumMemberDecl {
 }
 
 impl EnumMemberDecl {
-
-    pub fn new(name: Ident, parameters: Vec<ParameterDecl>, member_functions: Vec<MemberFunctionDecl>) -> Self {
+    pub fn new(
+        name: Ident,
+        parameters: Vec<ParameterDecl>,
+        member_functions: Vec<MemberFunctionDecl>,
+    ) -> Self {
         Self {
             name,
             parameters,
@@ -165,10 +163,24 @@ impl EnumMemberDecl {
 
 pub struct MemberFunctionDecl {
     ident: Ident,
+    signature: FunctionSignature,
+    body: BlockStatement,
+}
+
+impl MemberFunctionDecl {
+    pub fn new(ident: Ident, signature: FunctionSignature, body: BlockStatement) -> Self {
+        Self {
+            ident,
+            signature,
+            body,
+        }
+    }
+}
+
+pub struct FunctionSignature {
     generic_types: Vec<GenericTypeDecl>,
     parameters: Vec<ParameterDecl>,
     return_type: Type,
-    body: BlockStatement,
 }
 
 pub struct ParameterDecl {
@@ -177,12 +189,8 @@ pub struct ParameterDecl {
 }
 
 impl ParameterDecl {
-    
     pub fn new(name: Ident, ty: Type) -> Self {
-        Self {
-            name, 
-            ty,
-        }
+        Self { name, ty }
     }
 }
 

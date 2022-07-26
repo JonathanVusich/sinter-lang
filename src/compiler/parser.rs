@@ -1,13 +1,23 @@
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::{ClassStatement, EnumMemberDecl, EnumStatement, FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module, ParameterDecl, QualifiedIdent, TypeStatement, UseStatement};
-use crate::compiler::parser::ParseError::{ExpectedIdent, ExpectedToken, UnexpectedToken};
-use crate::compiler::tokens::token::TokenType::{Colon, Comma, Identifier, LeftBrace, LeftParentheses, RightBrace, RightBracket};
+use crate::compiler::ast::{
+    BlockStatement, ClassStatement, EnumMemberDecl, EnumStatement, FunctionSignature,
+    FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module, ParameterDecl,
+    QualifiedIdent, TypeStatement, UseStatement,
+};
+use crate::compiler::parser::ParseError::{
+    ExpectedIdent, ExpectedToken, UnexpectedEof, UnexpectedToken,
+};
+use crate::compiler::tokens::token::TokenType::{
+    Colon, Comma, Fn, Identifier, LeftBrace, LeftParentheses, RightBrace, RightBracket,
+    RightParentheses,
+};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::{Ident, Type};
 use crate::compiler::StringInterner;
 use anyhow::{anyhow, Result};
 use std::error::Error;
+use std::fmt::Alignment::Right;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
@@ -24,6 +34,7 @@ struct Parser {
 
 #[derive(Debug)]
 enum ParseError {
+    UnexpectedEof(TokenPosition),
     ExpectedToken(TokenType, TokenPosition),
     ExpectedIdent(TokenPosition),
     UnexpectedToken(TokenType, TokenPosition),
@@ -76,7 +87,7 @@ impl Parser {
                 TokenType::Trait => tys_and_fns.tys.push(self.parse_trait()),
                 TokenType::Fn => tys_and_fns.fns.push(self.parse_fn()),
                 token => {
-                    return Err(UnexpectedToken(token,self.current_position()).into());
+                    return Err(UnexpectedToken(token, self.current_position()).into());
                 }
             }
         }
@@ -115,11 +126,7 @@ impl Parser {
         let generic_types = self.generic_tys()?;
         let enum_members = self.enum_members()?;
 
-        let enum_stmt = Box::new(EnumStatement::new(
-            name,
-            generic_types,
-            enum_members,
-        ));
+        let enum_stmt = Box::new(EnumStatement::new(name, generic_types, enum_members));
 
         Ok(TypeStatement::Enum(enum_stmt))
     }
@@ -194,7 +201,36 @@ impl Parser {
     }
 
     fn member_functions(&mut self) -> Result<Vec<MemberFunctionDecl>> {
-        todo!()
+        let mut funcs = Vec::new();
+        loop {
+            if self.is_at_end() {
+                return Err(ExpectedToken(Fn, self.last_position()).into());
+            } else {
+                match self.current_type() {
+                    Fn => {
+                        self.advance();
+                        let name = self.identifier()?;
+                        let signature = self.function_signature()?;
+                        let stmt = self.block_statement()?;
+
+                        funcs.push(MemberFunctionDecl::new(name, signature, stmt));
+                    }
+                    token => {
+                        return Err(ExpectedToken(Fn, self.current_position()).into());
+                    }
+                }
+            }
+        }
+    }
+
+    fn enum_member_functions(&mut self) -> Result<Vec<MemberFunctionDecl>> {
+        let mut member_funcs = Vec::new();
+        if self.matches(LeftBrace) {
+            self.advance();
+            member_funcs = self.member_functions()?;
+            self.expect(RightBrace)?;
+        }
+        Ok(member_funcs)
     }
 
     fn trait_bound(&mut self) -> Result<Type> {
@@ -210,26 +246,24 @@ impl Parser {
                 match self.current_type() {
                     Identifier(ident) => {
                         let name = self.string_interner.get_or_intern(ident);
+                        self.advance();
 
-                        let mut params = Vec::new();
-                        if self.matches(LeftParentheses) {
-                            params = self.parameters()?;
-                        }
+                        let params = self.parenthesized_parameters()?;
+                        let member_funcs = self.enum_member_functions()?;
 
-                        let mut member_funcs = Vec::new();
-                        if self.matches(LeftBrace) {
-                            member_funcs = self.member_functions()?;
-                        }
-                        members.push(EnumMemberDecl::new(
-                            name,
-                            params,
-                            member_funcs
-                        ));
+                        members.push(EnumMemberDecl::new(name, params, member_funcs));
+
                         if !self.matches(Comma) {
                             self.expect(RightBrace)?;
                             break;
                         } else {
+                            // Consume the comma
                             self.advance();
+                            // If the enum declaration ends, break
+                            if self.matches(RightBrace) {
+                                self.advance();
+                                break;
+                            }
                         }
                     }
                     token => {
@@ -239,6 +273,16 @@ impl Parser {
             }
         }
         Ok(members)
+    }
+
+    fn parenthesized_parameters(&mut self) -> Result<Vec<ParameterDecl>> {
+        let mut params = Vec::new();
+        if self.matches(LeftParentheses) {
+            self.advance();
+            params = self.parameters()?;
+            self.expect(RightParentheses)?;
+        }
+        Ok(params)
     }
 
     fn parameters(&mut self) -> Result<Vec<ParameterDecl>> {
@@ -263,14 +307,55 @@ impl Parser {
         self.expect(Colon)?;
         let ty = self.parse_ty()?;
 
-        Ok(ParameterDecl::new(
-            ident,
-            ty,
-        ))
+        Ok(ParameterDecl::new(ident, ty))
+    }
+
+    fn function_signature(&mut self) -> Result<FunctionSignature> {
+        todo!()
+    }
+
+    fn block_statement(&mut self) -> Result<BlockStatement> {
+        todo!()
     }
 
     fn parse_ty(&mut self) -> Result<Type> {
         todo!()
+    }
+
+    fn parse_multiple<T>(
+        &mut self,
+        parse_rule: fn() -> Result<T>,
+        delimiter: TokenType,
+        end_of_scope: TokenType,
+    ) -> Result<Vec<T>> {
+        let mut items = Vec::new();
+        loop {
+            if self.is_at_end() {
+                return self.unexpected_end();
+            } else {
+                items.push(parse_rule()?);
+                if self.matches(delimiter) {
+                    self.advance();
+                    if self.matches(end_of_scope) {
+                        self.advance();
+                        break;
+                    }
+                }
+            }
+        }
+        Ok(items)
+    }
+
+    fn expected_token<T>(
+        &mut self,
+        token_type: TokenType,
+        token_position: TokenPosition,
+    ) -> Result<T> {
+        Err(ExpectedToken(token_type, token_position).into())
+    }
+
+    fn unexpected_end<T>(&mut self) -> Result<T> {
+        Err(UnexpectedEof(self.last_position()).into())
     }
 
     fn current(&mut self) -> Token {
@@ -343,13 +428,18 @@ impl TysAndFns {
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         return match self {
-            ExpectedIdent(err) => write!(f, "expected identifier at {}:{}!", err.line, err.pos),
-            ExpectedToken(token_type, err) => write!(
+            UnexpectedEof(pos) => write!(f, "unexpected eof at {}:{}!", pos.line, pos.pos),
+            ExpectedIdent(pos) => write!(f, "expected identifier at {}:{}!", pos.line, pos.pos),
+            ExpectedToken(token_type, pos) => write!(
                 f,
                 "expected token {} at {}:{}!",
-                token_type, err.line, err.pos
+                token_type, pos.line, pos.pos
             ),
-            UnexpectedToken(token_type, err) => write!(f, "unrecognized token {} at {}:{}!", token_type, err.line, err.pos),
+            UnexpectedToken(token_type, pos) => write!(
+                f,
+                "unrecognized token {} at {}:{}!",
+                token_type, pos.line, pos.pos
+            ),
         };
     }
 }
@@ -372,6 +462,7 @@ mod tests {
     use std::error::Error;
     use std::sync::Arc;
 
+    #[cfg(test)]
     macro_rules! qualified_ident {
         ($interner:expr, $($string:literal),*) => {
                 QualifiedIdent::new(vec![
@@ -419,17 +510,17 @@ mod tests {
         match parse_code("use;") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedIdent(_)) => {},
-                _ => panic!()
-            }
+                Some(ExpectedIdent(_)) => {}
+                _ => panic!(),
+            },
         }
 
         match parse_code("use") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedIdent(_)) => {},
-                _ => panic!()
-            }
+                Some(ExpectedIdent(_)) => {}
+                _ => panic!(),
+            },
         }
     }
 
