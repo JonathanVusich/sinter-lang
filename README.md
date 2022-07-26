@@ -1,6 +1,6 @@
-# The Flux programming language
+# The Sinter programming language
 
-Flux is a statically-typed and garbage collected language that is designed around user ergonomics and productivity.
+Sinter is a statically-typed and garbage collected language that is designed around user ergonomics and productivity.
 It features advanced garbage collection, message-based concurrency and generic types to allow users to develop systems
 quickly, scalably, and correctly.
 
@@ -14,7 +14,7 @@ import std::vector
 Imports should be declared at the top of each source file. 
 
 ### Program entry point
-The entry point for a Flux application is the main function.
+The entry point for a Sinter application is the main function.
 
 ```ignorelang
 fn main() {
@@ -22,7 +22,7 @@ fn main() {
 }
 ```
 
-A main argument that takes in a string array is also valid. The parameters given to the Flux VM at startup are passed to this method.
+A main argument that takes in a string array is also valid. The parameters given to the Sinter VM at startup are passed to this method.
 ```ignorelang
 fn main(arguments: [str]) {
     print(arguments.to_string());
@@ -31,7 +31,7 @@ fn main(arguments: [str]) {
 
 ### Built-in Types
 
-Flux provides a number of built-in types in order to simplify application development.
+Sinter provides a number of built-in types in order to simplify application development.
 
 
 #### Unsigned integer types
@@ -313,7 +313,7 @@ fn draw_frame(nodes: List<Node>) {
 ```
 
 ### Comments
-Like most languages, Flux supports single-line (or end-of-line) and multi-line (block) comments.
+Like most languages, Sinter supports single-line (or end-of-line) and multi-line (block) comments.
 
 ```ignorelang
 // This is an end-of-line comment
