@@ -183,6 +183,17 @@ pub struct FunctionSignature {
     return_type: Type,
 }
 
+impl FunctionSignature {
+    
+    pub fn new(generic_types: Vec<GenericTypeDecl>, parameters: Vec<ParameterDecl>, return_type: Type) -> Self {
+        Self {
+            generic_types,
+            parameters,
+            return_type,
+        }
+    }
+}
+
 pub struct ParameterDecl {
     name: Ident,
     ty: Type,

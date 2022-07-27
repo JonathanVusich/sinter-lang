@@ -1,18 +1,20 @@
 use crate::class::compiled_class::CompiledClass;
+use crate::compiler::ast::BlockStatement::Statement;
+use crate::compiler::ast::Statement::{Break, Continue};
 use crate::compiler::ast::{
     BlockStatement, ClassStatement, EnumMemberDecl, EnumStatement, FunctionSignature,
     FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module, ParameterDecl,
     QualifiedIdent, TypeStatement, UseStatement,
 };
-use crate::compiler::parser::ParseError::{
-    ExpectedIdent, ExpectedToken, UnexpectedEof, UnexpectedToken,
-};
+use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::TokenType::{
     Colon, Comma, Fn, Identifier, LeftBrace, LeftParentheses, RightBrace, RightBracket,
     RightParentheses,
 };
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
+use crate::compiler::types::types::BasicType::U8;
+use crate::compiler::types::types::Type::Basic;
 use crate::compiler::types::types::{Ident, Type};
 use crate::compiler::StringInterner;
 use anyhow::{anyhow, Result};
@@ -36,7 +38,6 @@ struct Parser {
 enum ParseError {
     UnexpectedEof(TokenPosition),
     ExpectedToken(TokenType, TokenPosition),
-    ExpectedIdent(TokenPosition),
     UnexpectedToken(TokenType, TokenPosition),
 }
 
@@ -140,38 +141,39 @@ impl Parser {
     }
 
     fn identifier(&mut self) -> Result<Ident> {
-        if self.is_at_end() {
-            return Err(ExpectedIdent(self.last_position()).into());
-        }
+        self.bounds_check()?;
         return match self.current_type() {
             Identifier(ident) => Ok(self.string_interner.get_or_intern(ident)),
-            _ => Err(anyhow!("Expected identifier!")),
+            _ => {
+                let pos = self.current_position();
+                self.expected_token(Identifier(""), pos)
+            }
         };
     }
 
     fn qualified_ident(&mut self) -> Result<QualifiedIdent> {
         let mut idents = Vec::new();
-
         loop {
-            if self.is_at_end() {
-                return Err(ExpectedIdent(self.last_position()).into());
-            } else if let Identifier(ident) = self.current_type() {
-                idents.push(self.string_interner.get_or_intern(ident));
-                if self.remaining() >= 2 {
-                    if self.next(1).token_type == TokenType::Colon
-                        && self.next(2).token_type == TokenType::Colon
-                    {
-                        self.advance_multiple(3);
+            self.bounds_check()?;
+            match self.current_type() {
+                Identifier(ident) => {
+                    idents.push(self.string_interner.get_or_intern(ident));
+                    if self.remaining() >= 2 {
+                        if self.next(1).token_type == Colon && self.next(2).token_type == Colon {
+                            self.advance_multiple(3);
+                        } else {
+                            self.advance();
+                            break;
+                        }
                     } else {
                         self.advance();
                         break;
                     }
-                } else {
-                    self.advance();
-                    break;
                 }
-            } else {
-                return Err(ExpectedIdent(self.current_position()).into());
+                token => {
+                    let pos = self.current_position();
+                    return self.expected_token(Identifier(""), pos);
+                }
             }
         }
 
@@ -201,24 +203,22 @@ impl Parser {
     }
 
     fn member_functions(&mut self) -> Result<Vec<MemberFunctionDecl>> {
-        let mut funcs = Vec::new();
-        loop {
-            if self.is_at_end() {
-                return Err(ExpectedToken(Fn, self.last_position()).into());
-            } else {
-                match self.current_type() {
-                    Fn => {
-                        self.advance();
-                        let name = self.identifier()?;
-                        let signature = self.function_signature()?;
-                        let stmt = self.block_statement()?;
+        self.parse_multiple(Self::member_function, LeftBrace, RightBrace)
+    }
 
-                        funcs.push(MemberFunctionDecl::new(name, signature, stmt));
-                    }
-                    token => {
-                        return Err(ExpectedToken(Fn, self.current_position()).into());
-                    }
-                }
+    fn member_function(&mut self) -> Result<MemberFunctionDecl> {
+        match self.current_type() {
+            Fn => {
+                self.advance();
+                let name = self.identifier()?;
+                let signature = self.function_signature()?;
+                let stmt = self.block_statement()?;
+
+                Ok(MemberFunctionDecl::new(name, signature, stmt))
+            }
+            token => {
+                let pos = self.current_position();
+                self.expected_token(Fn, pos)
             }
         }
     }
@@ -238,68 +238,74 @@ impl Parser {
     }
 
     fn enum_members(&mut self) -> Result<Vec<EnumMemberDecl>> {
-        let mut members = Vec::new();
-        loop {
-            if self.is_at_end() {
-                return Err(ExpectedIdent(self.last_position()).into());
-            } else {
-                match self.current_type() {
-                    Identifier(ident) => {
-                        let name = self.string_interner.get_or_intern(ident);
-                        self.advance();
+        self.parse_multiple_with_delimiter::<EnumMemberDecl, 1>(
+            Self::enum_member,
+            Comma,
+            LeftBrace,
+            RightBrace,
+        )
+        // loop {
+        //     if self.is_at_end() {
+        //         return Err(ExpectedIdent(self.last_position()).into());
+        //     } else {
+        //         match self.current_type() {
+        //             Identifier(ident) => {
+        //                 let name = self.string_interner.get_or_intern(ident);
+        //                 self.advance();
+        //
+        //                 let params = self.parenthesized_parameters()?;
+        //                 let member_funcs = self.enum_member_functions()?;
+        //
+        //                 members.push(EnumMemberDecl::new(name, params, member_funcs));
+        //
+        //                 if !self.matches(Comma) {
+        //                     self.expect(RightBrace)?;
+        //                     break;
+        //                 } else {
+        //                     // Consume the comma
+        //                     self.advance();
+        //                     // If the enum declaration ends, break
+        //                     if self.matches(RightBrace) {
+        //                         self.advance();
+        //                         break;
+        //                     }
+        //                 }
+        //             }
+        //             token => {
+        //                 return Err(UnexpectedToken(token, self.current_position()).into());
+        //             }
+        //         }
+        //     }
+        // }
+        // Ok(members)
+    }
 
-                        let params = self.parenthesized_parameters()?;
-                        let member_funcs = self.enum_member_functions()?;
+    fn enum_member(&mut self) -> Result<EnumMemberDecl> {
+        self.bounds_check()?;
+        match self.current_type() {
+            Identifier(ident) => {
+                let name = self.string_interner.get_or_intern(ident);
+                self.advance();
 
-                        members.push(EnumMemberDecl::new(name, params, member_funcs));
+                let params = self.parenthesized_parameters()?;
+                let member_funcs = self.enum_member_functions()?;
 
-                        if !self.matches(Comma) {
-                            self.expect(RightBrace)?;
-                            break;
-                        } else {
-                            // Consume the comma
-                            self.advance();
-                            // If the enum declaration ends, break
-                            if self.matches(RightBrace) {
-                                self.advance();
-                                break;
-                            }
-                        }
-                    }
-                    token => {
-                        return Err(UnexpectedToken(token, self.current_position()).into());
-                    }
-                }
+                Ok(EnumMemberDecl::new(name, params, member_funcs))
+            }
+            token => {
+                let pos = self.current_position();
+                self.expected_token(Identifier(""), pos)
             }
         }
-        Ok(members)
     }
 
     fn parenthesized_parameters(&mut self) -> Result<Vec<ParameterDecl>> {
-        let mut params = Vec::new();
-        if self.matches(LeftParentheses) {
-            self.advance();
-            params = self.parameters()?;
-            self.expect(RightParentheses)?;
-        }
-        Ok(params)
-    }
-
-    fn parameters(&mut self) -> Result<Vec<ParameterDecl>> {
-        let mut parameters = Vec::new();
-        loop {
-            if self.is_at_end() {
-                return Err(ExpectedIdent(self.last_position()).into());
-            } else {
-                parameters.push(self.parameter()?);
-                if !self.matches(Comma) {
-                    break;
-                } else {
-                    self.advance();
-                }
-            }
-        }
-        Ok(parameters)
+        self.parse_multiple_with_delimiter::<ParameterDecl, 1>(
+            Self::parameter,
+            LeftParentheses,
+            RightParentheses,
+            Comma,
+        )
     }
 
     fn parameter(&mut self) -> Result<ParameterDecl> {
@@ -311,11 +317,11 @@ impl Parser {
     }
 
     fn function_signature(&mut self) -> Result<FunctionSignature> {
-        todo!()
+        Ok(FunctionSignature::new(Vec::new(), Vec::new(), Basic(U8)))
     }
 
     fn block_statement(&mut self) -> Result<BlockStatement> {
-        todo!()
+        Ok(Statement(Break))
     }
 
     fn parse_ty(&mut self) -> Result<Type> {
@@ -324,19 +330,48 @@ impl Parser {
 
     fn parse_multiple<T>(
         &mut self,
-        parse_rule: fn() -> Result<T>,
-        delimiter: TokenType,
-        end_of_scope: TokenType,
+        parse_rule: fn(&mut Parser) -> Result<T>,
+        scope_start: TokenType,
+        scope_end: TokenType,
     ) -> Result<Vec<T>> {
         let mut items = Vec::new();
-        loop {
-            if self.is_at_end() {
-                return self.unexpected_end();
-            } else {
-                items.push(parse_rule()?);
-                if self.matches(delimiter) {
+        if self.matches(scope_start) {
+            loop {
+                self.bounds_check()?;
+                items.push(parse_rule(self)?);
+                if self.matches(scope_end) {
                     self.advance();
-                    if self.matches(end_of_scope) {
+                    break;
+                }
+            }
+        }
+        Ok(items)
+    }
+
+    fn parse_multiple_with_delimiter<T, const N: usize>(
+        &mut self,
+        parse_rule: fn(&mut Parser) -> Result<T>,
+        delimiter: TokenType,
+        scope_start: TokenType,
+        scope_end: TokenType,
+    ) -> Result<Vec<T>> {
+        let mut items = Vec::new();
+        if self.matches(scope_start) {
+            self.advance();
+            loop {
+                if self.is_at_end() {
+                    return self.unexpected_end();
+                } else {
+                    items.push(parse_rule(self)?);
+                    for i in 0..N {
+                        if self.matches(delimiter) {
+                            self.advance();
+                        } else if i < N - 1 {
+                            let pos = self.current_position();
+                            return self.expected_token(delimiter, pos);
+                        }
+                    }
+                    if self.matches(scope_end) {
                         self.advance();
                         break;
                     }
@@ -352,6 +387,22 @@ impl Parser {
         token_position: TokenPosition,
     ) -> Result<T> {
         Err(ExpectedToken(token_type, token_position).into())
+    }
+
+    fn unexpected_token<T>(
+        &mut self,
+        token_type: TokenType,
+        token_position: TokenPosition,
+    ) -> Result<T> {
+        Err(UnexpectedToken(token_type, token_position).into())
+    }
+
+    fn bounds_check(&mut self) -> Result<()> {
+        if self.is_at_end() {
+            self.unexpected_end()
+        } else {
+            Ok(())
+        }
     }
 
     fn unexpected_end<T>(&mut self) -> Result<T> {
@@ -429,7 +480,6 @@ impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         return match self {
             UnexpectedEof(pos) => write!(f, "unexpected eof at {}:{}!", pos.line, pos.pos),
-            ExpectedIdent(pos) => write!(f, "expected identifier at {}:{}!", pos.line, pos.pos),
             ExpectedToken(token_type, pos) => write!(
                 f,
                 "expected token {} at {}:{}!",
@@ -451,9 +501,10 @@ unsafe impl Sync for ParseError {}
 
 mod tests {
     use crate::compiler::ast::{Module, QualifiedIdent, UseStatement};
-    use crate::compiler::parser::ParseError::{ExpectedIdent, ExpectedToken};
+    use crate::compiler::parser::ParseError::ExpectedToken;
     use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::tokens::token::TokenType;
+    use crate::compiler::tokens::token::TokenType::Identifier;
     use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::StringInterner;
@@ -490,7 +541,7 @@ mod tests {
                 panic!();
             }
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedIdent(_)) => {}
+                Some(ExpectedToken(Identifier(_), pos)) => {}
                 _ => {
                     panic!();
                 }
@@ -510,7 +561,7 @@ mod tests {
         match parse_code("use;") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedIdent(_)) => {}
+                Some(ExpectedToken(Identifier(_), pos)) => {}
                 _ => panic!(),
             },
         }
@@ -518,7 +569,7 @@ mod tests {
         match parse_code("use") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedIdent(_)) => {}
+                Some(ExpectedToken(Identifier(_), pos)) => {}
                 _ => panic!(),
             },
         }
