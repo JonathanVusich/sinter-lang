@@ -8,8 +8,8 @@ use crate::compiler::ast::{
 };
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::TokenType::{
-    Colon, Comma, Fn, Identifier, LeftBrace, LeftParentheses, RightBrace, RightBracket,
-    RightParentheses,
+    Colon, Comma, Fn, Greater, Identifier, LeftBrace, LeftParentheses, Less, RightBrace,
+    RightBracket, RightParentheses, Semicolon,
 };
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -68,7 +68,7 @@ impl Parser {
     }
 
     fn parse_use_stmts(&mut self) -> Result<Vec<UseStatement>> {
-        let mut stmts = Vec::<UseStatement>::new();
+        let mut stmts = Vec::new();
         while self.matches(TokenType::Use) {
             self.advance();
             let identifier = self.qualified_ident()?;
@@ -142,13 +142,17 @@ impl Parser {
 
     fn identifier(&mut self) -> Result<Ident> {
         self.bounds_check()?;
-        return match self.current_type() {
-            Identifier(ident) => Ok(self.string_interner.get_or_intern(ident)),
+        match self.current_type() {
+            Identifier(ident) => {
+                let identifier = self.string_interner.get_or_intern(ident);
+                self.advance();
+                Ok(identifier)
+            }
             _ => {
                 let pos = self.current_position();
                 self.expected_token(Identifier(""), pos)
             }
-        };
+        }
     }
 
     fn qualified_ident(&mut self) -> Result<QualifiedIdent> {
@@ -181,21 +185,22 @@ impl Parser {
     }
 
     fn generic_tys(&mut self) -> Result<Vec<GenericTypeDecl>> {
-        if self.matches(TokenType::Less) {
-            let mut type_decls = Vec::new();
-            while !self.matches(TokenType::Comma) || !self.matches(TokenType::Greater) {
-                let ident = self.identifier()?;
-                if self.matches(TokenType::Colon) {
-                    self.advance();
-                    let trait_bound = self.trait_bound()?;
-                    let type_decl = GenericTypeDecl::new(ident, Some(trait_bound));
-                    type_decls.push(type_decl);
-                }
-            }
-            Ok(type_decls)
-        } else {
-            Ok(Vec::new())
+        self.parse_multiple_with_delimiter::<GenericTypeDecl, 1>(
+            Self::generic_ty,
+            Comma,
+            Less,
+            Greater,
+        )
+    }
+
+    fn generic_ty(&mut self) -> Result<GenericTypeDecl> {
+        let ident = self.identifier()?;
+        let mut trait_bound: Option<Type> = None;
+        if self.matches(Colon) {
+            self.advance();
+            trait_bound = Some(self.trait_bound()?);
         }
+        Ok(GenericTypeDecl::new(ident, trait_bound))
     }
 
     fn members(&mut self) -> Result<Vec<MemberDecl>> {
@@ -501,7 +506,7 @@ unsafe impl Sync for ParseError {}
 
 mod tests {
     use crate::compiler::ast::{Module, QualifiedIdent, UseStatement};
-    use crate::compiler::parser::ParseError::ExpectedToken;
+    use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::Identifier;
@@ -541,7 +546,7 @@ mod tests {
                 panic!();
             }
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedToken(Identifier(_), pos)) => {}
+                Some(UnexpectedEof(pos)) => {}
                 _ => {
                     panic!();
                 }
@@ -569,8 +574,11 @@ mod tests {
         match parse_code("use") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedToken(Identifier(_), pos)) => {}
-                _ => panic!(),
+                Some(UnexpectedEof(pos)) => {}
+                _ => {
+                    println!("{}", error);
+                    panic!()
+                }
             },
         }
     }
