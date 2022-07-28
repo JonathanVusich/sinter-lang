@@ -2,7 +2,7 @@ use lasso::Spur;
 
 pub type Ident = Spur;
 
-#[derive(Eq, PartialEq, Debug, Hash)]
+#[derive(Clone, Eq, PartialEq, Debug, Hash)]
 pub enum Type {
     Array(Box<Type>),
     Enum(Ident),
@@ -10,10 +10,11 @@ pub enum Type {
     TraitBounds(Vec<Ident>),
     Union(Vec<Type>),
     Class(Ident),
+    Generic(Ident),
     Basic(BasicType),
 }
 
-#[derive(Eq, PartialEq, Debug, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub enum BasicType {
     U8,
     U16,

@@ -1,6 +1,7 @@
 use crate::compiler::types::types::{Ident, Type};
 use crate::gc::block::Block;
 use crate::traits::traits::Trait;
+use std::path::Prefix;
 
 pub struct Module {
     use_stmts: Vec<UseStatement>,
@@ -57,10 +58,18 @@ impl UseStatement {
 }
 
 pub enum TypeStatement {
-    Enum(Box<EnumStatement>),
-    InlineClass(Box<InlineClassStatement>),
-    Class(Box<ClassStatement>),
-    Trait(Box<TraitStatement>),
+    Enum {
+        enum_stmt: Box<EnumStatement>,
+    },
+    InlineClass {
+        class_stmt: Box<InlineClassStatement>,
+    },
+    Class {
+        class_stmt: Box<ClassStatement>,
+    },
+    Trait {
+        trait_stmt: Box<TraitStatement>,
+    },
 }
 
 pub struct InlineClassStatement {
@@ -95,7 +104,7 @@ impl ClassStatement {
 
 pub struct EnumStatement {
     name: Ident,
-    generic_types: Vec<GenericTypeDecl>,
+    generic_tys: Vec<GenericTypeDecl>,
     members: Vec<EnumMemberDecl>,
 }
 
@@ -107,9 +116,17 @@ impl EnumStatement {
     ) -> Self {
         Self {
             name,
-            generic_types,
+            generic_tys: generic_types,
             members,
         }
+    }
+
+    pub fn generic_tys(&self) -> &[GenericTypeDecl] {
+        &self.generic_tys
+    }
+
+    pub fn members(&self) -> &[EnumMemberDecl] {
+        &self.members
     }
 }
 
@@ -125,6 +142,7 @@ pub struct FunctionStatement {
     return_type: Type,
 }
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct GenericTypeDecl {
     ident: Ident,
     trait_bound: Option<Type>,
@@ -141,6 +159,7 @@ pub struct MemberDecl {
     type_ref: Type,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct EnumMemberDecl {
     name: Ident,
     parameters: Vec<ParameterDecl>,
@@ -161,6 +180,7 @@ impl EnumMemberDecl {
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub struct MemberFunctionDecl {
     ident: Ident,
     signature: FunctionSignature,
@@ -177,6 +197,7 @@ impl MemberFunctionDecl {
     }
 }
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct FunctionSignature {
     generic_types: Vec<GenericTypeDecl>,
     parameters: Vec<ParameterDecl>,
@@ -184,8 +205,11 @@ pub struct FunctionSignature {
 }
 
 impl FunctionSignature {
-    
-    pub fn new(generic_types: Vec<GenericTypeDecl>, parameters: Vec<ParameterDecl>, return_type: Type) -> Self {
+    pub fn new(
+        generic_types: Vec<GenericTypeDecl>,
+        parameters: Vec<ParameterDecl>,
+        return_type: Type,
+    ) -> Self {
         Self {
             generic_types,
             parameters,
@@ -194,6 +218,7 @@ impl FunctionSignature {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ParameterDecl {
     name: Ident,
     ty: Type,
@@ -205,43 +230,70 @@ impl ParameterDecl {
     }
 }
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct ArgumentDecl {
     ident: Ident,
     ty: Type,
 }
 
-pub enum BlockStatement {
-    LocalVarDeclaration(LocalVarDecl),
-    Statement(Statement),
-}
-
+#[derive(PartialEq, Debug)]
 pub struct LocalVarDecl {
     ident: Ident,
     ty: Type,
-    initializer: Option<VarInitializer>,
+    initializer: Option<Expression>,
 }
 
+#[derive(PartialEq, Debug)]
 pub enum VarInitializer {
     Array(Vec<VarInitializer>),
     Statement(Statement),
 }
 
-pub struct Expression {
-    lhs: InfixExpression,
-    rhs: Option<(AssignmentOperator, InfixExpression)>,
+#[derive(PartialEq, Debug)]
+pub enum Expression {
+
 }
 
+impl Expression {
+    pub fn new(lhs: InfixExpression, rhs: Option<(AssignmentOperator, InfixExpression)>) -> Self {
+        Self { lhs, rhs }
+    }
+}
+
+#[derive(PartialEq, Debug)]
 pub struct InfixExpression {
     lhs: BasicExpression,
-    rhs: Option<(InfixOperator, BasicExpression)>,
+    rhs: Option<(BinaryOperator, BasicExpression)>,
 }
 
+impl InfixExpression {
+    pub fn new(lhs: BasicExpression, rhs: Option<(BinaryOperator, BasicExpression)>) -> Self {
+        Self { lhs, rhs }
+    }
+}
+
+#[derive(PartialEq, Debug)]
 pub struct BasicExpression {
-    prefix: Option<PrefixOperator>,
+    prefix: Option<UnaryOperator>,
     primary: PrimaryExpression,
     selector: Vec<Selector>,
 }
 
+impl BasicExpression {
+    pub fn new(
+        prefix: Option<UnaryOperator>,
+        primary: PrimaryExpression,
+        selector: Vec<Selector>,
+    ) -> Self {
+        Self {
+            prefix,
+            primary,
+            selector,
+        }
+    }
+}
+
+#[derive(PartialEq, Debug)]
 pub enum PrimaryExpression {
     Literal {
         literal: Literal,
@@ -258,6 +310,7 @@ pub enum PrimaryExpression {
     },
 }
 
+#[derive(PartialEq, Debug)]
 pub enum Selector {
     FunctionCall {
         ident: Ident,
@@ -268,6 +321,7 @@ pub enum Selector {
     },
 }
 
+#[derive(PartialEq, Debug)]
 pub enum Literal {
     IntegerLiteral(i64),
     FloatingPointerLiteral(f64),
@@ -276,6 +330,7 @@ pub enum Literal {
     None,
 }
 
+#[derive(PartialEq, Eq, Debug)]
 pub enum AssignmentOperator {
     Assign,
     PlusAssign,
@@ -285,7 +340,8 @@ pub enum AssignmentOperator {
     ModuloAssign,
 }
 
-pub enum InfixOperator {
+#[derive(PartialEq, Eq, Debug)]
+pub enum BinaryOperator {
     Or,
     And,
     Equal,
@@ -301,15 +357,24 @@ pub enum InfixOperator {
     Modulo,
 }
 
-pub enum PrefixOperator {
+#[derive(PartialEq, Eq, Debug)]
+pub enum UnaryOperator {
     Bang,
     Negate,
     Plus,
 }
 
+#[derive(PartialEq, Debug)]
 pub enum Statement {
-    Block(Box<BlockStatement>),
-    Expression(Box<Expression>),
+    Local(Box<LocalVarDecl>),
+    Literal(Literal),
+    InternalConstructor(Vec<ArgumentDecl>),
+    Array(Vec<VarInitializer>),
+    Class(Ident, Vec<ArgumentDecl>),
+    Binary(BinaryOperator, Box<Statement>, Box<Statement>),
+    Unary(UnaryOperator, Box<Statement>),
+    Call(Box<Statement>, Vec<ArgumentDecl>>),
+    Expression(Box<Expression>), // Expand this
     If(Box<IfStatement>),
     Match(Box<MatchStatement>),
     While(Box<WhileStatement>),
@@ -319,28 +384,33 @@ pub enum Statement {
     Return(Box<Expression>),
 }
 
+#[derive(PartialEq, Debug)]
 pub struct IfStatement {
     condition: Box<Expression>,
     statement_true: Statement,
     statement_false: Option<Statement>,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct MatchStatement {
     expr: Box<Expression>,
     statements: Vec<MatchArm>,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct MatchArm {
     ty: Type,
     ident: Ident,
     statement: Statement,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct WhileStatement {
     condition: Box<Expression>,
     statement: Statement,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct ForStatement {
     ident: Ident,
     loop_expr: Box<Expression>,

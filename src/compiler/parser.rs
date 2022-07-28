@@ -118,7 +118,7 @@ impl Parser {
             member_functions,
         ));
 
-        Ok(TypeStatement::Class(class_stmt))
+        Ok(TypeStatement::Class { class_stmt })
     }
 
     fn parse_enum(&mut self) -> Result<TypeStatement> {
@@ -129,7 +129,7 @@ impl Parser {
 
         let enum_stmt = Box::new(EnumStatement::new(name, generic_types, enum_members));
 
-        Ok(TypeStatement::Enum(enum_stmt))
+        Ok(TypeStatement::Enum { enum_stmt })
     }
 
     fn parse_trait(&mut self) -> TypeStatement {
@@ -505,15 +505,23 @@ unsafe impl Send for ParseError {}
 unsafe impl Sync for ParseError {}
 
 mod tests {
-    use crate::compiler::ast::{Module, QualifiedIdent, UseStatement};
+    use crate::compiler::ast::TypeStatement::Enum;
+    use crate::compiler::ast::{
+        BasicExpression, BlockStatement, EnumMemberDecl, EnumStatement, Expression,
+        FunctionSignature, GenericTypeDecl, InfixExpression, MemberFunctionDecl, Module,
+        ParameterDecl, QualifiedIdent, Statement, TypeStatement, UseStatement,
+    };
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::Identifier;
     use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
+    use crate::compiler::types::types::Type;
+    use crate::compiler::types::types::Type::TraitBounds;
     use crate::compiler::StringInterner;
     use anyhow::Result;
+    use libc::strncat;
     use std::any::Any;
     use std::error::Error;
     use std::sync::Arc;
@@ -604,7 +612,7 @@ mod tests {
     }
 
     #[test]
-    pub fn tys() {
+    pub fn basic_enum() {
         let code = concat!(
             "enum Planet {",
             "    Mercury,",
@@ -620,5 +628,123 @@ mod tests {
         );
 
         let (string_interner, module) = parse_code(code).unwrap();
+        assert_eq!(1, module.tys().len());
+
+        let planet_enum = &module.tys()[0];
+        match planet_enum {
+            Enum { enum_stmt } => {
+                assert_eq!(Vec::<GenericTypeDecl>::new(), enum_stmt.generic_tys());
+
+                assert_eq!(
+                    vec![
+                        EnumMemberDecl::new(
+                            string_interner.get("Mercury").unwrap(),
+                            vec![],
+                            vec![],
+                        ),
+                        EnumMemberDecl::new(string_interner.get("Venus").unwrap(), vec![], vec![],),
+                        EnumMemberDecl::new(string_interner.get("Earth").unwrap(), vec![], vec![],),
+                        EnumMemberDecl::new(string_interner.get("Mars").unwrap(), vec![], vec![],),
+                        EnumMemberDecl::new(
+                            string_interner.get("Jupiter").unwrap(),
+                            vec![],
+                            vec![],
+                        ),
+                        EnumMemberDecl::new(string_interner.get("Saturn").unwrap(), vec![], vec![],),
+                        EnumMemberDecl::new(string_interner.get("Uranus").unwrap(), vec![], vec![],),
+                        EnumMemberDecl::new(
+                            string_interner.get("Neptune").unwrap(),
+                            vec![],
+                            vec![],
+                        ),
+                        EnumMemberDecl::new(string_interner.get("Pluto").unwrap(), vec![], vec![],),
+                    ],
+                    enum_stmt.members()
+                );
+            }
+            _ => panic!(),
+        }
+    }
+
+    #[test]
+    pub fn complex_enum() {
+        let code = concat!(
+            "enum Vector<X: Number + Display, Y: Number + Display> {",
+            "    Normalized(x: X, y: Y),",
+            "    Absolute(x: X, y: Y) {",
+            "        pub fn to_normalized() -> Vector {",
+            "            return Normalized(self.x, self.y);",
+            "        }",
+            "    }",
+            "}"
+        );
+
+        let (string_interner, module) = parse_code(code).unwrap();
+        assert_eq!(1, module.tys().len());
+
+        let complex_enum = &module.tys()[0];
+        match complex_enum {
+            Enum { enum_stmt } => {
+                let expected_member_funcs = vec![MemberFunctionDecl::new(
+                    string_interner.get("to_normalized").unwrap(),
+                    FunctionSignature::new(
+                        vec![],
+                        vec![],
+                        Type::Enum(string_interner.get("Vector").unwrap()),
+                    ),
+                    BlockStatement::Statement(Statement::Return(Box::new(Expression::new(
+                        InfixExpression::new(BasicExpression::new()),
+                        None,
+                    )))),
+                )];
+
+                let expected_parameters = vec![
+                    ParameterDecl::new(
+                        string_interner.get("x").unwrap(),
+                        Type::Generic(string_interner.get("X").unwrap()),
+                    ),
+                    ParameterDecl::new(
+                        string_interner.get("y").unwrap(),
+                        Type::Generic(string_interner.get("Y").unwrap()),
+                    ),
+                ];
+
+                let expected_trait = TraitBounds(vec![
+                    string_interner.get("Number").unwrap(),
+                    string_interner.get("Display").unwrap(),
+                ]);
+
+                assert_eq!(
+                    vec![
+                        GenericTypeDecl::new(
+                            string_interner.get("X").unwrap(),
+                            Some(expected_trait.clone())
+                        ),
+                        GenericTypeDecl::new(
+                            string_interner.get("Y").unwrap(),
+                            Some(expected_trait.clone())
+                        ),
+                    ],
+                    enum_stmt.generic_tys()
+                );
+
+                assert_eq!(
+                    vec![
+                        EnumMemberDecl::new(
+                            string_interner.get("Normalized").unwrap(),
+                            expected_parameters.clone(),
+                            vec![],
+                        ),
+                        EnumMemberDecl::new(
+                            string_interner.get("Absolute").unwrap(),
+                            expected_parameters.clone(),
+                            expected_member_funcs,
+                        )
+                    ],
+                    enum_stmt.members()
+                );
+            }
+            _ => panic!(),
+        }
     }
 }
