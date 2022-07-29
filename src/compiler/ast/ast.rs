@@ -4,34 +4,12 @@ use crate::traits::traits::Trait;
 use std::path::Prefix;
 
 pub struct Module {
-    use_stmts: Vec<UseStatement>,
-    tys: Vec<TypeStatement>,
-    fns: Vec<FunctionStatement>,
+    stmts: Vec<Stmt>,
 }
 
 impl Module {
-    pub fn new(
-        use_stmts: Vec<UseStatement>,
-        tys: Vec<TypeStatement>,
-        fns: Vec<FunctionStatement>,
-    ) -> Self {
-        Self {
-            use_stmts,
-            tys,
-            fns,
-        }
-    }
-
-    pub fn use_statements(&self) -> &[UseStatement] {
-        &self.use_stmts
-    }
-
-    pub fn tys(&self) -> &[TypeStatement] {
-        &self.tys
-    }
-
-    pub fn fns(&self) -> &[FunctionStatement] {
-        &self.fns
+    pub fn new(stmts: Vec<Stmt>) -> Self {
+        Self { stmts }
     }
 }
 
@@ -47,46 +25,24 @@ impl QualifiedIdent {
 }
 
 #[derive(Debug, Eq, PartialEq, Hash)]
-pub struct UseStatement {
+pub struct UseStmt {
     ident: QualifiedIdent,
 }
 
-impl UseStatement {
+impl UseStmt {
     pub fn new(ident: QualifiedIdent) -> Self {
         Self { ident }
     }
 }
 
-pub enum TypeStatement {
-    Enum {
-        enum_stmt: Box<EnumStatement>,
-    },
-    InlineClass {
-        class_stmt: Box<InlineClassStatement>,
-    },
-    Class {
-        class_stmt: Box<ClassStatement>,
-    },
-    Trait {
-        trait_stmt: Box<TraitStatement>,
-    },
-}
-
-pub struct InlineClassStatement {
+pub struct ClassStmt {
     name: Ident,
     generic_types: Vec<GenericTy>,
     members: Vec<MemberDecl>,
-    member_functions: Vec<MemberFunctionDecl>,
+    member_functions: Vec<FnStmt>,
 }
 
-pub struct ClassStatement {
-    name: Ident,
-    generic_types: Vec<GenericTy>,
-    members: Vec<MemberDecl>,
-    member_functions: Vec<MemberFunctionDecl>,
-}
-
-impl ClassStatement {
+impl ClassStmt {
     pub fn new(
         name: Ident,
         generic_types: Vec<GenericTy>,
@@ -102,14 +58,14 @@ impl ClassStatement {
     }
 }
 
-pub struct EnumStatement {
+pub struct EnumStmt {
     name: Ident,
     generic_tys: Vec<GenericTy>,
-    members: Vec<EnumMemberDecl>,
+    members: Vec<EnumMemberStmt>,
 }
 
-impl EnumStatement {
-    pub fn new(name: Ident, generic_types: Vec<GenericTy>, members: Vec<EnumMemberDecl>) -> Self {
+impl EnumStmt {
+    pub fn new(name: Ident, generic_types: Vec<GenericTy>, members: Vec<EnumMemberStmt>) -> Self {
         Self {
             name,
             generic_tys: generic_types,
@@ -121,21 +77,26 @@ impl EnumStatement {
         &self.generic_tys
     }
 
-    pub fn members(&self) -> &[EnumMemberDecl] {
+    pub fn members(&self) -> &[EnumMemberStmt] {
         &self.members
     }
 }
 
-pub struct TraitStatement {
+pub struct TraitStmt {
     ident: Ident,
-    functions: Vec<MemberFunctionDecl>,
+    functions: Vec<FnStmt>,
 }
 
-pub struct FunctionStatement {
-    ident: Ident,
-    generic_types: Vec<GenericTy>,
-    parameters: Vec<ParameterDecl>,
-    return_type: Type,
+#[derive(PartialEq, Debug)]
+pub struct TraitImplStmt {
+    ty: Type,
+    functions: Vec<FnStmt>,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct FnStmt {
+    sig: FnSig,
+    body: Option<BlockStmt>,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -152,20 +113,20 @@ impl GenericTy {
 
 pub struct MemberDecl {
     ident: Ident,
-    type_ref: Type,
+    ty: Type,
 }
 
 #[derive(PartialEq, Debug)]
-pub struct EnumMemberDecl {
+pub struct EnumMemberStmt {
     name: Ident,
-    parameters: Vec<ParameterDecl>,
-    member_functions: Vec<MemberFunctionDecl>,
+    parameters: Vec<Param>,
+    member_functions: Vec<FnStmt>,
 }
 
-impl EnumMemberDecl {
+impl EnumMemberStmt {
     pub fn new(
         name: Ident,
-        parameters: Vec<ParameterDecl>,
+        parameters: Vec<Param>,
         member_functions: Vec<MemberFunctionDecl>,
     ) -> Self {
         Self {
@@ -176,36 +137,16 @@ impl EnumMemberDecl {
     }
 }
 
-#[derive(PartialEq, Debug)]
-pub struct MemberFunctionDecl {
-    ident: Ident,
-    signature: FunctionSignature,
-    body: BlockStatement,
-}
-
-impl MemberFunctionDecl {
-    pub fn new(ident: Ident, signature: FunctionSignature, body: BlockStatement) -> Self {
-        Self {
-            ident,
-            signature,
-            body,
-        }
-    }
-}
-
 #[derive(PartialEq, Eq, Debug)]
-pub struct FunctionSignature {
+pub struct FnSig {
+    name: Ident,
     generic_types: Vec<GenericTy>,
-    parameters: Vec<ParameterDecl>,
+    parameters: Vec<Param>,
     return_type: Type,
 }
 
-impl FunctionSignature {
-    pub fn new(
-        generic_types: Vec<GenericTy>,
-        parameters: Vec<ParameterDecl>,
-        return_type: Type,
-    ) -> Self {
+impl FnSig {
+    pub fn new(generic_types: Vec<GenericTy>, parameters: Vec<Param>, return_type: Type) -> Self {
         Self {
             generic_types,
             parameters,
@@ -215,12 +156,12 @@ impl FunctionSignature {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub struct ParameterDecl {
+pub struct Param {
     name: Ident,
     ty: Type,
 }
 
-impl ParameterDecl {
+impl Param {
     pub fn new(name: Ident, ty: Type) -> Self {
         Self { name, ty }
     }
@@ -233,9 +174,9 @@ pub struct ArgumentDecl {
 }
 
 #[derive(PartialEq, Debug)]
-pub struct LocalVarDecl {
+pub struct LocalStmt {
     ident: Ident,
-    ty: Type,
+    ty: Option<Type>,
     initializer: Option<Expr>,
 }
 
@@ -267,39 +208,90 @@ pub enum Expr {
     Try(Box<Expr>),
 }
 
+#[derive(PartialEq, Debug)]
 pub struct FunctionCall {
     func: Box<Expr>,
     generic_tys: Vec<GenericTy>,
     parameters: Vec<Expr>,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct BinaryExpr {
     operator: BinaryOp,
     lhs: Expr,
     rhs: Expr,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct UnaryExpr {
     operator: UnaryOp,
     expr: Expr,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct IfExpr {
     condition: Expr,
     if_true: BlockStmt,
     if_false: Option<BlockStmt>,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct WhileExpr {
     condition: Expr,
     block: BlockStmt,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct ForExpr {
     pattern: Pattern,
     block: BlockStmt,
 }
 
+#[derive(PartialEq, Debug)]
+pub struct MatchExpr {
+    expr: Expr,
+    arms: Vec<MatchArm>,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct MatchArm {
+    pattern: Pattern,
+    guard: Option<Expr>,
+    body: Expr,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct ClosureExpr {
+    params: Vec<Param>,
+    expr: Expr,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct AssignExpr {
+    lhs: Expr,
+    rhs: Expr,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct AssignOpExpr {
+    op: BinaryOp,
+    lhs: Expr,
+    rhs: Expr,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct FieldExpr {
+    lhs: Expr,
+    ident: Ident,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct IndexExpr {
+    lhs: Expr,
+    rhs: Expr,
+}
+
+#[derive(PartialEq, Debug)]
 pub enum Pattern {
     Wildcard,
     Range(RangePattern),
@@ -308,19 +300,23 @@ pub enum Pattern {
     Ty(TypePattern),
 }
 
+#[derive(PartialEq, Debug)]
 pub struct RangePattern {
     start: Expr,
     end: Expr,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct OrPattern {
     patterns: Vec<Pattern>,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct TypePattern {
     tys: Vec<Type>,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct BlockStmt {
     stmts: Vec<Stmt>,
 }
@@ -370,11 +366,13 @@ pub enum UnaryOp {
 
 #[derive(PartialEq, Debug)]
 pub enum Stmt {
-    Local(Box<LocalVarDecl>),
-    Class(Box<ClassStatement>),
-    Enum(Box<EnumStatement>),
-    Trait(Box<TraitStatement>),
-    Fn(Box<FunctionStatement>),
+    Use(Box<UseStmt>),
+    Local(Box<LocalStmt>),
+    Class(Box<ClassStmt>),
+    Enum(Box<EnumStmt>),
+    Trait(Box<TraitStmt>),
+    TraitImpl(Box<TraitImplStmt>),
+    Fn(Box<FnStmt>),
     Expression(Box<Expr>),
 }
 
@@ -389,13 +387,6 @@ pub struct IfExpression {
 pub struct MatchStatement {
     expr: Box<Expr>,
     statements: Vec<MatchArm>,
-}
-
-#[derive(PartialEq, Debug)]
-pub struct MatchArm {
-    ty: Type,
-    ident: Ident,
-    statement: Stmt,
 }
 
 #[derive(PartialEq, Debug)]
