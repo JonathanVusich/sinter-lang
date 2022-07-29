@@ -507,7 +507,7 @@ unsafe impl Sync for ParseError {}
 mod tests {
     use crate::compiler::ast::TypeStatement::Enum;
     use crate::compiler::ast::{
-        BasicExpression, BlockStatement, EnumMemberDecl, EnumStatement, Expression,
+        BasicExpression, BlockStatement, EnumMemberDecl, EnumStatement, Expr,
         FunctionSignature, GenericTypeDecl, InfixExpression, MemberFunctionDecl, Module,
         ParameterDecl, QualifiedIdent, Statement, TypeStatement, UseStatement,
     };
@@ -692,7 +692,7 @@ mod tests {
                         vec![],
                         Type::Enum(string_interner.get("Vector").unwrap()),
                     ),
-                    BlockStatement::Statement(Statement::Return(Box::new(Expression::new(
+                    BlockStatement::Statement(Statement::Return(Box::new(Expr::new(
                         InfixExpression::new(BasicExpression::new()),
                         None,
                     )))),

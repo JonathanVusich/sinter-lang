@@ -240,7 +240,7 @@ pub struct ArgumentDecl {
 pub struct LocalVarDecl {
     ident: Ident,
     ty: Type,
-    initializer: Option<Expression>,
+    initializer: Option<Expr>,
 }
 
 #[derive(PartialEq, Debug)]
@@ -250,20 +250,29 @@ pub enum VarInitializer {
 }
 
 #[derive(PartialEq, Debug)]
-pub enum Expression {
-    Array(Vec<VarInitializer>),
-    Call(Box<Expression>, Vec<Expression>),
-    Binary(BinaryOperator, Box<Expression>, Box<Expression>),
-    Unary(UnaryOperator, Box<Expression>),
+pub enum Expr {
+    Array(Vec<Expr>),
+    FunctionCall(Box<FunctionCall>),
+    MethodCall(Box<MethodCall>),
+    Binary(Box<BinaryExpr>),
+    Unary(Box<UnaryExpr>),
     Literal(Literal),
-    If(IfExpression),
-    While(WhileExpression),
-    For(ForExpression),
-    Match(MatchExpression),
-
+    If(Box<IfExpr>),
+    While(Box<WhileExpr>),
+    For(Box<ForExpr>),
+    Match(Box<MatchExpr>),
+    Closure(Box<ClosureExpr>),
+    Assign(Box<AssignExpr>),
+    AssignOp(Box<AssignOpExpr>),
+    Field(Box<FieldExpr>),
+    Index(Box<IndexExpr>),
+    Break,
+    Continue,
+    Return,
+    Try(Box<Expr>),
 }
 
-impl Expression {
+impl Expr {
     pub fn new(lhs: InfixExpression, rhs: Option<(AssignmentOperator, InfixExpression)>) -> Self {
         Self { lhs, rhs }
     }
@@ -326,7 +335,7 @@ pub enum Selector {
         arguments: Vec<ArgumentDecl>,
     },
     Expression {
-        expr: Box<Expression>,
+        expr: Box<Expr>,
     },
 }
 
@@ -376,32 +385,23 @@ pub enum UnaryOperator {
 #[derive(PartialEq, Debug)]
 pub enum Statement {
     Local(Box<LocalVarDecl>),
-    InternalConstructor(Vec<ArgumentDecl>),
-    Array(Vec<VarInitializer>),
-    Class(Ident, Vec<ArgumentDecl>),
-    Binary(BinaryOperator, Box<Statement>, Box<Statement>),
-    Unary(UnaryOperator, Box<Statement>),
-    Call(Box<Statement>, Vec<ArgumentDecl>>),
-    Expression(Box<Expression>), // Expand this
-    If(Box<IfExpression>),
-    Match(Box<MatchStatement>),
-    While(Box<WhileExpression>),
-    For(Box<ForExpression>),
-    Break,
-    Continue,
-    Return(Box<Expression>),
+    Class(Box<ClassStatement>),
+    Enum(Box<EnumStatement>),
+    Trait(Box<TraitStatement>),
+    Fn(Box<FunctionStatement>),
+    Expression(Box<Expr>),
 }
 
 #[derive(PartialEq, Debug)]
 pub struct IfExpression {
-    condition: Box<Expression>,
-    statement_true: Expression,
-    statement_false: Option<Expression>,
+    condition: Box<Expr>,
+    statement_true: Expr,
+    statement_false: Option<Expr>,
 }
 
 #[derive(PartialEq, Debug)]
 pub struct MatchStatement {
-    expr: Box<Expression>,
+    expr: Box<Expr>,
     statements: Vec<MatchArm>,
 }
 
@@ -414,25 +414,25 @@ pub struct MatchArm {
 
 #[derive(PartialEq, Debug)]
 pub struct WhileExpression {
-    condition: Box<Expression>,
+    condition: Box<Expr>,
     statement: Statement,
 }
 
 #[derive(PartialEq, Debug)]
 pub struct ForExpression {
     ident: Ident,
-    loop_expr: Box<Expression>,
+    loop_expr: Box<Expr>,
     statement: Statement,
 }
 
 mod tests {
-    use crate::compiler::ast::{Expression, MemberFunctionDecl, Module, TypeStatement};
+    use crate::compiler::ast::{Expr, MemberFunctionDecl, Module, TypeStatement};
 
     #[test]
     pub fn check_size() {
         assert_eq!(72, std::mem::size_of::<Module>());
         assert_eq!(16, std::mem::size_of::<TypeStatement>());
 
-        assert_eq!(280, std::mem::size_of::<Expression>());
+        assert_eq!(280, std::mem::size_of::<Expr>());
     }
 }
