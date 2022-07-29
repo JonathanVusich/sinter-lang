@@ -251,6 +251,15 @@ pub enum VarInitializer {
 
 #[derive(PartialEq, Debug)]
 pub enum Expression {
+    Array(Vec<VarInitializer>),
+    Call(Box<Expression>, Vec<Expression>),
+    Binary(BinaryOperator, Box<Expression>, Box<Expression>),
+    Unary(UnaryOperator, Box<Expression>),
+    Literal(Literal),
+    If(IfExpression),
+    While(WhileExpression),
+    For(ForExpression),
+    Match(MatchExpression),
 
 }
 
@@ -367,7 +376,6 @@ pub enum UnaryOperator {
 #[derive(PartialEq, Debug)]
 pub enum Statement {
     Local(Box<LocalVarDecl>),
-    Literal(Literal),
     InternalConstructor(Vec<ArgumentDecl>),
     Array(Vec<VarInitializer>),
     Class(Ident, Vec<ArgumentDecl>),
@@ -375,20 +383,20 @@ pub enum Statement {
     Unary(UnaryOperator, Box<Statement>),
     Call(Box<Statement>, Vec<ArgumentDecl>>),
     Expression(Box<Expression>), // Expand this
-    If(Box<IfStatement>),
+    If(Box<IfExpression>),
     Match(Box<MatchStatement>),
-    While(Box<WhileStatement>),
-    For(Box<ForStatement>),
+    While(Box<WhileExpression>),
+    For(Box<ForExpression>),
     Break,
     Continue,
     Return(Box<Expression>),
 }
 
 #[derive(PartialEq, Debug)]
-pub struct IfStatement {
+pub struct IfExpression {
     condition: Box<Expression>,
-    statement_true: Statement,
-    statement_false: Option<Statement>,
+    statement_true: Expression,
+    statement_false: Option<Expression>,
 }
 
 #[derive(PartialEq, Debug)]
@@ -405,13 +413,13 @@ pub struct MatchArm {
 }
 
 #[derive(PartialEq, Debug)]
-pub struct WhileStatement {
+pub struct WhileExpression {
     condition: Box<Expression>,
     statement: Statement,
 }
 
 #[derive(PartialEq, Debug)]
-pub struct ForStatement {
+pub struct ForExpression {
     ident: Ident,
     loop_expr: Box<Expression>,
     statement: Statement,
