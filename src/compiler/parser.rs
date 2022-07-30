@@ -1,16 +1,6 @@
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::BlockStatement::Statement;
-use crate::compiler::ast::Statement::{Break, Continue};
-use crate::compiler::ast::{
-    BlockStatement, ClassStatement, EnumMemberDecl, EnumStatement, FunctionSignature,
-    FunctionStatement, GenericTypeDecl, MemberDecl, MemberFunctionDecl, Module, ParameterDecl,
-    QualifiedIdent, TypeStatement, UseStatement,
-};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
-use crate::compiler::tokens::token::TokenType::{
-    Colon, Comma, Fn, Greater, Identifier, LeftBrace, LeftParentheses, Less, RightBrace,
-    RightBracket, RightParentheses, Semicolon,
-};
+use crate::compiler::tokens::token::TokenType::{Colon, Comma, Fn, Greater, Identifier, LeftBrace, LeftParentheses, Less, Mut, RightBrace, RightBracket, RightParentheses, Semicolon};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::BasicType::U8;
@@ -22,6 +12,9 @@ use std::error::Error;
 use std::fmt::Alignment::Right;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, FnSig, FnStmt, Generics, GenericTy, Module, Mutability, Param, Params, QualifiedIdent, Stmt, UseStmt};
+use crate::compiler::ast::ast::Stmt::Enum;
+use crate::gc::block::Block;
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
     let parser = Parser::new(string_interner, input);
@@ -41,12 +34,6 @@ enum ParseError {
     UnexpectedToken(TokenType, TokenPosition),
 }
 
-#[derive(Default)]
-struct TysAndFns {
-    tys: Vec<TypeStatement>,
-    fns: Vec<FunctionStatement>,
-}
-
 enum ClassType {
     Reference,
     Inline,
@@ -63,80 +50,81 @@ impl Parser {
 
     fn parse(mut self) -> Result<Module> {
         let use_stmts = self.parse_use_stmts()?;
-        let tys_and_fns = self.parse_tys_fns()?;
-        Ok(Module::new(use_stmts, tys_and_fns.tys, tys_and_fns.fns))
+        let stmts = self.parse_stmts()?;
+
+        Ok(Module::new(use_stmts, stmts))
     }
 
-    fn parse_use_stmts(&mut self) -> Result<Vec<UseStatement>> {
+    fn parse_use_stmts(&mut self) -> Result<Vec<UseStmt>> {
         let mut stmts = Vec::new();
         while self.matches(TokenType::Use) {
             self.advance();
             let identifier = self.qualified_ident()?;
-            stmts.push(UseStatement::new(identifier));
+            stmts.push(UseStmt::new(identifier));
             self.expect(TokenType::Semicolon)?;
         }
         Ok(stmts)
     }
 
-    fn parse_tys_fns(&mut self) -> Result<TysAndFns> {
-        let mut tys_and_fns = TysAndFns::default();
+    fn parse_stmts(&mut self) -> Result<Vec<Stmt>> {
+        let mut stmts = Vec::new();
         while !self.is_at_end() {
             match self.current_type() {
-                TokenType::Inline => tys_and_fns.tys.push(self.parse_inline_class()?),
-                TokenType::Class => tys_and_fns.tys.push(self.parse_reference_class()?),
-                TokenType::Enum => tys_and_fns.tys.push(self.parse_enum()?),
-                TokenType::Trait => tys_and_fns.tys.push(self.parse_trait()),
-                TokenType::Fn => tys_and_fns.fns.push(self.parse_fn()),
+                TokenType::Inline => stmts.push(self.parse_inline_class()?),
+                TokenType::Class => stmts.push(self.parse_reference_class()?),
+                TokenType::Enum => stmts.push(self.parse_enum()?),
+                TokenType::Trait => stmts.push(self.parse_trait()?),
+                TokenType::Fn => stmts.push(self.parse_fn()?),
                 token => {
                     return Err(UnexpectedToken(token, self.current_position()).into());
                 }
             }
         }
-        Ok(tys_and_fns)
+        Ok(stmts)
     }
 
-    fn parse_inline_class(&mut self) -> Result<TypeStatement> {
+    fn parse_inline_class(&mut self) -> Result<Stmt> {
         self.advance();
         self.parse_class(ClassType::Inline)
     }
 
-    fn parse_reference_class(&mut self) -> Result<TypeStatement> {
+    fn parse_reference_class(&mut self) -> Result<Stmt> {
         self.parse_class(ClassType::Reference)
     }
 
-    fn parse_class(&mut self, class_type: ClassType) -> Result<TypeStatement> {
+    fn parse_class(&mut self, class_type: ClassType) -> Result<Stmt> {
         self.expect(TokenType::Class)?;
         let name = self.identifier()?;
-        let generic_types = self.generic_tys()?;
-        let members = self.members()?;
-        let member_functions = self.member_functions()?;
+        let generic_types = self.generics()?;
+        let members = self.parenthesized_parameters()?;
+        let member_functions = self.fn_stmts()?;
 
-        let class_stmt = Box::new(ClassStatement::new(
+        let class_stmt = Box::new(ClassStmt::new(
             name,
             generic_types,
             members,
             member_functions,
         ));
 
-        Ok(TypeStatement::Class { class_stmt })
+        Ok(Stmt::Class(class_stmt))
     }
 
-    fn parse_enum(&mut self) -> Result<TypeStatement> {
+    fn parse_enum(&mut self) -> Result<Stmt> {
         self.expect(TokenType::Enum)?;
         let name = self.identifier()?;
-        let generic_types = self.generic_tys()?;
+        let generics = self.generics()?;
         let enum_members = self.enum_members()?;
 
-        let enum_stmt = Box::new(EnumStatement::new(name, generic_types, enum_members));
+        let enum_stmt = Box::new(EnumStmt::new(name, generics, enum_members));
 
-        Ok(TypeStatement::Enum { enum_stmt })
+        Ok(Stmt::Enum(enum_stmt))
     }
 
-    fn parse_trait(&mut self) -> TypeStatement {
+    fn parse_trait(&mut self) -> Result<Stmt> {
         todo!()
     }
 
-    fn parse_fn(&mut self) -> FunctionStatement {
+    fn parse_fn(&mut self) -> Result<Stmt> {
         todo!()
     }
 
@@ -184,34 +172,31 @@ impl Parser {
         Ok(QualifiedIdent::new(idents))
     }
 
-    fn generic_tys(&mut self) -> Result<Vec<GenericTypeDecl>> {
-        self.parse_multiple_with_delimiter::<GenericTypeDecl, 1>(
+    fn generics(&mut self) -> Result<Generics> {
+        let generic_tys = self.parse_multiple_with_delimiter::<GenericTy, 1>(
             Self::generic_ty,
             Comma,
             Less,
             Greater,
-        )
+        )?;
+        Ok(Generics::new(generic_tys))
     }
 
-    fn generic_ty(&mut self) -> Result<GenericTypeDecl> {
+    fn generic_ty(&mut self) -> Result<GenericTy> {
         let ident = self.identifier()?;
         let mut trait_bound: Option<Type> = None;
         if self.matches(Colon) {
             self.advance();
             trait_bound = Some(self.trait_bound()?);
         }
-        Ok(GenericTypeDecl::new(ident, trait_bound))
+        Ok(GenericTy::new(ident, trait_bound))
     }
 
-    fn members(&mut self) -> Result<Vec<MemberDecl>> {
-        todo!()
+    fn fn_stmts(&mut self) -> Result<Vec<FnStmt>> {
+        self.parse_multiple(Self::fn_stmt, LeftBrace, RightBrace)
     }
 
-    fn member_functions(&mut self) -> Result<Vec<MemberFunctionDecl>> {
-        self.parse_multiple(Self::member_function, LeftBrace, RightBrace)
-    }
-
-    fn member_function(&mut self) -> Result<MemberFunctionDecl> {
+    fn fn_stmt(&mut self) -> Result<FnStmt> {
         match self.current_type() {
             Fn => {
                 self.advance();
@@ -219,7 +204,7 @@ impl Parser {
                 let signature = self.function_signature()?;
                 let stmt = self.block_statement()?;
 
-                Ok(MemberFunctionDecl::new(name, signature, stmt))
+                Ok(FnStmt::new(name, signature, stmt))
             }
             token => {
                 let pos = self.current_position();
@@ -228,11 +213,11 @@ impl Parser {
         }
     }
 
-    fn enum_member_functions(&mut self) -> Result<Vec<MemberFunctionDecl>> {
+    fn enum_fn_stmts(&mut self) -> Result<Vec<FnStmt>> {
         let mut member_funcs = Vec::new();
         if self.matches(LeftBrace) {
             self.advance();
-            member_funcs = self.member_functions()?;
+            member_funcs = self.fn_stmts()?;
             self.expect(RightBrace)?;
         }
         Ok(member_funcs)
@@ -242,8 +227,8 @@ impl Parser {
         todo!()
     }
 
-    fn enum_members(&mut self) -> Result<Vec<EnumMemberDecl>> {
-        self.parse_multiple_with_delimiter::<EnumMemberDecl, 1>(
+    fn enum_members(&mut self) -> Result<Vec<EnumMemberStmt>> {
+        self.parse_multiple_with_delimiter::<EnumMemberStmt, 1>(
             Self::enum_member,
             Comma,
             LeftBrace,
@@ -285,17 +270,18 @@ impl Parser {
         // Ok(members)
     }
 
-    fn enum_member(&mut self) -> Result<EnumMemberDecl> {
+    fn enum_member(&mut self) -> Result<EnumMemberStmt> {
         self.bounds_check()?;
         match self.current_type() {
             Identifier(ident) => {
                 let name = self.string_interner.get_or_intern(ident);
                 self.advance();
 
+                let generics = self.generics()?;
                 let params = self.parenthesized_parameters()?;
-                let member_funcs = self.enum_member_functions()?;
+                let member_funcs = self.enum_fn_stmts()?;
 
-                Ok(EnumMemberDecl::new(name, params, member_funcs))
+                Ok(EnumMemberStmt::new(name, generics, params, member_funcs))
             }
             token => {
                 let pos = self.current_position();
@@ -304,29 +290,40 @@ impl Parser {
         }
     }
 
-    fn parenthesized_parameters(&mut self) -> Result<Vec<ParameterDecl>> {
-        self.parse_multiple_with_delimiter::<ParameterDecl, 1>(
+    fn parenthesized_parameters(&mut self) -> Result<Params> {
+        let params = self.parse_multiple_with_delimiter::<Param, 1>(
             Self::parameter,
             LeftParentheses,
             RightParentheses,
             Comma,
-        )
+        )?;
+        Ok(Params::new(params))
     }
 
-    fn parameter(&mut self) -> Result<ParameterDecl> {
+    fn parameter(&mut self) -> Result<Param> {
         let ident = self.identifier()?;
         self.expect(Colon)?;
+        let mutability = self.mutability();
         let ty = self.parse_ty()?;
 
-        Ok(ParameterDecl::new(ident, ty))
+        Ok(Param::new(ident, ty, mutability))
     }
 
-    fn function_signature(&mut self) -> Result<FunctionSignature> {
-        Ok(FunctionSignature::new(Vec::new(), Vec::new(), Basic(U8)))
+    fn function_signature(&mut self) -> Result<FnSig> {
+        todo!()
     }
 
-    fn block_statement(&mut self) -> Result<BlockStatement> {
-        Ok(Statement(Break))
+    fn block_statement(&mut self) -> Result<Option<BlockStmt>> {
+        todo!()
+    }
+
+    fn mutability(&mut self) -> Mutability {
+        if self.matches(Mut) {
+            self.advance();
+            Mutability::Mutable
+        } else {
+            Mutability::Immutable
+        }
     }
 
     fn parse_ty(&mut self) -> Result<Type> {
@@ -472,15 +469,6 @@ impl Parser {
     }
 }
 
-impl TysAndFns {
-    pub fn new() -> Self {
-        Self {
-            tys: Vec::new(),
-            fns: Vec::new(),
-        }
-    }
-}
-
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         return match self {
@@ -505,26 +493,24 @@ unsafe impl Send for ParseError {}
 unsafe impl Sync for ParseError {}
 
 mod tests {
-    use crate::compiler::ast::TypeStatement::Enum;
-    use crate::compiler::ast::{
-        BasicExpression, BlockStatement, EnumMemberDecl, EnumStatement, Expr,
-        FunctionSignature, GenericTypeDecl, InfixExpression, MemberFunctionDecl, Module,
-        ParameterDecl, QualifiedIdent, Statement, TypeStatement, UseStatement,
-    };
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{ParseError, Parser};
+    use crate::compiler::ast::ast::{EnumMemberStmt, EnumStmt, FnSig, Generics, Param, Params, QualifiedIdent, Stmt};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::Identifier;
     use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::Type;
-    use crate::compiler::types::types::Type::TraitBounds;
+    use crate::compiler::types::types::Type::{Generic, TraitBounds};
     use crate::compiler::StringInterner;
     use anyhow::Result;
     use libc::strncat;
     use std::any::Any;
     use std::error::Error;
     use std::sync::Arc;
+    use crate::compiler::ast::ast::{Module, UseStmt};
+    use crate::compiler::ast::ast::Mutability::Immutable;
+    use crate::compiler::ast::ast::Stmt::Enum;
 
     #[cfg(test)]
     macro_rules! qualified_ident {
@@ -603,11 +589,11 @@ mod tests {
 
         assert_eq!(
             vec![
-                UseStatement::new(qualified_ident!(string_interner, "std", "vector")),
-                UseStatement::new(qualified_ident!(string_interner, "std", "array")),
-                UseStatement::new(qualified_ident!(string_interner, "std", "map", "HashMap"))
+                UseStmt::new(qualified_ident!(string_interner, "std", "vector")),
+                UseStmt::new(qualified_ident!(string_interner, "std", "array")),
+                UseStmt::new(qualified_ident!(string_interner, "std", "map", "HashMap"))
             ],
-            module.use_statements()
+            module.use_stmts()
         );
     }
 
@@ -628,42 +614,45 @@ mod tests {
         );
 
         let (string_interner, module) = parse_code(code).unwrap();
-        assert_eq!(1, module.tys().len());
 
-        let planet_enum = &module.tys()[0];
-        match planet_enum {
-            Enum { enum_stmt } => {
-                assert_eq!(Vec::<GenericTypeDecl>::new(), enum_stmt.generic_tys());
+        let enum_stmts = module.stmts().into_iter().filter_map(|x| match x {
+            Enum(enum_stmt) => Some(enum_stmt),
+            _ => None
+        }).collect::<Vec<&Box<EnumStmt>>>();
 
-                assert_eq!(
-                    vec![
-                        EnumMemberDecl::new(
-                            string_interner.get("Mercury").unwrap(),
-                            vec![],
-                            vec![],
-                        ),
-                        EnumMemberDecl::new(string_interner.get("Venus").unwrap(), vec![], vec![],),
-                        EnumMemberDecl::new(string_interner.get("Earth").unwrap(), vec![], vec![],),
-                        EnumMemberDecl::new(string_interner.get("Mars").unwrap(), vec![], vec![],),
-                        EnumMemberDecl::new(
-                            string_interner.get("Jupiter").unwrap(),
-                            vec![],
-                            vec![],
-                        ),
-                        EnumMemberDecl::new(string_interner.get("Saturn").unwrap(), vec![], vec![],),
-                        EnumMemberDecl::new(string_interner.get("Uranus").unwrap(), vec![], vec![],),
-                        EnumMemberDecl::new(
-                            string_interner.get("Neptune").unwrap(),
-                            vec![],
-                            vec![],
-                        ),
-                        EnumMemberDecl::new(string_interner.get("Pluto").unwrap(), vec![], vec![],),
-                    ],
-                    enum_stmt.members()
-                );
-            }
-            _ => panic!(),
-        }
+        assert_eq!(1, enum_stmts.len());
+
+        let planet_enum = enum_stmts[0];
+        assert_eq!(Generics::default(), *planet_enum.generics());
+
+        assert_eq!(
+            vec![
+                EnumMemberStmt::new(
+                    string_interner.get("Mercury").unwrap(),
+                    Generics::default(),
+                    Params::default(),
+                    vec![],
+                ),
+                EnumMemberStmt::new(string_interner.get("Venus").unwrap(), Generics::default(), Params::default(), vec![],),
+                EnumMemberStmt::new(string_interner.get("Earth").unwrap(), Generics::default(), Params::default(), vec![],),
+                EnumMemberStmt::new(string_interner.get("Mars").unwrap(), Generics::default(), Params::default(), vec![],),
+                EnumMemberStmt::new(
+                    string_interner.get("Jupiter").unwrap(),
+                    Generics::default(),
+                    Params::default(),
+                    vec![],
+                ),
+                EnumMemberStmt::new(string_interner.get("Saturn").unwrap(), Generics::default(), Params::default(), vec![],),
+                EnumMemberStmt::new(string_interner.get("Uranus").unwrap(), Generics::default(), Params::default(), vec![],),
+                EnumMemberStmt::new(
+                    string_interner.get("Neptune").unwrap(),
+                    Generics::default(),
+                    Params::default(),
+                    vec![],
+                ),
+                EnumMemberStmt::new(string_interner.get("Pluto").unwrap(), Generics::default(), Params::default(), vec![],),
+            ],
+            planet_enum.members());
     }
 
     #[test]
@@ -680,71 +669,69 @@ mod tests {
         );
 
         let (string_interner, module) = parse_code(code).unwrap();
-        assert_eq!(1, module.tys().len());
 
-        let complex_enum = &module.tys()[0];
-        match complex_enum {
-            Enum { enum_stmt } => {
-                let expected_member_funcs = vec![MemberFunctionDecl::new(
-                    string_interner.get("to_normalized").unwrap(),
-                    FunctionSignature::new(
-                        vec![],
-                        vec![],
-                        Type::Enum(string_interner.get("Vector").unwrap()),
-                    ),
-                    BlockStatement::Statement(Statement::Return(Box::new(Expr::new(
-                        InfixExpression::new(BasicExpression::new()),
-                        None,
-                    )))),
-                )];
+        let enum_stmts = module.stmts().into_iter().filter_map(|x| match x {
+            Enum(enum_stmt) => Some(enum_stmt),
+            _ => None
+        }).collect::<Vec<&Box<EnumStmt>>>();
 
-                let expected_parameters = vec![
-                    ParameterDecl::new(
-                        string_interner.get("x").unwrap(),
-                        Type::Generic(string_interner.get("X").unwrap()),
-                    ),
-                    ParameterDecl::new(
-                        string_interner.get("y").unwrap(),
-                        Type::Generic(string_interner.get("Y").unwrap()),
-                    ),
-                ];
+        assert_eq!(1, enum_stmts.len());
 
-                let expected_trait = TraitBounds(vec![
-                    string_interner.get("Number").unwrap(),
-                    string_interner.get("Display").unwrap(),
-                ]);
+        let complex_enum = enum_stmts[0];
 
-                assert_eq!(
-                    vec![
-                        GenericTypeDecl::new(
-                            string_interner.get("X").unwrap(),
-                            Some(expected_trait.clone())
-                        ),
-                        GenericTypeDecl::new(
-                            string_interner.get("Y").unwrap(),
-                            Some(expected_trait.clone())
-                        ),
-                    ],
-                    enum_stmt.generic_tys()
-                );
+        let expected_params = Params::new(vec![
+            Param::new(string_interner.get("x").unwrap(), Generic(string_interner.get("X").unwrap()), Immutable),
+            Param::new(string_interner.get("y").unwrap(), Generic(string_interner.get("Y").unwrap()), Immutable),
+        ]);
+        let expected_member_stmts = vec![
+            EnumMemberStmt::new(string_interner.get("Normalized").unwrap(), expected_params, vec![]),
+            EnumMemberStmt::new(string_interner.get("Absolute").unwrap(), expected_params.clone(), vec![])
+        ];
 
-                assert_eq!(
-                    vec![
-                        EnumMemberDecl::new(
-                            string_interner.get("Normalized").unwrap(),
-                            expected_parameters.clone(),
-                            vec![],
-                        ),
-                        EnumMemberDecl::new(
-                            string_interner.get("Absolute").unwrap(),
-                            expected_parameters.clone(),
-                            expected_member_funcs,
-                        )
-                    ],
-                    enum_stmt.members()
-                );
-            }
-            _ => panic!(),
-        }
+        let expected_parameters = vec![
+            ParameterDecl::new(
+                string_interner.get("x").unwrap(),
+                Type::Generic(string_interner.get("X").unwrap()),
+            ),
+            ParameterDecl::new(
+                string_interner.get("y").unwrap(),
+                Type::Generic(string_interner.get("Y").unwrap()),
+            ),
+        ];
+
+        let expected_trait = TraitBounds(vec![
+            string_interner.get("Number").unwrap(),
+            string_interner.get("Display").unwrap(),
+        ]);
+
+        assert_eq!(
+            vec![
+                GenericTypeDecl::new(
+                    string_interner.get("X").unwrap(),
+                    Some(expected_trait.clone())
+                ),
+                GenericTypeDecl::new(
+                    string_interner.get("Y").unwrap(),
+                    Some(expected_trait.clone())
+                ),
+            ],
+            enum_stmt.generic_tys()
+        );
+
+        assert_eq!(
+            vec![
+                EnumMemberDecl::new(
+                    string_interner.get("Normalized").unwrap(),
+                    expected_parameters.clone(),
+                    vec![],
+                ),
+                EnumMemberDecl::new(
+                    string_interner.get("Absolute").unwrap(),
+                    expected_parameters.clone(),
+                    expected_member_stmts,
+                )
+            ],
+            enum_stmt.members()
+        );
     }
 }

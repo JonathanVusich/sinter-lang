@@ -1,5 +1,5 @@
-use flux_lang::class::class_builder::ClassBuilder;
-use flux_lang::gc::block::BLOCK_SIZE;
+use sinter_lang::class::class_builder::ClassBuilder;
+use sinter_lang::gc::block::BLOCK_SIZE;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use flux_lang::heap::region::Region;

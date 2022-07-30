@@ -156,9 +156,14 @@ impl<'this> Tokenizer<'this> {
                 "n" => self.check_keyword(4, "line", TokenType::Inline),
                 _ => None,
             },
+            "l" => self.check_keyword(1, "et", TokenType::Let),
+            "m" => match self.peek() {
+                "a" => self.check_keyword(2, "tch", TokenType::Match),
+                "u" => self.check_keyword(2, "t", TokenType::Mut),
+                _ => None,
+            },
             "n" => self.check_keyword(1, "ative", TokenType::Native),
             "N" => self.check_keyword(1, "one", TokenType::None),
-            "m" => self.check_keyword(1, "atch", TokenType::Match),
             "p" => self.check_keyword(1, "ub", TokenType::Pub),
             "r" => self.check_keyword(1, "eturn", TokenType::Return),
             "s" => match self.peek() {
@@ -174,25 +179,6 @@ impl<'this> Tokenizer<'this> {
             },
             "u" => self.check_keyword(1, "se", TokenType::Use),
             "w" => self.check_keyword(1, "hile", TokenType::While),
-            "v" => match self.peek() {
-                "a" => match self.peek_next() {
-                    Some(letter) => match letter {
-                        "r" => {
-                            self.advance();
-                            self.advance();
-                            Some(TokenType::Var)
-                        }
-                        "l" => {
-                            self.advance();
-                            self.advance();
-                            Some(TokenType::Val)
-                        }
-                        _ => None,
-                    },
-                    None => None,
-                },
-                _ => None,
-            },
             _ => None,
         }
         .unwrap_or_else(|| {
@@ -420,14 +406,14 @@ mod tests {
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
     use libc::stat;
 
-    #[allow(unused_macros)]
+    #[cfg(test)]
     macro_rules! make_token {
         ($token_ident:expr, $start:tt, $current:tt) => {
             Token::new($token_ident, $start, $current)
         };
     }
 
-    #[allow(unused_macros)]
+    #[cfg(test)]
     macro_rules! tokenize {
         ($($token_ident:expr, $start:literal, $current:literal),*) => {
             vec![
@@ -438,7 +424,7 @@ mod tests {
         }
     }
 
-    #[allow(unused_macros)]
+    #[cfg(test)]
     macro_rules! test {
         ($tokens:expr, $matching_text:literal) => {
             assert_eq!($tokens, Tokenizer::new($matching_text).into().tokens());
@@ -735,7 +721,7 @@ mod tests {
 
         test!(
             tokenize!(
-                TokenType::Val,
+                TokenType::Let,
                 0,
                 3,
                 TokenType::Identifier("greeting"),
@@ -750,7 +736,7 @@ mod tests {
                 TokenType::Semicolon,
                 29,
                 30,
-                TokenType::Val,
+                TokenType::Let,
                 57,
                 60,
                 TokenType::Identifier("bytearray"),
@@ -849,7 +835,7 @@ mod tests {
                 TokenType::Semicolon,
                 136,
                 137,
-                TokenType::Val,
+                TokenType::Let,
                 138,
                 141,
                 TokenType::Identifier("greeting_from_array"),
@@ -875,11 +861,11 @@ mod tests {
                 179
             ),
             concat!(
-                r#"val greeting = "Hello world!"; // 'str' type is inferred"#,
+                r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
                 "\n",
-                r#"val bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];"#,
+                r#"let bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];"#,
                 "\n",
-                r#"val greeting_from_array = str(bytearray); // "Hello world!""#
+                r#"let greeting_from_array = str(bytearray); // "Hello world!""#
             )
         );
 

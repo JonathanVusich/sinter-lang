@@ -64,8 +64,8 @@ pub enum TokenType {
     For,
     This,
 
-    Var,
-    Val,
+    Let,
+    Mut,
 
     While,
     Return,

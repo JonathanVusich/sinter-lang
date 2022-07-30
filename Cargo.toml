@@ -1,5 +1,5 @@
 [package]
-name = "flux-lang"
+name = "sinter-lang"
 version = "0.1.0"
 authors = ["Jonathan Vusich <31666175+JonathanVusich@users.noreply.github.com>"]
 edition = "2021"

@@ -4,12 +4,21 @@ use crate::traits::traits::Trait;
 use std::path::Prefix;
 
 pub struct Module {
+    use_stmts: Vec<UseStmt>,
     stmts: Vec<Stmt>,
 }
 
 impl Module {
-    pub fn new(stmts: Vec<Stmt>) -> Self {
-        Self { stmts }
+    pub fn new(use_stmts: Vec<UseStmt>, stmts: Vec<Stmt>) -> Self {
+        Self { use_stmts, stmts }
+    }
+
+    pub fn use_stmts(&self) -> &[UseStmt] {
+        &self.use_stmts
+    }
+
+    pub fn stmts(&self) -> &[Stmt] {
+        &self.stmts
     }
 }
 
@@ -35,19 +44,52 @@ impl UseStmt {
     }
 }
 
+#[derive(PartialEq, Eq, Debug, Default)]
+pub struct Generics {
+    generics: Vec<GenericTy>,
+}
+
+impl Generics {
+    pub fn new(generics: Vec<GenericTy>) -> Self {
+        Self {
+            generics,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Default, Clone)]
+pub struct Params {
+    params: Vec<Param>
+}
+
+impl Params {
+    pub fn new(params: Vec<Param>) -> Self {
+        Self {
+            params,
+        }
+    }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum Mutability {
+    Mutable,
+    Immutable,
+}
+
+#[derive(PartialEq, Debug)]
 pub struct ClassStmt {
     name: Ident,
-    generic_types: Vec<GenericTy>,
-    members: Vec<MemberDecl>,
+    generic_types: Generics,
+    members: Params,
     member_functions: Vec<FnStmt>,
 }
 
 impl ClassStmt {
     pub fn new(
         name: Ident,
-        generic_types: Vec<GenericTy>,
-        members: Vec<MemberDecl>,
-        member_functions: Vec<MemberFunctionDecl>,
+        generic_types: Generics,
+        members: Params,
+        member_functions: Vec<FnStmt>,
     ) -> Self {
         Self {
             name,
@@ -58,14 +100,15 @@ impl ClassStmt {
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub struct EnumStmt {
     name: Ident,
-    generic_tys: Vec<GenericTy>,
+    generic_tys: Generics,
     members: Vec<EnumMemberStmt>,
 }
 
 impl EnumStmt {
-    pub fn new(name: Ident, generic_types: Vec<GenericTy>, members: Vec<EnumMemberStmt>) -> Self {
+    pub fn new(name: Ident, generic_types: Generics, members: Vec<EnumMemberStmt>) -> Self {
         Self {
             name,
             generic_tys: generic_types,
@@ -73,7 +116,7 @@ impl EnumStmt {
         }
     }
 
-    pub fn generic_tys(&self) -> &[GenericTy] {
+    pub fn generics(&self) -> &Generics {
         &self.generic_tys
     }
 
@@ -82,6 +125,7 @@ impl EnumStmt {
     }
 }
 
+#[derive(PartialEq, Debug)]
 pub struct TraitStmt {
     ident: Ident,
     functions: Vec<FnStmt>,
@@ -95,8 +139,20 @@ pub struct TraitImplStmt {
 
 #[derive(PartialEq, Debug)]
 pub struct FnStmt {
+    name: Ident,
     sig: FnSig,
     body: Option<BlockStmt>,
+}
+
+impl FnStmt {
+
+    pub fn new(name: Ident, sig: FnSig, body: Option<BlockStmt>) -> Self {
+        Self {
+            name,
+            sig,
+            body,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -111,23 +167,18 @@ impl GenericTy {
     }
 }
 
-pub struct MemberDecl {
-    ident: Ident,
-    ty: Type,
-}
-
 #[derive(PartialEq, Debug)]
 pub struct EnumMemberStmt {
     name: Ident,
-    parameters: Vec<Param>,
+    parameters: Params,
     member_functions: Vec<FnStmt>,
 }
 
 impl EnumMemberStmt {
     pub fn new(
         name: Ident,
-        parameters: Vec<Param>,
-        member_functions: Vec<MemberFunctionDecl>,
+        parameters: Params,
+        member_functions: Vec<FnStmt>,
     ) -> Self {
         Self {
             name,
@@ -140,14 +191,15 @@ impl EnumMemberStmt {
 #[derive(PartialEq, Eq, Debug)]
 pub struct FnSig {
     name: Ident,
-    generic_types: Vec<GenericTy>,
-    parameters: Vec<Param>,
-    return_type: Type,
+    generic_types: Generics,
+    parameters: Params,
+    return_type: Option<Type>,
 }
 
 impl FnSig {
-    pub fn new(generic_types: Vec<GenericTy>, parameters: Vec<Param>, return_type: Type) -> Self {
+    pub fn new(name: Ident, generic_types: Generics, parameters: Params, return_type: Option<Type>) -> Self {
         Self {
+            name,
             generic_types,
             parameters,
             return_type,
@@ -159,11 +211,12 @@ impl FnSig {
 pub struct Param {
     name: Ident,
     ty: Type,
+    mutability: Mutability,
 }
 
 impl Param {
-    pub fn new(name: Ident, ty: Type) -> Self {
-        Self { name, ty }
+    pub fn new(name: Ident, ty: Type, mutability: Mutability) -> Self {
+        Self { name, ty, mutability, }
     }
 }
 
@@ -189,7 +242,7 @@ pub enum VarInitializer {
 #[derive(PartialEq, Debug)]
 pub enum Expr {
     Array(Vec<Expr>),
-    Call(Box<FunctionCall>),
+    Call(Box<FnCall>),
     Binary(Box<BinaryExpr>),
     Unary(Box<UnaryExpr>),
     Literal(Literal),
@@ -209,9 +262,9 @@ pub enum Expr {
 }
 
 #[derive(PartialEq, Debug)]
-pub struct FunctionCall {
+pub struct FnCall {
     func: Box<Expr>,
-    generic_tys: Vec<GenericTy>,
+    generic_tys: Generics,
     parameters: Vec<Expr>,
 }
 
@@ -262,7 +315,7 @@ pub struct MatchArm {
 
 #[derive(PartialEq, Debug)]
 pub struct ClosureExpr {
-    params: Vec<Param>,
+    params: Params,
     expr: Expr,
 }
 
@@ -321,6 +374,14 @@ pub struct BlockStmt {
     stmts: Vec<Stmt>,
 }
 
+impl BlockStmt {
+    pub fn new(stmts: Vec<Stmt>) -> Self {
+        Self {
+            stmts,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug)]
 pub enum Literal {
     IntegerLiteral(i64),
@@ -376,40 +437,6 @@ pub enum Stmt {
     Expression(Box<Expr>),
 }
 
-#[derive(PartialEq, Debug)]
-pub struct IfExpression {
-    condition: Box<Expr>,
-    statement_true: Expr,
-    statement_false: Option<Expr>,
-}
-
-#[derive(PartialEq, Debug)]
-pub struct MatchStatement {
-    expr: Box<Expr>,
-    statements: Vec<MatchArm>,
-}
-
-#[derive(PartialEq, Debug)]
-pub struct WhileExpression {
-    condition: Box<Expr>,
-    statement: Stmt,
-}
-
-#[derive(PartialEq, Debug)]
-pub struct ForExpression {
-    ident: Ident,
-    loop_expr: Box<Expr>,
-    statement: Stmt,
-}
-
 mod tests {
-    use crate::compiler::ast::{Expr, MemberFunctionDecl, Module, TypeStatement};
 
-    #[test]
-    pub fn check_size() {
-        assert_eq!(72, std::mem::size_of::<Module>());
-        assert_eq!(16, std::mem::size_of::<TypeStatement>());
-
-        assert_eq!(280, std::mem::size_of::<Expr>());
-    }
 }

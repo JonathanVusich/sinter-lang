@@ -11,7 +11,7 @@ quickly, scalably, and correctly.
 ```ignorelang
 import std::vector
 ```
-Imports should be declared at the top of each source file. 
+Imports must be declared at the top of each source file. 
 
 ### Program entry point
 The entry point for a Sinter application is the main function.
@@ -83,19 +83,19 @@ fn print_sum(a: i64, b: i64) {
 ```
 
 ### Variables
-Read-only local variables are defined using the keyword `val`. They can be assigned a value once.
+Local and global variables can be assigned using the keyword `let`.
 
 ```ignorelang
-val a: i64 = 1; // Immediate assignment
-val b = 2; // `i64` type is inferred
-val c: i64; // Type is required when no initializer is provided
+let a: i64 = 1; // Immediate assignment
+let b = 2; // `i64` type is inferred
+let c: i64; // Type is required when no initializer is provided
 c = 3; // Deferred assignment
 ```
 
-Variables that can be reassigned use the `var` keyword.
+Variables that can be reassigned must be prefixed with the `mut` keyword. Global variables cannot be mutable.
 
 ```ignorelang
-var x = 5; // `i64` type is inferred
+let mut x = 5; // `i64` type is inferred
 x += 1;
 ```
 
@@ -186,8 +186,8 @@ Properties of a class are listed in its declaration.
 
 ```ignorelang
 class Rectangle(width: f64, length: f64) {
-    fn perimeter() {
-        return (height + length) * 2
+    fn perimeter(self) {
+        return (self.height + self.length) * 2
     }
 }
 ```
@@ -195,7 +195,7 @@ class Rectangle(width: f64, length: f64) {
 The default constructor with the class parameters is available automatically.
 
 ```ignorelang
-val rectangle = Rectangle(5.0, 2.0);
+let rectangle = Rectangle(5.0, 2.0);
 println("The perimeter is {rectangle.perimeter()}");
 ```
 
@@ -222,8 +222,8 @@ Enums can also contain a payload and functions that are specific to each member.
 enum Message {
     Text(message: str),
     Photo(caption: str, photo: SerializedPhoto) {
-        fn size() {
-            return photo.size();
+        fn size(self) {
+            return self.photo.size();
         }
     },
 }
@@ -252,7 +252,7 @@ trait Iterator<T> {
 class MutableList<T> {
     ...
     
-    fn extend<I: Iterator<T>>(iterator: I) {
+    fn extend<I: Iterator<T>>(mut self, iterator: I) {
         while true {
             match iterator.next() {
                 T item => self.add(item),
@@ -302,9 +302,9 @@ to be mixed with other types.
 
 ```ignorelang
 trait Node {
-    fn bounds() => Bounds;
-    fn draw(Graphics g);
-    fn children() => MutableList<Node>;
+    fn bounds(self) => Bounds;
+    fn draw(self, Graphics g);
+    fn children(mut self) => MutableList<Node>;
 }
 
 fn draw_frame(nodes: List<Node>) {
