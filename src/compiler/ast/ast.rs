@@ -1,20 +1,17 @@
 use crate::compiler::types::types::{Ident, Type};
 use crate::gc::block::Block;
 use crate::traits::traits::Trait;
+use serde::{Deserialize, Serialize};
 use std::path::Prefix;
 
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
-    use_stmts: Vec<UseStmt>,
     stmts: Vec<Stmt>,
 }
 
 impl Module {
-    pub fn new(use_stmts: Vec<UseStmt>, stmts: Vec<Stmt>) -> Self {
-        Self { use_stmts, stmts }
-    }
-
-    pub fn use_stmts(&self) -> &[UseStmt] {
-        &self.use_stmts
+    pub fn new(stmts: Vec<Stmt>) -> Self {
+        Self { stmts }
     }
 
     pub fn stmts(&self) -> &[Stmt] {
@@ -22,7 +19,7 @@ impl Module {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QualifiedIdent {
     idents: Vec<Ident>,
 }
@@ -33,7 +30,7 @@ impl QualifiedIdent {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct UseStmt {
     ident: QualifiedIdent,
 }
@@ -44,39 +41,46 @@ impl UseStmt {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Default)]
+#[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct Generics {
     generics: Vec<GenericTy>,
 }
 
 impl Generics {
     pub fn new(generics: Vec<GenericTy>) -> Self {
-        Self {
-            generics,
-        }
+        Self { generics }
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Default, Clone)]
+#[derive(PartialEq, Eq, Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Params {
-    params: Vec<Param>
+    params: Vec<Param>,
 }
 
 impl Params {
     pub fn new(params: Vec<Param>) -> Self {
-        Self {
-            params,
-        }
+        Self { params }
     }
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct Args {
+    args: Vec<Box<Expr>>,
+}
+
+impl Args {
+    pub fn new(args: Vec<Box<Expr>>) -> Self {
+        Self { args }
+    }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Mutability {
     Mutable,
     Immutable,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClassStmt {
     name: Ident,
     generic_types: Generics,
@@ -100,10 +104,10 @@ impl ClassStmt {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumStmt {
     name: Ident,
-    generic_tys: Generics,
+    generics: Generics,
     members: Vec<EnumMemberStmt>,
 }
 
@@ -111,13 +115,13 @@ impl EnumStmt {
     pub fn new(name: Ident, generic_types: Generics, members: Vec<EnumMemberStmt>) -> Self {
         Self {
             name,
-            generic_tys: generic_types,
+            generics: generic_types,
             members,
         }
     }
 
     pub fn generics(&self) -> &Generics {
-        &self.generic_tys
+        &self.generics
     }
 
     pub fn members(&self) -> &[EnumMemberStmt] {
@@ -125,37 +129,31 @@ impl EnumStmt {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitStmt {
     ident: Ident,
     functions: Vec<FnStmt>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitImplStmt {
     ty: Type,
     functions: Vec<FnStmt>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FnStmt {
-    name: Ident,
     sig: FnSig,
     body: Option<BlockStmt>,
 }
 
 impl FnStmt {
-
-    pub fn new(name: Ident, sig: FnSig, body: Option<BlockStmt>) -> Self {
-        Self {
-            name,
-            sig,
-            body,
-        }
+    pub fn new(sig: FnSig, body: Option<BlockStmt>) -> Self {
+        Self { sig, body }
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct GenericTy {
     ident: Ident,
     trait_bound: Option<Type>,
@@ -167,7 +165,7 @@ impl GenericTy {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumMemberStmt {
     name: Ident,
     parameters: Params,
@@ -175,11 +173,7 @@ pub struct EnumMemberStmt {
 }
 
 impl EnumMemberStmt {
-    pub fn new(
-        name: Ident,
-        parameters: Params,
-        member_functions: Vec<FnStmt>,
-    ) -> Self {
+    pub fn new(name: Ident, parameters: Params, member_functions: Vec<FnStmt>) -> Self {
         Self {
             name,
             parameters,
@@ -188,7 +182,7 @@ impl EnumMemberStmt {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct FnSig {
     name: Ident,
     generic_types: Generics,
@@ -197,7 +191,12 @@ pub struct FnSig {
 }
 
 impl FnSig {
-    pub fn new(name: Ident, generic_types: Generics, parameters: Params, return_type: Option<Type>) -> Self {
+    pub fn new(
+        name: Ident,
+        generic_types: Generics,
+        parameters: Params,
+        return_type: Option<Type>,
+    ) -> Self {
         Self {
             name,
             generic_types,
@@ -207,7 +206,7 @@ impl FnSig {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Param {
     name: Ident,
     ty: Type,
@@ -216,7 +215,11 @@ pub struct Param {
 
 impl Param {
     pub fn new(name: Ident, ty: Type, mutability: Mutability) -> Self {
-        Self { name, ty, mutability, }
+        Self {
+            name,
+            ty,
+            mutability,
+        }
     }
 }
 
@@ -226,7 +229,7 @@ pub struct ArgumentDecl {
     ty: Type,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct LocalStmt {
     ident: Ident,
     ty: Option<Type>,
@@ -239,7 +242,7 @@ pub enum VarInitializer {
     Statement(Stmt),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Expr {
     Array(Vec<Expr>),
     Call(Box<FnCall>),
@@ -257,94 +260,104 @@ pub enum Expr {
     Index(Box<IndexExpr>),
     Break,
     Continue,
-    Return,
+    Return(Option<Box<Expr>>),
     Try(Box<Expr>),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FnCall {
     func: Box<Expr>,
     generic_tys: Generics,
-    parameters: Vec<Expr>,
+    args: Args,
 }
 
-#[derive(PartialEq, Debug)]
+impl FnCall {
+    pub fn new(func: Box<Expr>, generic_tys: Generics, args: Args) -> Self {
+        Self {
+            func,
+            generic_tys,
+            args,
+        }
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct BinaryExpr {
     operator: BinaryOp,
     lhs: Expr,
     rhs: Expr,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct UnaryExpr {
     operator: UnaryOp,
     expr: Expr,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IfExpr {
     condition: Expr,
     if_true: BlockStmt,
     if_false: Option<BlockStmt>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct WhileExpr {
     condition: Expr,
     block: BlockStmt,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ForExpr {
     pattern: Pattern,
     block: BlockStmt,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct MatchExpr {
     expr: Expr,
     arms: Vec<MatchArm>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct MatchArm {
     pattern: Pattern,
     guard: Option<Expr>,
     body: Expr,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClosureExpr {
     params: Params,
     expr: Expr,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct AssignExpr {
     lhs: Expr,
     rhs: Expr,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct AssignOpExpr {
     op: BinaryOp,
     lhs: Expr,
     rhs: Expr,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FieldExpr {
     lhs: Expr,
     ident: Ident,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IndexExpr {
     lhs: Expr,
     rhs: Expr,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Pattern {
     Wildcard,
     Range(RangePattern),
@@ -353,36 +366,34 @@ pub enum Pattern {
     Ty(TypePattern),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct RangePattern {
     start: Expr,
     end: Expr,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct OrPattern {
     patterns: Vec<Pattern>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TypePattern {
     tys: Vec<Type>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct BlockStmt {
     stmts: Vec<Stmt>,
 }
 
 impl BlockStmt {
     pub fn new(stmts: Vec<Stmt>) -> Self {
-        Self {
-            stmts,
-        }
+        Self { stmts }
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Literal {
     IntegerLiteral(i64),
     FloatingPointerLiteral(f64),
@@ -401,7 +412,7 @@ pub enum AssignmentOp {
     ModuloAssign,
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum BinaryOp {
     Or,
     And,
@@ -418,14 +429,14 @@ pub enum BinaryOp {
     Modulo,
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum UnaryOp {
     Bang,
     Negate,
     Plus,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Stmt {
     Use(Box<UseStmt>),
     Local(Box<LocalStmt>),
@@ -437,6 +448,4 @@ pub enum Stmt {
     Expression(Box<Expr>),
 }
 
-mod tests {
-
-}
+mod tests {}

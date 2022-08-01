@@ -1,20 +1,22 @@
+use crate::compiler::ast::ast::QualifiedIdent;
 use lasso::Spur;
+use serde::{Deserialize, Serialize};
 
 pub type Ident = Spur;
 
-#[derive(Clone, Eq, PartialEq, Debug, Hash)]
+#[derive(Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
 pub enum Type {
     Array(Box<Type>),
-    Enum(Ident),
-    Trait(Ident),
-    TraitBounds(Vec<Ident>),
+    Enum(QualifiedIdent),
+    Trait(QualifiedIdent),
+    TraitBounds(Vec<QualifiedIdent>),
     Union(Vec<Type>),
-    Class(Ident),
-    Generic(Ident),
+    Class(QualifiedIdent),
+    Generic(QualifiedIdent),
     Basic(BasicType),
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
 pub enum BasicType {
     U8,
     U16,

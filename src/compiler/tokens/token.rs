@@ -133,8 +133,6 @@ impl Display for TokenType {
             TokenType::True => write!(f, "true"),
             TokenType::For => write!(f, "for"),
             TokenType::This => write!(f, "this"),
-            TokenType::Var => write!(f, "var"),
-            TokenType::Val => write!(f, "val"),
             TokenType::While => write!(f, "while"),
             TokenType::Return => write!(f, "return"),
             TokenType::SelfLowercase => write!(f, "self"),
@@ -149,8 +147,10 @@ impl Display for TokenType {
             TokenType::Trait => write!(f, "trait"),
             TokenType::Use => write!(f, "use"),
             TokenType::None => write!(f, "None"),
-            TokenType::Inline => write!(f, "inline")
-        }
+            TokenType::Inline => write!(f, "inline"),
+            TokenType::Let => write!(f, "let"),
+            TokenType::Mut => write!(f, "mut"),
+        };
     }
 }
 

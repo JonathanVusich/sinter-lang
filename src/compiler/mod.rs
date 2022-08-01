@@ -1,9 +1,12 @@
+use lasso::{Spur, ThreadedRodeo};
+use rustc_hash::FxHasher;
+use std::hash::{BuildHasher, BuildHasherDefault};
 use std::sync::Arc;
-use lasso::ThreadedRodeo;
 
+pub mod ast;
 pub mod parser;
 pub mod tokens;
 pub mod types;
-pub mod ast;
 
+type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Arc<ThreadedRodeo>;
