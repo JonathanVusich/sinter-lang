@@ -290,6 +290,7 @@ impl Parser {
             }
             token => {
                 let pos = self.current_position();
+                println!("{:?}", pos);
                 self.expected_token(Identifier(""), pos)
             }
         }
@@ -632,16 +633,16 @@ mod tests {
     #[test]
     pub fn basic_enum() {
         let code = concat!(
-            "enum Planet {",
-            "    Mercury,",
-            "    Venus,",
-            "    Earth,",
-            "    Mars,",
-            "    Jupiter,",
-            "    Saturn,",
-            "    Uranus,",
-            "    Neptune,",
-            "    Pluto,",
+            "enum Planet {\n",
+            "    Mercury,\n",
+            "    Venus,\n",
+            "    Earth,\n",
+            "    Mars,\n",
+            "    Jupiter,\n",
+            "    Saturn,\n",
+            "    Uranus,\n",
+            "    Neptune,\n",
+            "    Pluto,\n",
             "}"
         );
 
@@ -716,13 +717,13 @@ mod tests {
     #[test]
     pub fn complex_enum() {
         let code = concat!(
-            "enum Vector<X: Number + Display, Y: Number + Display> {",
-            "    Normalized(x: X, y: Y),",
-            "    Absolute(x: X, y: Y) {",
-            "        pub fn to_normalized(self) -> Vector {",
-            "            return Normalized(self.x, self.y);",
-            "        }",
-            "    }",
+            "enum Vector<X: Number + Display, Y: Number + Display> {\n",
+            "    Normalized(x: X, y: Y),\n",
+            "    Absolute(x: X, y: Y) {\n",
+            "        pub fn to_normalized(self) -> Vector {\n",
+            "            return Normalized(self.x, self.y);\n",
+            "        }\n",
+            "    }\n",
             "}"
         );
 

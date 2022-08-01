@@ -1171,6 +1171,42 @@ mod tests {
     }
 
     #[test]
+    pub fn complex_enum_parsing() {
+        test!(
+            tokenize!(
+                TokenType::Enum, 0, 4,
+                TokenType::Identifier("Vector"), 5, 11,
+                TokenType::Less, 11, 12,
+                TokenType::Identifier("X"), 12, 13,
+                TokenType::Colon, 13, 14,
+                TokenType::Number, 15, 21,
+                TokenType::Plus, 22, 23,
+                TokenType::Identifier("Display"), 24, 31,
+                TokenType::Comma, 31, 32,
+                TokenType::Identifier("Y"), 33, 34,
+                TokenType::Colon, 34, 35,
+                TokenType::Identifier("Number"), 36, 42,
+                TokenType::Plus, 43, 44,
+                TokenType::Identifier("Display"), 45, 52,
+                TokenType::Greater, 52, 53,
+                TokenType::LeftBrace, 54, 55,
+                TokenType::Identifier("Normalized"), 60, 70,
+                TokenType::LeftParentheses
+            ),
+            concat!(
+            "enum Vector<X: Number + Display, Y: Number + Display> {\n",
+            "    Normalized(x: X, y: Y),\n",
+            "    Absolute(x: X, y: Y) {\n",
+            "        pub fn to_normalized(self) -> Vector {\n",
+            "            return Normalized(self.x, self.y);\n",
+            "        }\n",
+            "    }\n",
+            "}"
+            )
+        );
+    }
+
+    #[test]
     pub fn simple_statement_parsing() {
         test!(
             tokenize!(
