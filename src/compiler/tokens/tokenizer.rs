@@ -440,8 +440,8 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn load_tokens(path: &Path) -> Result<Vec<Token>> {
-        let file = File::open(resolve_test_path(path))?;
+    fn load_tokens(module: &str, path: &str) -> Result<Vec<Token>> {
+        let file = File::open(resolve_test_path(module, path))?;
         let reader = BufReader::new(file);
         Ok(serde_json::from_reader(reader)?)
     }

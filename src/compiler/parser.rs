@@ -97,7 +97,7 @@ impl Parser {
         self.expect(TokenType::Class)?;
         let name = self.identifier()?;
         let generic_types = self.generics()?;
-        let members = self.parenthesized_parameters()?;
+        let members = self.parenthesized_params()?;
         let member_functions = self.fn_stmts()?;
 
         let class_stmt = Box::new(ClassStmt::new(
@@ -283,7 +283,7 @@ impl Parser {
                 let name = self.string_interner.get_or_intern(ident);
                 self.advance();
 
-                let params = self.parenthesized_parameters()?;
+                let params = self.parenthesized_params()?;
                 let member_funcs = self.enum_fn_stmts()?;
 
                 Ok(EnumMemberStmt::new(name, params, member_funcs))
@@ -296,7 +296,7 @@ impl Parser {
         }
     }
 
-    fn parenthesized_parameters(&mut self) -> Result<Params> {
+    fn parenthesized_params(&mut self) -> Result<Params> {
         let params = self.parse_multiple_with_delimiter::<Param, 1>(
             Self::parameter,
             LeftParentheses,
