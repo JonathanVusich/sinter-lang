@@ -1,4 +1,4 @@
-use crate::compiler::types::types::{Ident, Type};
+use crate::compiler::types::types::{InternedStr, Type};
 use crate::gc::block::Block;
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
@@ -21,11 +21,11 @@ impl Module {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QualifiedIdent {
-    idents: Vec<Ident>,
+    idents: Vec<InternedStr>,
 }
 
 impl QualifiedIdent {
-    pub fn new(idents: Vec<Ident>) -> Self {
+    pub fn new(idents: Vec<InternedStr>) -> Self {
         Self { idents }
     }
 }
@@ -82,7 +82,7 @@ pub enum Mutability {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClassStmt {
-    name: Ident,
+    name: InternedStr,
     generic_types: Generics,
     members: Params,
     member_functions: Vec<FnStmt>,
@@ -90,7 +90,7 @@ pub struct ClassStmt {
 
 impl ClassStmt {
     pub fn new(
-        name: Ident,
+        name: InternedStr,
         generic_types: Generics,
         members: Params,
         member_functions: Vec<FnStmt>,
@@ -106,13 +106,13 @@ impl ClassStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumStmt {
-    name: Ident,
+    name: InternedStr,
     generics: Generics,
     members: Vec<EnumMemberStmt>,
 }
 
 impl EnumStmt {
-    pub fn new(name: Ident, generic_types: Generics, members: Vec<EnumMemberStmt>) -> Self {
+    pub fn new(name: InternedStr, generic_types: Generics, members: Vec<EnumMemberStmt>) -> Self {
         Self {
             name,
             generics: generic_types,
@@ -131,7 +131,7 @@ impl EnumStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitStmt {
-    ident: Ident,
+    ident: InternedStr,
     functions: Vec<FnStmt>,
 }
 
@@ -155,25 +155,25 @@ impl FnStmt {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct GenericTy {
-    ident: Ident,
+    ident: InternedStr,
     trait_bound: Option<Type>,
 }
 
 impl GenericTy {
-    pub fn new(ident: Ident, trait_bound: Option<Type>) -> Self {
+    pub fn new(ident: InternedStr, trait_bound: Option<Type>) -> Self {
         Self { ident, trait_bound }
     }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumMemberStmt {
-    name: Ident,
+    name: InternedStr,
     parameters: Params,
     member_functions: Vec<FnStmt>,
 }
 
 impl EnumMemberStmt {
-    pub fn new(name: Ident, parameters: Params, member_functions: Vec<FnStmt>) -> Self {
+    pub fn new(name: InternedStr, parameters: Params, member_functions: Vec<FnStmt>) -> Self {
         Self {
             name,
             parameters,
@@ -184,7 +184,7 @@ impl EnumMemberStmt {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct FnSig {
-    name: Ident,
+    name: InternedStr,
     generic_types: Generics,
     parameters: Params,
     return_type: Option<Type>,
@@ -192,7 +192,7 @@ pub struct FnSig {
 
 impl FnSig {
     pub fn new(
-        name: Ident,
+        name: InternedStr,
         generic_types: Generics,
         parameters: Params,
         return_type: Option<Type>,
@@ -208,13 +208,13 @@ impl FnSig {
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Param {
-    name: Ident,
+    name: InternedStr,
     ty: Type,
     mutability: Mutability,
 }
 
 impl Param {
-    pub fn new(name: Ident, ty: Type, mutability: Mutability) -> Self {
+    pub fn new(name: InternedStr, ty: Type, mutability: Mutability) -> Self {
         Self {
             name,
             ty,
@@ -225,13 +225,13 @@ impl Param {
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct ArgumentDecl {
-    ident: Ident,
+    ident: InternedStr,
     ty: Type,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct LocalStmt {
-    ident: Ident,
+    ident: InternedStr,
     ty: Option<Type>,
     initializer: Option<Expr>,
 }
@@ -348,7 +348,7 @@ pub struct AssignOpExpr {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FieldExpr {
     lhs: Expr,
-    ident: Ident,
+    ident: InternedStr,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -398,7 +398,7 @@ pub enum Literal {
     IntegerLiteral(i64),
     FloatingPointerLiteral(f64),
     BooleanLiteral(bool),
-    StringLiteral(Ident),
+    StringLiteral(InternedStr),
     None,
 }
 

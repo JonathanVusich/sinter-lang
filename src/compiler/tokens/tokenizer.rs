@@ -408,8 +408,13 @@ mod tests {
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
     use anyhow::Result;
-    #[cfg(test)]
-    use crate::util::utils::resolve_test_path;
+    use cfg_if::cfg_if;
+    cfg_if! {
+        if #[cfg(test)] {
+            use crate::util::utils::{load, save};
+            use crate::util::utils::resolve_test_path;
+        }
+    }
 
     #[cfg(test)]
     macro_rules! make_token {
@@ -440,27 +445,12 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn load_tokens(module: &str, path: &str) -> Result<Vec<Token>> {
-        let file = File::open(resolve_test_path(module, path))?;
-        let reader = BufReader::new(file);
-        Ok(serde_json::from_reader(reader)?)
-    }
-
-    #[cfg(test)]
-    fn save_tokens(path: &Path, tokens: &[Token]) -> Result<()> {
-        let file = File::open(resolve_test_path(path))?;
-        let writer = BufWriter::new(file);
-        Ok(serde_json::to_writer(writer, &tokens)?)
-    }
-
-    #[cfg(test)]
-    fn compare_modules(path: &str, code: &str) {
+    fn compare_tokens(test: &str, code: &str) {
         let tokens = Tokenizer::new(code).into().tokens();
-        let module_path = Path::new(path);
-        if let Ok(loaded) = load_tokens(module_path) {
+        if let Ok(loaded) = load::<Vec<Token>>("tokenizer", test) {
             assert_eq!(loaded, tokens);
         } else {
-            save_tokens(module_path, tokens).expect("Error saving module!");
+            save("tokenizer", test, tokens).expect("Error saving module!");
         }
     }
 
@@ -1203,16 +1193,16 @@ mod tests {
     #[test]
     pub fn complex_enum_parsing() {
         let code = concat!(
-        "enum Vector<X: Number + Display, Y: Number + Display> {\n",
-        "    Normalized(x: X, y: Y),\n",
-        "    Absolute(x: X, y: Y) {\n",
-        "        pub fn to_normalized(self) -> Vector {\n",
-        "            return Normalized(self.x, self.y);\n",
-        "        }\n",
-        "    }\n",
-        "}"
+            "enum Vector<X: Number + Display, Y: Number + Display> {\n",
+            "    Normalized(x: X, y: Y),\n",
+            "    Absolute(x: X, y: Y) {\n",
+            "        pub fn to_normalized(self) -> Vector {\n",
+            "            return Normalized(self.x, self.y);\n",
+            "        }\n",
+            "    }\n",
+            "}"
         );
-        compare_modules("complex_enum", );
+        compare_tokens("complex_enum", code);
     }
 
     #[test]

@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 use serde::{Serialize, Deserialize};
+use crate::compiler::types::types::InternedStr;
 
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Token {
@@ -10,7 +11,7 @@ pub struct Token {
 
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum TokenType {
-    Unrecognized(&'static str),
+    Unrecognized(InternedStr),
 
     LeftBrace,
     RightBrace,
@@ -42,8 +43,8 @@ pub enum TokenType {
     Less,
     LessEqual,
 
-    Identifier(&'static str),
-    String(&'static str),
+    Identifier(InternedStr),
+    String(InternedStr),
     SignedInteger(i64),
     Float(f64),
 

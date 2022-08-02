@@ -13,7 +13,7 @@ use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::BasicType::U8;
 use crate::compiler::types::types::Type::Basic;
-use crate::compiler::types::types::{Ident, Type};
+use crate::compiler::types::types::{InternedStr, Type};
 use crate::compiler::StringInterner;
 use crate::gc::block::Block;
 use anyhow::{anyhow, Result};
@@ -129,17 +129,16 @@ impl Parser {
         todo!()
     }
 
-    fn identifier(&mut self) -> Result<Ident> {
+    fn identifier(&mut self) -> Result<InternedStr> {
         self.bounds_check()?;
         match self.current_type() {
             Identifier(ident) => {
-                let identifier = self.string_interner.get_or_intern(ident);
                 self.advance();
-                Ok(identifier)
+                Ok(ident)
             }
             _ => {
                 let pos = self.current_position();
-                self.expected_token(Identifier(""), pos)
+                self.expected_token(Identifier(self.string_interner.get_or_intern("")), pos)
             }
         }
     }
@@ -150,7 +149,7 @@ impl Parser {
             self.bounds_check()?;
             match self.current_type() {
                 Identifier(ident) => {
-                    idents.push(self.string_interner.get_or_intern(ident));
+                    idents.push(ident);
                     if self.remaining() >= 2 {
                         if self.next(1).token_type == Colon && self.next(2).token_type == Colon {
                             self.advance_multiple(3);
@@ -165,7 +164,7 @@ impl Parser {
                 }
                 token => {
                     let pos = self.current_position();
-                    return self.expected_token(Identifier(""), pos);
+                    return self.expected_token(Identifier(self.string_interner.get_or_intern("")), pos);
                 }
             }
         }
@@ -280,18 +279,17 @@ impl Parser {
         self.bounds_check()?;
         match self.current_type() {
             Identifier(ident) => {
-                let name = self.string_interner.get_or_intern(ident);
                 self.advance();
 
                 let params = self.parenthesized_params()?;
                 let member_funcs = self.enum_fn_stmts()?;
 
-                Ok(EnumMemberStmt::new(name, params, member_funcs))
+                Ok(EnumMemberStmt::new(ident, params, member_funcs))
             }
             token => {
                 let pos = self.current_position();
                 println!("{:?}", pos);
-                self.expected_token(Identifier(""), pos)
+                self.expected_token(Identifier(self.string_interner.get_or_intern("")), pos)
             }
         }
     }
@@ -523,8 +521,15 @@ mod tests {
     use std::io::{BufReader, BufWriter};
     use std::path::{Path, PathBuf};
     use std::sync::Arc;
-    #[cfg(test)]
-    use crate::util::utils::resolve_test_path;
+    use cfg_if::cfg_if;
+
+    cfg_if! {
+        if #[cfg(test)] {
+            use crate::util::utils::{load, save};
+            use crate::util::utils::resolve_test_path;
+        }
+    }
+
 
     #[cfg(test)]
     macro_rules! qualified_ident {
@@ -552,11 +557,12 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn compare_modules(path: &str, module: Module) {
-        if let Ok(loaded) = load_module(path) {
+    fn compare_modules(test: &str, code: &str) {
+        let (string_interner, module) = parse_code(code).unwrap();
+        if let Ok(loaded) = load::<Module>("parser", test) {
             assert_eq!(loaded, module);
         } else {
-            save_module(path, module).expect("Error saving module!");
+            save("parser", test, module).expect("Error saving module!");
         }
     }
 
@@ -622,8 +628,7 @@ mod tests {
             "use std::map::HashMap;"
         );
 
-        let (string_interner, module) = parse_code(code).unwrap();
-        compare_modules("use_stmts", module);
+        compare_modules("use_stmts", code);
     }
 
     #[test]
@@ -723,7 +728,6 @@ mod tests {
             "}"
         );
 
-        let (string_interner, module) = parse_code(code).unwrap();
-        compare_modules("complex_enum", module);
+        compare_modules("complex_enum", code);
     }
 }

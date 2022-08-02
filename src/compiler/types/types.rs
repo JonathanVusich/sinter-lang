@@ -2,7 +2,7 @@ use crate::compiler::ast::ast::QualifiedIdent;
 use lasso::Spur;
 use serde::{Deserialize, Serialize};
 
-pub type Ident = Spur;
+pub type InternedStr = Spur;
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
 pub enum Type {
