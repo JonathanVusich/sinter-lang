@@ -568,7 +568,7 @@ mod tests {
 
     fn parse_code(code: &str) -> Result<(StringInterner, Module)> {
         let string_interner = StringInterner::default();
-        let tokens = tokenize(code).unwrap();
+        let tokens = tokenize(string_interner.clone(), code).unwrap();
         let parser = Parser::new(string_interner.clone(), tokens);
         let (string_interner, parser) = (string_interner, parser);
         let module = parser.parse()?;
