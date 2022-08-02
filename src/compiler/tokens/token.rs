@@ -1,13 +1,14 @@
 use std::fmt::{Display, Formatter};
+use serde::{Serialize, Deserialize};
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Token {
     pub token_type: TokenType,
     pub start: usize,
     pub end: usize,
 }
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum TokenType {
     Unrecognized(&'static str),
 

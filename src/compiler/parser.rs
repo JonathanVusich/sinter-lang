@@ -118,7 +118,7 @@ impl Parser {
 
         let enum_stmt = Box::new(EnumStmt::new(name, generics, enum_members));
 
-        Ok(Stmt::Enum(enum_stmt))
+        Ok(Enum(enum_stmt))
     }
 
     fn parse_trait(&mut self) -> Result<Stmt> {
@@ -523,6 +523,8 @@ mod tests {
     use std::io::{BufReader, BufWriter};
     use std::path::{Path, PathBuf};
     use std::sync::Arc;
+    #[cfg(test)]
+    use crate::util::utils::resolve_test_path;
 
     #[cfg(test)]
     macro_rules! qualified_ident {
@@ -535,26 +537,21 @@ mod tests {
         }
     }
 
-    fn create_path(path: &Path) -> Box<Path> {
-        let mut pathbuf = PathBuf::new();
-        let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        pathbuf.push(Path::new(manifest_dir));
-        pathbuf.push(path);
-        pathbuf.into_boxed_path()
-    }
-
+    #[cfg(test)]
     fn load_module(path: &Path) -> Result<Module> {
-        let file = File::open(create_path(path))?;
+        let file = File::open(resolve_test_path(path))?;
         let reader = BufReader::new(file);
         Ok(serde_json::from_reader(reader)?)
     }
 
+    #[cfg(test)]
     fn save_module(module_path: &Path, module: Module) -> Result<()> {
-        let file = File::open(create_path(module_path))?;
+        let file = File::open(resolve_test_path(module_path))?;
         let writer = BufWriter::new(file);
         Ok(serde_json::to_writer(writer, &module)?)
     }
 
+    #[cfg(test)]
     fn compare_modules(path: &str, module: Module) {
         let module_path = Path::new(path);
         if let Ok(loaded) = load_module(module_path) {

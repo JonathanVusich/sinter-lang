@@ -19,7 +19,7 @@ pub fn tokenize_file(path: &Path) -> Result<TokenizedInput> {
 
 pub fn tokenize<T: AsRef<str>>(input: T) -> Result<TokenizedInput> {
     let source_file = input.as_ref();
-    let tokenizer = Tokenizer::new(&source_file);
+    let tokenizer = Tokenizer::new(source_file);
     Ok(tokenizer.into())
 }
 
@@ -401,10 +401,15 @@ fn is_delimiter(char: &str) -> bool {
 }
 
 mod tests {
+    use std::fs::File;
+    use std::io::{BufReader, BufWriter};
+    use std::path::Path;
     use crate::compiler::tokens::token::{Token, TokenType};
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
-    use libc::stat;
+    use anyhow::Result;
+    #[cfg(test)]
+    use crate::util::utils::resolve_test_path;
 
     #[cfg(test)]
     macro_rules! make_token {
@@ -432,6 +437,31 @@ mod tests {
         ($tokens:expr, $matching_text:expr) => {
             assert_eq!($tokens, Tokenizer::new($matching_text).into().tokens());
         };
+    }
+
+    #[cfg(test)]
+    fn load_tokens(path: &Path) -> Result<Vec<Token>> {
+        let file = File::open(resolve_test_path(path))?;
+        let reader = BufReader::new(file);
+        Ok(serde_json::from_reader(reader)?)
+    }
+
+    #[cfg(test)]
+    fn save_tokens(path: &Path, tokens: &[Token]) -> Result<()> {
+        let file = File::open(resolve_test_path(path))?;
+        let writer = BufWriter::new(file);
+        Ok(serde_json::to_writer(writer, &tokens)?)
+    }
+
+    #[cfg(test)]
+    fn compare_modules(path: &str, code: &str) {
+        let tokens = Tokenizer::new(code).into().tokens();
+        let module_path = Path::new(path);
+        if let Ok(loaded) = load_tokens(module_path) {
+            assert_eq!(loaded, tokens);
+        } else {
+            save_tokens(module_path, tokens).expect("Error saving module!");
+        }
     }
 
     #[test]
@@ -1172,38 +1202,17 @@ mod tests {
 
     #[test]
     pub fn complex_enum_parsing() {
-        test!(
-            tokenize!(
-                TokenType::Enum, 0, 4,
-                TokenType::Identifier("Vector"), 5, 11,
-                TokenType::Less, 11, 12,
-                TokenType::Identifier("X"), 12, 13,
-                TokenType::Colon, 13, 14,
-                TokenType::Number, 15, 21,
-                TokenType::Plus, 22, 23,
-                TokenType::Identifier("Display"), 24, 31,
-                TokenType::Comma, 31, 32,
-                TokenType::Identifier("Y"), 33, 34,
-                TokenType::Colon, 34, 35,
-                TokenType::Identifier("Number"), 36, 42,
-                TokenType::Plus, 43, 44,
-                TokenType::Identifier("Display"), 45, 52,
-                TokenType::Greater, 52, 53,
-                TokenType::LeftBrace, 54, 55,
-                TokenType::Identifier("Normalized"), 60, 70,
-                TokenType::LeftParentheses
-            ),
-            concat!(
-            "enum Vector<X: Number + Display, Y: Number + Display> {\n",
-            "    Normalized(x: X, y: Y),\n",
-            "    Absolute(x: X, y: Y) {\n",
-            "        pub fn to_normalized(self) -> Vector {\n",
-            "            return Normalized(self.x, self.y);\n",
-            "        }\n",
-            "    }\n",
-            "}"
-            )
+        let code = concat!(
+        "enum Vector<X: Number + Display, Y: Number + Display> {\n",
+        "    Normalized(x: X, y: Y),\n",
+        "    Absolute(x: X, y: Y) {\n",
+        "        pub fn to_normalized(self) -> Vector {\n",
+        "            return Normalized(self.x, self.y);\n",
+        "        }\n",
+        "    }\n",
+        "}"
         );
+        compare_modules("complex_enum", );
     }
 
     #[test]
