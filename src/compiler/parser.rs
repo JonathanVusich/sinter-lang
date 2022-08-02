@@ -538,26 +538,25 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn load_module(path: &Path) -> Result<Module> {
-        let file = File::open(resolve_test_path(path))?;
+    fn load_module(path: &str) -> Result<Module> {
+        let file = File::open(resolve_test_path("parser", path))?;
         let reader = BufReader::new(file);
         Ok(serde_json::from_reader(reader)?)
     }
 
     #[cfg(test)]
-    fn save_module(module_path: &Path, module: Module) -> Result<()> {
-        let file = File::open(resolve_test_path(module_path))?;
+    fn save_module(path: &str, module: Module) -> Result<()> {
+        let file = File::open(resolve_test_path("parser", path))?;
         let writer = BufWriter::new(file);
         Ok(serde_json::to_writer(writer, &module)?)
     }
 
     #[cfg(test)]
     fn compare_modules(path: &str, module: Module) {
-        let module_path = Path::new(path);
-        if let Ok(loaded) = load_module(module_path) {
+        if let Ok(loaded) = load_module(path) {
             assert_eq!(loaded, module);
         } else {
-            save_module(module_path, module).expect("Error saving module!");
+            save_module(path, module).expect("Error saving module!");
         }
     }
 
