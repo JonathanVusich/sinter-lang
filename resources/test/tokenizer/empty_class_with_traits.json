@@ -1,0 +1,60 @@
+[
+  {
+    "token_type": "Class",
+    "start": 0,
+    "end": 5
+  },
+  {
+    "token_type": {
+      "Identifier": 1
+    },
+    "start": 6,
+    "end": 15
+  },
+  {
+    "token_type": "Less",
+    "start": 15,
+    "end": 16
+  },
+  {
+    "token_type": {
+      "Identifier": 2
+    },
+    "start": 16,
+    "end": 17
+  },
+  {
+    "token_type": "Colon",
+    "start": 17,
+    "end": 18
+  },
+  {
+    "token_type": {
+      "Identifier": 3
+    },
+    "start": 19,
+    "end": 27
+  },
+  {
+    "token_type": "Plus",
+    "start": 28,
+    "end": 29
+  },
+  {
+    "token_type": {
+      "Identifier": 4
+    },
+    "start": 30,
+    "end": 38
+  },
+  {
+    "token_type": "Greater",
+    "start": 38,
+    "end": 39
+  },
+  {
+    "token_type": "Semicolon",
+    "start": 39,
+    "end": 40
+  }
+]

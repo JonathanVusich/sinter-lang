@@ -1,0 +1,270 @@
+[
+  {
+    "token_type": "Let",
+    "start": 0,
+    "end": 3
+  },
+  {
+    "token_type": {
+      "Identifier": 1
+    },
+    "start": 4,
+    "end": 12
+  },
+  {
+    "token_type": "Equal",
+    "start": 13,
+    "end": 14
+  },
+  {
+    "token_type": {
+      "String": 2
+    },
+    "start": 15,
+    "end": 29
+  },
+  {
+    "token_type": "Semicolon",
+    "start": 29,
+    "end": 30
+  },
+  {
+    "token_type": "Let",
+    "start": 57,
+    "end": 60
+  },
+  {
+    "token_type": {
+      "Identifier": 3
+    },
+    "start": 61,
+    "end": 70
+  },
+  {
+    "token_type": "Colon",
+    "start": 70,
+    "end": 71
+  },
+  {
+    "token_type": "LeftBracket",
+    "start": 72,
+    "end": 73
+  },
+  {
+    "token_type": {
+      "Identifier": 4
+    },
+    "start": 73,
+    "end": 75
+  },
+  {
+    "token_type": "RightBracket",
+    "start": 75,
+    "end": 76
+  },
+  {
+    "token_type": "Equal",
+    "start": 77,
+    "end": 78
+  },
+  {
+    "token_type": "LeftBracket",
+    "start": 79,
+    "end": 80
+  },
+  {
+    "token_type": {
+      "SignedInteger": 72
+    },
+    "start": 80,
+    "end": 82
+  },
+  {
+    "token_type": "Comma",
+    "start": 82,
+    "end": 83
+  },
+  {
+    "token_type": {
+      "SignedInteger": 101
+    },
+    "start": 84,
+    "end": 87
+  },
+  {
+    "token_type": "Comma",
+    "start": 87,
+    "end": 88
+  },
+  {
+    "token_type": {
+      "SignedInteger": 108
+    },
+    "start": 89,
+    "end": 92
+  },
+  {
+    "token_type": "Comma",
+    "start": 92,
+    "end": 93
+  },
+  {
+    "token_type": {
+      "SignedInteger": 108
+    },
+    "start": 94,
+    "end": 97
+  },
+  {
+    "token_type": "Comma",
+    "start": 97,
+    "end": 98
+  },
+  {
+    "token_type": {
+      "SignedInteger": 111
+    },
+    "start": 99,
+    "end": 102
+  },
+  {
+    "token_type": "Comma",
+    "start": 102,
+    "end": 103
+  },
+  {
+    "token_type": {
+      "SignedInteger": 32
+    },
+    "start": 104,
+    "end": 106
+  },
+  {
+    "token_type": "Comma",
+    "start": 106,
+    "end": 107
+  },
+  {
+    "token_type": {
+      "SignedInteger": 119
+    },
+    "start": 108,
+    "end": 111
+  },
+  {
+    "token_type": "Comma",
+    "start": 111,
+    "end": 112
+  },
+  {
+    "token_type": {
+      "SignedInteger": 111
+    },
+    "start": 113,
+    "end": 116
+  },
+  {
+    "token_type": "Comma",
+    "start": 116,
+    "end": 117
+  },
+  {
+    "token_type": {
+      "SignedInteger": 114
+    },
+    "start": 118,
+    "end": 121
+  },
+  {
+    "token_type": "Comma",
+    "start": 121,
+    "end": 122
+  },
+  {
+    "token_type": {
+      "SignedInteger": 108
+    },
+    "start": 123,
+    "end": 126
+  },
+  {
+    "token_type": "Comma",
+    "start": 126,
+    "end": 127
+  },
+  {
+    "token_type": {
+      "SignedInteger": 100
+    },
+    "start": 128,
+    "end": 131
+  },
+  {
+    "token_type": "Comma",
+    "start": 131,
+    "end": 132
+  },
+  {
+    "token_type": {
+      "SignedInteger": 33
+    },
+    "start": 133,
+    "end": 135
+  },
+  {
+    "token_type": "RightBracket",
+    "start": 135,
+    "end": 136
+  },
+  {
+    "token_type": "Semicolon",
+    "start": 136,
+    "end": 137
+  },
+  {
+    "token_type": "Let",
+    "start": 138,
+    "end": 141
+  },
+  {
+    "token_type": {
+      "Identifier": 5
+    },
+    "start": 142,
+    "end": 161
+  },
+  {
+    "token_type": "Equal",
+    "start": 162,
+    "end": 163
+  },
+  {
+    "token_type": {
+      "Identifier": 6
+    },
+    "start": 164,
+    "end": 167
+  },
+  {
+    "token_type": "LeftParentheses",
+    "start": 167,
+    "end": 168
+  },
+  {
+    "token_type": {
+      "Identifier": 3
+    },
+    "start": 168,
+    "end": 177
+  },
+  {
+    "token_type": "RightParentheses",
+    "start": 177,
+    "end": 178
+  },
+  {
+    "token_type": "Semicolon",
+    "start": 178,
+    "end": 179
+  }
+]

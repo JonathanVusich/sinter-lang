@@ -30,6 +30,11 @@ impl QualifiedIdent {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct QualifiedPath {
+
+}
+
 #[derive(Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct UseStmt {
     ident: QualifiedIdent,

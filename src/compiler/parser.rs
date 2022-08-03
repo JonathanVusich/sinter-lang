@@ -297,17 +297,17 @@ impl Parser {
     fn parenthesized_params(&mut self) -> Result<Params> {
         let params = self.parse_multiple_with_delimiter::<Param, 1>(
             Self::parameter,
+            Comma,
             LeftParentheses,
             RightParentheses,
-            Comma,
         )?;
         Ok(Params::new(params))
     }
 
     fn parameter(&mut self) -> Result<Param> {
+        let mutability = self.mutability();
         let ident = self.identifier()?;
         self.expect(Colon)?;
-        let mutability = self.mutability();
         let ty = self.parse_ty()?;
 
         Ok(Param::new(ident, ty, mutability))
@@ -331,6 +331,13 @@ impl Parser {
     }
 
     fn parse_ty(&mut self) -> Result<Type> {
+        self.bounds_check()?;
+        match self.current_type() {
+            TokenType::LeftBracket => {
+
+            }
+            TokenType::
+        }
         todo!()
     }
 

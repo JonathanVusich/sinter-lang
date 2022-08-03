@@ -15,7 +15,7 @@ use crate::compiler::types::types::InternedStr;
 
 pub fn tokenize_file(string_interner: StringInterner, path: &Path) -> Result<TokenizedInput> {
     let source_file = fs::read_to_string(path)?;
-    let tokenizer = Tokenizer::new(string_interner.clone(), &source_file);
+    let tokenizer = Tokenizer::new(string_interner, &source_file);
     Ok(tokenizer.into())
 }
 
@@ -236,7 +236,7 @@ impl<'this> Tokenizer<'this> {
                 .join("")
                 .parse::<f64>()
                 .map(TokenType::Float)
-                .unwrap_or(TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid float.")));
+                .unwrap_or_else(|_| TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid float.")));
 
             self.create_token(token_type);
             return;
@@ -246,7 +246,7 @@ impl<'this> Tokenizer<'this> {
             .join("")
             .parse::<i64>()
             .map(TokenType::SignedInteger)
-            .unwrap_or(TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid integer.")));
+            .unwrap_or_else(|_| TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid integer.")));
 
         self.create_token(token_type);
     }
@@ -414,6 +414,7 @@ mod tests {
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
     use anyhow::Result;
     use cfg_if::cfg_if;
+    use ::function_name::named;
     use crate::compiler::StringInterner;
     cfg_if! {
         if #[cfg(test)] {
@@ -453,7 +454,7 @@ mod tests {
     #[cfg(test)]
     fn compare_tokens(test: &str, code: &str) {
         let string_interner = StringInterner::default();
-        let tokenized_file = Tokenizer::new(string_interner.clone(), code).into();
+        let tokenized_file = Tokenizer::new(string_interner, code).into();
         if let Ok(loaded) = load::<Vec<Token>>("tokenizer", test) {
             assert_eq!(loaded, tokenized_file.tokens());
         } else {
@@ -462,754 +463,136 @@ mod tests {
     }
 
     #[test]
-    pub fn tokenize_strings() {
+    pub fn tokenize_different_types_of_strings() {
         let static_str = "pub class Random {}";
         let string = String::from(static_str);
 
         let string_interner = StringInterner::default();
 
         let expected = tokenize!(
-            TokenType::Pub,
-            0,
-            3,
-            TokenType::Class,
-            4,
-            9,
-            TokenType::Identifier(string_interner.get_or_intern("Random")),
-            10,
-            16,
-            TokenType::LeftBrace,
-            17,
-            18,
-            TokenType::RightBrace,
-            18,
-            19
+            TokenType::Pub, 0, 3,
+            TokenType::Class, 4, 9,
+            TokenType::Identifier(string_interner.get_or_intern("Random")), 10, 16,
+            TokenType::LeftBrace, 17, 18,
+            TokenType::RightBrace, 18, 19
         );
 
         assert_eq!(expected, tokenize(string_interner.clone(), string).unwrap().tokens());
-        assert_eq!(expected, tokenize(string_interner.clone(), static_str).unwrap().tokens());
+        assert_eq!(expected, tokenize(string_interner, static_str).unwrap().tokens());
     }
 
     #[test]
-    pub fn token_generation() {
-        let string_interner = StringInterner::default();
+    #[named]
+    pub fn simple_class() {
+        compare_tokens(function_name!(), "pub class Random {}");
+    }
 
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Pub,
-                0,
-                3,
-                TokenType::Class,
-                4,
-                9,
-                TokenType::Identifier(string_interner.get_or_intern("Random")),
-                10,
-                16,
-                TokenType::LeftBrace,
-                17,
-                18,
-                TokenType::RightBrace,
-                18,
-                19
-            ),
-            "pub class Random {}"
+    #[test]
+    #[named]
+    pub fn simple_enum() {
+        compare_tokens(function_name!(), "impl enum \n Reader \n [ ]");
+    }
+
+    #[test]
+    #[named]
+    pub fn invalid_native_keyword() {
+        compare_tokens(function_name!(), "native nativer enative");
+    }
+
+    #[test]
+    #[named]
+    pub fn simple_trait() {
+        compare_tokens(function_name!(), "trait Serializable { }");
+    }
+
+    #[test]
+    #[named]
+    pub fn simple_iterator_trait() {
+        let code = concat!(
+            "trait Iterator<T> {\n",
+            "     fn next() => T | None;\n",
+            "}"
         );
 
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Impl,
-                0,
-                4,
-                TokenType::Enum,
-                5,
-                9,
-                TokenType::Identifier(string_interner.get_or_intern("Reader")),
-                12,
-                18,
-                TokenType::LeftBracket,
-                21,
-                22,
-                TokenType::RightBracket,
-                23,
-                24
-            ),
-            "impl enum \n Reader \n [ ]"
-        );
+        compare_tokens(function_name!(), code);
+    }
 
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Native,
-                0,
-                6,
-                TokenType::Identifier(string_interner.get_or_intern("nativer")),
-                7,
-                14,
-                TokenType::Identifier(string_interner.get_or_intern("nativer")),
-                15,
-                22
-            ),
-            "native nativer enative"
-        );
+    #[test]
+    #[named]
+    pub fn generic_point_class() {
+        compare_tokens(function_name!(), "class Point<T, U>(x: T, y: U);");
+    }
 
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Trait,
-                0,
-                5,
-                TokenType::Identifier(string_interner.get_or_intern("Serializable")),
-                6,
-                18,
-                TokenType::LeftBrace,
-                19,
-                20,
-                TokenType::RightBrace,
-                21,
-                22
-            ),
-            "trait Serializable { }"
-        );
-
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Trait,
-                0,
-                5,
-                TokenType::Identifier(string_interner.get_or_intern("Iterator")),
-                6,
-                14,
-                TokenType::Less,
-                14,
-                15,
-                TokenType::Identifier(string_interner.get_or_intern("T")),
-                15,
-                16,
-                TokenType::Greater,
-                16,
-                17,
-                TokenType::LeftBrace,
-                18,
-                19,
-                TokenType::Fn,
-                20,
-                22,
-                TokenType::Identifier(string_interner.get_or_intern("next")),
-                23,
-                27,
-                TokenType::LeftParentheses,
-                27,
-                28,
-                TokenType::RightParentheses,
-                28,
-                29,
-                TokenType::RightArrow,
-                30,
-                32,
-                TokenType::Identifier(string_interner.get_or_intern("T")),
-                33,
-                34,
-                TokenType::Pipe,
-                35,
-                36,
-                TokenType::None,
-                37,
-                41,
-                TokenType::Semicolon,
-                41,
-                42,
-                TokenType::RightBrace,
-                43,
-                44
-            ),
-            "trait Iterator<T> { \
-                 fn next() => T | None; \
-             }"
-        );
-
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Class,
-                0,
-                5,
-                TokenType::Identifier(string_interner.get_or_intern("Point")),
-                6,
-                11,
-                TokenType::Less,
-                11,
-                12,
-                TokenType::Identifier(string_interner.get_or_intern("T")),
-                12,
-                13,
-                TokenType::Comma,
-                13,
-                14,
-                TokenType::Identifier(string_interner.get_or_intern("U")),
-                15,
-                16,
-                TokenType::Greater,
-                16,
-                17,
-                TokenType::LeftParentheses,
-                17,
-                18,
-                TokenType::Identifier(string_interner.get_or_intern("x")),
-                18,
-                19,
-                TokenType::Colon,
-                19,
-                20,
-                TokenType::Identifier(string_interner.get_or_intern("T")),
-                21,
-                22,
-                TokenType::Comma,
-                22,
-                23,
-                TokenType::Identifier(string_interner.get_or_intern("y")),
-                24,
-                25,
-                TokenType::Colon,
-                25,
-                26,
-                TokenType::Identifier(string_interner.get_or_intern("U")),
-                27,
-                28,
-                TokenType::RightParentheses,
-                28,
-                29,
-                TokenType::Semicolon,
-                29,
-                30
-            ),
-            "class Point<T, U>(x: T, y: U);"
-        );
-
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Fn,
-                0,
-                2,
-                TokenType::Identifier(string_interner.get_or_intern("main")),
-                3,
-                7,
-                TokenType::LeftParentheses,
-                7,
-                8,
-                TokenType::Identifier(string_interner.get_or_intern("arguments")),
-                8,
-                17,
-                TokenType::Colon,
-                17,
-                18,
-                TokenType::LeftBracket,
-                19,
-                20,
-                TokenType::Identifier(string_interner.get_or_intern("str")),
-                20,
-                23,
-                TokenType::RightBracket,
-                23,
-                24,
-                TokenType::RightParentheses,
-                24,
-                25,
-                TokenType::LeftBrace,
-                26,
-                27,
-                TokenType::Identifier(string_interner.get_or_intern("print")),
-                28,
-                33,
-                TokenType::LeftParentheses,
-                33,
-                34,
-                TokenType::Identifier(string_interner.get_or_intern("arguments")),
-                34,
-                43,
-                TokenType::Dot,
-                43,
-                44,
-                TokenType::Identifier(string_interner.get_or_intern("to_string")),
-                44,
-                53,
-                TokenType::LeftParentheses,
-                53,
-                54,
-                TokenType::RightParentheses,
-                54,
-                55,
-                TokenType::RightParentheses,
-                55,
-                56,
-                TokenType::Semicolon,
-                56,
-                57,
-                TokenType::RightBrace,
-                58,
-                59
-            ),
-            "fn main(arguments: [str]) { \
+    #[test]
+    #[named]
+    pub fn simple_main_stmt() {
+        compare_tokens(function_name!(),
+       "fn main(arguments: [str]) { \
                  print(arguments.to_string()); \
-             }"
+             }");
+    }
+
+    #[test]
+    #[named]
+    pub fn bytearray_to_str() {
+        let code = concat!(
+            r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
+            "\n",
+            r#"let bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];"#,
+            "\n",
+            r#"let greeting_from_array = str(bytearray); // "Hello world!""#
         );
 
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Let,
-                0,
-                3,
-                TokenType::Identifier(string_interner.get_or_intern("greeting")),
-                4,
-                12,
-                TokenType::Equal,
-                13,
-                14,
-                TokenType::String(string_interner.get_or_intern("Hello world!")),
-                15,
-                29,
-                TokenType::Semicolon,
-                29,
-                30,
-                TokenType::Let,
-                57,
-                60,
-                TokenType::Identifier(string_interner.get_or_intern("bytearray")),
-                61,
-                70,
-                TokenType::Colon,
-                70,
-                71,
-                TokenType::LeftBracket,
-                72,
-                73,
-                TokenType::Identifier(string_interner.get_or_intern("u8")),
-                73,
-                75,
-                TokenType::RightBracket,
-                75,
-                76,
-                TokenType::Equal,
-                77,
-                78,
-                TokenType::LeftBracket,
-                79,
-                80,
-                TokenType::SignedInteger(72),
-                80,
-                82,
-                TokenType::Comma,
-                82,
-                83,
-                TokenType::SignedInteger(101),
-                84,
-                87,
-                TokenType::Comma,
-                87,
-                88,
-                TokenType::SignedInteger(108),
-                89,
-                92,
-                TokenType::Comma,
-                92,
-                93,
-                TokenType::SignedInteger(108),
-                94,
-                97,
-                TokenType::Comma,
-                97,
-                98,
-                TokenType::SignedInteger(111),
-                99,
-                102,
-                TokenType::Comma,
-                102,
-                103,
-                TokenType::SignedInteger(32),
-                104,
-                106,
-                TokenType::Comma,
-                106,
-                107,
-                TokenType::SignedInteger(119),
-                108,
-                111,
-                TokenType::Comma,
-                111,
-                112,
-                TokenType::SignedInteger(111),
-                113,
-                116,
-                TokenType::Comma,
-                116,
-                117,
-                TokenType::SignedInteger(114),
-                118,
-                121,
-                TokenType::Comma,
-                121,
-                122,
-                TokenType::SignedInteger(108),
-                123,
-                126,
-                TokenType::Comma,
-                126,
-                127,
-                TokenType::SignedInteger(100),
-                128,
-                131,
-                TokenType::Comma,
-                131,
-                132,
-                TokenType::SignedInteger(33),
-                133,
-                135,
-                TokenType::RightBracket,
-                135,
-                136,
-                TokenType::Semicolon,
-                136,
-                137,
-                TokenType::Let,
-                138,
-                141,
-                TokenType::Identifier(string_interner.get_or_intern("greeting_from_array")),
-                142,
-                161,
-                TokenType::Equal,
-                162,
-                163,
-                TokenType::Identifier(string_interner.get_or_intern("str")),
-                164,
-                167,
-                TokenType::LeftParentheses,
-                167,
-                168,
-                TokenType::Identifier(string_interner.get_or_intern("bytearray")),
-                168,
-                177,
-                TokenType::RightParentheses,
-                177,
-                178,
-                TokenType::Semicolon,
-                178,
-                179
-            ),
-            concat!(
-                r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
-                "\n",
-                r#"let bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];"#,
-                "\n",
-                r#"let greeting_from_array = str(bytearray); // "Hello world!""#
-            )
+        compare_tokens(function_name!(), code);
+    }
+
+    #[test]
+    #[named]
+    pub fn empty_string() {
+        compare_tokens(function_name!(), r#""""#);
+    }
+
+    #[test]
+    #[named]
+    pub fn small_a_string() {
+        compare_tokens(function_name!(), r#""a""#);
+    }
+
+    #[test]
+    #[named]
+    pub fn scene_graph_node() {
+        let code = concat!(
+            "trait Node {\n",
+            "   fn bounds() => Bounds;\n",
+            "   fn draw(Graphics g);\n",
+            "   fn children() => MutableList<Node>;\n",
+            "}\n",
+            "\n",
+            "fn draw_frame(nodes: List<Node>) { }"
         );
+        compare_tokens(function_name!(), code);
+    }
 
-        test!(string_interner.clone(), tokenize!(TokenType::String(string_interner.get_or_intern("")), 0, 2), r#""""#);
+    #[test]
+    #[named]
+    pub fn empty_class_with_traits() {
+        compare_tokens(function_name!(), "class SortedMap<T: Sortable + Hashable>;");
+    }
 
-        test!(string_interner.clone(), tokenize!(TokenType::String(string_interner.get_or_intern("a")), 0, 3), r#""a""#);
-
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Trait,
-                0,
-                5,
-                TokenType::Identifier(string_interner.get_or_intern("Node")),
-                6,
-                10,
-                TokenType::LeftBrace,
-                11,
-                12,
-                TokenType::Fn,
-                16,
-                18,
-                TokenType::Identifier(string_interner.get_or_intern("bounds")),
-                19,
-                25,
-                TokenType::LeftParentheses,
-                25,
-                26,
-                TokenType::RightParentheses,
-                26,
-                27,
-                TokenType::RightArrow,
-                28,
-                30,
-                TokenType::Identifier(string_interner.get_or_intern("Bounds")),
-                31,
-                37,
-                TokenType::Semicolon,
-                37,
-                38,
-                TokenType::Fn,
-                42,
-                44,
-                TokenType::Identifier(string_interner.get_or_intern("draw")),
-                45,
-                49,
-                TokenType::LeftParentheses,
-                49,
-                50,
-                TokenType::Identifier(string_interner.get_or_intern("Graphics")),
-                50,
-                58,
-                TokenType::Identifier(string_interner.get_or_intern("g")),
-                59,
-                60,
-                TokenType::RightParentheses,
-                60,
-                61,
-                TokenType::Semicolon,
-                61,
-                62,
-                TokenType::Fn,
-                66,
-                68,
-                TokenType::Identifier(string_interner.get_or_intern("children")),
-                69,
-                77,
-                TokenType::LeftParentheses,
-                77,
-                78,
-                TokenType::RightParentheses,
-                78,
-                79,
-                TokenType::RightArrow,
-                80,
-                82,
-                TokenType::Identifier(string_interner.get_or_intern("MutableList")),
-                83,
-                94,
-                TokenType::Less,
-                94,
-                95,
-                TokenType::Identifier(string_interner.get_or_intern("Node")),
-                95,
-                99,
-                TokenType::Greater,
-                99,
-                100,
-                TokenType::Semicolon,
-                100,
-                101,
-                TokenType::RightBrace,
-                102,
-                103,
-                TokenType::Fn,
-                105,
-                107,
-                TokenType::Identifier(string_interner.get_or_intern("draw_frame")),
-                108,
-                118,
-                TokenType::LeftParentheses,
-                118,
-                119,
-                TokenType::Identifier(string_interner.get_or_intern("nodes")),
-                119,
-                124,
-                TokenType::Colon,
-                124,
-                125,
-                TokenType::Identifier(string_interner.get_or_intern("List")),
-                126,
-                130,
-                TokenType::Less,
-                130,
-                131,
-                TokenType::Identifier(string_interner.get_or_intern("Node")),
-                131,
-                135,
-                TokenType::Greater,
-                135,
-                136,
-                TokenType::RightParentheses,
-                136,
-                137,
-                TokenType::LeftBrace,
-                138,
-                139,
-                TokenType::RightBrace,
-                140,
-                141
-            ),
-            concat!(
-                "trait Node {\n",
-                "   fn bounds() => Bounds;\n",
-                "   fn draw(Graphics g);\n",
-                "   fn children() => MutableList<Node>;\n",
-                "}\n",
-                "\n",
-                "fn draw_frame(nodes: List<Node>) { }"
-            )
+    #[test]
+    #[named]
+    pub fn enum_with_member_funcs() {
+        let code = concat!(
+            "enum Message {\n",
+            "    Text(message: str),\n",
+            "    Photo(caption: str, photo: SerializedPhoto) {\n",
+            "        fn size() {\n",
+            "            return photo.size();\n",
+            "        }\n",
+            "    },\n",
+            "}"
         );
-
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Class,
-                0,
-                5,
-                TokenType::Identifier(string_interner.get_or_intern("SortedMap")),
-                6,
-                15,
-                TokenType::Less,
-                15,
-                16,
-                TokenType::Identifier(string_interner.get_or_intern("T")),
-                16,
-                17,
-                TokenType::Colon,
-                17,
-                18,
-                TokenType::Identifier(string_interner.get_or_intern("Sortable")),
-                19,
-                27,
-                TokenType::Plus,
-                28,
-                29,
-                TokenType::Identifier(string_interner.get_or_intern("Hashable")),
-                30,
-                38,
-                TokenType::Greater,
-                38,
-                39,
-                TokenType::Semicolon,
-                39,
-                40
-            ),
-            "class SortedMap<T: Sortable + Hashable>;"
-        );
-
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Enum,
-                0,
-                4,
-                TokenType::Identifier(string_interner.get_or_intern("Message")),
-                5,
-                12,
-                TokenType::LeftBrace,
-                13,
-                14,
-                TokenType::Identifier(string_interner.get_or_intern("Text")),
-                19,
-                23,
-                TokenType::LeftParentheses,
-                23,
-                24,
-                TokenType::Identifier(string_interner.get_or_intern("message")),
-                24,
-                31,
-                TokenType::Colon,
-                31,
-                32,
-                TokenType::Identifier(string_interner.get_or_intern("str")),
-                33,
-                36,
-                TokenType::RightParentheses,
-                36,
-                37,
-                TokenType::Comma,
-                37,
-                38,
-                TokenType::Identifier(string_interner.get_or_intern("Photo")),
-                43,
-                48,
-                TokenType::LeftParentheses,
-                48,
-                49,
-                TokenType::Identifier(string_interner.get_or_intern("caption")),
-                49,
-                56,
-                TokenType::Colon,
-                56,
-                57,
-                TokenType::Identifier(string_interner.get_or_intern("str")),
-                58,
-                61,
-                TokenType::Comma,
-                61,
-                62,
-                TokenType::Identifier(string_interner.get_or_intern("photo")),
-                63,
-                68,
-                TokenType::Colon,
-                68,
-                69,
-                TokenType::Identifier(string_interner.get_or_intern("SerializedPhoto")),
-                70,
-                85,
-                TokenType::RightParentheses,
-                85,
-                86,
-                TokenType::LeftBrace,
-                87,
-                88,
-                TokenType::Fn,
-                97,
-                99,
-                TokenType::Identifier(string_interner.get_or_intern("size")),
-                100,
-                104,
-                TokenType::LeftParentheses,
-                104,
-                105,
-                TokenType::RightParentheses,
-                105,
-                106,
-                TokenType::LeftBrace,
-                107,
-                108,
-                TokenType::Return,
-                121,
-                127,
-                TokenType::Identifier(string_interner.get_or_intern("photo")),
-                128,
-                133,
-                TokenType::Dot,
-                133,
-                134,
-                TokenType::Identifier(string_interner.get_or_intern("size")),
-                134,
-                138,
-                TokenType::LeftParentheses,
-                138,
-                139,
-                TokenType::RightParentheses,
-                139,
-                140,
-                TokenType::Semicolon,
-                140,
-                141,
-                TokenType::RightBrace,
-                150,
-                151,
-                TokenType::RightBrace,
-                156,
-                157,
-                TokenType::Comma,
-                157,
-                158,
-                TokenType::RightBrace,
-                159,
-                160
-            ),
-            concat!(
-                "enum Message {\n",
-                "    Text(message: str),\n",
-                "    Photo(caption: str, photo: SerializedPhoto) {\n",
-                "        fn size() {\n",
-                "            return photo.size();\n",
-                "        }\n",
-                "    },\n",
-                "}"
-            )
-        );
+        compare_tokens(function_name!(), code);
     }
 
     #[test]
@@ -1268,7 +651,7 @@ mod tests {
 
         test!(string_interner.clone(), tokenize!(TokenType::Float(123.45), 0, 6), "123.45");
 
-        test!(string_interner.clone(), tokenize!(TokenType::Float(123.01), 1, 7), " 123.01");
+        test!(string_interner, tokenize!(TokenType::Float(123.01), 1, 7), " 123.01");
     }
 
     #[test]
@@ -1280,7 +663,7 @@ mod tests {
         test!(string_interner.clone(), tokenize!(TokenType::SignedInteger(123), 0, 3), "123");
 
         test!(
-            string_interner.clone(),
+            string_interner,
             tokenize!(TokenType::SignedInteger(123), 0, 3, TokenType::Dot, 3, 4),
             "123."
         );
