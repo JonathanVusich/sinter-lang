@@ -31,8 +31,19 @@ impl QualifiedIdent {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct QualifiedPath {
+pub struct Path {
+    ident: QualifiedIdent,
+    generics: Option<Generics>,
+}
 
+impl Path {
+
+    pub fn new(ident: QualifiedIdent, generics: Option<Generics>) -> Self {
+        Self {
+            ident,
+            generics,
+        }
+    }
 }
 
 #[derive(Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -46,7 +57,7 @@ impl UseStmt {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Generics {
     generics: Vec<GenericTy>,
 }
@@ -158,7 +169,7 @@ impl FnStmt {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Hash, Clone, Debug, Serialize, Deserialize)]
 pub struct GenericTy {
     ident: InternedStr,
     trait_bound: Option<Type>,

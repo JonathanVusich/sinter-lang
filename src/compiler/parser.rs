@@ -1,9 +1,6 @@
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::Enum;
-use crate::compiler::ast::ast::{
-    BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, FnSig, FnStmt, GenericTy, Generics, Module,
-    Mutability, Param, Params, QualifiedIdent, Stmt, UseStmt,
-};
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, FnSig, FnStmt, GenericTy, Generics, Module, Mutability, Param, Params, QualifiedIdent, Stmt, UseStmt, Path};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::TokenType::{
     Colon, Comma, Fn, Greater, Identifier, LeftBrace, LeftParentheses, Less, Mut, Plus, RightBrace,
@@ -172,14 +169,18 @@ impl Parser {
         Ok(QualifiedIdent::new(idents))
     }
 
-    fn generics(&mut self) -> Result<Generics> {
+    fn generics(&mut self) -> Result<Option<Generics>> {
         let generic_tys = self.parse_multiple_with_delimiter::<GenericTy, 1>(
             Self::generic_ty,
             Comma,
             Less,
             Greater,
         )?;
-        Ok(Generics::new(generic_tys))
+        if generic_tys.is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(Generics::new(generic_tys)))
+        }
     }
 
     fn generic_ty(&mut self) -> Result<GenericTy> {
@@ -334,11 +335,29 @@ impl Parser {
         self.bounds_check()?;
         match self.current_type() {
             TokenType::LeftBracket => {
-
+                self.parse_array_ty()?;
             }
-            TokenType::
+            TokenType::Identifier(ident) => {
+                if self.string_interner.get_or_intern("self") == ident {
+                    return Ok(Type::ImplicitSelf);
+                }
+                self.parse_path_ty()?;
+            }
         }
         todo!()
+    }
+
+    fn parse_array_ty(&mut self) -> Result<Type> {
+        self.expect(TokenType::LeftBracket)?;
+        let ty = self.parse_ty()?;
+        self.expect(TokenType::RightBracket)?;
+        Ok(Type::Array(Box::new(ty)))
+    }
+
+    fn qualified_path(&mut self) -> Result<Path> {
+        let ident = self.qualified_ident()?;
+        let generics = self.generics()?;
+        Ok(Path::new(ident, generics))
     }
 
     fn parse_multiple<T>(
