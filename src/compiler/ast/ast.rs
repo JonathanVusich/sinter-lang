@@ -33,12 +33,12 @@ impl QualifiedIdent {
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Path {
     ident: QualifiedIdent,
-    generics: Option<Generics>,
+    generics: Generics,
 }
 
 impl Path {
 
-    pub fn new(ident: QualifiedIdent, generics: Option<Generics>) -> Self {
+    pub fn new(ident: QualifiedIdent, generics: Generics) -> Self {
         Self {
             ident,
             generics,

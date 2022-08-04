@@ -4,13 +4,13 @@ use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, 
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::TokenType::{
     Colon, Comma, Fn, Greater, Identifier, LeftBrace, LeftParentheses, Less, Mut, Plus, RightBrace,
-    RightBracket, RightParentheses, Semicolon, Use,
+    LeftBracket, RightBracket, RightParentheses, Semicolon, Use,
 };
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
-use crate::compiler::types::types::BasicType::U8;
-use crate::compiler::types::types::Type::Basic;
-use crate::compiler::types::types::{InternedStr, Type};
+use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
+use crate::compiler::types::types::Type::{Basic, Infer};
+use crate::compiler::types::types::{BasicType, InternedStr, Type};
 use crate::compiler::StringInterner;
 use crate::gc::block::Block;
 use anyhow::{anyhow, Result};
@@ -169,18 +169,14 @@ impl Parser {
         Ok(QualifiedIdent::new(idents))
     }
 
-    fn generics(&mut self) -> Result<Option<Generics>> {
+    fn generics(&mut self) -> Result<Generics> {
         let generic_tys = self.parse_multiple_with_delimiter::<GenericTy, 1>(
             Self::generic_ty,
             Comma,
             Less,
             Greater,
         )?;
-        if generic_tys.is_empty() {
-            Ok(None)
-        } else {
-            Ok(Some(Generics::new(generic_tys)))
-        }
+        Ok(Generics::new(generic_tys))
     }
 
     fn generic_ty(&mut self) -> Result<GenericTy> {
@@ -224,13 +220,13 @@ impl Parser {
     }
 
     fn trait_bound(&mut self) -> Result<Type> {
-        let mut trait_bounds = Vec::new();
-        trait_bounds.push(self.qualified_ident()?);
+        let mut paths = Vec::new();
+        paths.push(self.qualified_path()?);
         while self.matches(Plus) {
             self.advance();
-            trait_bounds.push(self.qualified_ident()?);
+            paths.push(self.qualified_path()?);
         }
-        Ok(Type::TraitBounds(trait_bounds))
+        Ok(Type::TraitBounds(paths))
     }
 
     fn enum_members(&mut self) -> Result<Vec<EnumMemberStmt>> {
@@ -334,14 +330,51 @@ impl Parser {
     fn parse_ty(&mut self) -> Result<Type> {
         self.bounds_check()?;
         match self.current_type() {
-            TokenType::LeftBracket => {
+            LeftBracket => {
                 self.parse_array_ty()?;
             }
-            TokenType::Identifier(ident) => {
-                if self.string_interner.get_or_intern("self") == ident {
-                    return Ok(Type::ImplicitSelf);
+            Identifier(ident) => {
+                return match self.string_interner.resolve(&ident) {
+                    "u8" => {
+                        Ok(Basic(U8))
+                    }
+                    "u16" => {
+                        Ok(Basic(U16))
+                    }
+                    "u32" => {
+                        Ok(Basic(U32))
+                    }
+                    "u64" => {
+                        Ok(Basic(U64))
+                    }
+                    "i8" => {
+                        Ok(Basic(I8))
+                    }
+                    "i16" => {
+                        Ok(Basic(I16))
+                    }
+                    "i32" => {
+                        Ok(Basic(I32))
+                    }
+                    "i64" => {
+                        Ok(Basic(I64))
+                    }
+                    "f32" => {
+                        Ok(Basic(F32))
+                    }
+                    "f64" => {
+                        Ok(Basic(F64))
+                    }
+                    "None" => {
+                        Ok(Basic(BasicType::None))
+                    }
+                    token => {
+                        return self.parse_qualified_ty();
+                    }
                 }
-                self.parse_path_ty()?;
+            }
+            _ => {
+                return Ok(Infer)
             }
         }
         todo!()
@@ -350,8 +383,12 @@ impl Parser {
     fn parse_array_ty(&mut self) -> Result<Type> {
         self.expect(TokenType::LeftBracket)?;
         let ty = self.parse_ty()?;
-        self.expect(TokenType::RightBracket)?;
+        self.expect(RightBracket)?;
         Ok(Type::Array(Box::new(ty)))
+    }
+
+    fn parse_qualified_ty(&mut self) -> Result<Type> {
+        todo!()
     }
 
     fn qualified_path(&mut self) -> Result<Path> {
@@ -537,7 +574,7 @@ mod tests {
     use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::Type;
-    use crate::compiler::types::types::Type::{Generic, TraitBounds};
+    use crate::compiler::types::types::Type::{TraitBounds};
     use crate::compiler::StringInterner;
     use anyhow::{anyhow, Result};
     use libc::strncat;
