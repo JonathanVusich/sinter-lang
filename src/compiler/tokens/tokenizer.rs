@@ -596,7 +596,8 @@ mod tests {
     }
 
     #[test]
-    pub fn complex_enum_parsing() {
+    #[named]
+    pub fn complex_enum() {
         let code = concat!(
             "enum Vector<X: Number + Display, Y: Number + Display> {\n",
             "    Normalized(x: X, y: Y),\n",
@@ -607,42 +608,19 @@ mod tests {
             "    }\n",
             "}"
         );
-        compare_tokens("complex_enum", code);
+        compare_tokens(function_name!(), code);
     }
 
     #[test]
-    pub fn simple_statement_parsing() {
-        let string_interner = StringInterner::default();
-        test!(
-            string_interner.clone(),
-            tokenize!(
-                TokenType::Use,
-                0,
-                3,
-                TokenType::Identifier(string_interner.get_or_intern("std")),
-                4,
-                7,
-                TokenType::Colon,
-                7,
-                8,
-                TokenType::Colon,
-                8,
-                9,
-                TokenType::Identifier(string_interner.get_or_intern("vector")),
-                9,
-                15,
-                TokenType::Colon,
-                15,
-                16,
-                TokenType::Colon,
-                16,
-                17,
-                TokenType::Identifier(string_interner.get_or_intern("Vector")),
-                17,
-                23
-            ),
-            "use std::vector::Vector"
-        );
+    #[named]
+    pub fn let_stmt_none() {
+        compare_tokens(function_name!(), "let x: None;")
+    }
+
+    #[test]
+    #[named]
+    pub fn simple_statement() {
+        compare_tokens(function_name!(), "use std::vector::Vector");
     }
 
     #[test]

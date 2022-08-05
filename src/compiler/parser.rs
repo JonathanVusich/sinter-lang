@@ -66,6 +66,7 @@ impl Parser {
             self.advance();
             initializer = Some(self.expr()?);
         }
+        self.expect(Semicolon)?;
         Ok(Stmt::Local(Box::new(LocalStmt::new(identifier, ty, initializer))))
     }
 
@@ -354,42 +355,57 @@ impl Parser {
             Identifier(ident) => {
                 match self.string_interner.resolve(&ident) {
                     "u8" => {
+                        self.advance();
                         Ok(Basic(U8))
                     }
                     "u16" => {
+                        self.advance();
                         Ok(Basic(U16))
                     }
                     "u32" => {
+                        self.advance();
                         Ok(Basic(U32))
                     }
                     "u64" => {
+                        self.advance();
                         Ok(Basic(U64))
                     }
                     "i8" => {
+                        self.advance();
                         Ok(Basic(I8))
                     }
                     "i16" => {
+                        self.advance();
                         Ok(Basic(I16))
                     }
                     "i32" => {
+                        self.advance();
                         Ok(Basic(I32))
                     }
                     "i64" => {
+                        self.advance();
                         Ok(Basic(I64))
                     }
                     "f32" => {
+                        self.advance();
                         Ok(Basic(F32))
                     }
                     "f64" => {
+                        self.advance();
                         Ok(Basic(F64))
                     }
                     "None" => {
+                        self.advance();
                         Ok(Basic(BasicType::None))
                     }
                     token => {
                         self.parse_qualified_ty()
                     }
                 }
+            }
+            TokenType::None => {
+                self.advance();
+                Ok(Basic(BasicType::None))
             }
             _ => {
                 Ok(Infer)
@@ -587,7 +603,7 @@ impl Parser {
 
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        return match self {
+        match self {
             UnexpectedEof(pos) => write!(f, "unexpected eof at {}:{}!", pos.line, pos.pos),
             ExpectedToken(token_type, pos) => write!(
                 f,
@@ -599,7 +615,7 @@ impl Display for ParseError {
                 "unrecognized token {} at {}:{}!",
                 token_type, pos.line, pos.pos
             ),
-        };
+        }
     }
 }
 
@@ -620,7 +636,7 @@ mod tests {
     use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::Type;
-    use crate::compiler::types::types::Type::{Basic, TraitBounds};
+    use crate::compiler::types::types::Type::{Array, Basic, TraitBounds};
     use crate::compiler::StringInterner;
     use anyhow::{anyhow, Result};
     use std::any::Any;
@@ -631,7 +647,8 @@ mod tests {
     use std::sync::Arc;
     use cfg_if::cfg_if;
     use ::function_name::named;
-    use crate::compiler::types::types::BasicType::U8;
+    use crate::compiler::types::types::BasicType::{U8, U16, U32, U64, I8, I16, I32, I64, F32, F64};
+    use crate::compiler::types::types::BasicType;
 
     cfg_if! {
         if #[cfg(test)] {
@@ -718,15 +735,42 @@ mod tests {
         }
     }
 
-    #[test]
-    pub fn simple_types() {
-        let (string_interner, module) = parse_code("let x: u8;").unwrap();
-        let ty = Some(Basic(U8));
+    macro_rules! simple_type {
+        ($typ:expr, $fn_name:ident, $code:literal) => {
+            #[test]
+            pub fn $fn_name() {
+                let (string_interner, module) = parse_code(concat!("let x: ", $code, ";")).unwrap();
+                let ty = Some($typ);
 
-        assert_eq!(vec![
-            Stmt::Local(Box::new(LocalStmt::new(string_interner.get("x").unwrap(), ty, None)))
-        ], module.stmts());
+                assert_eq!(vec![
+                    Stmt::Local(Box::new(LocalStmt::new(string_interner.get("x").unwrap(), ty, None)))
+                ], module.stmts());
+            }
+        }
     }
+
+    simple_type!(Basic(U8), u8_type, "u8");
+    simple_type!(Basic(U16), u16_type, "u16");
+    simple_type!(Basic(U32), u32_type, "u32");
+    simple_type!(Basic(U64), u64_type, "u64");
+    simple_type!(Basic(I8), i8_type, "i8");
+    simple_type!(Basic(I16), i16_type, "i16");
+    simple_type!(Basic(I32), i32_type, "i32");
+    simple_type!(Basic(I64), i64_type, "i64");
+    simple_type!(Basic(F32), f32_type, "f32");
+    simple_type!(Basic(F64), f64_type, "f64");
+    simple_type!(Basic(BasicType::None), none_type, "None");
+    simple_type!(Array(Box::new(Basic(U8))), u8_array_type, "[u8]");
+    simple_type!(Array(Box::new(Basic(U16))), u16_array_type, "[u16]");
+    simple_type!(Array(Box::new(Basic(U32))), u32_array_type, "[u32]");
+    simple_type!(Array(Box::new(Basic(U64))), u64_array_type, "[u64]");
+    simple_type!(Array(Box::new(Basic(I8))), i8_array_type, "[i8]");
+    simple_type!(Array(Box::new(Basic(I16))), i16_array_type, "[i16]");
+    simple_type!(Array(Box::new(Basic(I32))), i32_array_type, "[i32]");
+    simple_type!(Array(Box::new(Basic(I64))), i64_array_type, "[i64]");
+    simple_type!(Array(Box::new(Basic(F32))), f32_array_type, "[f32]");
+    simple_type!(Array(Box::new(Basic(F64))), f64_array_type, "[f64]");
+    simple_type!(Array(Box::new(Basic(BasicType::None))), none_array_type, "[None]");
 
     #[test]
     #[named]
