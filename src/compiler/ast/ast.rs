@@ -31,12 +31,12 @@ impl QualifiedIdent {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Path {
+pub struct PathStmt {
     ident: QualifiedIdent,
     generics: Generics,
 }
 
-impl Path {
+impl PathStmt {
 
     pub fn new(ident: QualifiedIdent, generics: Generics) -> Self {
         Self {
@@ -250,6 +250,17 @@ pub struct LocalStmt {
     ident: InternedStr,
     ty: Option<Type>,
     initializer: Option<Expr>,
+}
+
+impl LocalStmt {
+    
+    pub fn new(ident: InternedStr, ty: Option<Type>, initializer: Option<Expr>) -> Self {
+        LocalStmt {
+            ident,
+            ty,
+            initializer,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug)]

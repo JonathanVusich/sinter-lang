@@ -1,15 +1,12 @@
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::Enum;
-use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, FnSig, FnStmt, GenericTy, Generics, Module, Mutability, Param, Params, QualifiedIdent, Stmt, UseStmt, Path};
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, FnSig, FnStmt, GenericTy, Generics, Module, Mutability, Param, Params, QualifiedIdent, Stmt, UseStmt, PathStmt, LocalStmt, Expr};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
-use crate::compiler::tokens::token::TokenType::{
-    Colon, Comma, Fn, Greater, Identifier, LeftBrace, LeftParentheses, Less, Mut, Plus, RightBrace,
-    LeftBracket, RightBracket, RightParentheses, Semicolon, Use,
-};
+use crate::compiler::tokens::token::TokenType::{Colon, Comma, Fn, Greater, Identifier, LeftBrace, LeftParentheses, Less, Mut, Plus, RightBrace, LeftBracket, RightBracket, RightParentheses, Semicolon, Use, Let, Equal};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
-use crate::compiler::types::types::Type::{Basic, Infer};
+use crate::compiler::types::types::Type::{Basic, Infer, Path, TraitBounds, Union};
 use crate::compiler::types::types::{BasicType, InternedStr, Type};
 use crate::compiler::StringInterner;
 use crate::gc::block::Block;
@@ -56,6 +53,22 @@ impl Parser {
         Ok(Module::new(stmts))
     }
 
+    fn parse_let_stmt(&mut self) -> Result<Stmt> {
+        self.expect(Let)?;
+        let identifier = self.identifier()?;
+        let mut ty = None;
+        let mut initializer = None;
+        if self.matches(Colon) {
+            self.advance();
+            ty = Some(self.parse_ty()?);
+        }
+        if self.matches(Equal) {
+            self.advance();
+            initializer = Some(self.expr()?);
+        }
+        Ok(Stmt::Local(Box::new(LocalStmt::new(identifier, ty, initializer))))
+    }
+
     fn parse_use_stmt(&mut self) -> Result<Stmt> {
         self.expect(Use)?;
         let identifier = self.qualified_ident()?;
@@ -67,12 +80,13 @@ impl Parser {
         let mut stmts = Vec::new();
         while !self.is_at_end() {
             match self.current_type() {
+                Let => stmts.push(self.parse_let_stmt()?),
                 TokenType::Inline => stmts.push(self.parse_inline_class()?),
                 TokenType::Class => stmts.push(self.parse_reference_class()?),
                 TokenType::Enum => stmts.push(self.parse_enum()?),
                 TokenType::Trait => stmts.push(self.parse_trait()?),
-                TokenType::Fn => stmts.push(self.parse_fn()?),
-                TokenType::Use => stmts.push(self.parse_use_stmt()?),
+                Fn => stmts.push(self.parse_fn()?),
+                Use => stmts.push(self.parse_use_stmt()?),
                 token => {
                     return Err(UnexpectedToken(token, self.current_position()).into());
                 }
@@ -126,6 +140,10 @@ impl Parser {
         todo!()
     }
 
+    fn expr(&mut self) -> Result<Expr> {
+        todo!()
+    }
+
     fn identifier(&mut self) -> Result<InternedStr> {
         self.bounds_check()?;
         match self.current_type() {
@@ -170,7 +188,7 @@ impl Parser {
     }
 
     fn generics(&mut self) -> Result<Generics> {
-        let generic_tys = self.parse_multiple_with_delimiter::<GenericTy, 1>(
+        let generic_tys = self.parse_multiple_with_scope_delimiter::<GenericTy, 1>(
             Self::generic_ty,
             Comma,
             Less,
@@ -190,7 +208,7 @@ impl Parser {
     }
 
     fn fn_stmts(&mut self) -> Result<Vec<FnStmt>> {
-        self.parse_multiple(Self::fn_stmt, LeftBrace, RightBrace)
+        self.parse_multiple_with_scope(Self::fn_stmt, LeftBrace, RightBrace)
     }
 
     fn fn_stmt(&mut self) -> Result<FnStmt> {
@@ -226,11 +244,11 @@ impl Parser {
             self.advance();
             paths.push(self.qualified_path()?);
         }
-        Ok(Type::TraitBounds(paths))
+        Ok(TraitBounds(paths))
     }
 
     fn enum_members(&mut self) -> Result<Vec<EnumMemberStmt>> {
-        self.parse_multiple_with_delimiter::<EnumMemberStmt, 1>(
+        self.parse_multiple_with_scope_delimiter::<EnumMemberStmt, 1>(
             Self::enum_member,
             Comma,
             LeftBrace,
@@ -292,7 +310,7 @@ impl Parser {
     }
 
     fn parenthesized_params(&mut self) -> Result<Params> {
-        let params = self.parse_multiple_with_delimiter::<Param, 1>(
+        let params = self.parse_multiple_with_scope_delimiter::<Param, 1>(
             Self::parameter,
             Comma,
             LeftParentheses,
@@ -331,10 +349,10 @@ impl Parser {
         self.bounds_check()?;
         match self.current_type() {
             LeftBracket => {
-                self.parse_array_ty()?;
+                self.parse_array_ty()
             }
             Identifier(ident) => {
-                return match self.string_interner.resolve(&ident) {
+                match self.string_interner.resolve(&ident) {
                     "u8" => {
                         Ok(Basic(U8))
                     }
@@ -369,35 +387,69 @@ impl Parser {
                         Ok(Basic(BasicType::None))
                     }
                     token => {
-                        return self.parse_qualified_ty();
+                        self.parse_qualified_ty()
                     }
                 }
             }
             _ => {
-                return Ok(Infer)
+                Ok(Infer)
             }
         }
-        todo!()
     }
 
     fn parse_array_ty(&mut self) -> Result<Type> {
-        self.expect(TokenType::LeftBracket)?;
+        self.expect(LeftBracket)?;
         let ty = self.parse_ty()?;
         self.expect(RightBracket)?;
         Ok(Type::Array(Box::new(ty)))
     }
 
     fn parse_qualified_ty(&mut self) -> Result<Type> {
-        todo!()
+        let path = self.qualified_path()?;
+        self.bounds_check()?;
+
+        match self.current_type() {
+            TokenType::Pipe => {
+                self.advance();
+                let mut types = self.parse_multiple_with_delimiter(Self::parse_qualified_ty, TokenType::Pipe)?;
+                types.insert(0, Path(path));
+                Ok(Union(types))
+            }
+            Plus => {
+                self.advance();
+                let mut paths = self.parse_multiple_with_delimiter(Self::qualified_path, Plus)?;
+                paths.insert(0, path);
+                Ok(TraitBounds(paths))
+            }
+            _ => {
+                Ok(Path(path))
+            }
+        }
     }
 
-    fn qualified_path(&mut self) -> Result<Path> {
+    fn qualified_path(&mut self) -> Result<PathStmt> {
         let ident = self.qualified_ident()?;
         let generics = self.generics()?;
-        Ok(Path::new(ident, generics))
+        Ok(PathStmt::new(ident, generics))
     }
 
-    fn parse_multiple<T>(
+    fn parse_multiple_with_delimiter<T>(&mut self,
+                                        parse_rule: fn(&mut Parser) -> Result<T>,
+                                        delimiter: TokenType) -> Result<Vec<T>> {
+        let mut items = Vec::new();
+        loop {
+            self.bounds_check()?;
+            items.push(parse_rule(self)?);
+            if self.matches(delimiter) {
+                self.advance();
+            } else {
+                break;
+            }
+        }
+        Ok(items)
+    }
+
+    fn parse_multiple_with_scope<T>(
         &mut self,
         parse_rule: fn(&mut Parser) -> Result<T>,
         scope_start: TokenType,
@@ -417,7 +469,7 @@ impl Parser {
         Ok(items)
     }
 
-    fn parse_multiple_with_delimiter<T, const N: usize>(
+    fn parse_multiple_with_scope_delimiter<T, const N: usize>(
         &mut self,
         parse_rule: fn(&mut Parser) -> Result<T>,
         delimiter: TokenType,
@@ -428,22 +480,19 @@ impl Parser {
         if self.matches(scope_start) {
             self.advance();
             loop {
-                if self.is_at_end() {
-                    return self.unexpected_end();
-                } else {
-                    items.push(parse_rule(self)?);
-                    for i in 0..N {
-                        if self.matches(delimiter) {
-                            self.advance();
-                        } else if i < N - 1 {
-                            let pos = self.current_position();
-                            return self.expected_token(delimiter, pos);
-                        }
-                    }
-                    if self.matches(scope_end) {
+                self.bounds_check()?;
+                items.push(parse_rule(self)?);
+                for i in 0..N {
+                    if self.matches(delimiter) {
                         self.advance();
-                        break;
+                    } else if i < N - 1 {
+                        let pos = self.current_position();
+                        return self.expected_token(delimiter, pos);
                     }
+                }
+                if self.matches(scope_end) {
+                    self.advance();
+                    break;
                 }
             }
         }
@@ -562,10 +611,7 @@ unsafe impl Sync for ParseError {}
 mod tests {
     use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::ast::Stmt::Enum;
-    use crate::compiler::ast::ast::{
-        Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericTy,
-        Generics, Mutability, Param, Params, QualifiedIdent, Stmt,
-    };
+    use crate::compiler::ast::ast::{Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericTy, Generics, Mutability, Param, Params, QualifiedIdent, Stmt, LocalStmt};
     use crate::compiler::ast::ast::{Module, UseStmt};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{ParseError, Parser};
@@ -574,10 +620,9 @@ mod tests {
     use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::Type;
-    use crate::compiler::types::types::Type::{TraitBounds};
+    use crate::compiler::types::types::Type::{Basic, TraitBounds};
     use crate::compiler::StringInterner;
     use anyhow::{anyhow, Result};
-    use libc::strncat;
     use std::any::Any;
     use std::error::Error;
     use std::fs::File;
@@ -585,23 +630,13 @@ mod tests {
     use std::path::{Path, PathBuf};
     use std::sync::Arc;
     use cfg_if::cfg_if;
+    use ::function_name::named;
+    use crate::compiler::types::types::BasicType::U8;
 
     cfg_if! {
         if #[cfg(test)] {
             use crate::util::utils::{load, save};
             use crate::util::utils::resolve_test_path;
-        }
-    }
-
-
-    #[cfg(test)]
-    macro_rules! qualified_ident {
-        ($interner:expr, $($string:literal),*) => {
-                QualifiedIdent::new(vec![
-                    $(
-                        $interner.get($string).unwrap(),
-                    )*
-                ])
         }
     }
 
@@ -684,6 +719,17 @@ mod tests {
     }
 
     #[test]
+    pub fn simple_types() {
+        let (string_interner, module) = parse_code("let x: u8;").unwrap();
+        let ty = Some(Basic(U8));
+
+        assert_eq!(vec![
+            Stmt::Local(Box::new(LocalStmt::new(string_interner.get("x").unwrap(), ty, None)))
+        ], module.stmts());
+    }
+
+    #[test]
+    #[named]
     pub fn use_statements() {
         let code = concat!(
             "use std::vector;",
@@ -691,10 +737,11 @@ mod tests {
             "use std::map::HashMap;"
         );
 
-        compare_modules("use_stmts", code);
+        compare_modules(function_name!(), code);
     }
 
     #[test]
+    #[named]
     pub fn basic_enum() {
         let code = concat!(
             "enum Planet {\n",
@@ -710,75 +757,11 @@ mod tests {
             "}"
         );
 
-        let (string_interner, module) = parse_code(code).unwrap();
-
-        let enum_stmts = module
-            .stmts()
-            .into_iter()
-            .filter_map(|x| match x {
-                Enum(enum_stmt) => Some(enum_stmt),
-                _ => None,
-            })
-            .collect::<Vec<&Box<EnumStmt>>>();
-
-        assert_eq!(1, enum_stmts.len());
-
-        let planet_enum = enum_stmts[0];
-        assert_eq!(Generics::default(), *planet_enum.generics());
-
-        assert_eq!(
-            vec![
-                EnumMemberStmt::new(
-                    string_interner.get("Mercury").unwrap(),
-                    Params::default(),
-                    vec![],
-                ),
-                EnumMemberStmt::new(
-                    string_interner.get("Venus").unwrap(),
-                    Params::default(),
-                    vec![],
-                ),
-                EnumMemberStmt::new(
-                    string_interner.get("Earth").unwrap(),
-                    Params::default(),
-                    vec![],
-                ),
-                EnumMemberStmt::new(
-                    string_interner.get("Mars").unwrap(),
-                    Params::default(),
-                    vec![],
-                ),
-                EnumMemberStmt::new(
-                    string_interner.get("Jupiter").unwrap(),
-                    Params::default(),
-                    vec![],
-                ),
-                EnumMemberStmt::new(
-                    string_interner.get("Saturn").unwrap(),
-                    Params::default(),
-                    vec![],
-                ),
-                EnumMemberStmt::new(
-                    string_interner.get("Uranus").unwrap(),
-                    Params::default(),
-                    vec![],
-                ),
-                EnumMemberStmt::new(
-                    string_interner.get("Neptune").unwrap(),
-                    Params::default(),
-                    vec![],
-                ),
-                EnumMemberStmt::new(
-                    string_interner.get("Pluto").unwrap(),
-                    Params::default(),
-                    vec![],
-                ),
-            ],
-            planet_enum.members()
-        );
+        compare_modules(function_name!(), code);
     }
 
     #[test]
+    #[named]
     pub fn complex_enum() {
         let code = concat!(
             "enum Vector<X: Number + Display, Y: Number + Display> {\n",
@@ -791,6 +774,6 @@ mod tests {
             "}"
         );
 
-        compare_modules("complex_enum", code);
+        compare_modules(function_name!(), code);
     }
 }

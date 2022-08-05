@@ -1,0 +1,77 @@
+{
+  "stmts": [
+    {
+      "Enum": {
+        "name": 1,
+        "generics": {
+          "generics": []
+        },
+        "members": [
+          {
+            "name": 2,
+            "parameters": {
+              "params": []
+            },
+            "member_functions": []
+          },
+          {
+            "name": 3,
+            "parameters": {
+              "params": []
+            },
+            "member_functions": []
+          },
+          {
+            "name": 4,
+            "parameters": {
+              "params": []
+            },
+            "member_functions": []
+          },
+          {
+            "name": 5,
+            "parameters": {
+              "params": []
+            },
+            "member_functions": []
+          },
+          {
+            "name": 6,
+            "parameters": {
+              "params": []
+            },
+            "member_functions": []
+          },
+          {
+            "name": 7,
+            "parameters": {
+              "params": []
+            },
+            "member_functions": []
+          },
+          {
+            "name": 8,
+            "parameters": {
+              "params": []
+            },
+            "member_functions": []
+          },
+          {
+            "name": 9,
+            "parameters": {
+              "params": []
+            },
+            "member_functions": []
+          },
+          {
+            "name": 10,
+            "parameters": {
+              "params": []
+            },
+            "member_functions": []
+          }
+        ]
+      }
+    }
+  ]
+}
