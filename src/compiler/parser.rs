@@ -2,7 +2,7 @@ use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::Enum;
 use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, FnSig, FnStmt, GenericTy, Generics, Module, Mutability, Param, Params, QualifiedIdent, Stmt, UseStmt, PathStmt, LocalStmt, Expr};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
-use crate::compiler::tokens::token::TokenType::{Colon, Comma, Fn, Greater, Identifier, LeftBrace, LeftParentheses, Less, Mut, Plus, RightBrace, LeftBracket, RightBracket, RightParentheses, Semicolon, Use, Let, Equal};
+use crate::compiler::tokens::token::TokenType::{Colon, Comma, Fn, Greater, Identifier, LeftBrace, LeftParentheses, Less, Mut, Plus, RightBrace, LeftBracket, RightBracket, RightParentheses, Semicolon, Use, Let, Equal, RightArrow, SelfLowercase};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
@@ -219,23 +219,13 @@ impl Parser {
                 let signature = self.function_signature()?;
                 let stmt = self.block_statement()?;
 
-                Ok(FnStmt::new(signature, stmt))
+                Ok(FnStmt::new(signature, Some(stmt)))
             }
             token => {
                 let pos = self.current_position();
                 self.expected_token(Fn, pos)
             }
         }
-    }
-
-    fn enum_fn_stmts(&mut self) -> Result<Vec<FnStmt>> {
-        let mut member_funcs = Vec::new();
-        if self.matches(LeftBrace) {
-            self.advance();
-            member_funcs = self.fn_stmts()?;
-            self.expect(RightBrace)?;
-        }
-        Ok(member_funcs)
     }
 
     fn trait_bound(&mut self) -> Result<Type> {
@@ -298,13 +288,12 @@ impl Parser {
                 self.advance();
 
                 let params = self.parenthesized_params()?;
-                let member_funcs = self.enum_fn_stmts()?;
+                let member_funcs = self.fn_stmts()?;
 
                 Ok(EnumMemberStmt::new(ident, params, member_funcs))
             }
             token => {
                 let pos = self.current_position();
-                println!("{:?}", pos);
                 self.expected_token(Identifier(self.string_interner.get_or_intern("")), pos)
             }
         }
@@ -322,19 +311,37 @@ impl Parser {
 
     fn parameter(&mut self) -> Result<Param> {
         let mutability = self.mutability();
-        let ident = self.identifier()?;
-        self.expect(Colon)?;
-        let ty = self.parse_ty()?;
+        let ident;
+        let ty;
+        if self.matches(SelfLowercase) {
+            self.advance();
+            ident = self.string_interner.get_or_intern("self");
+            ty = Infer;
+        } else {
+            ident = self.identifier()?;
+            self.expect(Colon)?;
+            ty = self.parse_ty()?;
+        }
 
         Ok(Param::new(ident, ty, mutability))
     }
 
     fn function_signature(&mut self) -> Result<FnSig> {
-        todo!()
+        let identifier = self.identifier()?;
+        let generics = self.generics()?;
+        let params = self.parenthesized_params()?;
+        let mut ty = None;
+        if self.matches(RightArrow) {
+            self.advance();
+            ty = Some(self.parse_ty()?);
+        }
+
+        Ok(FnSig::new(identifier, generics, params, ty))
     }
 
-    fn block_statement(&mut self) -> Result<Option<BlockStmt>> {
-        todo!()
+    fn block_statement(&mut self) -> Result<BlockStmt> {
+        let stmts = self.parse_stmts()?;
+        Ok(BlockStmt::new(stmts))
     }
 
     fn mutability(&mut self) -> Mutability {
@@ -473,6 +480,7 @@ impl Parser {
     ) -> Result<Vec<T>> {
         let mut items = Vec::new();
         if self.matches(scope_start) {
+            self.advance();
             loop {
                 self.bounds_check()?;
                 items.push(parse_rule(self)?);
@@ -811,7 +819,7 @@ mod tests {
             "enum Vector<X: Number + Display, Y: Number + Display> {\n",
             "    Normalized(x: X, y: Y),\n",
             "    Absolute(x: X, y: Y) {\n",
-            "        pub fn to_normalized(self) -> Vector {\n",
+            "        fn to_normalized(self) => Vector {\n",
             "            return Normalized(self.x, self.y);\n",
             "        }\n",
             "    }\n",
