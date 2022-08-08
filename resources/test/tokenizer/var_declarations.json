@@ -1,0 +1,63 @@
+[
+  {
+    "token_type": "Let",
+    "start": 0,
+    "end": 3
+  },
+  {
+    "token_type": "Mut",
+    "start": 4,
+    "end": 7
+  },
+  {
+    "token_type": {
+      "Identifier": 1
+    },
+    "start": 8,
+    "end": 9
+  },
+  {
+    "token_type": "Equal",
+    "start": 10,
+    "end": 11
+  },
+  {
+    "token_type": "None",
+    "start": 12,
+    "end": 16
+  },
+  {
+    "token_type": "Semicolon",
+    "start": 16,
+    "end": 17
+  },
+  {
+    "token_type": "Let",
+    "start": 18,
+    "end": 21
+  },
+  {
+    "token_type": {
+      "Identifier": 2
+    },
+    "start": 22,
+    "end": 23
+  },
+  {
+    "token_type": "Equal",
+    "start": 24,
+    "end": 25
+  },
+  {
+    "token_type": {
+      "SignedInteger": 0
+    },
+    "start": 26,
+    "end": 27
+  },
+  {
+    "token_type": "Semicolon",
+    "start": 27,
+    "end": 28
+  }
+]

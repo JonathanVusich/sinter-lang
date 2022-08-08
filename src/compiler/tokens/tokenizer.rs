@@ -6,6 +6,8 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 
+use phf::phf_map;
+
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
 use anyhow::Result;
@@ -24,6 +26,36 @@ pub fn tokenize<T: AsRef<str>>(string_interner: StringInterner, input: T) -> Res
     let tokenizer = Tokenizer::new(string_interner, source_file);
     Ok(tokenizer.into())
 }
+
+static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
+    "class" => TokenType::Class,
+    "fn" => TokenType::Fn,
+    "break" => TokenType::Break,
+    "continue" => TokenType::Continue,
+    "else" => TokenType::Else,
+    "&&" => TokenType::And,
+    "||" => TokenType::Or,
+    "if" => TokenType::If,
+    "false" => TokenType::False,
+    "true" => TokenType::True,
+    "for" => TokenType::For,
+    "let" => TokenType::Let,
+    "mut" => TokenType::Mut,
+    "while" => TokenType::While,
+    "return" => TokenType::Return,
+    "self" => TokenType::SelfLowercase,
+    "Self" => TokenType::SelfCapitalized,
+    "native" => TokenType::Native,
+    "enum" => TokenType::Enum,
+    "impl" => TokenType::Impl,
+    "match" => TokenType::Match,
+    "pub" => TokenType::Pub,
+    "static" => TokenType::Static,
+    "trait" => TokenType::Trait,
+    "use" => TokenType::Use,
+    "None" => TokenType::None,
+    "inline" => TokenType::Inline,
+};
 
 #[derive(Debug)]
 struct Tokenizer<'this> {
@@ -133,64 +165,12 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn parse_identifier(&mut self, character: &str) {
-        let token_type = match character {
-            "b" => self.check_keyword(1, "reak", TokenType::Break),
-            "c" => match self.peek() {
-                "l" => self.check_keyword(2, "ass", TokenType::Class),
-                "o" => self.check_keyword(2, "ntinue", TokenType::Continue),
-                _ => None,
-            },
-            "e" => match self.peek() {
-                "l" => self.check_keyword(2, "se", TokenType::Else),
-                "n" => self.check_keyword(2, "um", TokenType::Enum),
-                _ => None,
-            },
-            "f" => match self.peek() {
-                "a" => self.check_keyword(2, "lse", TokenType::False),
-                "o" => self.check_keyword(2, "r", TokenType::For),
-                "n" => {
-                    self.advance();
-                    Some(TokenType::Fn)
-                }
-                _ => None,
-            },
-            "i" => match self.peek() {
-                "f" => Some(TokenType::If),
-                "m" => self.check_keyword(2, "pl", TokenType::Impl),
-                "n" => self.check_keyword(4, "line", TokenType::Inline),
-                _ => None,
-            },
-            "l" => self.check_keyword(1, "et", TokenType::Let),
-            "m" => match self.peek() {
-                "a" => self.check_keyword(2, "tch", TokenType::Match),
-                "u" => self.check_keyword(2, "t", TokenType::Mut),
-                _ => None,
-            },
-            "n" => self.check_keyword(1, "ative", TokenType::Native),
-            "N" => self.check_keyword(1, "one", TokenType::None),
-            "p" => self.check_keyword(1, "ub", TokenType::Pub),
-            "r" => self.check_keyword(1, "eturn", TokenType::Return),
-            "s" => match self.peek() {
-                "e" => self.check_keyword(2, "lf", TokenType::SelfLowercase),
-                "t" => self.check_keyword(2, "atic", TokenType::Static),
-                _ => None,
-            },
-            "S" => self.check_keyword(1, "elf", TokenType::SelfCapitalized),
-            "t" => match self.peek() {
-                "y" => self.check_keyword(2, "pe", TokenType::Type),
-                "r" => self.check_keyword(2, "ait", TokenType::Trait),
-                _ => None,
-            },
-            "u" => self.check_keyword(1, "se", TokenType::Use),
-            "w" => self.check_keyword(1, "hile", TokenType::While),
-            _ => None,
+        while !self.is_at_end() && self.is_valid_identifier() {
+            self.advance();
         }
-        .unwrap_or_else(|| {
-            while !self.is_at_end() && self.is_valid_identifier() {
-                self.advance();
-            }
-
-            let identifier = self.source_chars[self.start..self.current].join("");
+        let identifier = self.source_chars[self.start..self.current].join("");
+        let token_type = KEYWORDS.get(&identifier).copied()
+            .unwrap_or_else(|| {
             let interned_str = self.string_interner.get_or_intern(identifier);
             TokenType::Identifier(interned_str)
         });
@@ -204,6 +184,7 @@ impl<'this> Tokenizer<'this> {
         remainder: &'static str,
         token_type: TokenType,
     ) -> Option<TokenType> {
+        println!("Check keyword!");
         let end = self.start + start + remainder.len();
         if end > self.source_chars.len() {
             return None;
@@ -534,6 +515,29 @@ mod tests {
 
     #[test]
     #[named]
+    pub fn var_declarations() {
+        compare_tokens(function_name!(),
+            concat!(
+                "let mut x = None;\n",
+                "let y = 0;"
+            )
+        );
+    }
+
+    #[test]
+    #[named]
+    pub fn uppercase_self() {
+        compare_tokens(function_name!(), "Self::lower_hir");
+    }
+
+    #[test]
+    #[named]
+    pub fn parameter_parsing() {
+        compare_tokens(function_name!(), "fn mutate(mut self) => None;");
+    }
+
+    #[test]
+    #[named]
     pub fn bytearray_to_str() {
         let code = concat!(
             r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
@@ -602,7 +606,7 @@ mod tests {
             "enum Vector<X: Number + Display, Y: Number + Display> {\n",
             "    Normalized(x: X, y: Y),\n",
             "    Absolute(x: X, y: Y) {\n",
-            "        pub fn to_normalized(self) -> Vector {\n",
+            "        fn to_normalized(self) => Vector {\n",
             "            return Normalized(self.x, self.y);\n",
             "        }\n",
             "    }\n",

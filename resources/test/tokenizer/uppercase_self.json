@@ -1,0 +1,24 @@
+[
+  {
+    "token_type": "SelfCapitalized",
+    "start": 0,
+    "end": 4
+  },
+  {
+    "token_type": "Colon",
+    "start": 4,
+    "end": 5
+  },
+  {
+    "token_type": "Colon",
+    "start": 5,
+    "end": 6
+  },
+  {
+    "token_type": {
+      "Identifier": 1
+    },
+    "start": 6,
+    "end": 15
+  }
+]

@@ -64,7 +64,6 @@ pub enum TokenType {
     True,
 
     For,
-    This,
 
     Let,
     Mut,
@@ -93,7 +92,7 @@ pub enum TokenType {
 
 impl Display for TokenType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        return match self {
+        match self {
             TokenType::Unrecognized(_) => write!(f, "unrecognized"),
             TokenType::LeftBrace => write!(f, "{{"),
             TokenType::RightBrace => write!(f, "}}"),
@@ -134,7 +133,6 @@ impl Display for TokenType {
             TokenType::False => write!(f, "false"),
             TokenType::True => write!(f, "true"),
             TokenType::For => write!(f, "for"),
-            TokenType::This => write!(f, "this"),
             TokenType::While => write!(f, "while"),
             TokenType::Return => write!(f, "return"),
             TokenType::SelfLowercase => write!(f, "self"),
@@ -152,7 +150,7 @@ impl Display for TokenType {
             TokenType::Inline => write!(f, "inline"),
             TokenType::Let => write!(f, "let"),
             TokenType::Mut => write!(f, "mut"),
-        };
+        }
     }
 }
 
