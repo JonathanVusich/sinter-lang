@@ -241,9 +241,7 @@
     "end": 136
   },
   {
-    "token_type": {
-      "Identifier": 11
-    },
+    "token_type": "SelfLowercase",
     "start": 136,
     "end": 140
   },
@@ -287,9 +285,7 @@
     "end": 184
   },
   {
-    "token_type": {
-      "Identifier": 11
-    },
+    "token_type": "SelfLowercase",
     "start": 184,
     "end": 188
   },
@@ -311,9 +307,7 @@
     "end": 191
   },
   {
-    "token_type": {
-      "Identifier": 11
-    },
+    "token_type": "SelfLowercase",
     "start": 192,
     "end": 196
   },

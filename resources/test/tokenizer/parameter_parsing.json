@@ -22,9 +22,7 @@
     "end": 13
   },
   {
-    "token_type": {
-      "Identifier": 2
-    },
+    "token_type": "SelfLowercase",
     "start": 14,
     "end": 18
   },
