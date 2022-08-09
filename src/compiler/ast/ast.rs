@@ -68,6 +68,19 @@ impl Generics {
     }
 }
 
+#[derive(PartialEq, Eq, Hash, Clone, Debug, Serialize, Deserialize)]
+pub struct GenericCallSite {
+    generics: Vec<Type>,
+}
+
+impl GenericCallSite {
+    pub fn new(generics: Vec<Type>) -> Self {
+        Self {
+            generics,
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Params {
     params: Vec<Param>,
@@ -81,11 +94,11 @@ impl Params {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Args {
-    args: Vec<Box<Expr>>,
+    args: Vec<Expr>,
 }
 
 impl Args {
-    pub fn new(args: Vec<Box<Expr>>) -> Self {
+    pub fn new(args: Vec<Expr>) -> Self {
         Self { args }
     }
 }
@@ -321,6 +334,15 @@ pub struct UnaryExpr {
     expr: Expr,
 }
 
+impl UnaryExpr {
+    pub fn new(operator: UnaryOp, expr: Expr) -> Self {
+        Self {
+            operator,
+            expr,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IfExpr {
     condition: Expr,
@@ -459,7 +481,7 @@ pub enum BinaryOp {
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum UnaryOp {
     Bang,
-    Negate,
+    Minus,
     Plus,
 }
 
