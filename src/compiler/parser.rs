@@ -64,7 +64,7 @@ impl Parser {
         }
         if self.matches(Equal) {
             self.advance();
-            initializer = Some(self.expr()?);
+            initializer = Some(self.parse_expression()?);
         }
         self.expect(Semicolon)?;
         Ok(Stmt::Local(Box::new(LocalStmt::new(identifier, ty, initializer))))
@@ -78,22 +78,22 @@ impl Parser {
     }
 
     fn parse_stmts(&mut self) -> Result<Vec<Stmt>> {
-        let mut stmts = Vec::new();
-        while !self.is_at_end() {
-            match self.current_type() {
-                Let => stmts.push(self.parse_let_stmt()?),
-                TokenType::Inline => stmts.push(self.parse_inline_class()?),
-                TokenType::Class => stmts.push(self.parse_reference_class()?),
-                TokenType::Enum => stmts.push(self.parse_enum()?),
-                TokenType::Trait => stmts.push(self.parse_trait()?),
-                Fn => stmts.push(self.parse_fn()?),
-                Use => stmts.push(self.parse_use_stmt()?),
-                token => {
-                    return Err(UnexpectedToken(token, self.current_position()).into());
-                }
-            }
+        todo!()
+    }
+
+    fn parse_stmt(&mut self) -> Result<Stmt> {
+        self.bounds_check()?;
+        match self.current_type() {
+            Let => self.parse_let_stmt(),
+            TokenType::Inline => self.parse_inline_class(),
+            TokenType::Class => self.parse_reference_class(),
+            TokenType::Enum => self.parse_enum(),
+            TokenType::Trait => self.parse_trait(),
+            TokenType::Impl => self.parse_trait_impl(),
+            Fn => self.parse_fn(),
+            Use => self.parse_use_stmt(),
+            token => self.parse_expression()
         }
-        Ok(stmts)
     }
 
     fn parse_inline_class(&mut self) -> Result<Stmt> {
@@ -137,11 +137,16 @@ impl Parser {
         todo!()
     }
 
-    fn parse_fn(&mut self) -> Result<Stmt> {
+    fn parse_trait_impl(&mut self) -> Result<Stmt> {
         todo!()
     }
 
-    fn expr(&mut self) -> Result<Expr> {
+    fn parse_fn(&mut self) -> Result<Stmt> {
+        Ok(Stmt::Fn(Box::new(self.fn_stmt()?)))
+    }
+
+    fn parse_expression(&mut self) -> Result<Expr> {
+
         todo!()
     }
 
@@ -340,7 +345,9 @@ impl Parser {
     }
 
     fn block_statement(&mut self) -> Result<BlockStmt> {
+        self.expect(LeftBrace)?;
         let stmts = self.parse_stmts()?;
+        self.expect(RightBrace)?;
         Ok(BlockStmt::new(stmts))
     }
 
@@ -574,6 +581,7 @@ impl Parser {
     }
 
     fn advance(&mut self) {
+        println!("{}", self.current_type());
         self.pos += 1;
     }
 
