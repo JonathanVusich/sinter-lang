@@ -31,17 +31,17 @@ impl QualifiedIdent {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct PathStmt {
+pub struct PathExpr {
     ident: QualifiedIdent,
-    generics: Generics,
+    generic_call_site: GenericCallSite,
 }
 
-impl PathStmt {
+impl PathExpr {
 
-    pub fn new(ident: QualifiedIdent, generics: Generics) -> Self {
+    pub fn new(ident: QualifiedIdent, generic_call_site: GenericCallSite) -> Self {
         Self {
             ident,
-            generics,
+            generic_call_site,
         }
     }
 }
@@ -58,12 +58,12 @@ impl UseStmt {
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Generics {
-    generics: Vec<GenericTy>,
+pub struct GenericDecls {
+    generics: Vec<GenericDecl>,
 }
 
-impl Generics {
-    pub fn new(generics: Vec<GenericTy>) -> Self {
+impl GenericDecls {
+    pub fn new(generics: Vec<GenericDecl>) -> Self {
         Self { generics }
     }
 }
@@ -112,7 +112,7 @@ pub enum Mutability {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClassStmt {
     name: InternedStr,
-    generic_types: Generics,
+    generic_types: GenericDecls,
     members: Params,
     member_functions: Vec<FnStmt>,
 }
@@ -120,7 +120,7 @@ pub struct ClassStmt {
 impl ClassStmt {
     pub fn new(
         name: InternedStr,
-        generic_types: Generics,
+        generic_types: GenericDecls,
         members: Params,
         member_functions: Vec<FnStmt>,
     ) -> Self {
@@ -136,12 +136,12 @@ impl ClassStmt {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumStmt {
     name: InternedStr,
-    generics: Generics,
+    generics: GenericDecls,
     members: Vec<EnumMemberStmt>,
 }
 
 impl EnumStmt {
-    pub fn new(name: InternedStr, generic_types: Generics, members: Vec<EnumMemberStmt>) -> Self {
+    pub fn new(name: InternedStr, generic_types: GenericDecls, members: Vec<EnumMemberStmt>) -> Self {
         Self {
             name,
             generics: generic_types,
@@ -149,7 +149,7 @@ impl EnumStmt {
         }
     }
 
-    pub fn generics(&self) -> &Generics {
+    pub fn generics(&self) -> &GenericDecls {
         &self.generics
     }
 
@@ -183,12 +183,12 @@ impl FnStmt {
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug, Serialize, Deserialize)]
-pub struct GenericTy {
+pub struct GenericDecl {
     ident: InternedStr,
     trait_bound: Option<Type>,
 }
 
-impl GenericTy {
+impl GenericDecl {
     pub fn new(ident: InternedStr, trait_bound: Option<Type>) -> Self {
         Self { ident, trait_bound }
     }
@@ -214,7 +214,7 @@ impl EnumMemberStmt {
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct FnSig {
     name: InternedStr,
-    generic_types: Generics,
+    generic_types: GenericDecls,
     parameters: Params,
     return_type: Option<Type>,
 }
@@ -222,7 +222,7 @@ pub struct FnSig {
 impl FnSig {
     pub fn new(
         name: InternedStr,
-        generic_types: Generics,
+        generic_types: GenericDecls,
         parameters: Params,
         return_type: Option<Type>,
     ) -> Self {
@@ -298,6 +298,7 @@ pub enum Expr {
     AssignOp(Box<AssignOpExpr>),
     Field(Box<FieldExpr>),
     Index(Box<IndexExpr>),
+    Path(Box<PathExpr>),
     Break,
     Continue,
     Return(Option<Box<Expr>>),
@@ -307,12 +308,12 @@ pub enum Expr {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FnCall {
     func: Box<Expr>,
-    generic_tys: Generics,
+    generic_tys: GenericDecls,
     args: Args,
 }
 
 impl FnCall {
-    pub fn new(func: Box<Expr>, generic_tys: Generics, args: Args) -> Self {
+    pub fn new(func: Box<Expr>, generic_tys: GenericDecls, args: Args) -> Self {
         Self {
             func,
             generic_tys,
@@ -469,8 +470,8 @@ pub enum BinaryOp {
     NotEqual,
     Less,
     Greater,
-    LessThan,
-    GreaterThan,
+    LessEq,
+    GreaterEq,
     Plus,
     Minus,
     Multiply,
