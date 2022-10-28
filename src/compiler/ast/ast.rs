@@ -182,6 +182,42 @@ impl FnStmt {
     }
 }
 
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct ForStmt {
+    range: RangeExpr,
+    body: BlockStmt,
+}
+
+impl ForStmt {
+    pub fn new(range: RangeExpr, body: BlockStmt) -> Self {
+        Self { range, body }
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct ReturnStmt {
+    value: Option<Expr>,
+}
+
+impl ReturnStmt {
+    pub fn new(value: Option<Expr>) -> Self {
+        Self { value }
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct IfStmt {
+    condition: Expr,
+    if_true: BlockStmt,
+    if_false: Option<BlockStmt>,
+}
+
+impl IfStmt {
+    pub fn new(condition: Expr, if_true: BlockStmt, if_false: Option<BlockStmt>) -> Self {
+        Self { condition, if_true, if_false }
+    }
+}
+
 #[derive(PartialEq, Eq, Hash, Clone, Debug, Serialize, Deserialize)]
 pub struct GenericDecl {
     ident: InternedStr,
@@ -289,9 +325,6 @@ pub enum Expr {
     Binary(Box<BinaryExpr>),
     Unary(Box<UnaryExpr>),
     Literal(Literal),
-    If(Box<IfExpr>),
-    While(Box<WhileExpr>),
-    For(Box<ForExpr>),
     Match(Box<MatchExpr>),
     Closure(Box<ClosureExpr>),
     Assign(Box<AssignExpr>),
@@ -301,7 +334,6 @@ pub enum Expr {
     Path(Box<PathExpr>),
     Break,
     Continue,
-    Return(Option<Box<Expr>>),
     Try(Box<Expr>),
 }
 
@@ -342,25 +374,6 @@ impl UnaryExpr {
             expr,
         }
     }
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct IfExpr {
-    condition: Expr,
-    if_true: BlockStmt,
-    if_false: Option<BlockStmt>,
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct WhileExpr {
-    condition: Expr,
-    block: BlockStmt,
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct ForExpr {
-    pattern: Pattern,
-    block: BlockStmt,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -405,6 +418,22 @@ pub struct FieldExpr {
 pub struct IndexExpr {
     lhs: Expr,
     rhs: Expr,
+}
+
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct RangeExpr {
+    condition: Expr,
+    increment: Expr,
+}
+
+impl RangeExpr {
+    pub fn new(condition: Expr, increment: Expr) -> Self {
+        Self {
+            condition,
+            increment,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -488,14 +517,17 @@ pub enum UnaryOp {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Stmt {
-    Use(Box<UseStmt>),
-    Local(Box<LocalStmt>),
-    Class(Box<ClassStmt>),
-    Enum(Box<EnumStmt>),
-    Trait(Box<TraitStmt>),
-    TraitImpl(Box<TraitImplStmt>),
-    Fn(Box<FnStmt>),
-    Expression(Box<Expr>),
+    Use(UseStmt),
+    Local(LocalStmt),
+    Class(ClassStmt),
+    Enum(EnumStmt),
+    Trait(TraitStmt),
+    TraitImpl(TraitImplStmt),
+    Fn(FnStmt),
+    For(ForStmt),
+    If(IfStmt),
+    Return(ReturnStmt),
+    Expression(Expr),
 }
 
 mod tests {}

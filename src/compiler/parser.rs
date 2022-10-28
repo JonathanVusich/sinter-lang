@@ -1,6 +1,6 @@
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::Stmt::Enum;
-use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, FnSig, FnStmt, GenericDecl, GenericDecls, Module, Mutability, Param, Params, QualifiedIdent, Stmt, UseStmt, PathExpr, LocalStmt, Expr, Literal, UnaryExpr, UnaryOp, GenericCallSite};
+use crate::compiler::ast::ast::Stmt::{Enum, If, Return};
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LocalStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, UnaryExpr, UnaryOp, UseStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -48,7 +48,7 @@ impl Parser {
     }
 
     fn parse(mut self) -> Result<Module> {
-        let stmts = self.parse_stmts()?;
+        let stmts = self.parse_outer_stmts()?;
         Ok(Module::new(stmts))
     }
 
@@ -66,37 +66,48 @@ impl Parser {
             initializer = Some(self.expr()?);
         }
         self.expect(TokenType::Semicolon)?;
-        Ok(Stmt::Local(Box::new(LocalStmt::new(identifier, ty, initializer))))
+        Ok(Stmt::Local(LocalStmt::new(
+            identifier,
+            ty,
+            initializer,
+        )))
     }
 
     fn parse_use_stmt(&mut self) -> Result<Stmt> {
         self.expect(TokenType::Use)?;
         let identifier = self.qualified_ident()?;
         self.expect(TokenType::Semicolon)?;
-        Ok(Stmt::Use(Box::new(UseStmt::new(identifier))))
+        Ok(Stmt::Use(UseStmt::new(identifier)))
     }
 
-    fn parse_stmts(&mut self) -> Result<Vec<Stmt>> {
+    fn parse_outer_stmts(&mut self) -> Result<Vec<Stmt>> {
         let mut stmts = Vec::new();
         while !self.is_at_end() {
             self.bounds_check()?;
-            stmts.push(self.parse_stmt()?);
+            stmts.push(self.parse_outer_stmt()?);
         }
         Ok(stmts)
     }
 
-    fn parse_stmt(&mut self) -> Result<Stmt> {
+    fn parse_outer_stmt(&mut self) -> Result<Stmt> {
         self.bounds_check()?;
         match self.current_type() {
-            TokenType::Let => self.parse_let_stmt(),
-            TokenType::Inline => self.parse_inline_class(),
+            TokenType::Use => self.parse_use_stmt(),
             TokenType::Class => self.parse_reference_class(),
+            TokenType::Fn => self.parse_fn(),
+            TokenType::Let => self.parse_let_stmt(),
             TokenType::Enum => self.parse_enum(),
             TokenType::Trait => self.parse_trait(),
             TokenType::Impl => self.parse_trait_impl(),
-            TokenType::Fn => self.parse_fn(),
-            TokenType::Use => self.parse_use_stmt(),
-            token => self.parse_expression()
+            TokenType::For => self.parse_for_stmt(),
+            TokenType::Inline => self.parse_inline_class(),
+            TokenType::If => self.parse_if_stmt(),
+            TokenType::Return => self.parse_return_stmt(),
+
+            token => {
+                let pos = self.current_position();
+                self.unexpected_token(token, pos)
+            }
         }
     }
 
@@ -116,12 +127,12 @@ impl Parser {
         let members = self.parenthesized_params()?;
         let member_functions = self.fn_stmts()?;
 
-        let class_stmt = Box::new(ClassStmt::new(
+        let class_stmt = ClassStmt::new(
             name,
             generic_types,
             members,
             member_functions,
-        ));
+        );
 
         Ok(Stmt::Class(class_stmt))
     }
@@ -132,7 +143,7 @@ impl Parser {
         let generics = self.generic_decls()?;
         let enum_members = self.enum_members()?;
 
-        let enum_stmt = Box::new(EnumStmt::new(name, generics, enum_members));
+        let enum_stmt = EnumStmt::new(name, generics, enum_members);
 
         Ok(Enum(enum_stmt))
     }
@@ -146,42 +157,16 @@ impl Parser {
     }
 
     fn parse_fn(&mut self) -> Result<Stmt> {
-        Ok(Stmt::Fn(Box::new(self.fn_stmt()?)))
+        Ok(Stmt::Fn(self.fn_stmt()?))
     }
 
     fn parse_expression(&mut self) -> Result<Stmt> {
-        Ok(Stmt::Expression(Box::new(self.expr()?)))
+        Ok(Stmt::Expression(self.expr()?))
     }
 
     fn expr(&mut self) -> Result<Expr> {
         self.bounds_check()?;
-        match self.current_type() {
-            TokenType::Identifier(ident) => self.parse_path_expr(ident),
-            TokenType::LeftBracket => self.parse_array_expr(),
-            TokenType::Plus => self.parse_unary_expr(UnaryOp::Plus),
-            TokenType::Minus => self.parse_unary_expr(UnaryOp::Minus),
-            TokenType::Bang => self.parse_unary_expr(UnaryOp::Bang),
-            TokenType::Let => self.parse_assignment_expr(),
-            TokenType::Match => self.parse_match_expr(),
-            TokenType::Float(float) => self.float_literal(float),
-            TokenType::SignedInteger(integer) => self.integer_literal(integer),
-            TokenType::String(interned) => self.string_literal(interned),
-
-            TokenType::If => self.parse_if_expr(),
-            TokenType::For => self.parse_for_expr(),
-            TokenType::While => self.parse_while_expr(),
-            TokenType::LeftParentheses => self.parse_parenthesized_expr(),
-
-            TokenType::Break => self.parse_break_expr(),
-            TokenType::Continue => self.parse_continue_expr(),
-            TokenType::Return => self.parse_return_expr(),
-
-            token => {
-                let token_type = self.current_type();
-                let pos = self.current_position();
-                self.unexpected_token(token_type, pos)
-            }
-        }
+        self.parse_assignment_expr()
     }
 
     fn identifier(&mut self) -> Result<InternedStr> {
@@ -193,7 +178,10 @@ impl Parser {
             }
             _ => {
                 let pos = self.current_position();
-                self.expected_token(TokenType::Identifier(self.string_interner.get_or_intern("")), pos)
+                self.expected_token(
+                    TokenType::Identifier(self.string_interner.get_or_intern("")),
+                    pos,
+                )
             }
         }
     }
@@ -218,7 +206,9 @@ impl Parser {
                 TokenType::Identifier(ident) => {
                     idents.push(ident);
                     if self.remaining() >= 2 {
-                        if self.next(1).token_type == TokenType::Colon && self.next(2).token_type == TokenType::Colon {
+                        if self.next(1).token_type == TokenType::Colon
+                            && self.next(2).token_type == TokenType::Colon
+                        {
                             self.advance_multiple(3);
                         } else {
                             self.advance();
@@ -231,7 +221,10 @@ impl Parser {
                 }
                 token => {
                     let pos = self.current_position();
-                    return self.expected_token(TokenType::Identifier(self.string_interner.get_or_intern("")), pos);
+                    return self.expected_token(
+                        TokenType::Identifier(self.string_interner.get_or_intern("")),
+                        pos,
+                    );
                 }
             }
         }
@@ -321,7 +314,10 @@ impl Parser {
             }
             token => {
                 let pos = self.current_position();
-                self.expected_token(TokenType::Identifier(self.string_interner.get_or_intern("")), pos)
+                self.expected_token(
+                    TokenType::Identifier(self.string_interner.get_or_intern("")),
+                    pos,
+                )
             }
         }
     }
@@ -368,7 +364,7 @@ impl Parser {
 
     fn block_statement(&mut self) -> Result<BlockStmt> {
         self.expect(TokenType::LeftBrace)?;
-        let stmts = self.parse_stmts()?;
+        let stmts = self.parse_outer_stmts()?;
         self.expect(TokenType::RightBrace)?;
         Ok(BlockStmt::new(stmts))
     }
@@ -385,67 +381,59 @@ impl Parser {
     fn parse_ty(&mut self) -> Result<Type> {
         self.bounds_check()?;
         match self.current_type() {
-            TokenType::LeftBracket => {
-                self.parse_array_ty()
-            }
-            TokenType::Identifier(ident) => {
-                match self.string_interner.resolve(&ident) {
-                    "u8" => {
-                        self.advance();
-                        Ok(Basic(U8))
-                    }
-                    "u16" => {
-                        self.advance();
-                        Ok(Basic(U16))
-                    }
-                    "u32" => {
-                        self.advance();
-                        Ok(Basic(U32))
-                    }
-                    "u64" => {
-                        self.advance();
-                        Ok(Basic(U64))
-                    }
-                    "i8" => {
-                        self.advance();
-                        Ok(Basic(I8))
-                    }
-                    "i16" => {
-                        self.advance();
-                        Ok(Basic(I16))
-                    }
-                    "i32" => {
-                        self.advance();
-                        Ok(Basic(I32))
-                    }
-                    "i64" => {
-                        self.advance();
-                        Ok(Basic(I64))
-                    }
-                    "f32" => {
-                        self.advance();
-                        Ok(Basic(F32))
-                    }
-                    "f64" => {
-                        self.advance();
-                        Ok(Basic(F64))
-                    }
-                    "None" => {
-                        self.advance();
-                        Ok(Basic(BasicType::None))
-                    }
-                    token => {
-                        self.parse_qualified_ty()
-                    }
+            TokenType::LeftBracket => self.parse_array_ty(),
+            TokenType::Identifier(ident) => match self.string_interner.resolve(&ident) {
+                "u8" => {
+                    self.advance();
+                    Ok(Basic(U8))
                 }
-            }
+                "u16" => {
+                    self.advance();
+                    Ok(Basic(U16))
+                }
+                "u32" => {
+                    self.advance();
+                    Ok(Basic(U32))
+                }
+                "u64" => {
+                    self.advance();
+                    Ok(Basic(U64))
+                }
+                "i8" => {
+                    self.advance();
+                    Ok(Basic(I8))
+                }
+                "i16" => {
+                    self.advance();
+                    Ok(Basic(I16))
+                }
+                "i32" => {
+                    self.advance();
+                    Ok(Basic(I32))
+                }
+                "i64" => {
+                    self.advance();
+                    Ok(Basic(I64))
+                }
+                "f32" => {
+                    self.advance();
+                    Ok(Basic(F32))
+                }
+                "f64" => {
+                    self.advance();
+                    Ok(Basic(F64))
+                }
+                "None" => {
+                    self.advance();
+                    Ok(Basic(BasicType::None))
+                }
+                token => self.parse_qualified_ty(),
+            },
             TokenType::None => {
                 self.advance();
                 Ok(Basic(BasicType::None))
             }
-            _ => {
-                Ok(Infer)
-            }
+            _ => Ok(Infer),
         }
     }
 
@@ -463,19 +451,19 @@ impl Parser {
         match self.current_type() {
             TokenType::Pipe => {
                 self.advance();
-                let mut types = self.parse_multiple_with_delimiter(Self::parse_qualified_ty, TokenType::Pipe)?;
+                let mut types =
+                    self.parse_multiple_with_delimiter(Self::parse_qualified_ty, TokenType::Pipe)?;
                 types.insert(0, Path(path));
                 Ok(Union(types))
             }
             TokenType::Plus => {
                 self.advance();
-                let mut paths = self.parse_multiple_with_delimiter(Self::qualified_path, TokenType::Plus)?;
+                let mut paths =
+                    self.parse_multiple_with_delimiter(Self::qualified_path, TokenType::Plus)?;
                 paths.insert(0, path);
                 Ok(TraitBounds(paths))
             }
-            _ => {
-                Ok(Path(path))
-            }
+            _ => Ok(Path(path)),
         }
     }
 
@@ -483,15 +471,26 @@ impl Parser {
         todo!()
     }
 
-    fn parse_if_expr(&mut self) -> Result<Expr> {
-        todo!()
+    fn parse_if_stmt(&mut self) -> Result<Stmt> {
+        self.expect(TokenType::If)?;
+        let condition = self.expr()?;
+        let block_stmt = self.block_statement()?;
+        let optional_stmt = if self.matches(TokenType::Else) {
+            self.advance();
+            Some(self.block_statement()?)
+        } else {
+            None
+        };
+
+        Ok(If(IfStmt::new(condition, block_stmt, optional_stmt)))
     }
 
     fn parse_while_expr(&mut self) -> Result<Expr> {
         todo!()
     }
 
-    fn parse_for_expr(&mut self) -> Result<Expr> {
+    fn parse_for_stmt(&mut self) -> Result<Stmt> {
+        self.expect(TokenType::For)?;
         todo!()
     }
 
@@ -507,13 +506,16 @@ impl Parser {
         Ok(Expr::Continue)
     }
 
-    fn parse_return_expr(&mut self) -> Result<Expr> {
+    fn parse_return_stmt(&mut self) -> Result<Stmt> {
         self.expect(TokenType::Return)?;
         if self.matches(TokenType::Semicolon) {
             self.advance();
-            Ok(Expr::Return(None))
+            Ok(Return(ReturnStmt::new(None)))
         } else {
-            Ok(Expr::Return(Some(Box::new(self.expr()?))))
+            let expression = self.expr()?;
+            let return_stmt = ReturnStmt::new(Some(expression));
+
+            Ok(Return(return_stmt))
         }
     }
 
@@ -523,7 +525,10 @@ impl Parser {
     }
 
     fn parse_unary_expr(&mut self, operator: UnaryOp) -> Result<Expr> {
-        Ok(Expr::Unary(Box::new(UnaryExpr::new(operator, self.expr()?))))
+        Ok(Expr::Unary(Box::new(UnaryExpr::new(
+            operator,
+            self.expr()?,
+        ))))
     }
 
     fn parse_assignment_expr(&mut self) -> Result<Expr> {
@@ -540,9 +545,11 @@ impl Parser {
         Ok(PathExpr::new(ident, generic_call_site))
     }
 
-    fn parse_multiple_with_delimiter<T>(&mut self,
-                                        parse_rule: fn(&mut Parser) -> Result<T>,
-                                        delimiter: TokenType) -> Result<Vec<T>> {
+    fn parse_multiple_with_delimiter<T>(
+        &mut self,
+        parse_rule: fn(&mut Parser) -> Result<T>,
+        delimiter: TokenType,
+    ) -> Result<Vec<T>> {
         let mut items = Vec::new();
         loop {
             self.bounds_check()?;
@@ -720,7 +727,10 @@ unsafe impl Sync for ParseError {}
 mod tests {
     use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::ast::Stmt::Enum;
-    use crate::compiler::ast::ast::{Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericDecl, GenericDecls, Mutability, Param, Params, QualifiedIdent, Stmt, LocalStmt};
+    use crate::compiler::ast::ast::{
+        Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericDecl,
+        GenericDecls, LocalStmt, Mutability, Param, Params, QualifiedIdent, Stmt,
+    };
     use crate::compiler::ast::ast::{Module, UseStmt};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{ParseError, Parser};
@@ -728,20 +738,22 @@ mod tests {
     use crate::compiler::tokens::token::TokenType::Identifier;
     use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
+    use crate::compiler::types::types::BasicType;
+    use crate::compiler::types::types::BasicType::{
+        F32, F64, I16, I32, I64, I8, U16, U32, U64, U8,
+    };
     use crate::compiler::types::types::Type;
     use crate::compiler::types::types::Type::{Array, Basic, TraitBounds};
     use crate::compiler::StringInterner;
+    use ::function_name::named;
     use anyhow::{anyhow, Result};
+    use cfg_if::cfg_if;
     use std::any::Any;
     use std::error::Error;
     use std::fs::File;
     use std::io::{BufReader, BufWriter};
     use std::path::{Path, PathBuf};
     use std::sync::Arc;
-    use cfg_if::cfg_if;
-    use ::function_name::named;
-    use crate::compiler::types::types::BasicType::{U8, U16, U32, U64, I8, I16, I32, I64, F32, F64};
-    use crate::compiler::types::types::BasicType;
 
     cfg_if! {
         if #[cfg(test)] {
@@ -835,11 +847,16 @@ mod tests {
                 let (string_interner, module) = parse_code(concat!("let x: ", $code, ";")).unwrap();
                 let ty = Some($typ);
 
-                assert_eq!(vec![
-                    Stmt::Local(Box::new(LocalStmt::new(string_interner.get("x").unwrap(), ty, None)))
-                ], module.stmts());
+                assert_eq!(
+                    vec![Stmt::Local(LocalStmt::new(
+                        string_interner.get("x").unwrap(),
+                        ty,
+                        None
+                    ))],
+                    module.stmts()
+                );
             }
-        }
+        };
     }
 
     simple_type!(Basic(U8), u8_type, "u8");
@@ -863,7 +880,11 @@ mod tests {
     simple_type!(Array(Box::new(Basic(I64))), i64_array_type, "[i64]");
     simple_type!(Array(Box::new(Basic(F32))), f32_array_type, "[f32]");
     simple_type!(Array(Box::new(Basic(F64))), f64_array_type, "[f64]");
-    simple_type!(Array(Box::new(Basic(BasicType::None))), none_array_type, "[None]");
+    simple_type!(
+        Array(Box::new(Basic(BasicType::None))),
+        none_array_type,
+        "[None]"
+    );
 
     #[test]
     #[named]
