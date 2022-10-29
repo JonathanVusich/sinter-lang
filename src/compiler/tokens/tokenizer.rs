@@ -55,6 +55,7 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
     "use" => TokenType::Use,
     "None" => TokenType::None,
     "inline" => TokenType::Inline,
+    "in" => TokenType::In,
 };
 
 #[derive(Debug)]
@@ -101,16 +102,16 @@ impl<'this> Tokenizer<'this> {
                     self.create_unrecognized_token("&")
                 }
             }
-            "(" => self.create_token(TokenType::LeftParentheses),
-            ")" => self.create_token(TokenType::RightParentheses),
             "{" => self.create_token(TokenType::LeftBrace),
             "}" => self.create_token(TokenType::RightBrace),
             "[" => self.create_token(TokenType::LeftBracket),
             "]" => self.create_token(TokenType::RightBracket),
-            ":" => self.create_token(TokenType::Colon),
-            ";" => self.create_token(TokenType::Semicolon),
+            "(" => self.create_token(TokenType::LeftParentheses),
+            ")" => self.create_token(TokenType::RightParentheses),
             "," => self.create_token(TokenType::Comma),
             "." => self.create_token(TokenType::Dot),
+            ":" => self.create_token(TokenType::Colon),
+            ";" => self.create_token(TokenType::Semicolon),
             "-" => {
                 if self.matcher(is_digit) {
                     self.parse_num()
@@ -120,6 +121,7 @@ impl<'this> Tokenizer<'this> {
             }
             "+" => self.create_token(TokenType::Plus),
             "/" => self.create_token(TokenType::Slash),
+            "*" => self.create_token(TokenType::Star),
             "|" => {
                 if self.matches("|") {
                     self.create_token(TokenType::Or)
@@ -127,7 +129,6 @@ impl<'this> Tokenizer<'this> {
                     self.create_token(TokenType::Pipe)
                 }
             }
-            "*" => self.create_token(TokenType::Star),
             "!" => {
                 if self.matches("=") {
                     self.create_token(TokenType::BangEqual)
@@ -612,6 +613,16 @@ mod tests {
             "    }\n",
             "}"
         );
+        compare_tokens(function_name!(), code);
+    }
+
+    #[test]
+    #[named]
+    pub fn for_loop() {
+        let code = concat!(
+            "for x in 0..100 { }"
+        );
+
         compare_tokens(function_name!(), code);
     }
 

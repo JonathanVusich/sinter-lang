@@ -462,6 +462,19 @@ pub struct TypePattern {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct WhileStmt {
+    condition: Expr,
+    block_stmt: BlockStmt
+}
+
+impl WhileStmt {
+    
+    pub fn new(condition: Expr, block_stmt: BlockStmt) -> Self {
+        Self { condition, block_stmt }
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct BlockStmt {
     stmts: Vec<Stmt>,
 }
@@ -527,6 +540,8 @@ pub enum Stmt {
     For(ForStmt),
     If(IfStmt),
     Return(ReturnStmt),
+    While(WhileStmt),
+    Block(BlockStmt),
     Expression(Expr),
 }
 

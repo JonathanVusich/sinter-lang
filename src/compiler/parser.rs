@@ -1,6 +1,6 @@
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::Stmt::{Enum, If, Return};
-use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LocalStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, UnaryExpr, UnaryOp, UseStmt};
+use crate::compiler::ast::ast::Stmt::{Enum, If, Return, While};
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LocalStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -103,6 +103,8 @@ impl Parser {
             TokenType::Inline => self.parse_inline_class(),
             TokenType::If => self.parse_if_stmt(),
             TokenType::Return => self.parse_return_stmt(),
+            TokenType::While => self.parse_while_stmt(),
+            TokenType::LeftBracket => self.parse_block_stmt(),
 
             token => {
                 let pos = self.current_position();
@@ -485,13 +487,21 @@ impl Parser {
         Ok(If(IfStmt::new(condition, block_stmt, optional_stmt)))
     }
 
-    fn parse_while_expr(&mut self) -> Result<Expr> {
-        todo!()
+    fn parse_while_stmt(&mut self) -> Result<Stmt> {
+        self.expect(TokenType::While)?;
+        let condition = self.expr()?;
+        let block_stmt = self.block_statement()?;
+
+        Ok(While(WhileStmt::new(condition, block_stmt)))
     }
 
     fn parse_for_stmt(&mut self) -> Result<Stmt> {
         self.expect(TokenType::For)?;
-        todo!()
+        let identifier = self.identifier()?;
+        self.expect(TokenType::In);
+
+        let range_expr = self.parse_range_expr()?;
+        Ok(For(ForStmt::new(range, )))
     }
 
     fn parse_match_expr(&mut self) -> Result<Expr> {

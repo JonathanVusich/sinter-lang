@@ -22,11 +22,12 @@ pub enum TokenType {
 
     Comma,
     Dot,
+    Colon,
+    Semicolon,
+
     Minus,
     Plus,
 
-    Colon,
-    Semicolon,
     Slash,
     Star,
     Pipe,
@@ -72,6 +73,8 @@ pub enum TokenType {
     Return,
     SelfLowercase,
     SelfCapitalized,
+
+    In,
 
     Native,
 
