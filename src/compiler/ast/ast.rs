@@ -184,12 +184,12 @@ impl FnStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ForStmt {
-    range: RangeExpr,
+    range: Expr,
     body: BlockStmt,
 }
 
 impl ForStmt {
-    pub fn new(range: RangeExpr, body: BlockStmt) -> Self {
+    pub fn new(range: Expr, body: BlockStmt) -> Self {
         Self { range, body }
     }
 }

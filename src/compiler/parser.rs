@@ -1,5 +1,5 @@
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::Stmt::{Enum, If, Return, While};
+use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LocalStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
@@ -273,7 +273,7 @@ impl Parser {
             TokenType::Fn => {
                 self.advance();
                 let signature = self.function_signature()?;
-                let stmt = self.block_statement()?;
+                let stmt = self.parse_block_stmt()?;
 
                 Ok(FnStmt::new(signature, Some(stmt)))
             }
@@ -364,7 +364,7 @@ impl Parser {
         Ok(FnSig::new(identifier, generics, params, ty))
     }
 
-    fn block_statement(&mut self) -> Result<BlockStmt> {
+    fn parse_block_stmt(&mut self) -> Result<BlockStmt> {
         self.expect(TokenType::LeftBrace)?;
         let stmts = self.parse_outer_stmts()?;
         self.expect(TokenType::RightBrace)?;
@@ -476,10 +476,10 @@ impl Parser {
     fn parse_if_stmt(&mut self) -> Result<Stmt> {
         self.expect(TokenType::If)?;
         let condition = self.expr()?;
-        let block_stmt = self.block_statement()?;
+        let block_stmt = self.parse_block_stmt()?;
         let optional_stmt = if self.matches(TokenType::Else) {
             self.advance();
-            Some(self.block_statement()?)
+            Some(self.parse_block_stmt()?)
         } else {
             None
         };
@@ -490,7 +490,7 @@ impl Parser {
     fn parse_while_stmt(&mut self) -> Result<Stmt> {
         self.expect(TokenType::While)?;
         let condition = self.expr()?;
-        let block_stmt = self.block_statement()?;
+        let block_stmt = self.parse_block_stmt()?;
 
         Ok(While(WhileStmt::new(condition, block_stmt)))
     }
@@ -498,10 +498,11 @@ impl Parser {
     fn parse_for_stmt(&mut self) -> Result<Stmt> {
         self.expect(TokenType::For)?;
         let identifier = self.identifier()?;
-        self.expect(TokenType::In);
+        self.expect(TokenType::In)?;
 
-        let range_expr = self.parse_range_expr()?;
-        Ok(For(ForStmt::new(range, )))
+        let range_expr = self.expr()?;
+        let body = self.parse_block_stmt()?;
+        Ok(For(ForStmt::new(range_expr, body)))
     }
 
     fn parse_match_expr(&mut self) -> Result<Expr> {
