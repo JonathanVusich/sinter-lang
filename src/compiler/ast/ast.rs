@@ -161,7 +161,19 @@ impl EnumStmt {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitStmt {
     ident: InternedStr,
+    generics: GenericDecls,
     functions: Vec<FnStmt>,
+}
+
+impl TraitStmt {
+
+    pub fn new(ident: InternedStr, generics: GenericDecls, functions: Vec<FnStmt>) -> Self {
+        Self {
+            ident,
+            generics,
+            functions
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]

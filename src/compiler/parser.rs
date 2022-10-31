@@ -1,6 +1,6 @@
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LocalStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LocalStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -151,7 +151,14 @@ impl Parser {
     }
 
     fn parse_trait(&mut self) -> Result<Stmt> {
-        todo!()
+        self.expect(TokenType::Trait)?;
+        let identifier = self.identifier()?;
+        let generics = self.generic_decls()?;
+        if self.matches(TokenType::Semicolon) {
+            Ok(Stmt::Trait(TraitStmt::new(identifier, generics, Vec::new())))
+        } else {
+            let functions = self.functions()?;
+        }
     }
 
     fn parse_trait_impl(&mut self) -> Result<Stmt> {
@@ -273,7 +280,7 @@ impl Parser {
             TokenType::Fn => {
                 self.advance();
                 let signature = self.function_signature()?;
-                let stmt = self.parse_block_stmt()?;
+                let stmt = self.block_stmt()?;
 
                 Ok(FnStmt::new(signature, Some(stmt)))
             }
@@ -364,11 +371,15 @@ impl Parser {
         Ok(FnSig::new(identifier, generics, params, ty))
     }
 
-    fn parse_block_stmt(&mut self) -> Result<BlockStmt> {
+    fn block_stmt(&mut self) -> Result<BlockStmt> {
         self.expect(TokenType::LeftBrace)?;
         let stmts = self.parse_outer_stmts()?;
         self.expect(TokenType::RightBrace)?;
         Ok(BlockStmt::new(stmts))
+    }
+
+    fn parse_block_stmt(&mut self) -> Result<Stmt> {
+        Ok(Stmt::Block(self.block_stmt()?))
     }
 
     fn mutability(&mut self) -> Mutability {
@@ -476,10 +487,10 @@ impl Parser {
     fn parse_if_stmt(&mut self) -> Result<Stmt> {
         self.expect(TokenType::If)?;
         let condition = self.expr()?;
-        let block_stmt = self.parse_block_stmt()?;
+        let block_stmt = self.block_stmt()?;
         let optional_stmt = if self.matches(TokenType::Else) {
             self.advance();
-            Some(self.parse_block_stmt()?)
+            Some(self.block_stmt()?)
         } else {
             None
         };
@@ -490,7 +501,7 @@ impl Parser {
     fn parse_while_stmt(&mut self) -> Result<Stmt> {
         self.expect(TokenType::While)?;
         let condition = self.expr()?;
-        let block_stmt = self.parse_block_stmt()?;
+        let block_stmt = self.block_stmt()?;
 
         Ok(While(WhileStmt::new(condition, block_stmt)))
     }
@@ -501,7 +512,7 @@ impl Parser {
         self.expect(TokenType::In)?;
 
         let range_expr = self.expr()?;
-        let body = self.parse_block_stmt()?;
+        let body = self.block_stmt()?;
         Ok(For(ForStmt::new(range_expr, body)))
     }
 
