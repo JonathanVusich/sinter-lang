@@ -7,7 +7,7 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LocalStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LetStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::StringInterner;
@@ -56,27 +56,6 @@ impl Parser {
         Ok(Module::new(stmts))
     }
 
-    fn parse_let_stmt(&mut self) -> Result<Stmt> {
-        self.expect(TokenType::Let)?;
-        let identifier = self.identifier()?;
-        let mut ty = None;
-        let mut initializer = None;
-        if self.matches(TokenType::Colon) {
-            self.advance();
-            ty = Some(self.parse_ty()?);
-        }
-        if self.matches(TokenType::Equal) {
-            self.advance();
-            initializer = Some(self.expr()?);
-        }
-        self.expect(TokenType::Semicolon)?;
-        Ok(Stmt::Local(LocalStmt::new(
-            identifier,
-            ty,
-            initializer,
-        )))
-    }
-
     fn parse_outer_stmts(&mut self) -> Result<Vec<Stmt>> {
         let mut stmts = Vec::new();
         while !self.is_at_end() {
@@ -90,14 +69,14 @@ impl Parser {
         self.bounds_check()?;
         match self.current_type() {
             TokenType::Use => self.parse_use_stmt(),
-            TokenType::Class => self.parse_reference_class(),
-            TokenType::Fn => self.parse_fn(),
+            TokenType::Class => self.parse_class_stmt(),
+            TokenType::Fn => self.parse_fn_stmt(),
             TokenType::Let => self.parse_let_stmt(),
             TokenType::Enum => self.parse_enum(),
             TokenType::Trait => self.parse_trait(),
             TokenType::Impl => self.parse_trait_impl(),
             TokenType::For => self.parse_for_stmt(),
-            TokenType::Inline => self.parse_inline_class(),
+            TokenType::Inline => self.parse_class_stmt(),
             TokenType::If => self.parse_if_stmt(),
             TokenType::Return => self.parse_return_stmt(),
             TokenType::While => self.parse_while_stmt(),
@@ -121,17 +100,19 @@ impl Parser {
         Ok(UseStmt::new(identifier))
     }
 
-    fn parse_inline_class(&mut self) -> Result<Stmt> {
-        self.advance();
-        self.parse_class(ClassType::Inline)
+    fn parse_class_stmt(&mut self) -> Result<Stmt> {
+        Ok(Stmt::Class(self.class_stmt()?))
     }
 
-    fn parse_reference_class(&mut self) -> Result<Stmt> {
-        self.parse_class(ClassType::Reference)
-    }
-
-    fn parse_class(&mut self, class_type: ClassType) -> Result<Stmt> {
-        self.expect(TokenType::Class)?;
+    fn class_stmt(&mut self) -> Result<ClassStmt> {
+        let class_type = if self.matches(TokenType::Inline) {
+            self.advance();
+            self.expect(TokenType::Class)?;
+            ClassType::Inline
+        } else {
+            self.expect(TokenType::Class)?;
+            ClassType::Reference
+        };
         let name = self.identifier()?;
         let generic_types = self.generic_decls()?;
         let members = self.parenthesized_params()?;
@@ -145,7 +126,50 @@ impl Parser {
             member_functions,
         );
 
-        Ok(Stmt::Class(class_stmt))
+        Ok(class_stmt)
+    }
+
+    fn parse_fn_stmt(&mut self) -> Result<Stmt> {
+        Ok(Stmt::Fn(self.fn_stmt()?))
+    }
+
+    fn fn_stmt(&mut self) -> Result<FnStmt> {
+        match self.current_type() {
+            TokenType::Fn => {
+                self.advance();
+                let signature = self.function_signature()?;
+                let stmt = self.block_stmt()?;
+
+                Ok(FnStmt::new(signature, Some(stmt)))
+            }
+            token => {
+                let pos = self.current_position();
+                self.expected_token(TokenType::Fn, pos)
+            }
+        }
+    }
+
+    fn parse_let_stmt(&mut self) -> Result<Stmt> {
+        Ok(Stmt::Let(self.let_stmt()?))
+    }
+
+    fn let_stmt(&mut self) -> Result<LetStmt> {
+        self.expect(TokenType::Let)?;
+        let identifier = self.identifier()?;
+        let mut ty = None;
+        let mut initializer = None;
+        if self.matches(TokenType::Colon) {
+            self.advance();
+            ty = Some(self.parse_ty()?);
+        }
+        if self.matches(TokenType::Equal) {
+            self.advance();
+            initializer = Some(self.expr()?);
+        }
+        self.expect(TokenType::Semicolon)?;
+        let let_stmt = LetStmt::new(identifier, ty, initializer);
+
+        Ok(let_stmt)
     }
 
     fn parse_enum(&mut self) -> Result<Stmt> {
@@ -176,10 +200,6 @@ impl Parser {
 
     fn parse_trait_impl(&mut self) -> Result<Stmt> {
         todo!()
-    }
-
-    fn parse_fn(&mut self) -> Result<Stmt> {
-        Ok(Stmt::Fn(self.fn_stmt()?))
     }
 
     fn parse_expression(&mut self) -> Result<Stmt> {
@@ -286,22 +306,6 @@ impl Parser {
 
     fn fn_stmts(&mut self) -> Result<Vec<FnStmt>> {
         self.parse_multiple_with_scope(Self::fn_stmt, TokenType::LeftBrace, TokenType::RightBrace)
-    }
-
-    fn fn_stmt(&mut self) -> Result<FnStmt> {
-        match self.current_type() {
-            TokenType::Fn => {
-                self.advance();
-                let signature = self.function_signature()?;
-                let stmt = self.block_stmt()?;
-
-                Ok(FnStmt::new(signature, Some(stmt)))
-            }
-            token => {
-                let pos = self.current_position();
-                self.expected_token(TokenType::Fn, pos)
-            }
-        }
     }
 
     fn trait_bound(&mut self) -> Result<Type> {
@@ -777,7 +781,7 @@ mod tests {
 
     use crate::compiler::ast::ast::{
         Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericDecl,
-        GenericDecls, LocalStmt, Mutability, Param, Params, QualifiedIdent, Stmt,
+        GenericDecls, LetStmt, Mutability, Param, Params, QualifiedIdent, Stmt,
     };
     use crate::compiler::ast::ast::{Module, UseStmt};
     use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
@@ -889,7 +893,7 @@ mod tests {
                 let ty = Some($typ);
 
                 assert_eq!(
-                    vec![Stmt::Local(LocalStmt::new(
+                    vec![Stmt::Let(LetStmt::new(
                         string_interner.get("x").unwrap(),
                         ty,
                         None

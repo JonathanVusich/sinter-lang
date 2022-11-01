@@ -311,16 +311,16 @@ pub struct ArgumentDecl {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct LocalStmt {
+pub struct LetStmt {
     ident: InternedStr,
     ty: Option<Type>,
     initializer: Option<Expr>,
 }
 
-impl LocalStmt {
+impl LetStmt {
     
     pub fn new(ident: InternedStr, ty: Option<Type>, initializer: Option<Expr>) -> Self {
-        LocalStmt {
+        LetStmt {
             ident,
             ty,
             initializer,
@@ -547,7 +547,7 @@ pub enum UnaryOp {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Stmt {
     Use(UseStmt),
-    Local(LocalStmt),
+    Let(LetStmt),
     Class(ClassStmt),
     Enum(EnumStmt),
     Trait(TraitStmt),
