@@ -3,6 +3,7 @@ use crate::gc::block::Block;
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::path::Prefix;
+use crate::compiler::parser::ClassType;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
@@ -112,6 +113,7 @@ pub enum Mutability {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClassStmt {
     name: InternedStr,
+    class_type: ClassType,
     generic_types: GenericDecls,
     members: Params,
     member_functions: Vec<FnStmt>,
@@ -120,12 +122,14 @@ pub struct ClassStmt {
 impl ClassStmt {
     pub fn new(
         name: InternedStr,
+        class_type: ClassType,
         generic_types: GenericDecls,
         members: Params,
         member_functions: Vec<FnStmt>,
     ) -> Self {
         Self {
             name,
+            class_type,
             generic_types,
             members,
             member_functions,

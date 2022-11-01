@@ -1,19 +1,22 @@
+use std::error::Error;
+use std::fmt::{Display, Formatter};
+use std::fmt::Alignment::Right;
+use std::sync::Arc;
+
+use anyhow::{anyhow, Result};
+use serde::{Deserialize, Serialize};
+
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LocalStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
+use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
+use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
+use crate::compiler::types::types::{BasicType, InternedStr, Type};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
 use crate::compiler::types::types::Type::{Basic, Infer, Path, TraitBounds, Union};
-use crate::compiler::types::types::{BasicType, InternedStr, Type};
-use crate::compiler::StringInterner;
 use crate::gc::block::Block;
-use anyhow::{anyhow, Result};
-use std::error::Error;
-use std::fmt::Alignment::Right;
-use std::fmt::{Display, Formatter};
-use std::sync::Arc;
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
     let parser = Parser::new(string_interner, input);
@@ -33,7 +36,8 @@ enum ParseError {
     UnexpectedToken(TokenType, TokenPosition),
 }
 
-enum ClassType {
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub (crate) enum ClassType {
     Reference,
     Inline,
 }
@@ -73,13 +77,6 @@ impl Parser {
         )))
     }
 
-    fn parse_use_stmt(&mut self) -> Result<Stmt> {
-        self.expect(TokenType::Use)?;
-        let identifier = self.qualified_ident()?;
-        self.expect(TokenType::Semicolon)?;
-        Ok(Stmt::Use(UseStmt::new(identifier)))
-    }
-
     fn parse_outer_stmts(&mut self) -> Result<Vec<Stmt>> {
         let mut stmts = Vec::new();
         while !self.is_at_end() {
@@ -113,6 +110,17 @@ impl Parser {
         }
     }
 
+    fn parse_use_stmt(&mut self) -> Result<Stmt> {
+        Ok(Stmt::Use(self.use_stmt()?))
+    }
+
+    fn use_stmt(&mut self) -> Result<UseStmt> {
+        self.expect(TokenType::Use)?;
+        let identifier = self.qualified_ident()?;
+        self.expect(TokenType::Semicolon)?;
+        Ok(UseStmt::new(identifier))
+    }
+
     fn parse_inline_class(&mut self) -> Result<Stmt> {
         self.advance();
         self.parse_class(ClassType::Inline)
@@ -131,6 +139,7 @@ impl Parser {
 
         let class_stmt = ClassStmt::new(
             name,
+            class_type,
             generic_types,
             members,
             member_functions,
@@ -151,13 +160,17 @@ impl Parser {
     }
 
     fn parse_trait(&mut self) -> Result<Stmt> {
+        Ok(Stmt::Trait(self.trait_stmt()?))
+    }
+
+    fn trait_stmt(&mut self) -> Result<TraitStmt> {
         self.expect(TokenType::Trait)?;
         let identifier = self.identifier()?;
         let generics = self.generic_decls()?;
         if self.matches(TokenType::Semicolon) {
-            Ok(Stmt::Trait(TraitStmt::new(identifier, generics, Vec::new())))
+            Ok(TraitStmt::new(identifier, generics, Vec::new()))
         } else {
-            let functions = self.functions()?;
+            Ok(TraitStmt::new(identifier, generics, self.fn_stmts()?))
         }
     }
 
@@ -499,11 +512,15 @@ impl Parser {
     }
 
     fn parse_while_stmt(&mut self) -> Result<Stmt> {
+        Ok(While(self.while_stmt()?))
+    }
+
+    fn while_stmt(&mut self) -> Result<WhileStmt> {
         self.expect(TokenType::While)?;
         let condition = self.expr()?;
         let block_stmt = self.block_stmt()?;
 
-        Ok(While(WhileStmt::new(condition, block_stmt)))
+        Ok(WhileStmt::new(condition, block_stmt))
     }
 
     fn parse_for_stmt(&mut self) -> Result<Stmt> {
@@ -747,18 +764,30 @@ unsafe impl Send for ParseError {}
 unsafe impl Sync for ParseError {}
 
 mod tests {
-    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
-    use crate::compiler::ast::ast::Stmt::Enum;
+    use std::any::Any;
+    use std::error::Error;
+    use std::fs::File;
+    use std::io::{BufReader, BufWriter};
+    use std::path::{Path, PathBuf};
+    use std::sync::Arc;
+
+    use ::function_name::named;
+    use anyhow::{anyhow, Result};
+    use cfg_if::cfg_if;
+
     use crate::compiler::ast::ast::{
         Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericDecl,
         GenericDecls, LocalStmt, Mutability, Param, Params, QualifiedIdent, Stmt,
     };
     use crate::compiler::ast::ast::{Module, UseStmt};
-    use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
+    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
+    use crate::compiler::ast::ast::Stmt::Enum;
     use crate::compiler::parser::{ParseError, Parser};
+    use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
+    use crate::compiler::StringInterner;
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::Identifier;
-    use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
+    use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::BasicType;
     use crate::compiler::types::types::BasicType::{
@@ -766,16 +795,6 @@ mod tests {
     };
     use crate::compiler::types::types::Type;
     use crate::compiler::types::types::Type::{Array, Basic, TraitBounds};
-    use crate::compiler::StringInterner;
-    use ::function_name::named;
-    use anyhow::{anyhow, Result};
-    use cfg_if::cfg_if;
-    use std::any::Any;
-    use std::error::Error;
-    use std::fs::File;
-    use std::io::{BufReader, BufWriter};
-    use std::path::{Path, PathBuf};
-    use std::sync::Arc;
 
     cfg_if! {
         if #[cfg(test)] {
