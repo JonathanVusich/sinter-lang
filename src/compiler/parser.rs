@@ -72,9 +72,9 @@ impl Parser {
             TokenType::Class => self.parse_class_stmt(),
             TokenType::Fn => self.parse_fn_stmt(),
             TokenType::Let => self.parse_let_stmt(),
-            TokenType::Enum => self.parse_enum(),
-            TokenType::Trait => self.parse_trait(),
-            TokenType::Impl => self.parse_trait_impl(),
+            TokenType::Enum => self.parse_enum_stmt(),
+            TokenType::Trait => self.parse_trait_stmt(),
+            TokenType::Impl => self.parse_trait_impl_stmt(),
             TokenType::For => self.parse_for_stmt(),
             TokenType::Inline => self.parse_class_stmt(),
             TokenType::If => self.parse_if_stmt(),
@@ -172,7 +172,11 @@ impl Parser {
         Ok(let_stmt)
     }
 
-    fn parse_enum(&mut self) -> Result<Stmt> {
+    fn parse_enum_stmt(&mut self) -> Result<Stmt> {
+        Ok(Enum(self.enum_stmt()?))
+    }
+
+    fn enum_stmt(&mut self) -> Result<EnumStmt> {
         self.expect(TokenType::Enum)?;
         let name = self.identifier()?;
         let generics = self.generic_decls()?;
@@ -180,10 +184,9 @@ impl Parser {
 
         let enum_stmt = EnumStmt::new(name, generics, enum_members);
 
-        Ok(Enum(enum_stmt))
+        Ok(enum_stmt)
     }
-
-    fn parse_trait(&mut self) -> Result<Stmt> {
+    fn parse_trait_stmt(&mut self) -> Result<Stmt> {
         Ok(Stmt::Trait(self.trait_stmt()?))
     }
 
@@ -198,7 +201,7 @@ impl Parser {
         }
     }
 
-    fn parse_trait_impl(&mut self) -> Result<Stmt> {
+    fn parse_trait_impl_stmt(&mut self) -> Result<Stmt> {
         todo!()
     }
 
