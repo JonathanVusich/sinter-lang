@@ -7,7 +7,7 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LetStmt, Module, Mutability, Param, Params, PathExpr, QualifiedIdent, ReturnStmt, Stmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LetStmt, Module, Mutability, Param, Params, PathTy, QualifiedIdent, ReturnStmt, Stmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, TraitImplStmt};
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::StringInterner;
@@ -15,7 +15,7 @@ use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
 use crate::compiler::types::types::{BasicType, InternedStr, Type};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
-use crate::compiler::types::types::Type::{Basic, Infer, Path, TraitBounds, Union};
+use crate::compiler::types::types::Type::{Basic, ImplicitSelf, Infer, Path, TraitBounds, Union};
 use crate::gc::block::Block;
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
@@ -134,19 +134,11 @@ impl Parser {
     }
 
     fn fn_stmt(&mut self) -> Result<FnStmt> {
-        match self.current_type() {
-            TokenType::Fn => {
-                self.advance();
-                let signature = self.function_signature()?;
-                let stmt = self.block_stmt()?;
+         self.expect(TokenType::Fn)?;
+         let signature = self.function_signature()?;
+         let stmt = self.block_stmt()?;
 
-                Ok(FnStmt::new(signature, Some(stmt)))
-            }
-            token => {
-                let pos = self.current_position();
-                self.expected_token(TokenType::Fn, pos)
-            }
-        }
+         Ok(FnStmt::new(signature, Some(stmt)))
     }
 
     fn parse_let_stmt(&mut self) -> Result<Stmt> {
@@ -202,7 +194,17 @@ impl Parser {
     }
 
     fn parse_trait_impl_stmt(&mut self) -> Result<Stmt> {
-        todo!()
+        Ok(Stmt::TraitImpl(self.trait_impl_stmt()?))
+    }
+
+    fn trait_impl_stmt(&mut self) -> Result<TraitImplStmt> {
+        self.expect(TokenType::Impl)?;
+        let trait_to_impl = self.parse_path_ty()?;
+        self.expect(TokenType::For)?;
+        let target_ty = self.parse_ty()?;
+        let block_impl = self.parse_multiple_with_scope(mut self);
+
+
     }
 
     fn parse_expression(&mut self) -> Result<Stmt> {
@@ -313,10 +315,10 @@ impl Parser {
 
     fn trait_bound(&mut self) -> Result<Type> {
         let mut paths = Vec::new();
-        paths.push(self.qualified_path()?);
+        paths.push(self.parse_path_ty()?);
         while self.matches(TokenType::Plus) {
             self.advance();
-            paths.push(self.qualified_path()?);
+            paths.push(self.parse_path_ty()?);
         }
         Ok(TraitBounds(paths))
     }
@@ -456,15 +458,15 @@ impl Parser {
                     self.advance();
                     Ok(Basic(F64))
                 }
-                "None" => {
-                    self.advance();
-                    Ok(Basic(BasicType::None))
-                }
                 token => self.parse_qualified_ty(),
             },
             TokenType::None => {
                 self.advance();
                 Ok(Basic(BasicType::None))
+            }
+            TokenType::SelfCapitalized => {
+                self.advance();
+                Ok(ImplicitSelf)
             }
             _ => Ok(Infer),
         }
@@ -478,7 +480,7 @@ impl Parser {
     }
 
     fn parse_qualified_ty(&mut self) -> Result<Type> {
-        let path = self.qualified_path()?;
+        let path = self.parse_path_ty()?;
         self.bounds_check()?;
 
         match self.current_type() {
@@ -492,7 +494,7 @@ impl Parser {
             TokenType::Plus => {
                 self.advance();
                 let mut paths =
-                    self.parse_multiple_with_delimiter(Self::qualified_path, TokenType::Plus)?;
+                    self.parse_multiple_with_delimiter(Self::parse_path_ty, TokenType::Plus)?;
                 paths.insert(0, path);
                 Ok(TraitBounds(paths))
             }
@@ -566,7 +568,7 @@ impl Parser {
     }
 
     fn parse_path_expr(&mut self, ident: InternedStr) -> Result<Expr> {
-        let path = self.qualified_path()?;
+        let path = self.parse_path_ty()?;
         Ok(Expr::Path(Box::new(path)))
     }
 
@@ -585,10 +587,10 @@ impl Parser {
         todo!()
     }
 
-    fn qualified_path(&mut self) -> Result<PathExpr> {
+    fn parse_path_ty(&mut self) -> Result<PathTy> {
         let ident = self.qualified_ident()?;
         let generic_call_site = self.generic_call_site()?;
-        Ok(PathExpr::new(ident, generic_call_site))
+        Ok(PathTy::new(ident, generic_call_site))
     }
 
     fn parse_multiple_with_delimiter<T>(

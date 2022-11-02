@@ -1,4 +1,4 @@
-use crate::compiler::ast::ast::{QualifiedIdent, PathExpr};
+use crate::compiler::ast::ast::{QualifiedIdent, PathTy};
 use lasso::Spur;
 use serde::{Deserialize, Serialize};
 
@@ -7,9 +7,9 @@ pub type InternedStr = Spur;
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
 pub enum Type {
     Array(Box<Type>),
-    Path(PathExpr),
+    Path(PathTy),
     Union(Vec<Type>),
-    TraitBounds(Vec<PathExpr>),
+    TraitBounds(Vec<PathTy>),
     Infer,
     ImplicitSelf,
     Basic(BasicType),

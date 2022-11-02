@@ -32,12 +32,12 @@ impl QualifiedIdent {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct PathExpr {
+pub struct PathTy {
     ident: QualifiedIdent,
     generic_call_site: GenericCallSite,
 }
 
-impl PathExpr {
+impl PathTy {
 
     pub fn new(ident: QualifiedIdent, generic_call_site: GenericCallSite) -> Self {
         Self {
@@ -182,7 +182,8 @@ impl TraitStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitImplStmt {
-    ty: Type,
+    trait_to_impl: PathTy,
+    target_ty: Type,
     functions: Vec<FnStmt>,
 }
 
@@ -347,7 +348,7 @@ pub enum Expr {
     AssignOp(Box<AssignOpExpr>),
     Field(Box<FieldExpr>),
     Index(Box<IndexExpr>),
-    Path(Box<PathExpr>),
+    Path(Box<PathTy>),
     Break,
     Continue,
     Try(Box<Expr>),

@@ -153,6 +153,7 @@ impl Display for TokenType {
             TokenType::Inline => write!(f, "inline"),
             TokenType::Let => write!(f, "let"),
             TokenType::Mut => write!(f, "mut"),
+            TokenType::In => write!(f, "in")
         }
     }
 }
