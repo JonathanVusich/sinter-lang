@@ -249,7 +249,7 @@ trait Iterator<T> {
     fn next() => T | None;
 }
 
-class MutableList<T> {
+class MutableList<T>(mut array: [T]) {
     ...
     
     fn extend<I: Iterator<T>>(mut self, iterator: I) {
