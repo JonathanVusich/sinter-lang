@@ -11,7 +11,7 @@ _________________________________
 
 `classStmt => "inline"? "class" ident generics? params? (fnBody | ";")`
 
-`fnStmt => "fn" ident generics? params? blockStmt`
+`fnStmt => fnHead params fnTail`
 
 `letStmt => "let" "mut"? ident ("=" expr)? ";"`
 
@@ -44,14 +44,30 @@ _________________________________
 _________________________________
 ### Trait Definitions
 
-`traitBody => "{" fnAnyStmt* "}"`
+`traitBody => "{" fnTraitStmt* "}"`
 
 _________________________________
 ### Function Definitions
+`fnHead => "fn" ident generics?`
+
+`fnTail => ("=>" ty)? blockStmt`
 
 `fnBody => "{" fnSelfStmt* "}"`
 
-`fnAnyStmt => fnSelfStmt | fnSelfNoImplStmt`
+`fnTraitStmt => fnSelfStmt | fnSelfNoImplStmt`
+
+`fnSelfStmt => fnHead selfParams  ` 
+
+`fnSelfNoImplStmt => "fn" ident selfParams ";"`
+
+_________________________________
+### GenericDefinitions
+`generics => "<" generic (, generic)* ">"`
+
+`generic => ident (":" ty)?`
+
+`genericTys => "<" path (, path)* ">"`
+
 
 _________________________________
 ### Parameter Definitions
@@ -80,3 +96,7 @@ _________________________________
 `unionType => ("|" ty)*`
 
 `traitBound => ("+ ty)*`
+
+`path => qualifiedIdent genericTys?`
+
+`qualifiedIdent => ident ("::" ident)*`
