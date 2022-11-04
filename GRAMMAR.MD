@@ -9,7 +9,7 @@ _________________________________
 
 `useStmt => "use" qualifiedIdent`
 
-`classStmt => "inline"? "class" ident generics? params? (fnBody | ";")`
+`classStmt => "inline"? "class" ident generics? params? (objectFns | ";")`
 
 `fnStmt => fnHead params fnTail`
 
@@ -19,7 +19,7 @@ _________________________________
 
 `traitStmt => "trait" ident generics? (traitBody | ";")`
 
-`traitImplStmt => "impl" pathTy "for" ty (fnBody | ";")`
+`traitImplStmt => "impl" pathTy "for" ty (objectFns | ";")`
 
 `blockStmt => "{" stmt* "}"`
 
@@ -35,11 +35,20 @@ _________________________________
 `whileStmt => "while" expr blockStmt`
 
 _________________________________
+### Statement Definitions
+
+`exprs => expr (, expr)*`
+
+`expr => assignment`
+
+`assignment => `
+
+_________________________________
 ### Enum Definitions
 
 `enumBody => "{" enumMember (, enumMember)* ,? "}"`
 
-`enumMember => ident params? fnBody?`
+`enumMember => ident params? objectFns?`
 
 _________________________________
 ### Trait Definitions
@@ -52,8 +61,6 @@ _________________________________
 
 `fnTail => ("=>" ty)? blockStmt`
 
-`fnBody => "{" fnSelfStmt* "}"`
-
 `fnTraitStmt => fnSelfStmt | fnSelfNoImplStmt`
 
 `fnSelfStmt => fnHead selfParams  ` 
@@ -61,13 +68,13 @@ _________________________________
 `fnSelfNoImplStmt => "fn" ident selfParams ";"`
 
 _________________________________
-### GenericDefinitions
+### Generic Definitions
+
 `generics => "<" generic (, generic)* ">"`
 
 `generic => ident (":" ty)?`
 
 `genericTys => "<" path (, path)* ">"`
-
 
 _________________________________
 ### Parameter Definitions
@@ -97,6 +104,18 @@ _________________________________
 
 `traitBound => ("+ ty)*`
 
+_________________________________
+### General Definitions
+
 `path => qualifiedIdent genericTys?`
 
 `qualifiedIdent => ident ("::" ident)*`
+
+`objectFns => "{" fnSelfStmt* "}"`
+
+
+
+
+
+
+
