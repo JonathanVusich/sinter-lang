@@ -35,11 +35,13 @@ _________________________________
 `whileStmt => "while" expr blockStmt`
 
 _________________________________
-### Statement Definitions
+### Expression Definitions
 
 `exprs => expr (, expr)*`
 
-`expr => assignment`
+`expr => closure | assignment`
+
+`closure => "(" (ident (, ident)*)? ")" "=>" (blockStmt | expr)`
 
 `assignment => `
 
@@ -92,17 +94,17 @@ _________________________________
 
 `literal => "true" | "false" | "None" | number | string`
 
-`ty => basicType | "None" | arrayType | pathType`
+`ty => basicType | "None" | arrayType | pathType | closureType`
 
 `basicType => "u8" | "u16" | "u64" | "i8" | "i16" | "i32" | i64" | "f32" | "f64"`
 
 `arrayType => "[" ty "]"`
 
-`pathType => path (unionType | traitBound)?`
+`pathType => path ("+" path)*`
+
+`closureType => "(" (ty (, ty)*)? ")" "=>" ty`
 
 `unionType => ("|" ty)*`
-
-`traitBound => ("+ ty)*`
 
 _________________________________
 ### General Definitions
