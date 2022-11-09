@@ -94,15 +94,16 @@ _________________________________
 
 `literal => "true" | "false" | "None" | number | string`
 
-`ty => basicType | "None" | arrayType | pathType | closureType`
+`ty => basicType | arrayType | pathType | closureType`
 
-`basicType => "u8" | "u16" | "u64" | "i8" | "i16" | "i32" | i64" | "f32" | "f64"`
+`basicType => "bool" | "None" | "u8" | "u16" | "u64" | 
+              "i8" | "i16" | "i32" | i64" | "f32" | "f64"`
 
 `arrayType => "[" ty "]"`
 
 `pathType => path ("+" path)*`
 
-`closureType => "(" (ty (, ty)*)? ")" "=>" ty`
+`closureType => "(" (ty (, ty)*)? ")" "=>" ( "(" closureType ")" | (basicType | arrayType | pathType) )`
 
 `unionType => ("|" ty)*`
 

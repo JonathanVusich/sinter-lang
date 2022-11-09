@@ -15,7 +15,7 @@ use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
 use crate::compiler::types::types::{BasicType, InternedStr, Type};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
-use crate::compiler::types::types::Type::{Basic, ImplicitSelf, Infer, Path, TraitBounds, Union};
+use crate::compiler::types::types::Type::{Basic, Closure, ImplicitSelf, Infer, Path, TraitBounds, Union};
 use crate::gc::block::Block;
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
@@ -36,8 +36,8 @@ enum ParseError {
     UnexpectedToken(TokenType, TokenPosition),
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub (crate) enum ClassType {
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub enum ClassType {
     Reference,
     Inline,
 }
@@ -202,9 +202,8 @@ impl Parser {
         let trait_to_impl = self.parse_path_ty()?;
         self.expect(TokenType::For)?;
         let target_ty = self.parse_ty()?;
-        let block_impl = self.parse_multiple_with_scope(mut self);
 
-
+        todo!()
     }
 
     fn parse_expression(&mut self) -> Result<Stmt> {
@@ -416,6 +415,7 @@ impl Parser {
     fn parse_ty(&mut self) -> Result<Type> {
         self.bounds_check()?;
         match self.current_type() {
+            TokenType::LeftParentheses => self.parse_closure_ty(),
             TokenType::LeftBracket => self.parse_array_ty(),
             TokenType::Identifier(ident) => match self.string_interner.resolve(&ident) {
                 "u8" => {
@@ -470,6 +470,29 @@ impl Parser {
             }
             _ => Ok(Infer),
         }
+    }
+
+    fn parse_closure_ty(&mut self) -> Result<Type> {
+        let tys = self.parse_multiple_with_scope_delimiter::<Type, 1>(
+            Self::parse_ty,
+            TokenType::Comma,
+            TokenType::LeftParentheses,
+            TokenType::RightParentheses)?;
+        self.expect(TokenType::RightArrow)?;
+
+        let return_ty = match self.current_type() {
+            TokenType::LeftParentheses => {
+                self.expect(TokenType::LeftParentheses)?;
+                let closure_ty = self.parse_closure_ty()?;
+                self.expect(TokenType::RightParentheses)?;
+                closure_ty
+            }
+            _ => {
+                self.parse_ty()?
+            }
+        };
+
+        Ok(Closure(tys, Box::new(return_ty)))
     }
 
     fn parse_array_ty(&mut self) -> Result<Type> {
@@ -620,6 +643,12 @@ impl Parser {
         let mut items = Vec::new();
         if self.matches(scope_start) {
             self.advance();
+
+            if self.matches(scope_end) {
+                self.advance();
+                return Ok(items);
+            }
+
             loop {
                 self.bounds_check()?;
                 items.push(parse_rule(self)?);
@@ -642,6 +671,12 @@ impl Parser {
         let mut items = Vec::new();
         if self.matches(scope_start) {
             self.advance();
+
+            if self.matches(scope_end) {
+                self.advance();
+                return Ok(items);
+            }
+
             loop {
                 self.bounds_check()?;
                 items.push(parse_rule(self)?);
@@ -783,6 +818,9 @@ mod tests {
     use ::function_name::named;
     use anyhow::{anyhow, Result};
     use cfg_if::cfg_if;
+    use lasso::ThreadedRodeo;
+    use serde::{Deserialize, Serialize};
+    use serde::de::DeserializeOwned;
 
     use crate::compiler::ast::ast::{
         Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericDecl,
@@ -803,47 +841,67 @@ mod tests {
         F32, F64, I16, I32, I64, I8, U16, U32, U64, U8,
     };
     use crate::compiler::types::types::Type;
-    use crate::compiler::types::types::Type::{Array, Basic, TraitBounds};
+    use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBounds};
 
     cfg_if! {
         if #[cfg(test)] {
             use crate::util::utils::{load, save};
-            use crate::util::utils::resolve_test_path;
         }
     }
 
     #[cfg(test)]
-    fn load_module(path: &str) -> Result<Module> {
-        let file = File::open(resolve_test_path("parser", path))?;
-        let reader = BufReader::new(file);
-        Ok(serde_json::from_reader(reader)?)
+    enum CodeUnit {
+        Module,
+        Ty,
     }
 
     #[cfg(test)]
-    fn save_module(path: &str, module: Module) -> Result<()> {
-        let file = File::open(resolve_test_path("parser", path))?;
-        let writer = BufWriter::new(file);
-        Ok(serde_json::to_writer(writer, &module)?)
+    impl CodeUnit {
+
+        pub fn path(self) -> &'static str {
+            match self {
+                CodeUnit::Module => "module",
+                CodeUnit::Ty => "ty",
+            }
+        }
     }
 
     #[cfg(test)]
-    fn compare_modules(test: &str, code: &str) {
-        let (string_interner, module) = parse_code(code).unwrap();
-        if let Ok(loaded) = load::<Module>("parser", test) {
-            assert_eq!(loaded, module);
-        } else {
-            save("parser", test, module).expect("Error saving module!");
+    fn compare(test_name: &str, code: &str, code_unit: CodeUnit) {
+        match code_unit {
+            CodeUnit::Module => {
+                let (string_interner, module) = parse_code(code).unwrap();
+                if let Ok(loaded) = load::<Module, 3>(["parser", "module", test_name]) {
+                    assert_eq!(loaded, module);
+                } else {
+                    save(["parser", test_name], module).expect("Error saving module!");
+                }
+            }
+            CodeUnit::Ty => {
+                let (string_interner, mut parser) = create_parser(code);
+                let ty = parser.parse_ty().expect("Could not parse type!");
+                if let Ok(loaded) = load::<Type, 3>(["parser", "type", test_name]) {
+                    assert_eq!(loaded, ty);
+                } else {
+                    save(["parser", "type", test_name], ty).expect("Error saving type!");
+                }
+            }
+
         }
     }
 
     fn parse_code(code: &str) -> Result<(StringInterner, Module)> {
-        let string_interner = StringInterner::default();
-        let tokens = tokenize(string_interner.clone(), code).unwrap();
-        let parser = Parser::new(string_interner.clone(), tokens);
-        let (string_interner, parser) = (string_interner, parser);
+        let (string_interner, parser) = create_parser(code);
         let module = parser.parse()?;
 
         Ok((string_interner, module))
+    }
+
+    fn create_parser(code: &str) -> (Arc<ThreadedRodeo>, Parser) {
+        let string_interner = StringInterner::default();
+        let tokens = tokenize(string_interner.clone(), code).unwrap();
+        let parser = Parser::new(string_interner.clone(), tokens);
+        (string_interner, parser)
     }
 
     #[test]
@@ -888,6 +946,20 @@ mod tests {
                 }
             },
         }
+    }
+
+    #[test]
+    #[named]
+    pub fn closure_return_closure() {
+        let code = "() => (() => None)";
+        compare(function_name!(), code, CodeUnit::Ty);
+    }
+
+    #[test]
+    #[named]
+    pub fn closure_returns_trait_bound() {
+        let code = "() => Send + Sync + Copy + Clone";
+        compare(function_name!(), code, CodeUnit::Ty);
     }
 
     macro_rules! simple_type {
@@ -945,7 +1017,7 @@ mod tests {
             "use std::map::HashMap;"
         );
 
-        compare_modules(function_name!(), code);
+        compare(function_name!(), code, CodeUnit::Module);
     }
 
     #[test]
@@ -965,7 +1037,7 @@ mod tests {
             "}"
         );
 
-        compare_modules(function_name!(), code);
+        compare(function_name!(), code, CodeUnit::Module);
     }
 
     #[test]
@@ -982,6 +1054,6 @@ mod tests {
             "}"
         );
 
-        compare_modules(function_name!(), code);
+        compare(function_name!(), code, CodeUnit::Module);
     }
 }

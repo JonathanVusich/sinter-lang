@@ -10,6 +10,7 @@ pub enum Type {
     Path(PathTy),
     Union(Vec<Type>),
     TraitBounds(Vec<PathTy>),
+    Closure(Vec<Type>, Box<Type>),
     Infer,
     ImplicitSelf,
     Basic(BasicType),
