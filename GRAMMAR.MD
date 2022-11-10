@@ -37,13 +37,33 @@ _________________________________
 _________________________________
 ### Expression Definitions
 
-`exprs => expr (, expr)*`
-
 `expr => closure | assignment`
 
 `closure => "(" (ident (, ident)*)? ")" "=>" (blockStmt | expr)`
 
-`assignment => `
+`assignment => logical_or (("=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "^=" | "|=" | "<<=" | ">>=" | ">>>=") logical_or)*`
+
+`logical_or => logical_and ("||" logical_and)*`
+
+`logical_and => bitwise_inclusive_or ("&&" bitwise_inclusive_or)*`
+
+`bitwise_inclusive_or => bitwise_exclusive_or ("|" bitwise_exclusive_or)*`
+
+`bitwise_exclusive_or => bitwise_and ("^" bitwise_and)*`
+
+`bitwise_and => equality ("&" equality)*`
+
+`equality => relational (("==" | "!=") relational)*`
+
+`relational => shift (("<" | ">" | "<=" | ">=") shift)*`
+
+`shift => additive (("<<" | ">>" | ">>>") additive)*`
+
+`additive => multiplicative (("+" | "-") multiplicative)*`
+
+`multiplicative => unary (("*" | "/" | "%") unary)*`
+
+`unary => ("+" | "-" | "~" | "!") unary | call`
 
 _________________________________
 ### Enum Definitions
@@ -111,7 +131,7 @@ _________________________________
 _________________________________
 ### General Definitions
 
-`path => qualifiedIdent genericTys?`
+`path => qualifiedIdent generics?`
 
 `qualifiedIdent => ident ("::" ident)*`
 
