@@ -20,8 +20,9 @@ fn resolve_test_path<const N: usize>(paths: [&str; N]) -> Box<Path> {
 
 #[cfg(test)]
 pub fn save<T: Serialize, const N: usize>(path: [&str; N], data: T) -> Result<()> {
-    let file = OpenOptions::new().write(true)
-        .create_new(true)
+    let file = OpenOptions::new()
+        .write(true)
+        .create(true)
         .open(resolve_test_path(path))?;
     let writer = BufWriter::new(file);
     Ok(serde_json::to_writer_pretty(writer, &data)?)

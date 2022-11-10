@@ -748,7 +748,6 @@ impl Parser {
     }
 
     fn advance(&mut self) {
-        println!("{}", self.current_type());
         self.pos += 1;
     }
 
@@ -874,7 +873,7 @@ mod tests {
                 if let Ok(loaded) = load::<Module, 3>(["parser", "module", test_name]) {
                     assert_eq!(loaded, module);
                 } else {
-                    save(["parser", test_name], module).expect("Error saving module!");
+                    save(["parser", "module", test_name], module).expect("Error saving module!");
                 }
             }
             CodeUnit::Ty => {
