@@ -34,15 +34,15 @@ impl QualifiedIdent {
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct PathTy {
     ident: QualifiedIdent,
-    generic_call_site: GenericCallSite,
+    generics: GenericDecls,
 }
 
 impl PathTy {
 
-    pub fn new(ident: QualifiedIdent, generic_call_site: GenericCallSite) -> Self {
+    pub fn new(ident: QualifiedIdent, generics: GenericDecls) -> Self {
         Self {
             ident,
-            generic_call_site,
+            generics,
         }
     }
 }

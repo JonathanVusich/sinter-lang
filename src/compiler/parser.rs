@@ -1,21 +1,28 @@
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt::Alignment::Right;
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::{BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, Literal, LetStmt, Module, Mutability, Param, Params, PathTy, QualifiedIdent, ReturnStmt, Stmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, TraitImplStmt};
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
+use crate::compiler::ast::ast::{
+    BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite,
+    GenericDecl, GenericDecls, IfStmt, LetStmt, Literal, Module, Mutability, Param, Params, PathTy,
+    QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt,
+    WhileStmt,
+};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
-use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
-use crate::compiler::types::types::{BasicType, InternedStr, Type};
+use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
-use crate::compiler::types::types::Type::{Basic, Closure, ImplicitSelf, Infer, Path, TraitBounds, Union};
+use crate::compiler::types::types::Type::{
+    Basic, Closure, ImplicitSelf, Infer, Path, TraitBounds, Union,
+};
+use crate::compiler::types::types::{BasicType, InternedStr, Type};
+use crate::compiler::StringInterner;
 use crate::gc::block::Block;
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
@@ -118,13 +125,7 @@ impl Parser {
         let members = self.parenthesized_params()?;
         let member_functions = self.fn_stmts()?;
 
-        let class_stmt = ClassStmt::new(
-            name,
-            class_type,
-            generic_types,
-            members,
-            member_functions,
-        );
+        let class_stmt = ClassStmt::new(name, class_type, generic_types, members, member_functions);
 
         Ok(class_stmt)
     }
@@ -134,11 +135,11 @@ impl Parser {
     }
 
     fn fn_stmt(&mut self) -> Result<FnStmt> {
-         self.expect(TokenType::Fn)?;
-         let signature = self.function_signature()?;
-         let stmt = self.block_stmt()?;
+        self.expect(TokenType::Fn)?;
+        let signature = self.function_signature()?;
+        let stmt = self.block_stmt()?;
 
-         Ok(FnStmt::new(signature, Some(stmt)))
+        Ok(FnStmt::new(signature, Some(stmt)))
     }
 
     fn parse_let_stmt(&mut self) -> Result<Stmt> {
@@ -414,6 +415,15 @@ impl Parser {
 
     fn parse_ty(&mut self) -> Result<Type> {
         self.bounds_check()?;
+        let mut tys = self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::Pipe)?;
+        if tys.len() > 1 {
+            Ok(Union(tys))
+        } else {
+            Ok(tys.remove(0))
+        }
+    }
+
+    fn parse_any_ty(&mut self) -> Result<Type> {
         match self.current_type() {
             TokenType::LeftParentheses => self.parse_closure_ty(),
             TokenType::LeftBracket => self.parse_array_ty(),
@@ -477,7 +487,8 @@ impl Parser {
             Self::parse_ty,
             TokenType::Comma,
             TokenType::LeftParentheses,
-            TokenType::RightParentheses)?;
+            TokenType::RightParentheses,
+        )?;
         self.expect(TokenType::RightArrow)?;
 
         let return_ty = match self.current_type() {
@@ -487,9 +498,7 @@ impl Parser {
                 self.expect(TokenType::RightParentheses)?;
                 closure_ty
             }
-            _ => {
-                self.parse_ty()?
-            }
+            _ => self.parse_ty()?,
         };
 
         Ok(Closure(tys, Box::new(return_ty)))
@@ -507,13 +516,6 @@ impl Parser {
         self.bounds_check()?;
 
         match self.current_type() {
-            TokenType::Pipe => {
-                self.advance();
-                let mut types =
-                    self.parse_multiple_with_delimiter(Self::parse_qualified_ty, TokenType::Pipe)?;
-                types.insert(0, Path(path));
-                Ok(Union(types))
-            }
             TokenType::Plus => {
                 self.advance();
                 let mut paths =
@@ -612,8 +614,8 @@ impl Parser {
 
     fn parse_path_ty(&mut self) -> Result<PathTy> {
         let ident = self.qualified_ident()?;
-        let generic_call_site = self.generic_call_site()?;
-        Ok(PathTy::new(ident, generic_call_site))
+        let generic_decls = self.generic_decls()?;
+        Ok(PathTy::new(ident, generic_decls))
     }
 
     fn parse_multiple_with_delimiter<T>(
@@ -818,22 +820,21 @@ mod tests {
     use anyhow::{anyhow, Result};
     use cfg_if::cfg_if;
     use lasso::ThreadedRodeo;
-    use serde::{Deserialize, Serialize};
     use serde::de::DeserializeOwned;
+    use serde::{Deserialize, Serialize};
 
+    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
+    use crate::compiler::ast::ast::Stmt::Enum;
     use crate::compiler::ast::ast::{
         Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericDecl,
         GenericDecls, LetStmt, Mutability, Param, Params, QualifiedIdent, Stmt,
     };
     use crate::compiler::ast::ast::{Module, UseStmt};
-    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
-    use crate::compiler::ast::ast::Stmt::Enum;
-    use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
-    use crate::compiler::StringInterner;
+    use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::Identifier;
-    use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
+    use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::BasicType;
     use crate::compiler::types::types::BasicType::{
@@ -841,6 +842,7 @@ mod tests {
     };
     use crate::compiler::types::types::Type;
     use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBounds};
+    use crate::compiler::StringInterner;
 
     cfg_if! {
         if #[cfg(test)] {
@@ -852,17 +854,6 @@ mod tests {
     enum CodeUnit {
         Module,
         Ty,
-    }
-
-    #[cfg(test)]
-    impl CodeUnit {
-
-        pub fn path(self) -> &'static str {
-            match self {
-                CodeUnit::Module => "module",
-                CodeUnit::Ty => "ty",
-            }
-        }
     }
 
     #[cfg(test)]
@@ -885,7 +876,6 @@ mod tests {
                     save(["parser", "type", test_name], ty).expect("Error saving type!");
                 }
             }
-
         }
     }
 
@@ -956,8 +946,8 @@ mod tests {
 
     #[test]
     #[named]
-    pub fn closure_returns_trait_bound() {
-        let code = "() => Send + Sync + Copy + Clone";
+    pub fn closure_returns_trait_bound_or_none() {
+        let code = "() => [first::party::package::Send<V: std::Copy + std::Clone> + third::party::package::Sync<T> + std::Copy + std::Clone] | None";
         compare(function_name!(), code, CodeUnit::Ty);
     }
 
@@ -1053,6 +1043,6 @@ mod tests {
             "}"
         );
 
-        compare(function_name!(), code, CodeUnit::Module);
+        // compare(function_name!(), code, CodeUnit::Module);
     }
 }

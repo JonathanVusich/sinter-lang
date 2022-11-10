@@ -94,7 +94,9 @@ _________________________________
 
 `literal => "true" | "false" | "None" | number | string`
 
-`ty => basicType | arrayType | pathType | closureType`
+`ty => anyType ("|" anyType)*`
+
+`anyType => basicType | arrayType | pathType | closureType`
 
 `basicType => "bool" | "None" | "u8" | "u16" | "u64" | 
               "i8" | "i16" | "i32" | i64" | "f32" | "f64"`
@@ -105,7 +107,6 @@ _________________________________
 
 `closureType => "(" (ty (, ty)*)? ")" "=>" ( "(" closureType ")" | (basicType | arrayType | pathType) )`
 
-`unionType => ("|" ty)*`
 
 _________________________________
 ### General Definitions
