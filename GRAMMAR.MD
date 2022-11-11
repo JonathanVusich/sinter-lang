@@ -9,17 +9,17 @@ _________________________________
 
 `useStmt => "use" qualifiedIdent`
 
-`classStmt => "inline"? "class" ident generics? params? (objectFns | ";")`
+`classStmt => "inline"? "class" ident generics? params? ( objectFns | ";" )`
 
 `fnStmt => fnHead params fnTail`
 
-`letStmt => "let" "mut"? ident ("=" expr)? ";"`
+`letStmt => "let" "mut"? ident ( "=" expr )? ";"`
 
-`enumStmt => "enum" ident generics? (enumBody | ";")`
+`enumStmt => "enum" ident generics? ( enumBody | ";" )`
 
-`traitStmt => "trait" ident generics? (traitBody | ";")`
+`traitStmt => "trait" ident generics? ( traitBody | ";" )`
 
-`traitImplStmt => "impl" pathTy "for" ty (objectFns | ";")`
+`traitImplStmt => "impl" pathTy "for" ty ( objectFns | ";" )`
 
 `blockStmt => "{" stmt* "}"`
 
@@ -28,7 +28,7 @@ _________________________________
 
 `forStmt => "for" ident "in" expr blockStmt`
 
-`ifStmt => "if" expr blockStmt ("else if" expr blockStmt)* ("else" blockStmt)?`
+`ifStmt => "if" expr blockStmt ( "else if" expr blockStmt )* ( "else" blockStmt )?`
 
 `returnStmt => "return" expr?`
 
@@ -39,31 +39,35 @@ _________________________________
 
 `expr => closure | assignment`
 
-`closure => "(" (ident (, ident)*)? ")" "=>" (blockStmt | expr)`
+`closure => "(" ( ident ( , ident )* )? ")" "=>" ( blockStmt | expr )`
 
-`assignment => logical_or (("=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "^=" | "|=" | "<<=" | ">>=" | ">>>=") logical_or)*`
+`assignment => logical_or ( ( "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "^=" | "|=" | "<<=" | ">>=" | ">>>=" ) logical_or )*`
 
-`logical_or => logical_and ("||" logical_and)*`
+`logical_or => logical_and ( "||" logical_and )*`
 
-`logical_and => bitwise_inclusive_or ("&&" bitwise_inclusive_or)*`
+`logical_and => bitwise_inclusive_or ( "&&" bitwise_inclusive_or )*`
 
-`bitwise_inclusive_or => bitwise_exclusive_or ("|" bitwise_exclusive_or)*`
+`bitwise_inclusive_or => bitwise_exclusive_or ( "|" bitwise_exclusive_or )*`
 
-`bitwise_exclusive_or => bitwise_and ("^" bitwise_and)*`
+`bitwise_exclusive_or => bitwise_and ( "^" bitwise_and )*`
 
-`bitwise_and => equality ("&" equality)*`
+`bitwise_and => equality ( "&" equality )*`
 
-`equality => relational (("==" | "!=") relational)*`
+`equality => relational ( ( "==" | "!=" ) relational )*`
 
-`relational => shift (("<" | ">" | "<=" | ">=") shift)*`
+`relational => shift ( ( "<" | ">" | "<=" | ">=" ) shift )*`
 
-`shift => additive (("<<" | ">>" | ">>>") additive)*`
+`shift => additive ( ( "<<" | ">>" | ">>>" ) additive )*`
 
-`additive => multiplicative (("+" | "-") multiplicative)*`
+`additive => multiplicative ( ( "+" | "-" ) multiplicative )*`
 
-`multiplicative => unary (("*" | "/" | "%") unary)*`
+`multiplicative => unary ( ( "*" | "/" | "%" ) unary )*`
 
-`unary => ("+" | "-" | "~" | "!") unary | call`
+`unary => ( "+" | "-" | "~" | "!" ) unary | call`
+
+`call => primary ( "(" args? ")" ) | ( "[" expression "]" ) | ( "." ident )*`
+
+`primary => literal | "self" | ident | "(" expression ")"`
 
 _________________________________
 ### Enum Definitions
@@ -108,6 +112,13 @@ _________________________________
 `selfParam => "mut"? "self"`
 
 `param => "mut"? ident ":" ty`
+
+_________________________________
+### Argument Definitions
+
+`args => arg ( , arg )*`
+
+`arg => expression`
 
 _________________________________
 ### Type Definitions
