@@ -372,7 +372,7 @@ impl<'this> Tokenizer<'this> {
     fn create_token(&mut self, token_type: TokenType) {
         let token = Token::new(token_type, self.start, self.current);
         self.start = self.current;
-        self.tokenized_file.add_token(token);
+        self.tokenized_file.tokens.push(token);
     }
 }
 
@@ -425,10 +425,10 @@ mod tests {
     #[cfg(test)]
     macro_rules! test {
         ($string_interner:expr, $tokens:expr, $matching_text:literal) => {
-            assert_eq!($tokens, Tokenizer::new($string_interner, $matching_text).into().tokens());
+            assert_eq!($tokens, Tokenizer::new($string_interner, $matching_text).into().tokens);
         };
         ($string_interner:expr, $tokens:expr, $matching_text:expr) => {
-            assert_eq!($tokens, Tokenizer::new($string_interner, $matching_text).into().tokens());
+            assert_eq!($tokens, Tokenizer::new($string_interner, $matching_text).into().tokens);
         };
     }
 
@@ -437,9 +437,9 @@ mod tests {
         let string_interner = StringInterner::default();
         let tokenized_file = Tokenizer::new(string_interner, code).into();
         if let Ok(loaded) = load::<Vec<Token>, 2>(["tokenizer", test_name]) {
-            assert_eq!(loaded, tokenized_file.tokens());
+            assert_eq!(loaded, tokenized_file.tokens);
         } else {
-            save(["tokenizer", test_name], tokenized_file.tokens()).expect("Error saving module!");
+            save(["tokenizer", test_name], &tokenized_file.tokens).expect("Error saving module!");
         }
     }
 
@@ -458,8 +458,8 @@ mod tests {
             TokenType::RightBrace, 18, 19
         );
 
-        assert_eq!(expected, tokenize(string_interner.clone(), string).unwrap().tokens());
-        assert_eq!(expected, tokenize(string_interner, static_str).unwrap().tokens());
+        assert_eq!(expected, tokenize(string_interner.clone(), string).unwrap().tokens);
+        assert_eq!(expected, tokenize(string_interner, static_str).unwrap().tokens);
     }
 
     #[test]

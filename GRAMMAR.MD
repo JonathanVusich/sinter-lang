@@ -65,7 +65,7 @@ _________________________________
 
 `unary => ( "+" | "-" | "~" | "!" ) unary | call`
 
-`call => primary ( "(" args? ")" ) | ( "[" expression "]" ) | ( "." ident )*`
+`call => primary ( "(" args? ")" | "[" expression "]" | "." ident )*`
 
 `primary => literal | "self" | ident | "(" expression ")"`
 

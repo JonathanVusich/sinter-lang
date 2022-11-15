@@ -1,28 +1,28 @@
 use std::error::Error;
-use std::fmt::Alignment::Right;
 use std::fmt::{Display, Formatter};
+use std::fmt::Alignment::Right;
 use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::ast::ast::{
     BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite,
     GenericDecl, GenericDecls, IfStmt, LetStmt, Literal, Module, Mutability, Param, Params, PathTy,
     QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt,
     WhileStmt,
 };
+use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
+use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
+use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
+use crate::compiler::types::types::{BasicType, InternedStr, Type};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
 use crate::compiler::types::types::Type::{
     Basic, Closure, ImplicitSelf, Infer, Path, TraitBounds, Union,
 };
-use crate::compiler::types::types::{BasicType, InternedStr, Type};
-use crate::compiler::StringInterner;
 use crate::gc::block::Block;
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
@@ -33,6 +33,7 @@ pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<M
 struct Parser {
     string_interner: StringInterner,
     tokenized_input: TokenizedInput,
+    token_types: Vec<TokenType>,
     pos: usize,
 }
 
@@ -51,9 +52,15 @@ pub enum ClassType {
 
 impl Parser {
     fn new(string_interner: StringInterner, tokenized_input: TokenizedInput) -> Self {
+        let token_types = tokenized_input
+            .tokens
+            .iter()
+            .map(|f| f.token_type)
+            .collect();
         Self {
             string_interner,
             tokenized_input,
+            token_types,
             pos: 0,
         }
     }
@@ -179,6 +186,7 @@ impl Parser {
 
         Ok(enum_stmt)
     }
+
     fn parse_trait_stmt(&mut self) -> Result<Stmt> {
         Ok(Stmt::Trait(self.trait_stmt()?))
     }
@@ -213,7 +221,47 @@ impl Parser {
 
     fn expr(&mut self) -> Result<Expr> {
         self.bounds_check()?;
+        if self.matches_closure() {
+            return self.parse_closure_expr();
+        }
         self.parse_assignment_expr()
+    }
+
+    fn matches_closure(&mut self) -> bool {
+        if !self.matches(TokenType::LeftParentheses) {
+            return false;
+        }
+        let mut lookahead = self.pos + 1;
+        let mut matches_closure = false;
+        loop {
+            match self.next(lookahead) {
+                TokenType::Identifier(ident) => match self.next(lookahead + 1) {
+                    TokenType::Comma => lookahead += 2,
+                    TokenType::RightParentheses => {
+                        lookahead += 2;
+                        break;
+                    }
+                    _ => {
+                        matches_closure = false;
+                        break;
+                    }
+                }
+                _ => {
+                    matches_closure = false;
+                    break;
+                }
+            }
+        }
+        if !matches_closure {
+            return false;
+        }
+
+        self.next(lookahead) == TokenType::RightParentheses
+            && self.next(lookahead + 1) == TokenType::RightArrow
+    }
+
+    fn parse_closure_expr(&mut self) -> Result<Expr> {
+        todo!()
     }
 
     fn identifier(&mut self) -> Result<InternedStr> {
@@ -252,15 +300,12 @@ impl Parser {
             match self.current_type() {
                 TokenType::Identifier(ident) => {
                     idents.push(ident);
-                    if self.remaining() >= 2 {
-                        if self.next(1).token_type == TokenType::Colon
-                            && self.next(2).token_type == TokenType::Colon
-                        {
-                            self.advance_multiple(3);
-                        } else {
-                            self.advance();
-                            break;
-                        }
+                    if self.matches_multiple([
+                        TokenType::Identifier(ident),
+                        TokenType::Colon,
+                        TokenType::Colon,
+                    ]) {
+                        self.advance_multiple(3);
                     } else {
                         self.advance();
                         break;
@@ -728,11 +773,11 @@ impl Parser {
     }
 
     fn current(&mut self) -> Token {
-        self.tokenized_input.tokens()[self.pos]
+        self.tokenized_input.tokens[self.pos]
     }
 
     fn current_type(&mut self) -> TokenType {
-        self.tokenized_input.tokens()[self.pos].token_type
+        self.tokenized_input.tokens[self.pos].token_type
     }
 
     fn current_position(&mut self) -> TokenPosition {
@@ -741,7 +786,7 @@ impl Parser {
     }
 
     fn last(&mut self) -> Token {
-        self.tokenized_input.tokens()[self.tokenized_input.tokens().len() - 1]
+        self.tokenized_input.tokens[&self.tokenized_input.tokens.len() - 1]
     }
 
     fn last_position(&mut self) -> TokenPosition {
@@ -772,16 +817,23 @@ impl Parser {
         !self.is_at_end() && self.current_type() == token_type
     }
 
+    fn matches_multiple<const N: usize>(&mut self, tokens: [TokenType; N]) -> bool {
+        if self.token_types.len() < self.pos + tokens.len() {
+            return false;
+        }
+        tokens == self.token_types[self.pos..self.pos + tokens.len()]
+    }
+
     fn is_at_end(&self) -> bool {
-        self.pos >= self.tokenized_input.tokens().len()
+        self.pos >= self.token_types.len()
     }
 
     fn remaining(&self) -> usize {
-        self.tokenized_input.tokens().len() - (self.pos + 1)
+        self.token_types.len() - (self.pos + 1)
     }
 
-    fn next(&self, delta: usize) -> Token {
-        self.tokenized_input.tokens()[self.pos + delta]
+    fn next(&self, delta: usize) -> TokenType {
+        self.token_types[self.pos + delta]
     }
 }
 
@@ -820,21 +872,22 @@ mod tests {
     use anyhow::{anyhow, Result};
     use cfg_if::cfg_if;
     use lasso::ThreadedRodeo;
-    use serde::de::DeserializeOwned;
     use serde::{Deserialize, Serialize};
+    use serde::de::DeserializeOwned;
 
-    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
-    use crate::compiler::ast::ast::Stmt::Enum;
     use crate::compiler::ast::ast::{
         Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericDecl,
         GenericDecls, LetStmt, Mutability, Param, Params, QualifiedIdent, Stmt,
     };
     use crate::compiler::ast::ast::{Module, UseStmt};
-    use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
+    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
+    use crate::compiler::ast::ast::Stmt::Enum;
     use crate::compiler::parser::{ParseError, Parser};
+    use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
+    use crate::compiler::StringInterner;
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::Identifier;
-    use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
+    use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::BasicType;
     use crate::compiler::types::types::BasicType::{
@@ -842,7 +895,6 @@ mod tests {
     };
     use crate::compiler::types::types::Type;
     use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBounds};
-    use crate::compiler::StringInterner;
 
     cfg_if! {
         if #[cfg(test)] {
@@ -853,6 +905,7 @@ mod tests {
     #[cfg(test)]
     enum CodeUnit {
         Module,
+        Expression,
         Ty,
     }
 
@@ -860,16 +913,23 @@ mod tests {
     fn compare(test_name: &str, code: &str, code_unit: CodeUnit) {
         match code_unit {
             CodeUnit::Module => {
-                let (string_interner, module) = parse_code(code).unwrap();
+                let (string_interner, module) = parse_module(code).unwrap();
                 if let Ok(loaded) = load::<Module, 3>(["parser", "module", test_name]) {
                     assert_eq!(loaded, module);
                 } else {
                     save(["parser", "module", test_name], module).expect("Error saving module!");
                 }
             }
+            CodeUnit::Expression => {
+                let expr = parse_code(code, Parser::expr).expect("Could not parse expression!");
+                if let Ok(loaded) = load::<Expr, 3>(["parser", "expression", test_name]) {
+                    assert_eq!(loaded, expr);
+                } else {
+                    save(["parser", "expression", test_name], expr).expect("Error saving expression!");
+                }
+            }
             CodeUnit::Ty => {
-                let (string_interner, mut parser) = create_parser(code);
-                let ty = parser.parse_ty().expect("Could not parse type!");
+                let ty = parse_code(code, Parser::parse_ty).expect("Could not parse type!");
                 if let Ok(loaded) = load::<Type, 3>(["parser", "type", test_name]) {
                     assert_eq!(loaded, ty);
                 } else {
@@ -878,14 +938,21 @@ mod tests {
             }
         }
     }
+    #[cfg(test)]
+    fn parse_code<T>(code: &str, parser_func: fn(&mut Parser) -> Result<T>) -> Result<T> {
+        let (interner, mut parser) = create_parser(code);
+        parser_func(&mut parser)
+    }
 
-    fn parse_code(code: &str) -> Result<(StringInterner, Module)> {
+    #[cfg(test)]
+    fn parse_module(code: &str) -> Result<(StringInterner, Module)> {
         let (string_interner, parser) = create_parser(code);
         let module = parser.parse()?;
 
         Ok((string_interner, module))
     }
 
+    #[cfg(test)]
     fn create_parser(code: &str) -> (Arc<ThreadedRodeo>, Parser) {
         let string_interner = StringInterner::default();
         let tokens = tokenize(string_interner.clone(), code).unwrap();
@@ -895,7 +962,7 @@ mod tests {
 
     #[test]
     pub fn invalid_use_stmts() {
-        match parse_code("use std::vector::") {
+        match parse_module("use std::vector::") {
             Ok((string_interner, module)) => {
                 panic!();
             }
@@ -907,7 +974,7 @@ mod tests {
             },
         }
 
-        match parse_code("use std::vector::Vector") {
+        match parse_module("use std::vector::Vector") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedToken(token, _)) => {
@@ -917,7 +984,7 @@ mod tests {
             },
         }
 
-        match parse_code("use;") {
+        match parse_module("use;") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedToken(Identifier(_), pos)) => {}
@@ -925,7 +992,7 @@ mod tests {
             },
         }
 
-        match parse_code("use") {
+        match parse_module("use") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(UnexpectedEof(pos)) => {}
@@ -951,11 +1018,17 @@ mod tests {
         compare(function_name!(), code, CodeUnit::Ty);
     }
 
+    #[test]
+    #[named]
+    pub fn closure_expression() {
+        let code = "(x, y) => x + y";
+        compare(function_name!(), code, CodeUnit::Module)
+    }
     macro_rules! simple_type {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]
             pub fn $fn_name() {
-                let (string_interner, module) = parse_code(concat!("let x: ", $code, ";")).unwrap();
+                let (string_interner, module) = parse_module(concat!("let x: ", $code, ";")).unwrap();
                 let ty = Some($typ);
 
                 assert_eq!(

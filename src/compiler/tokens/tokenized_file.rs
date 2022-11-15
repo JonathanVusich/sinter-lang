@@ -2,8 +2,8 @@ use crate::compiler::tokens::token::Token;
 
 #[derive(Debug, Default)]
 pub struct TokenizedInput {
-    tokens: Vec<Token>,
-    line_map: Vec<usize>,
+    pub (crate) tokens: Vec<Token>,
+    pub (crate) line_map: Vec<usize>,
     line_counter: usize,
 }
 
@@ -14,16 +14,13 @@ pub struct TokenPosition {
 }
 
 impl TokenizedInput {
+
     pub fn new() -> Self {
         Self {
             tokens: Vec::new(),
             line_map: Vec::new(),
             line_counter: 0,
         }
-    }
-
-    pub fn tokens(&self) -> &[Token] {
-        &self.tokens
     }
 
     pub fn token_position(&self, pos: usize) -> TokenPosition {
@@ -40,10 +37,6 @@ impl TokenizedInput {
     pub fn add_line_break(&mut self, pos: usize) {
         self.line_map.push(pos);
         self.line_counter += 1;
-    }
-
-    pub fn add_token(&mut self, token: Token) {
-        self.tokens.push(token);
     }
 }
 
