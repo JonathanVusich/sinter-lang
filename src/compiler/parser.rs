@@ -1,28 +1,23 @@
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt::Alignment::Right;
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::{
-    BlockStmt, ClassStmt, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite,
-    GenericDecl, GenericDecls, IfStmt, LetStmt, Literal, Module, Mutability, Param, Params, PathTy,
-    QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt,
-    WhileStmt,
-};
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, LetStmt, Literal, Module, Mutability, Param, Params, PathTy, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
-use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
-use crate::compiler::types::types::{BasicType, InternedStr, Type};
+use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
 use crate::compiler::types::types::Type::{
     Basic, Closure, ImplicitSelf, Infer, Path, TraitBounds, Union,
 };
+use crate::compiler::types::types::{BasicType, InternedStr, Type};
+use crate::compiler::StringInterner;
 use crate::gc::block::Block;
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
@@ -224,44 +219,67 @@ impl Parser {
         if self.matches_closure() {
             return self.parse_closure_expr();
         }
-        self.parse_assignment_expr()
+        self.parse_assignment_expr(0)
     }
 
     fn matches_closure(&mut self) -> bool {
         if !self.matches(TokenType::LeftParentheses) {
+            println!("Did not match parentheses");
             return false;
         }
         let mut lookahead = self.pos + 1;
-        let mut matches_closure = false;
+        let matches_closure;
         loop {
             match self.next(lookahead) {
                 TokenType::Identifier(ident) => match self.next(lookahead + 1) {
-                    TokenType::Comma => lookahead += 2,
+                    TokenType::Comma => {
+                        println!("Matched ident and comma");
+                        lookahead += 2
+                    }
                     TokenType::RightParentheses => {
+                        println!("Matched ident and right parentheses");
                         lookahead += 2;
+                        matches_closure = true;
                         break;
                     }
-                    _ => {
+                    token => {
+                        println!("Unexpected token: {}", token);
                         matches_closure = false;
                         break;
                     }
-                }
-                _ => {
+                },
+                token => {
+                    println!("Unexpected token: {}", token);
                     matches_closure = false;
                     break;
                 }
             }
         }
         if !matches_closure {
+            println!("Did not match closure!");
             return false;
         }
 
-        self.next(lookahead) == TokenType::RightParentheses
-            && self.next(lookahead + 1) == TokenType::RightArrow
+        self.next(lookahead) == TokenType::RightArrow
     }
 
     fn parse_closure_expr(&mut self) -> Result<Expr> {
-        todo!()
+        let vars = self.parse_multiple_with_scope_delimiter::<InternedStr, 1>(
+            Self::identifier,
+            TokenType::Comma,
+            TokenType::LeftParentheses,
+            TokenType::RightParentheses,
+        )?;
+
+        self.expect(TokenType::RightArrow)?;
+
+        let stmt = if self.matches(TokenType::LeftBrace) {
+            self.parse_block_stmt()?
+        } else {
+            self.parse_expression()?
+        };
+
+        Ok(Expr::Closure(Box::new(ClosureExpr::new(vars, stmt))))
     }
 
     fn identifier(&mut self) -> Result<InternedStr> {
@@ -282,11 +300,11 @@ impl Parser {
     }
 
     fn float_literal(&mut self, float: f64) -> Result<Expr> {
-        Ok(Expr::Literal(Literal::FloatingPointerLiteral(float)))
+        Ok(Expr::Literal(Literal::FloatLiteral(float)))
     }
 
     fn integer_literal(&mut self, integer: i64) -> Result<Expr> {
-        Ok(Expr::Literal(Literal::IntegerLiteral(integer)))
+        Ok(Expr::Literal(Literal::IntLiteral(integer)))
     }
 
     fn string_literal(&mut self, interned: InternedStr) -> Result<Expr> {
@@ -649,7 +667,53 @@ impl Parser {
         ))))
     }
 
-    fn parse_assignment_expr(&mut self) -> Result<Expr> {
+    fn parse_assignment_expr(&mut self, min_binding_power: u8) -> Result<Expr> {
+        let mut lhs = match self.current_type() {
+
+            // Handle literals
+            TokenType::True => {
+                Expr::Literal(Literal::BooleanLiteral(true))
+            }
+            TokenType::False => {
+                Expr::Literal(Literal::BooleanLiteral(false))
+            }
+            TokenType::None => {
+                Expr::Literal(Literal::None)
+            }
+            TokenType::SignedInteger(int) => {
+                Expr::Literal(Literal::IntLiteral(int))
+            }
+            TokenType::Float(float) => {
+                Expr::Literal(Literal::FloatLiteral(float))
+            }
+            TokenType::String(string) => {
+                Expr::Literal(Literal::StringLiteral(string))
+            }
+
+            // Handle self
+            TokenType::SelfLowercase => {
+                Expr::SelfRef
+            }
+
+            // Handle ident
+            TokenType::Identifier(ident) => {
+                Expr::Identifier
+            }
+
+            // Handle parenthesized expression
+            TokenType::LeftParentheses => {
+                let inner_lhs = self.parse_assignment_expr(0)?;
+                self.expect(TokenType::RightParentheses)?;
+                inner_lhs
+            }
+
+            // TODO: Handle operators
+
+            token => {
+                let pos = self.current_position();
+                return self.unexpected_token(token, pos);
+            }
+        };
         todo!()
     }
 
@@ -873,22 +937,21 @@ mod tests {
     use anyhow::{anyhow, Result};
     use cfg_if::cfg_if;
     use lasso::ThreadedRodeo;
-    use serde::{Deserialize, Serialize};
     use serde::de::DeserializeOwned;
+    use serde::{Deserialize, Serialize};
 
+    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
+    use crate::compiler::ast::ast::Stmt::Enum;
     use crate::compiler::ast::ast::{
         Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericDecl,
         GenericDecls, LetStmt, Mutability, Param, Params, QualifiedIdent, Stmt,
     };
     use crate::compiler::ast::ast::{Module, UseStmt};
-    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
-    use crate::compiler::ast::ast::Stmt::Enum;
-    use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
-    use crate::compiler::StringInterner;
+    use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::Identifier;
-    use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
+    use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::BasicType;
     use crate::compiler::types::types::BasicType::{
@@ -896,6 +959,7 @@ mod tests {
     };
     use crate::compiler::types::types::Type;
     use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBounds};
+    use crate::compiler::StringInterner;
 
     cfg_if! {
         if #[cfg(test)] {
@@ -912,12 +976,11 @@ mod tests {
 
     #[cfg(test)]
     impl CodeUnit {
-
         fn folder_path(self, test_name: &str) -> Box<Path> {
             let folder = match self {
                 CodeUnit::Module => "module",
                 CodeUnit::Ty => "type",
-                CodeUnit::Expression => "expression"
+                CodeUnit::Expression => "expression",
             };
 
             resolve_test_path(["parser", folder, test_name])
@@ -928,26 +991,35 @@ mod tests {
     fn run_test(test_name: &str, code: &str, code_unit: CodeUnit) {
         match code_unit {
             CodeUnit::Module => {
-                inner_compare(parse_code(code, Parser::parse).unwrap(), code_unit.folder_path(test_name));
+                inner_compare(
+                    parse_code(code, Parser::parse).unwrap(),
+                    code_unit.folder_path(test_name),
+                );
             }
-            CodeUnit::Ty => {
-                inner_compare(parse_code(code, Parser::parse_ty).unwrap(), code_unit.folder_path(test_name))
-            }
+            CodeUnit::Ty => inner_compare(
+                parse_code(code, Parser::parse_ty).unwrap(),
+                code_unit.folder_path(test_name),
+            ),
             CodeUnit::Expression => {
-                inner_compare(parse_code(code, Parser::expr).unwrap(), code_unit.folder_path(test_name));
+                inner_compare(
+                    parse_code(code, Parser::expr).unwrap(),
+                    code_unit.folder_path(test_name),
+                );
             }
         }
     }
 
     #[cfg(test)]
-    fn inner_compare<T: DeserializeOwned + Serialize + Debug + PartialEq>(value: T, path: Box<Path>) {
+    fn inner_compare<T: DeserializeOwned + Serialize + Debug + PartialEq>(
+        value: T,
+        path: Box<Path>,
+    ) {
         if let Ok(loaded) = load::<T>(&path) {
             assert_eq!(loaded, value);
         } else {
             save(&path, value).expect("Error saving data!");
         }
     }
-
 
     #[cfg(test)]
     fn parse_code<T>(code: &str, parser_func: fn(&mut Parser) -> Result<T>) -> Result<T> {
@@ -1033,14 +1105,15 @@ mod tests {
     #[named]
     pub fn closure_expression() {
         let code = "(x, y) => x + y";
-        run_test(function_name!(), code, CodeUnit::Module)
+        run_test(function_name!(), code, CodeUnit::Expression)
     }
-    
+
     macro_rules! simple_type {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]
             pub fn $fn_name() {
-                let (string_interner, module) = parse_module(concat!("let x: ", $code, ";")).unwrap();
+                let (string_interner, module) =
+                    parse_module(concat!("let x: ", $code, ";")).unwrap();
                 let ty = Some($typ);
 
                 assert_eq!(

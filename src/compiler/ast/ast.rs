@@ -342,6 +342,8 @@ pub enum Expr {
     Binary(Box<BinaryExpr>),
     Unary(Box<UnaryExpr>),
     Literal(Literal),
+    SelfRef,
+    Identifier,
     Match(Box<MatchExpr>),
     Closure(Box<ClosureExpr>),
     Assign(Box<AssignExpr>),
@@ -408,8 +410,18 @@ pub struct MatchArm {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClosureExpr {
-    params: Params,
-    expr: Expr,
+    params: Vec<InternedStr>,
+    stmt: Stmt,
+}
+
+impl ClosureExpr {
+
+    pub fn new(params: Vec<InternedStr>, stmt: Stmt) -> Self {
+        Self {
+            params,
+            stmt
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -504,8 +516,8 @@ impl BlockStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Literal {
-    IntegerLiteral(i64),
-    FloatingPointerLiteral(f64),
+    IntLiteral(i64),
+    FloatLiteral(f64),
     BooleanLiteral(bool),
     StringLiteral(InternedStr),
     None,
