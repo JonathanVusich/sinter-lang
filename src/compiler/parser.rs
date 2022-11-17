@@ -26,7 +26,7 @@ use crate::compiler::types::types::Type::{
 use crate::gc::block::Block;
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
-    let parser = Parser::new(string_interner, input);
+    let mut parser = Parser::new(string_interner, input);
     parser.parse()
 }
 
@@ -65,7 +65,7 @@ impl Parser {
         }
     }
 
-    fn parse(mut self) -> Result<Module> {
+    fn parse(&mut self) -> Result<Module> {
         let stmts = self.parse_outer_stmts()?;
         Ok(Module::new(stmts))
     }
@@ -863,6 +863,7 @@ unsafe impl Sync for ParseError {}
 mod tests {
     use std::any::Any;
     use std::error::Error;
+    use std::fmt::Debug;
     use std::fs::File;
     use std::io::{BufReader, BufWriter};
     use std::path::{Path, PathBuf};
@@ -898,7 +899,7 @@ mod tests {
 
     cfg_if! {
         if #[cfg(test)] {
-            use crate::util::utils::{load, save};
+            use crate::util::utils::{load, save, resolve_test_path};
         }
     }
 
@@ -910,34 +911,44 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn compare(test_name: &str, code: &str, code_unit: CodeUnit) {
+    impl CodeUnit {
+
+        fn folder_path(self, test_name: &str) -> Box<Path> {
+            let folder = match self {
+                CodeUnit::Module => "module",
+                CodeUnit::Ty => "type",
+                CodeUnit::Expression => "expression"
+            };
+
+            resolve_test_path(["parser", folder, test_name])
+        }
+    }
+
+    #[cfg(test)]
+    fn run_test(test_name: &str, code: &str, code_unit: CodeUnit) {
         match code_unit {
             CodeUnit::Module => {
-                let (string_interner, module) = parse_module(code).unwrap();
-                if let Ok(loaded) = load::<Module, 3>(["parser", "module", test_name]) {
-                    assert_eq!(loaded, module);
-                } else {
-                    save(["parser", "module", test_name], module).expect("Error saving module!");
-                }
-            }
-            CodeUnit::Expression => {
-                let expr = parse_code(code, Parser::expr).expect("Could not parse expression!");
-                if let Ok(loaded) = load::<Expr, 3>(["parser", "expression", test_name]) {
-                    assert_eq!(loaded, expr);
-                } else {
-                    save(["parser", "expression", test_name], expr).expect("Error saving expression!");
-                }
+                inner_compare(parse_code(code, Parser::parse).unwrap(), code_unit.folder_path(test_name));
             }
             CodeUnit::Ty => {
-                let ty = parse_code(code, Parser::parse_ty).expect("Could not parse type!");
-                if let Ok(loaded) = load::<Type, 3>(["parser", "type", test_name]) {
-                    assert_eq!(loaded, ty);
-                } else {
-                    save(["parser", "type", test_name], ty).expect("Error saving type!");
-                }
+                inner_compare(parse_code(code, Parser::parse_ty).unwrap(), code_unit.folder_path(test_name))
+            }
+            CodeUnit::Expression => {
+                inner_compare(parse_code(code, Parser::expr).unwrap(), code_unit.folder_path(test_name));
             }
         }
     }
+
+    #[cfg(test)]
+    fn inner_compare<T: DeserializeOwned + Serialize + Debug + PartialEq>(value: T, path: Box<Path>) {
+        if let Ok(loaded) = load::<T>(&path) {
+            assert_eq!(loaded, value);
+        } else {
+            save(&path, value).expect("Error saving data!");
+        }
+    }
+
+
     #[cfg(test)]
     fn parse_code<T>(code: &str, parser_func: fn(&mut Parser) -> Result<T>) -> Result<T> {
         let (interner, mut parser) = create_parser(code);
@@ -946,7 +957,7 @@ mod tests {
 
     #[cfg(test)]
     fn parse_module(code: &str) -> Result<(StringInterner, Module)> {
-        let (string_interner, parser) = create_parser(code);
+        let (string_interner, mut parser) = create_parser(code);
         let module = parser.parse()?;
 
         Ok((string_interner, module))
@@ -1008,22 +1019,23 @@ mod tests {
     #[named]
     pub fn closure_return_closure() {
         let code = "() => (() => None)";
-        compare(function_name!(), code, CodeUnit::Ty);
+        run_test(function_name!(), code, CodeUnit::Ty);
     }
 
     #[test]
     #[named]
     pub fn closure_returns_trait_bound_or_none() {
         let code = "() => [first::party::package::Send<V: std::Copy + std::Clone> + third::party::package::Sync<T> + std::Copy + std::Clone] | None";
-        compare(function_name!(), code, CodeUnit::Ty);
+        run_test(function_name!(), code, CodeUnit::Ty);
     }
 
     #[test]
     #[named]
     pub fn closure_expression() {
         let code = "(x, y) => x + y";
-        compare(function_name!(), code, CodeUnit::Module)
+        run_test(function_name!(), code, CodeUnit::Module)
     }
+    
     macro_rules! simple_type {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]
@@ -1079,7 +1091,7 @@ mod tests {
             "use std::map::HashMap;"
         );
 
-        compare(function_name!(), code, CodeUnit::Module);
+        run_test(function_name!(), code, CodeUnit::Module);
     }
 
     #[test]
@@ -1099,7 +1111,7 @@ mod tests {
             "}"
         );
 
-        compare(function_name!(), code, CodeUnit::Module);
+        run_test(function_name!(), code, CodeUnit::Module);
     }
 
     #[test]

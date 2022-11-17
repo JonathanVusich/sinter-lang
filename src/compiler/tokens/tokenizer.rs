@@ -400,7 +400,7 @@ mod tests {
     use crate::compiler::StringInterner;
     cfg_if! {
         if #[cfg(test)] {
-            use crate::util::utils::{load, save};
+            use crate::util::utils::{load, save, resolve_test_path};
         }
     }
 
@@ -436,10 +436,10 @@ mod tests {
     fn compare_tokens(test_name: &str, code: &str) {
         let string_interner = StringInterner::default();
         let tokenized_file = Tokenizer::new(string_interner, code).into();
-        if let Ok(loaded) = load::<Vec<Token>, 2>(["tokenizer", test_name]) {
+        if let Ok(loaded) = load::<Vec<Token>>(&resolve_test_path(["tokenizer", test_name])) {
             assert_eq!(loaded, tokenized_file.tokens);
         } else {
-            save(["tokenizer", test_name], &tokenized_file.tokens).expect("Error saving module!");
+            save(&resolve_test_path(["tokenizer", test_name]), &tokenized_file.tokens).expect("Error saving module!");
         }
     }
 
