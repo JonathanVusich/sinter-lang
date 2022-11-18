@@ -41,7 +41,7 @@ _________________________________
 
 `closure => "(" ( ident ( , ident )* )? ")" "=>" ( blockStmt | expr )`
 
-`assignment => logical_or ( ( "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "^=" | "|=" | "<<=" | ">>=" | ">>>=" ) logical_or )*`
+`assignment => logical_or ( ( "=" ) logical_or )*`
 
 `logical_or => logical_and ( "||" logical_and )*`
 
@@ -51,7 +51,7 @@ _________________________________
 
 `bitwise_exclusive_or => bitwise_and ( "^" bitwise_and )*`
 
-`bitwise_and => equality ( "&" equality )*`
+`bitwise_and => equality ( "&" equality)*`
 
 `equality => relational ( ( "==" | "!=" ) relational )*`
 

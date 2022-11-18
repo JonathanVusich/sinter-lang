@@ -343,7 +343,7 @@ pub enum Expr {
     Unary(Box<UnaryExpr>),
     Literal(Literal),
     SelfRef,
-    Identifier,
+    Identifier(InternedStr),
     Match(Box<MatchExpr>),
     Closure(Box<ClosureExpr>),
     Assign(Box<AssignExpr>),
@@ -555,6 +555,16 @@ pub enum UnaryOp {
     Bang,
     Minus,
     Plus,
+    BitwiseComplement
+}
+
+impl UnaryOp {
+    
+    pub fn prefix_binding_power(self) -> ((), u8) {
+        match self {
+            
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]

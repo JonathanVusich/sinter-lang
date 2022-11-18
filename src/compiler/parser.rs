@@ -478,7 +478,7 @@ impl Parser {
 
     fn parse_ty(&mut self) -> Result<Type> {
         self.bounds_check()?;
-        let mut tys = self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::Pipe)?;
+        let mut tys = self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
         if tys.len() > 1 {
             Ok(Union(tys))
         } else {
@@ -667,7 +667,31 @@ impl Parser {
         ))))
     }
 
+
     fn parse_assignment_expr(&mut self, min_binding_power: u8) -> Result<Expr> {
+        // Check for prefix operator
+        let lhs = if let Some(unaryOp) = prefix_op(self.current_type()) {
+            let ((), prefix_bp) = unaryOp.prefix_binding_power();
+            let rhs = self.parse_assignment_expr(prefix_bp)?;
+            Expr::Unary(Box::new(UnaryExpr::new(unaryOp, rhs)))
+        } else {
+            match self.current_type() {
+                TokenType::SelfLowercase => Expr::SelfRef,
+                
+            }
+        }
+        let lhs = match self.current_type() {
+            if let Some(unaryOp) = prefix_op()
+            TokenType::Minus | TokenType::Plus | TokenType::BitwiseComplement | TokenType::Bang => {
+                let ((), prefix_bp) = prefix_op(self.current_type());
+                self.parse_assignment_expr(prefix_bp);
+                Expr::Unary(Box::new(UnaryExpr()))
+            }
+            token => {
+
+            }
+        }
+
         let mut lhs = match self.current_type() {
 
             // Handle literals
@@ -697,7 +721,7 @@ impl Parser {
 
             // Handle ident
             TokenType::Identifier(ident) => {
-                Expr::Identifier
+                Expr::Identifier(ident)
             }
 
             // Handle parenthesized expression
@@ -707,11 +731,18 @@ impl Parser {
                 inner_lhs
             }
 
-            // TODO: Handle operators
+            // Handle index expression
+            TokenType::LeftBracket => {
+                let inner_lhs = self.parse_assignment_expr(0)?;
+                inner_lhs
+            }
 
-            token => {
-                let pos = self.current_position();
-                return self.unexpected_token(token, pos);
+            // TODO: Handle operators
+            TokenType::Equal ||
+
+                token => {
+            let pos = self.current_position();
+            return self.unexpected_token(token, pos);
             }
         };
         todo!()
@@ -901,6 +932,24 @@ impl Parser {
     }
 }
 
+fn infix_bp(token: TokenType) -> (u8, u8) {
+    match token {
+        TokenType::Plus | TokenType::Minus => (1, 2),
+        TokenType::Star | TokenType::Slash => (3, 4),
+        token => panic!("Unexpected infix operator {}!", token)
+    }
+}
+
+fn prefix_op(token: TokenType) -> Option<UnaryOp> {
+    match token {
+        TokenType::Bang => Some(UnaryOp::Bang),
+        TokenType::Plus => Some(UnaryOp::Plus),
+        TokenType::Minus => Some(UnaryOp::Minus),
+        TokenType::BitwiseComplement => Some(UnaryOp::BitwiseComplement),
+        _ => None
+    }
+}
+
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -922,6 +971,7 @@ impl Display for ParseError {
 impl Error for ParseError {}
 
 unsafe impl Send for ParseError {}
+
 unsafe impl Sync for ParseError {}
 
 mod tests {
@@ -1159,9 +1209,9 @@ mod tests {
     #[named]
     pub fn use_statements() {
         let code = concat!(
-            "use std::vector;",
-            "use std::array;",
-            "use std::map::HashMap;"
+        "use std::vector;",
+        "use std::array;",
+        "use std::map::HashMap;"
         );
 
         run_test(function_name!(), code, CodeUnit::Module);
@@ -1171,17 +1221,17 @@ mod tests {
     #[named]
     pub fn basic_enum() {
         let code = concat!(
-            "enum Planet {\n",
-            "    Mercury,\n",
-            "    Venus,\n",
-            "    Earth,\n",
-            "    Mars,\n",
-            "    Jupiter,\n",
-            "    Saturn,\n",
-            "    Uranus,\n",
-            "    Neptune,\n",
-            "    Pluto,\n",
-            "}"
+        "enum Planet {\n",
+        "    Mercury,\n",
+        "    Venus,\n",
+        "    Earth,\n",
+        "    Mars,\n",
+        "    Jupiter,\n",
+        "    Saturn,\n",
+        "    Uranus,\n",
+        "    Neptune,\n",
+        "    Pluto,\n",
+        "}"
         );
 
         run_test(function_name!(), code, CodeUnit::Module);
@@ -1191,14 +1241,14 @@ mod tests {
     #[named]
     pub fn complex_enum() {
         let code = concat!(
-            "enum Vector<X: Number + Display, Y: Number + Display> {\n",
-            "    Normalized(x: X, y: Y),\n",
-            "    Absolute(x: X, y: Y) {\n",
-            "        fn to_normalized(self) => Vector {\n",
-            "            return Normalized(self.x, self.y);\n",
-            "        }\n",
-            "    }\n",
-            "}"
+        "enum Vector<X: Number + Display, Y: Number + Display> {\n",
+        "    Normalized(x: X, y: Y),\n",
+        "    Absolute(x: X, y: Y) {\n",
+        "        fn to_normalized(self) => Vector {\n",
+        "            return Normalized(self.x, self.y);\n",
+        "        }\n",
+        "    }\n",
+        "}"
         );
 
         // compare(function_name!(), code, CodeUnit::Module);

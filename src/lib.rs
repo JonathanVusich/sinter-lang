@@ -10,6 +10,7 @@
 #![feature(fn_traits)]
 #![feature(entry_insert)]
 #![feature(hash_set_entry)]
+#![feature(option_result_contains)]
 
 extern crate core;
 

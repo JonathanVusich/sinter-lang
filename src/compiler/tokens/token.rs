@@ -30,7 +30,6 @@ pub enum TokenType {
 
     Slash,
     Star,
-    Pipe,
 
     Bang,
     BangEqual,
@@ -41,8 +40,12 @@ pub enum TokenType {
 
     Greater,
     GreaterEqual,
+    RightShift,
+    TripleRightShift,
+
     Less,
     LessEqual,
+    LeftShift,
 
     Identifier(InternedStr),
     String(InternedStr),
@@ -58,6 +61,11 @@ pub enum TokenType {
 
     And,
     Or,
+
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseXor,
+    BitwiseComplement,
 
     Else,
     If,
@@ -111,7 +119,7 @@ impl Display for TokenType {
             TokenType::Semicolon => write!(f, ";"),
             TokenType::Slash => write!(f, "\\"),
             TokenType::Star => write!(f, "*"),
-            TokenType::Pipe => write!(f, "|"),
+            TokenType::BitwiseOr => write!(f, "|"),
             TokenType::Bang => write!(f, "!"),
             TokenType::BangEqual => write!(f, "!="),
             TokenType::Equal => write!(f, "="),
@@ -153,7 +161,14 @@ impl Display for TokenType {
             TokenType::Inline => write!(f, "inline"),
             TokenType::Let => write!(f, "let"),
             TokenType::Mut => write!(f, "mut"),
-            TokenType::In => write!(f, "in")
+            TokenType::In => write!(f, "in"),
+            TokenType::RightShift => write!(f, ">>"),
+            TokenType::TripleRightShift => write!(f, ">>>"),
+            TokenType::LeftShift => write!(f, "<<"),
+            TokenType::BitwiseAnd => write!(f, "&"),
+            TokenType::BitwiseOr => write!(f, "|"),
+            TokenType::BitwiseXor => write!(f, "^"),
+            TokenType::BitwiseComplement => write!(f, "~")
         }
     }
 }

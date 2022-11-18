@@ -99,7 +99,7 @@ impl<'this> Tokenizer<'this> {
                 if self.matches("&") {
                     self.create_token(TokenType::And)
                 } else {
-                    self.create_unrecognized_token("&")
+                    self.create_token(TokenType::BitwiseAnd)
                 }
             }
             "{" => self.create_token(TokenType::LeftBrace),
@@ -126,9 +126,11 @@ impl<'this> Tokenizer<'this> {
                 if self.matches("|") {
                     self.create_token(TokenType::Or)
                 } else {
-                    self.create_token(TokenType::Pipe)
+                    self.create_token(TokenType::BitwiseOr)
                 }
             }
+            "~" => self.create_token(TokenType::BitwiseComplement),
+            "^" => self.create_token(TokenType::BitwiseXor),
             "!" => {
                 if self.matches("=") {
                     self.create_token(TokenType::BangEqual)
@@ -148,12 +150,22 @@ impl<'this> Tokenizer<'this> {
             "<" => {
                 if self.matches("=") {
                     self.create_token(TokenType::LessEqual)
+                } else if self.matches("<") {
+                    self.create_token(TokenType::LeftShift)
                 } else {
                     self.create_token(TokenType::Less)
                 }
             }
             ">" => {
                 if self.matches("=") {
+                    self.create_token(TokenType::GreaterEqual)
+                } else if self.matches(">") {
+                    if self.peek_next().contains(&">") {
+                        self.create_token(TokenType::TripleRightShift)
+                    } else {
+                        self.create_token(TokenType::RightShift)
+                    }
+                } else if self.matches("=") {
                     self.create_token(TokenType::GreaterEqual)
                 } else {
                     self.create_token(TokenType::Greater)
@@ -172,9 +184,9 @@ impl<'this> Tokenizer<'this> {
         let identifier = self.source_chars[self.start..self.current].join("");
         let token_type = KEYWORDS.get(&identifier).copied()
             .unwrap_or_else(|| {
-            let interned_str = self.string_interner.get_or_intern(identifier);
-            TokenType::Identifier(interned_str)
-        });
+                let interned_str = self.string_interner.get_or_intern(identifier);
+                TokenType::Identifier(interned_str)
+            });
 
         self.create_token(token_type);
     }
@@ -194,7 +206,7 @@ impl<'this> Tokenizer<'this> {
         let next_chars = self.source_chars[self.start + start..end].join("");
         if next_chars == remainder
             && (end == self.source_chars.len()
-                || end < self.source_chars.len() && is_delimiter(self.source_chars[end]))
+            || end < self.source_chars.len() && is_delimiter(self.source_chars[end]))
         {
             self.current = end;
             return Some(token_type);
@@ -482,6 +494,12 @@ mod tests {
 
     #[test]
     #[named]
+    pub fn simple_expression() {
+        compare_tokens(function_name!(), "x = 123 >> 2 | 89 * 21");
+    }
+
+    #[test]
+    #[named]
     pub fn simple_trait() {
         compare_tokens(function_name!(), "trait Serializable { }");
     }
@@ -490,9 +508,9 @@ mod tests {
     #[named]
     pub fn simple_iterator_trait() {
         let code = concat!(
-            "trait Iterator<T> {\n",
-            "     fn next() => T | None;\n",
-            "}"
+        "trait Iterator<T> {\n",
+        "     fn next() => T | None;\n",
+        "}"
         );
 
         compare_tokens(function_name!(), code);
@@ -508,7 +526,7 @@ mod tests {
     #[named]
     pub fn simple_main_stmt() {
         compare_tokens(function_name!(),
-       "fn main(arguments: [str]) { \
+                       "fn main(arguments: [str]) { \
                  print(arguments.to_string()); \
              }");
     }
@@ -517,10 +535,10 @@ mod tests {
     #[named]
     pub fn var_declarations() {
         compare_tokens(function_name!(),
-            concat!(
-                "let mut x = None;\n",
-                "let y = 0;"
-            )
+                       concat!(
+                       "let mut x = None;\n",
+                       "let y = 0;"
+                       ),
         );
     }
 
@@ -540,11 +558,11 @@ mod tests {
     #[named]
     pub fn bytearray_to_str() {
         let code = concat!(
-            r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
-            "\n",
-            r#"let bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];"#,
-            "\n",
-            r#"let greeting_from_array = str(bytearray); // "Hello world!""#
+        r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
+        "\n",
+        r#"let bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];"#,
+        "\n",
+        r#"let greeting_from_array = str(bytearray); // "Hello world!""#
         );
 
         compare_tokens(function_name!(), code);
@@ -566,13 +584,13 @@ mod tests {
     #[named]
     pub fn scene_graph_node() {
         let code = concat!(
-            "trait Node {\n",
-            "   fn bounds() => Bounds;\n",
-            "   fn draw(Graphics g);\n",
-            "   fn children() => MutableList<Node>;\n",
-            "}\n",
-            "\n",
-            "fn draw_frame(nodes: List<Node>) { }"
+        "trait Node {\n",
+        "   fn bounds() => Bounds;\n",
+        "   fn draw(Graphics g);\n",
+        "   fn children() => MutableList<Node>;\n",
+        "}\n",
+        "\n",
+        "fn draw_frame(nodes: List<Node>) { }"
         );
         compare_tokens(function_name!(), code);
     }
@@ -587,14 +605,14 @@ mod tests {
     #[named]
     pub fn enum_with_member_funcs() {
         let code = concat!(
-            "enum Message {\n",
-            "    Text(message: str),\n",
-            "    Photo(caption: str, photo: SerializedPhoto) {\n",
-            "        fn size() {\n",
-            "            return photo.size();\n",
-            "        }\n",
-            "    },\n",
-            "}"
+        "enum Message {\n",
+        "    Text(message: str),\n",
+        "    Photo(caption: str, photo: SerializedPhoto) {\n",
+        "        fn size() {\n",
+        "            return photo.size();\n",
+        "        }\n",
+        "    },\n",
+        "}"
         );
         compare_tokens(function_name!(), code);
     }
@@ -603,14 +621,14 @@ mod tests {
     #[named]
     pub fn complex_enum() {
         let code = concat!(
-            "enum Vector<X: Number + Display, Y: Number + Display> {\n",
-            "    Normalized(x: X, y: Y),\n",
-            "    Absolute(x: X, y: Y) {\n",
-            "        fn to_normalized(self) => Vector {\n",
-            "            return Normalized(self.x, self.y);\n",
-            "        }\n",
-            "    }\n",
-            "}"
+        "enum Vector<X: Number + Display, Y: Number + Display> {\n",
+        "    Normalized(x: X, y: Y),\n",
+        "    Absolute(x: X, y: Y) {\n",
+        "        fn to_normalized(self) => Vector {\n",
+        "            return Normalized(self.x, self.y);\n",
+        "        }\n",
+        "    }\n",
+        "}"
         );
         compare_tokens(function_name!(), code);
     }
@@ -619,7 +637,7 @@ mod tests {
     #[named]
     pub fn for_loop() {
         let code = concat!(
-            "for x in 0..100 { }"
+        "for x in 0..100 { }"
         );
 
         compare_tokens(function_name!(), code);
