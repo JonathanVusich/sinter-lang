@@ -121,6 +121,7 @@ impl<'this> Tokenizer<'this> {
             }
             "+" => self.create_token(TokenType::Plus),
             "/" => self.create_token(TokenType::Slash),
+            "%" => self.create_token(TokenType::Percent),
             "*" => self.create_token(TokenType::Star),
             "|" => {
                 if self.matches("|") {

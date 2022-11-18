@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{BlockStmt, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, LetStmt, Literal, Module, Mutability, Param, Params, PathTy, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{BlockStmt, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, LetStmt, Literal, Module, Mutability, Param, Params, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -224,43 +224,42 @@ impl Parser {
 
     fn matches_closure(&mut self) -> bool {
         if !self.matches(TokenType::LeftParentheses) {
-            println!("Did not match parentheses");
             return false;
         }
         let mut lookahead = self.pos + 1;
         let matches_closure;
         loop {
-            match self.next(lookahead) {
-                TokenType::Identifier(ident) => match self.next(lookahead + 1) {
-                    TokenType::Comma => {
-                        println!("Matched ident and comma");
-                        lookahead += 2
-                    }
-                    TokenType::RightParentheses => {
-                        println!("Matched ident and right parentheses");
-                        lookahead += 2;
-                        matches_closure = true;
-                        break;
-                    }
-                    token => {
-                        println!("Unexpected token: {}", token);
-                        matches_closure = false;
-                        break;
+            if self.remaining() < 2 {
+                return false;
+            }
+            match self.next_type(lookahead) {
+                TokenType::Identifier(ident) => {
+                    match self.next_type(lookahead + 1) {
+                        TokenType::Comma => {
+                            lookahead += 2
+                        }
+                        TokenType::RightParentheses => {
+                            lookahead += 2;
+                            matches_closure = true;
+                            break;
+                        }
+                        token => {
+                            matches_closure = false;
+                            break;
+                        }
                     }
                 },
                 token => {
-                    println!("Unexpected token: {}", token);
                     matches_closure = false;
                     break;
                 }
             }
         }
         if !matches_closure {
-            println!("Did not match closure!");
             return false;
         }
 
-        self.next(lookahead) == TokenType::RightArrow
+        self.next_type(lookahead) == TokenType::RightArrow
     }
 
     fn parse_closure_expr(&mut self) -> Result<Expr> {
@@ -670,81 +669,55 @@ impl Parser {
 
     fn parse_assignment_expr(&mut self, min_binding_power: u8) -> Result<Expr> {
         // Check for prefix operator
-        let lhs = if let Some(unaryOp) = prefix_op(self.current_type()) {
-            let ((), prefix_bp) = unaryOp.prefix_binding_power();
+        let lhs = if let Some(unary_op) = prefix_op(self.current_type()) {
+            let ((), prefix_bp) = unary_op.prefix_binding_power();
             let rhs = self.parse_assignment_expr(prefix_bp)?;
-            Expr::Unary(Box::new(UnaryExpr::new(unaryOp, rhs)))
+            Expr::Unary(Box::new(UnaryExpr::new(unary_op, rhs)))
         } else {
             match self.current_type() {
                 TokenType::SelfLowercase => Expr::SelfRef,
-                
-            }
-        }
-        let lhs = match self.current_type() {
-            if let Some(unaryOp) = prefix_op()
-            TokenType::Minus | TokenType::Plus | TokenType::BitwiseComplement | TokenType::Bang => {
-                let ((), prefix_bp) = prefix_op(self.current_type());
-                self.parse_assignment_expr(prefix_bp);
-                Expr::Unary(Box::new(UnaryExpr()))
-            }
-            token => {
+                TokenType::True => Expr::Literal(Literal::BooleanLiteral(true)),
+                TokenType::False => Expr::Literal(Literal::BooleanLiteral(false)),
+                TokenType::SignedInteger(int) => Expr::Literal(Literal::IntLiteral(int)),
+                TokenType::Float(float) => Expr::Literal(Literal::FloatLiteral(float)),
+                TokenType::String(string) => Expr::Literal(Literal::StringLiteral(string)),
+                TokenType::Identifier(ident) => Expr::Identifier(ident),
 
-            }
-        }
+                // Handle parenthesized expression
+                TokenType::LeftParentheses => {
+                    let expr = self.parse_assignment_expr(min_binding_power)?;
+                    self.expect(TokenType::RightParentheses)?;
+                    expr
+                }
 
-        let mut lhs = match self.current_type() {
+                // Handle index expression
+                TokenType::LeftBracket => {
+                    let expr = self.parse_assignment_expr(min_binding_power)?;
+                    self.expect(TokenType::RightBracket)?;
+                    expr
+                }
 
-            // Handle literals
-            TokenType::True => {
-                Expr::Literal(Literal::BooleanLiteral(true))
-            }
-            TokenType::False => {
-                Expr::Literal(Literal::BooleanLiteral(false))
-            }
-            TokenType::None => {
-                Expr::Literal(Literal::None)
-            }
-            TokenType::SignedInteger(int) => {
-                Expr::Literal(Literal::IntLiteral(int))
-            }
-            TokenType::Float(float) => {
-                Expr::Literal(Literal::FloatLiteral(float))
-            }
-            TokenType::String(string) => {
-                Expr::Literal(Literal::StringLiteral(string))
-            }
-
-            // Handle self
-            TokenType::SelfLowercase => {
-                Expr::SelfRef
-            }
-
-            // Handle ident
-            TokenType::Identifier(ident) => {
-                Expr::Identifier(ident)
-            }
-
-            // Handle parenthesized expression
-            TokenType::LeftParentheses => {
-                let inner_lhs = self.parse_assignment_expr(0)?;
-                self.expect(TokenType::RightParentheses)?;
-                inner_lhs
-            }
-
-            // Handle index expression
-            TokenType::LeftBracket => {
-                let inner_lhs = self.parse_assignment_expr(0)?;
-                inner_lhs
-            }
-
-            // TODO: Handle operators
-            TokenType::Equal ||
-
+                // Handle unexpected token
                 token => {
-            let pos = self.current_position();
-            return self.unexpected_token(token, pos);
+                    let pos = self.current_position();
+                    return self.unexpected_token(token, pos);
+                }
             }
         };
+
+
+        loop {
+            if self.is_at_end() {
+                return self.unexpected_end();
+            }
+
+            if let Some(postfix_op) = postfix_op(self.next_type(1)) {
+
+            } else {
+
+            }
+        }
+
         todo!()
     }
 
@@ -875,8 +848,21 @@ impl Parser {
         self.tokenized_input.tokens[self.pos].token_type
     }
 
+    fn next(&self, delta: usize) -> Token {
+        self.tokenized_input.tokens[self.pos + delta]
+    }
+
+    fn next_type(&self, delta: usize) -> TokenType {
+        self.token_types[self.pos + delta]
+    }
+
     fn current_position(&mut self) -> TokenPosition {
         let token = self.current();
+        self.tokenized_input.token_position(token.start)
+    }
+
+    fn next_position(&mut self, delta: usize) -> TokenPosition {
+        let token = self.next(delta);
         self.tokenized_input.token_position(token.start)
     }
 
@@ -926,10 +912,6 @@ impl Parser {
     fn remaining(&self) -> usize {
         self.token_types.len() - (self.pos + 1)
     }
-
-    fn next(&self, delta: usize) -> TokenType {
-        self.token_types[self.pos + delta]
-    }
 }
 
 fn infix_bp(token: TokenType) -> (u8, u8) {
@@ -946,6 +928,13 @@ fn prefix_op(token: TokenType) -> Option<UnaryOp> {
         TokenType::Plus => Some(UnaryOp::Plus),
         TokenType::Minus => Some(UnaryOp::Minus),
         TokenType::BitwiseComplement => Some(UnaryOp::BitwiseComplement),
+        _ => None
+    }
+}
+
+fn postfix_op(token: TokenType) -> Option<PostfixOp> {
+    match token {
+        TokenType::LeftBracket => Some(PostfixOp::LeftBracket),
         _ => None
     }
 }

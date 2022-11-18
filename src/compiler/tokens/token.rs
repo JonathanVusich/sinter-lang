@@ -30,6 +30,7 @@ pub enum TokenType {
 
     Slash,
     Star,
+    Percent,
 
     Bang,
     BangEqual,
@@ -101,6 +102,37 @@ pub enum TokenType {
     Inline,
 }
 
+impl TokenType {
+
+    pub fn is_operator(self) -> bool {
+        match self {
+            TokenType::Equal |
+            TokenType::Or |
+            TokenType::And |
+            TokenType::BitwiseOr |
+            TokenType::BitwiseXor |
+            TokenType::BitwiseAnd |
+            TokenType::BitwiseComplement |
+            TokenType::EqualEqual |
+            TokenType::BangEqual |
+            TokenType::Less |
+            TokenType::Greater |
+            TokenType::LessEqual |
+            TokenType::GreaterEqual |
+            TokenType::LeftShift |
+            TokenType::RightShift |
+            TokenType::TripleRightShift |
+            TokenType::Plus |
+            TokenType::Minus |
+            TokenType::Star |
+            TokenType::Slash |
+            TokenType::Percent |
+            TokenType::Bang => true,
+            _ => false
+        }
+    }
+}
+
 impl Display for TokenType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -118,6 +150,7 @@ impl Display for TokenType {
             TokenType::Colon => write!(f, ":"),
             TokenType::Semicolon => write!(f, ";"),
             TokenType::Slash => write!(f, "\\"),
+            TokenType::Percent => write!(f, "%"),
             TokenType::Star => write!(f, "*"),
             TokenType::BitwiseOr => write!(f, "|"),
             TokenType::Bang => write!(f, "!"),
@@ -166,14 +199,14 @@ impl Display for TokenType {
             TokenType::TripleRightShift => write!(f, ">>>"),
             TokenType::LeftShift => write!(f, "<<"),
             TokenType::BitwiseAnd => write!(f, "&"),
-            TokenType::BitwiseOr => write!(f, "|"),
             TokenType::BitwiseXor => write!(f, "^"),
-            TokenType::BitwiseComplement => write!(f, "~")
+            TokenType::BitwiseComplement => write!(f, "~"),
         }
     }
 }
 
 impl Token {
+
     pub fn new(token_type: TokenType, start: usize, end: usize) -> Self {
         Self {
             token_type,

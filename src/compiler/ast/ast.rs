@@ -550,7 +550,7 @@ pub enum BinaryOp {
     Modulo,
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum UnaryOp {
     Bang,
     Minus,
@@ -561,9 +561,20 @@ pub enum UnaryOp {
 impl UnaryOp {
     
     pub fn prefix_binding_power(self) -> ((), u8) {
-        match self {
-            
-        }
+        ((), 5)
+    }
+}
+
+
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
+pub enum PostfixOp {
+    LeftBracket
+}
+
+impl PostfixOp {
+
+    pub fn postfix_binding_power(self) -> (u8, ()) {
+        (11, ())
     }
 }
 
