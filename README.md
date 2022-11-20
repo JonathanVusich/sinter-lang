@@ -9,7 +9,7 @@ quickly, scalably, and correctly.
 ### Imports
 
 ```ignorelang
-import std::vector
+import std::vector::Vector;
 ```
 Imports must be declared at the top of each source file. 
 
@@ -22,7 +22,8 @@ fn main() {
 }
 ```
 
-A main argument that takes in a string array is also valid. The parameters given to the Sinter VM at startup are passed to this method.
+A main argument that takes in a string array is also valid. 
+The parameters given to the Sinter VM at startup are passed to this method.
 ```ignorelang
 fn main(arguments: [str]) {
     print(arguments.to_string());
@@ -32,7 +33,6 @@ fn main(arguments: [str]) {
 ### Built-in Types
 
 Sinter provides a number of built-in types in order to simplify application development.
-
 
 #### Unsigned integer types
 `u8`, `u16`, `u32`, `u64`
@@ -45,25 +45,22 @@ Sinter provides a number of built-in types in order to simplify application deve
 
 #### Object types
 The `str` type is an internal class that contains an immutable array of bytes that represent a UTF-8 encoded string.
-This type can be created through a literal or from an array of bytes.
+This type can be created through a literal.
 
 ```ignorelang
-val greeting = "Hello world!"; // `str` type is inferred
-
-val bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];
-val greeting_from_array = str(bytearray); // "Hello world!"
+let greeting = "Hello world!"; // `str` type is inferred
 ```
 
 The `[]` type is a generic array type that can contain both integer and floating point types
-in addition to inline classes, enums and references.
+in addition to user defined types.
 
 ```ignorelang
 inline class Point(x: f64, y: f64);
 class Node;
 
-val i32_array: [i32] = [1, 2, 3];
-val point_array = [Point(1.0, 2.0), Point(1.5, 2.5)];
-val node_array = [Node(), Node()];
+let i32_array: [i32] = [1, 2, 3];
+let point_array = [Point(1.0, 2.0), Point(1.5, 2.5)];
+let node_array = [Node(), Node()];
 ```
 
 ### Functions
@@ -96,7 +93,7 @@ Variables that can be reassigned must be prefixed with the `mut` keyword. Global
 
 ```ignorelang
 let mut x = 5; // `i64` type is inferred
-x += 1;
+x = x + 1;
 ```
 
 Variables can be defined within a struct or function definition.
@@ -120,7 +117,7 @@ fn print(text: str) {
 }
 ```
 
-Functions may return alternate types such as an error or empty value by using the `|` operator.
+Functions may return alternative values such as an error or empty value by using the `|` operator to denote a union type.
 
 ```ignorelang
 fn find_user(user_name: str) => User | None {
@@ -148,10 +145,10 @@ or through a direct reference to the trait itself.
 
 ```ignorelang
 trait Loggable {
-    fn format_log_message() => str;
+    fn format_log_message(self) => str;
 }
 
-fn send_message<T: Serializable>(message: T, server: Server) {
+fn send_message<T: Serializable>(message: T, mut output: Output) {
     ...
 }
 
@@ -185,18 +182,53 @@ class Shape;
 Properties of a class are listed in its declaration.
 
 ```ignorelang
+class Rectangle(width: f64, length: f64);
+```
+
+Classes can be constructed by calling the qualified path with values for each class field.
+```ignorelang
+let rectangle = Rectangle(10, 20);
+```
+
+Classes can contain instance and static method declarations. Instance methods are marked by providing a `self`
+argument in the declaration.
+```ignorelang
 class Rectangle(width: f64, length: f64) {
-    fn perimeter(self) {
-        return (self.height + self.length) * 2
+    fn perimeter(self) => f64 {
+        return (self.width * 2) + (self.height * 2);
+    }
+    
+    fn square(size: f64) => Rectangle {
+        return Rectangle(size, size);
     }
 }
 ```
 
-The default constructor with the class parameters is available automatically.
-
+Classes can contain mutable fields if the field is specified as mutable in the declaration.
+Instance methods that mutate these fields must include `mut self` as the first argument.
 ```ignorelang
-let rectangle = Rectangle(5.0, 2.0);
-println("The perimeter is {rectangle.perimeter()}");
+class Counter(mut num: i64) {
+    fn increment(mut self) {
+        self.num = self.num + 1;
+    }
+}
+```
+
+Mutable fields cannot be mutated if the mutator does not have a mutable reference to the instance.
+This is done in order to ensure strong immutability of data structures.
+
+#### Incorrect:
+```ignorelang
+let counter = Counter(0);
+
+counter.increment();
+       ^^^^^^^^^^^^  Error: Attempted to call a mutable method on an immutable variable.
+```
+#### Correct:
+```ignorelang
+let mut counter = Counter(0);
+
+counter.increment();
 ```
 
 ### Defining enums
@@ -238,21 +270,23 @@ They can only contain function declarations or function implementation.
 
 ```ignorelang
 trait StringIterator {
-    fn next() => str | None;
+    fn next(self) => str | None;
 }
+
+
 ```
 
 Traits can also use generic parameters in order to improve usability.
 
 ```ignorelang
 trait Iterator<T> {
-    fn next() => T | None;
+    fn next(self) => T | None;
 }
 
 class MutableList<T>(mut array: [T]) {
     ...
     
-    fn extend<I: Iterator<T>>(mut self, iterator: I) {
+    fn extend<I: Iterator<T>>(self, mut iterator: I) {
         while true {
             match iterator.next() {
                 T item => self.add(item),
@@ -304,7 +338,7 @@ to be mixed with other types.
 trait Node {
     fn bounds(self) => Bounds;
     fn draw(self, Graphics g);
-    fn children(mut self) => MutableList<Node>;
+    fn children(self) => MutableList<Node>;
 }
 
 fn draw_frame(nodes: List<Node>) {
@@ -314,8 +348,30 @@ fn draw_frame(nodes: List<Node>) {
 
 ### Concurency
 
-Sinter helps users to write correct concurrent programs by discouraging use of shared memory and preventing concurrent
-access on non-concurrent types. 
+Sinter helps users to write correct concurrent programs by discouraging use of shared memory by preventing concurrent
+access on types that are not explicitly marked as threadsafe. 
+
+It is entirely possible to misuse the markers that Sinter provides and create deadlocks. The idea behind the markers is
+to prevent accidental access to non-concurrent types by using compile time type checking. It is up to the user
+to ensure that they are not marking types incorrectly.
+
+In order for a class to be **sent** across thread boundaries, it must implement the `Send` trait from 
+the standard library. The `Send` trait marks a type as being safe to send across thread boundaries. 
+
+The primitive types in Sinter all implement `Send` since they are immutable. Classes that are composed completely of 
+types that implement `Send` will inherit the property transitively.
+Inline classes and primitive types implement `Send` automatically, as
+
+In order for a class to be used across thread boundaries, it must implement the `Sync` trait from the
+standard library.
+
+```ignorelang
+use std::concurrent::Sync;
+
+class ConcurrentMap<K, V>(...) { ... };
+
+impl Sync for ConcurrentMap<K, V> { }
+```
 
 ### Comments
 Like most languages, Sinter supports single-line (or end-of-line) and multi-line (block) comments.
