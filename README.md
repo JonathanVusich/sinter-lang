@@ -312,6 +312,11 @@ fn draw_frame(nodes: List<Node>) {
 }
 ```
 
+### Concurency
+
+Sinter helps users to write correct concurrent programs by discouraging use of shared memory and preventing concurrent
+access on non-concurrent types. 
+
 ### Comments
 Like most languages, Sinter supports single-line (or end-of-line) and multi-line (block) comments.
 
