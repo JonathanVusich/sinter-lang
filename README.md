@@ -236,7 +236,7 @@ counter.increment();
 To define an enum, use the `enum` keyword.
 
 ```ignorelang
-enum Planet {
+enum Planet(
     Mercury,
     Venus,
     Earth,
@@ -245,19 +245,33 @@ enum Planet {
     Saturn,
     Uranus,
     Neptune,
-}
+);
 ```
 
-Enums can also contain a payload and functions that are specific to each member.
-
+Enums can also contain a payload and functions that are specific to each member:
 ```ignorelang
-enum Message {
+enum Message(
     Text(message: str),
     Photo(caption: str, photo: SerializedPhoto) {
         fn size(self) {
             return self.photo.size();
         }
     },
+);
+```
+
+Enums can also contain functions that are not specific to each member:
+```ignorelang
+enum Planet(
+    Mercury,
+    ...
+) {
+    fn diameter(self) => f64 {
+        match self {
+            Mercury => ...,
+            ...
+        }
+    }
 }
 ```
 
@@ -346,24 +360,18 @@ fn draw_frame(nodes: List<Node>) {
 }
 ```
 
-### Concurency
+### Concurrency
 
 Sinter helps users to write correct concurrent programs by discouraging use of shared memory by preventing concurrent
 access on types that are not explicitly marked as threadsafe. 
 
-It is entirely possible to misuse the markers that Sinter provides and create deadlocks. The idea behind the markers is
-to prevent accidental access to non-concurrent types by using compile time type checking. It is up to the user
-to ensure that they are not marking types incorrectly.
+This is achieved by having the target type implement the `Sync` trait from the standard library.
 
-In order for a class to be **sent** across thread boundaries, it must implement the `Send` trait from 
-the standard library. The `Send` trait marks a type as being safe to send across thread boundaries. 
+It is entirely possible to misuse the `Sync` trait that Sinter provides and create deadlocks or other concurrency bugs. 
+The markers allow the compiler to check thread boundary access at compile time, and prevent concurrent usage of
+types that are not marked as being threadsafe.
 
-The primitive types in Sinter all implement `Send` since they are immutable. Classes that are composed completely of 
-types that implement `Send` will inherit the property transitively.
-Inline classes and primitive types implement `Send` automatically, as
-
-In order for a class to be used across thread boundaries, it must implement the `Sync` trait from the
-standard library.
+The primitive types in Sinter all implement `Sync` since they are immutable.
 
 ```ignorelang
 use std::concurrent::Sync;
