@@ -603,6 +603,12 @@ impl PostfixOp {
     }
 }
 
+
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
+pub enum InfixOp {
+
+}
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Stmt {
     Use(UseStmt),
