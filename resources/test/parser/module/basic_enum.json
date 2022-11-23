@@ -6,6 +6,7 @@
         "generics": {
           "generics": []
         },
+        "is_sync": false,
         "members": [
           {
             "name": 2,
@@ -70,7 +71,8 @@
             },
             "member_functions": []
           }
-        ]
+        ],
+        "fn_stmts": []
       }
     }
   ]

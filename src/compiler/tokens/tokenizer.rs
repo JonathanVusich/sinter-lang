@@ -55,6 +55,7 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
     "use" => TokenType::Use,
     "None" => TokenType::None,
     "inline" => TokenType::Inline,
+    "sync" => TokenType::Sync,
     "in" => TokenType::In,
 };
 

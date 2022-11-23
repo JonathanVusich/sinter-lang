@@ -1,9 +1,9 @@
+use crate::compiler::parser::ClassType;
 use crate::compiler::types::types::{InternedStr, Type};
 use crate::gc::block::Block;
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::path::Prefix;
-use crate::compiler::parser::ClassType;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
@@ -38,12 +38,8 @@ pub struct PathTy {
 }
 
 impl PathTy {
-
     pub fn new(ident: QualifiedIdent, generics: GenericDecls) -> Self {
-        Self {
-            ident,
-            generics,
-        }
+        Self { ident, generics }
     }
 }
 
@@ -63,9 +59,15 @@ pub struct GenericDecls {
     generics: Vec<GenericDecl>,
 }
 
+const EMPTY_GENERIC_DECL: GenericDecls = GenericDecls::new(Vec::new());
+
 impl GenericDecls {
     pub fn new(generics: Vec<GenericDecl>) -> Self {
         Self { generics }
+    }
+
+    pub fn empty() -> Self {
+        EMPTY_GENERIC_DECL
     }
 }
 
@@ -76,9 +78,7 @@ pub struct GenericCallSite {
 
 impl GenericCallSite {
     pub fn new(generics: Vec<Type>) -> Self {
-        Self {
-            generics,
-        }
+        Self { generics }
     }
 }
 
@@ -114,6 +114,7 @@ pub enum Mutability {
 pub struct ClassStmt {
     name: InternedStr,
     class_type: ClassType,
+    is_sync: bool,
     generic_types: GenericDecls,
     members: Params,
     member_functions: Vec<FnStmt>,
@@ -123,6 +124,7 @@ impl ClassStmt {
     pub fn new(
         name: InternedStr,
         class_type: ClassType,
+        sync: bool,
         generic_types: GenericDecls,
         members: Params,
         member_functions: Vec<FnStmt>,
@@ -130,6 +132,7 @@ impl ClassStmt {
         Self {
             name,
             class_type,
+            is_sync: sync,
             generic_types,
             members,
             member_functions,
@@ -141,15 +144,25 @@ impl ClassStmt {
 pub struct EnumStmt {
     name: InternedStr,
     generics: GenericDecls,
+    is_sync: bool,
     members: Vec<EnumMemberStmt>,
+    fn_stmts: Vec<FnStmt>,
 }
 
 impl EnumStmt {
-    pub fn new(name: InternedStr, generic_types: GenericDecls, members: Vec<EnumMemberStmt>) -> Self {
+    pub fn new(
+        name: InternedStr,
+        generics: GenericDecls,
+        is_sync: bool,
+        members: Vec<EnumMemberStmt>,
+        fn_stmts: Vec<FnStmt>,
+    ) -> Self {
         Self {
             name,
-            generics: generic_types,
+            generics,
+            is_sync,
             members,
+            fn_stmts,
         }
     }
 
@@ -166,16 +179,22 @@ impl EnumStmt {
 pub struct TraitStmt {
     ident: InternedStr,
     generics: GenericDecls,
+    is_sync: bool,
     functions: Vec<FnStmt>,
 }
 
 impl TraitStmt {
-
-    pub fn new(ident: InternedStr, generics: GenericDecls, functions: Vec<FnStmt>) -> Self {
+    pub fn new(
+        ident: InternedStr,
+        generics: GenericDecls,
+        is_sync: bool,
+        functions: Vec<FnStmt>,
+    ) -> Self {
         Self {
             ident,
             generics,
-            functions
+            is_sync,
+            functions,
         }
     }
 }
@@ -231,7 +250,11 @@ pub struct IfStmt {
 
 impl IfStmt {
     pub fn new(condition: Expr, if_true: BlockStmt, if_false: Option<BlockStmt>) -> Self {
-        Self { condition, if_true, if_false }
+        Self {
+            condition,
+            if_true,
+            if_false,
+        }
     }
 }
 
@@ -319,7 +342,6 @@ pub struct LetStmt {
 }
 
 impl LetStmt {
-    
     pub fn new(ident: InternedStr, ty: Option<Type>, initializer: Option<Expr>) -> Self {
         LetStmt {
             ident,
@@ -338,7 +360,7 @@ pub enum VarInitializer {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Expr {
     Array(Vec<Expr>),
-    Call(Box<FnCall>),
+    Call(Box<Call>),
     Binary(Box<BinaryExpr>),
     Unary(Box<UnaryExpr>),
     Literal(Literal),
@@ -357,14 +379,14 @@ pub enum Expr {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct FnCall {
-    func: Box<Expr>,
+pub struct Call {
+    func: Expr,
     generic_tys: GenericDecls,
     args: Args,
 }
 
-impl FnCall {
-    pub fn new(func: Box<Expr>, generic_tys: GenericDecls, args: Args) -> Self {
+impl Call {
+    pub fn new(func: Expr, generic_tys: GenericDecls, args: Args) -> Self {
         Self {
             func,
             generic_tys,
@@ -388,10 +410,7 @@ pub struct UnaryExpr {
 
 impl UnaryExpr {
     pub fn new(operator: UnaryOp, expr: Expr) -> Self {
-        Self {
-            operator,
-            expr,
-        }
+        Self { operator, expr }
     }
 }
 
@@ -415,12 +434,8 @@ pub struct ClosureExpr {
 }
 
 impl ClosureExpr {
-
     pub fn new(params: Vec<InternedStr>, stmt: Stmt) -> Self {
-        Self {
-            params,
-            stmt
-        }
+        Self { params, stmt }
     }
 }
 
@@ -449,6 +464,15 @@ pub struct IndexExpr {
     rhs: Expr,
 }
 
+impl IndexExpr {
+
+    pub fn new(lhs: Expr, rhs: Expr) -> Self {
+        Self {
+            lhs,
+            rhs,
+        }
+    }
+}
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct RangeExpr {
@@ -493,13 +517,15 @@ pub struct TypePattern {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct WhileStmt {
     condition: Expr,
-    block_stmt: BlockStmt
+    block_stmt: BlockStmt,
 }
 
 impl WhileStmt {
-    
     pub fn new(condition: Expr, block_stmt: BlockStmt) -> Self {
-        Self { condition, block_stmt }
+        Self {
+            condition,
+            block_stmt,
+        }
     }
 }
 
@@ -555,24 +581,23 @@ pub enum UnaryOp {
     Bang,
     Minus,
     Plus,
-    BitwiseComplement
+    BitwiseComplement,
 }
 
 impl UnaryOp {
-    
     pub fn prefix_binding_power(self) -> ((), u8) {
         ((), 5)
     }
 }
 
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum PostfixOp {
-    LeftBracket
+    LeftBracket,
+    LeftParentheses,
+    Dot,
 }
 
 impl PostfixOp {
-
     pub fn postfix_binding_power(self) -> (u8, ()) {
         (11, ())
     }

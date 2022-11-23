@@ -2,7 +2,7 @@
 
 `outerStmt => useStmt | classStmt | fnStmt | letStmt | enumStmt | traitStmt | traitImplStmt`
 
-`stmt => forStmt | ifStmt | returnStmt | whileStmt | blockStmt | letStmt | expr`
+`stmt => forStmt | ifStmt | returnStmt | whileStmt | blockStmt | letStmt | expression`
 
 _________________________________
 ### Outer Statement Definitions
@@ -13,9 +13,9 @@ _________________________________
 
 `fnStmt => fnHead params fnTail`
 
-`letStmt => "let" "mut"? ident ( "=" expr )? ";"`
+`letStmt => "let" "mut"? ident ( "=" expression )? ";"`
 
-`enumStmt => "enum" ident generics? ( enumBody | ";" )`
+`enumStmt => "enum" ident generics? enumBody ( objectFns | ";" )`
 
 `traitStmt => "trait" ident generics? ( traitBody | ";" )`
 
@@ -26,20 +26,20 @@ _________________________________
 _________________________________
 ### Statement Definitions
 
-`forStmt => "for" ident "in" expr blockStmt`
+`forStmt => "for" ident "in" expression blockStmt`
 
-`ifStmt => "if" expr blockStmt ( "else if" expr blockStmt )* ( "else" blockStmt )?`
+`ifStmt => "if" expression blockStmt ( "else if" expression blockStmt )* ( "else" blockStmt )?`
 
-`returnStmt => "return" expr?`
+`returnStmt => "return" expression?`
 
-`whileStmt => "while" expr blockStmt`
+`whileStmt => "while" expression blockStmt`
 
 _________________________________
 ### Expression Definitions
 
-`expr => closure | assignment`
+`expression => closure | assignment`
 
-`closure => "(" ( ident ( , ident )* )? ")" "=>" ( blockStmt | expr )`
+`closure => "(" ( ident ( , ident )* )? ")" "=>" ( blockStmt | expression )`
 
 `assignment => logical_or ( ( "=" ) logical_or )*`
 
@@ -72,7 +72,7 @@ _________________________________
 _________________________________
 ### Enum Definitions
 
-`enumBody => "{" enumMember (, enumMember)* ,? "}"`
+`enumBody => "(" enumMember (, enumMember)* ,? ")"`
 
 `enumMember => ident params? objectFns?`
 

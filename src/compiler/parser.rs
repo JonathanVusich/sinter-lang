@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{BlockStmt, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, LetStmt, Literal, Module, Mutability, Param, Params, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, LetStmt, Literal, Module, Mutability, Param, Params, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -78,14 +78,15 @@ impl Parser {
         self.bounds_check()?;
         match self.current_type() {
             TokenType::Use => self.parse_use_stmt(),
-            TokenType::Class => self.parse_class_stmt(),
+            TokenType::Sync => self.parse_type_definition(),
+            TokenType::Inline => self.parse_class_stmt(false),
+            TokenType::Class => self.parse_class_stmt(false),
             TokenType::Fn => self.parse_fn_stmt(),
             TokenType::Let => self.parse_let_stmt(),
-            TokenType::Enum => self.parse_enum_stmt(),
-            TokenType::Trait => self.parse_trait_stmt(),
+            TokenType::Enum => self.parse_enum_stmt(false),
+            TokenType::Trait => self.parse_trait_stmt(false),
             TokenType::Impl => self.parse_trait_impl_stmt(),
             TokenType::For => self.parse_for_stmt(),
-            TokenType::Inline => self.parse_class_stmt(),
             TokenType::If => self.parse_if_stmt(),
             TokenType::Return => self.parse_return_stmt(),
             TokenType::While => self.parse_while_stmt(),
@@ -109,11 +110,32 @@ impl Parser {
         Ok(UseStmt::new(identifier))
     }
 
-    fn parse_class_stmt(&mut self) -> Result<Stmt> {
+    fn parse_type_definition(&mut self) -> Result<Stmt> {
+        self.expect(TokenType::Sync)?;
+        match self.current_type() {
+            TokenType::Inline => self.parse_class_stmt(true),
+            TokenType::Class => self.parse_class_stmt(true),
+            TokenType::Enum => self.parse_enum_stmt(true),
+            TokenType::Trait => self.parse_trait_stmt(true),
+            token => {
+                let pos = self.current_position();
+                self.unexpected_token(token, pos)
+            }
+        }
+    }
+
+    fn parse_class_stmt(&mut self, is_sync: bool) -> Result<Stmt> {
         Ok(Stmt::Class(self.class_stmt()?))
     }
 
     fn class_stmt(&mut self) -> Result<ClassStmt> {
+        let is_sync = if self.matches(TokenType::Sync) {
+            self.advance();
+            true
+        } else {
+            false
+        };
+
         let class_type = if self.matches(TokenType::Inline) {
             self.advance();
             self.expect(TokenType::Class)?;
@@ -127,7 +149,14 @@ impl Parser {
         let members = self.parenthesized_params()?;
         let member_functions = self.fn_stmts()?;
 
-        let class_stmt = ClassStmt::new(name, class_type, generic_types, members, member_functions);
+        let class_stmt = ClassStmt::new(
+            name,
+            class_type,
+            is_sync,
+            generic_types,
+            members,
+            member_functions,
+        );
 
         Ok(class_stmt)
     }
@@ -167,33 +196,45 @@ impl Parser {
         Ok(let_stmt)
     }
 
-    fn parse_enum_stmt(&mut self) -> Result<Stmt> {
-        Ok(Enum(self.enum_stmt()?))
+    fn parse_enum_stmt(&mut self, is_sync: bool) -> Result<Stmt> {
+        Ok(Enum(self.enum_stmt(is_sync)?))
     }
 
-    fn enum_stmt(&mut self) -> Result<EnumStmt> {
+    fn enum_stmt(&mut self, is_sync: bool) -> Result<EnumStmt> {
         self.expect(TokenType::Enum)?;
         let name = self.identifier()?;
         let generics = self.generic_decls()?;
         let enum_members = self.enum_members()?;
 
-        let enum_stmt = EnumStmt::new(name, generics, enum_members);
+        let object_fns = if self.matches(TokenType::LeftBrace) {
+            self.fn_stmts()?
+        } else {
+            self.expect(TokenType::Semicolon)?;
+            Vec::new()
+        };
+
+        let enum_stmt = EnumStmt::new(name, generics, is_sync, enum_members, object_fns);
 
         Ok(enum_stmt)
     }
 
-    fn parse_trait_stmt(&mut self) -> Result<Stmt> {
-        Ok(Stmt::Trait(self.trait_stmt()?))
+    fn parse_trait_stmt(&mut self, is_sync: bool) -> Result<Stmt> {
+        Ok(Stmt::Trait(self.trait_stmt(is_sync)?))
     }
 
-    fn trait_stmt(&mut self) -> Result<TraitStmt> {
+    fn trait_stmt(&mut self, is_sync: bool) -> Result<TraitStmt> {
         self.expect(TokenType::Trait)?;
         let identifier = self.identifier()?;
         let generics = self.generic_decls()?;
         if self.matches(TokenType::Semicolon) {
-            Ok(TraitStmt::new(identifier, generics, Vec::new()))
+            Ok(TraitStmt::new(identifier, generics, is_sync, Vec::new()))
         } else {
-            Ok(TraitStmt::new(identifier, generics, self.fn_stmts()?))
+            Ok(TraitStmt::new(
+                identifier,
+                generics,
+                is_sync,
+                self.fn_stmts()?,
+            ))
         }
     }
 
@@ -233,20 +274,16 @@ impl Parser {
                 return false;
             }
             match self.next_type(lookahead) {
-                TokenType::Identifier(ident) => {
-                    match self.next_type(lookahead + 1) {
-                        TokenType::Comma => {
-                            lookahead += 2
-                        }
-                        TokenType::RightParentheses => {
-                            lookahead += 2;
-                            matches_closure = true;
-                            break;
-                        }
-                        token => {
-                            matches_closure = false;
-                            break;
-                        }
+                TokenType::Identifier(ident) => match self.next_type(lookahead + 1) {
+                    TokenType::Comma => lookahead += 2,
+                    TokenType::RightParentheses => {
+                        lookahead += 2;
+                        matches_closure = true;
+                        break;
+                    }
+                    token => {
+                        matches_closure = false;
+                        break;
                     }
                 },
                 token => {
@@ -389,8 +426,8 @@ impl Parser {
         self.parse_multiple_with_scope_delimiter::<EnumMemberStmt, 1>(
             Self::enum_member,
             TokenType::Comma,
-            TokenType::LeftBrace,
-            TokenType::RightBrace,
+            TokenType::LeftParentheses,
+            TokenType::RightParentheses,
         )
     }
 
@@ -477,7 +514,8 @@ impl Parser {
 
     fn parse_ty(&mut self) -> Result<Type> {
         self.bounds_check()?;
-        let mut tys = self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
+        let mut tys =
+            self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
         if tys.len() > 1 {
             Ok(Union(tys))
         } else {
@@ -666,10 +704,9 @@ impl Parser {
         ))))
     }
 
-
     fn parse_assignment_expr(&mut self, min_binding_power: u8) -> Result<Expr> {
         // Check for prefix operator
-        let lhs = if let Some(unary_op) = prefix_op(self.current_type()) {
+        let mut lhs = if let Some(unary_op) = prefix_op(self.current_type()) {
             let ((), prefix_bp) = unary_op.prefix_binding_power();
             let rhs = self.parse_assignment_expr(prefix_bp)?;
             Expr::Unary(Box::new(UnaryExpr::new(unary_op, rhs)))
@@ -705,16 +742,45 @@ impl Parser {
             }
         };
 
-
         loop {
             if self.is_at_end() {
                 return self.unexpected_end();
             }
 
             if let Some(postfix_op) = postfix_op(self.next_type(1)) {
+                let (left_binding_power, ()) = postfix_op.postfix_binding_power();
+                if left_binding_power < min_binding_power {
+                    break;
+                }
+                self.advance();
 
+                // TODO: Figure out how to handle recursive dot operators
+                lhs = match postfix_op {
+                    PostfixOp::LeftParentheses => {
+                        // TODO: Add support for generic callsites
+                        let args =
+                            self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
+                        Expr::Call(Box::new(Call::new(
+                            lhs,
+                            GenericDecls::empty(),
+                            Args::new(args),
+                        )))
+                    },
+                    PostfixOp::LeftBracket => {
+                        let rhs = self.expr()?;
+                        self.expect(TokenType::RightBracket)?;
+                        Expr::Index(Box::new(IndexExpr::new(
+                            lhs, rhs
+                        )))
+                    },
+                    PostfixOp::Dot => {
+                        todo!()
+                    }
+                };
+                continue;
+            } else if let Some(infix_op) = infix_op(self.next_type(1)) {
             } else {
-
+                break;
             }
         }
 
@@ -918,7 +984,7 @@ fn infix_bp(token: TokenType) -> (u8, u8) {
     match token {
         TokenType::Plus | TokenType::Minus => (1, 2),
         TokenType::Star | TokenType::Slash => (3, 4),
-        token => panic!("Unexpected infix operator {}!", token)
+        token => panic!("Unexpected infix operator {}!", token),
     }
 }
 
@@ -928,14 +994,16 @@ fn prefix_op(token: TokenType) -> Option<UnaryOp> {
         TokenType::Plus => Some(UnaryOp::Plus),
         TokenType::Minus => Some(UnaryOp::Minus),
         TokenType::BitwiseComplement => Some(UnaryOp::BitwiseComplement),
-        _ => None
+        _ => None,
     }
 }
 
 fn postfix_op(token: TokenType) -> Option<PostfixOp> {
     match token {
         TokenType::LeftBracket => Some(PostfixOp::LeftBracket),
-        _ => None
+        TokenType::LeftParentheses => Some(PostfixOp::LeftParentheses),
+        TokenType::Dot => Some(PostfixOp::Dot),
+        _ => None,
     }
 }
 
@@ -982,7 +1050,7 @@ mod tests {
     use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::ast::Stmt::Enum;
     use crate::compiler::ast::ast::{
-        Args, BlockStmt, EnumMemberStmt, EnumStmt, Expr, FnCall, FnSig, FnStmt, GenericDecl,
+        Args, BlockStmt, Call, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, GenericDecl,
         GenericDecls, LetStmt, Mutability, Param, Params, QualifiedIdent, Stmt,
     };
     use crate::compiler::ast::ast::{Module, UseStmt};
@@ -1144,7 +1212,7 @@ mod tests {
     #[named]
     pub fn closure_expression() {
         let code = "(x, y) => x + y";
-        run_test(function_name!(), code, CodeUnit::Expression)
+        // run_test(function_name!(), code, CodeUnit::Expression)
     }
 
     macro_rules! simple_type {
@@ -1198,9 +1266,9 @@ mod tests {
     #[named]
     pub fn use_statements() {
         let code = concat!(
-        "use std::vector;",
-        "use std::array;",
-        "use std::map::HashMap;"
+            "use std::vector;",
+            "use std::array;",
+            "use std::map::HashMap;"
         );
 
         run_test(function_name!(), code, CodeUnit::Module);
@@ -1210,17 +1278,17 @@ mod tests {
     #[named]
     pub fn basic_enum() {
         let code = concat!(
-        "enum Planet {\n",
-        "    Mercury,\n",
-        "    Venus,\n",
-        "    Earth,\n",
-        "    Mars,\n",
-        "    Jupiter,\n",
-        "    Saturn,\n",
-        "    Uranus,\n",
-        "    Neptune,\n",
-        "    Pluto,\n",
-        "}"
+            "enum Planet(\n",
+            "    Mercury,\n",
+            "    Venus,\n",
+            "    Earth,\n",
+            "    Mars,\n",
+            "    Jupiter,\n",
+            "    Saturn,\n",
+            "    Uranus,\n",
+            "    Neptune,\n",
+            "    Pluto,\n",
+            ");"
         );
 
         run_test(function_name!(), code, CodeUnit::Module);
@@ -1230,14 +1298,14 @@ mod tests {
     #[named]
     pub fn complex_enum() {
         let code = concat!(
-        "enum Vector<X: Number + Display, Y: Number + Display> {\n",
-        "    Normalized(x: X, y: Y),\n",
-        "    Absolute(x: X, y: Y) {\n",
-        "        fn to_normalized(self) => Vector {\n",
-        "            return Normalized(self.x, self.y);\n",
-        "        }\n",
-        "    }\n",
-        "}"
+            "enum Vector<X: Number + Display, Y: Number + Display> {\n",
+            "    Normalized(x: X, y: Y),\n",
+            "    Absolute(x: X, y: Y) {\n",
+            "        fn to_normalized(self) => Vector {\n",
+            "            return Normalized(self.x, self.y);\n",
+            "        }\n",
+            "    }\n",
+            "}"
         );
 
         // compare(function_name!(), code, CodeUnit::Module);

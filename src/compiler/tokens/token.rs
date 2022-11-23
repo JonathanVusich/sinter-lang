@@ -100,13 +100,13 @@ pub enum TokenType {
     None,
 
     Inline,
+    Sync
 }
 
 impl TokenType {
 
     pub fn is_operator(self) -> bool {
-        match self {
-            TokenType::Equal |
+        matches!(self, TokenType::Equal |
             TokenType::Or |
             TokenType::And |
             TokenType::BitwiseOr |
@@ -127,9 +127,7 @@ impl TokenType {
             TokenType::Star |
             TokenType::Slash |
             TokenType::Percent |
-            TokenType::Bang => true,
-            _ => false
-        }
+            TokenType::Bang)
     }
 }
 
@@ -192,6 +190,7 @@ impl Display for TokenType {
             TokenType::Use => write!(f, "use"),
             TokenType::None => write!(f, "None"),
             TokenType::Inline => write!(f, "inline"),
+            TokenType::Sync => write!(f, "sync"),
             TokenType::Let => write!(f, "let"),
             TokenType::Mut => write!(f, "mut"),
             TokenType::In => write!(f, "in"),

@@ -204,19 +204,27 @@ class Rectangle(width: f64, length: f64) {
 }
 ```
 
-Classes can contain mutable fields if the field is specified as mutable in the declaration.
-Instance methods that mutate these fields must include `mut self` as the first argument.
+Instance fields can only be mutated from instance methods that take `mut self` instead of `self`.
+#### Incorrect:
 ```ignorelang
-class Counter(mut num: i64) {
+class Counter(num: i64) {
+    fn increment(self) {
+                 ^^^^  Error: self must be marked as mutable in order to modify the num field.
+        self.num = self.num + 1;
+    }
+}
+```
+#### Correct:
+```ignorelang
+class Counter(num: i64) {
     fn increment(mut self) {
         self.num = self.num + 1;
     }
 }
 ```
 
-Mutable fields cannot be mutated if the mutator does not have a mutable reference to the instance.
-This is done in order to ensure strong immutability of data structures.
-
+Likewise, classes cannot be mutated if the mutator does not have a mutable reference to the instance.
+This is done in order to ensure strong immutability by default.
 #### Incorrect:
 ```ignorelang
 let counter = Counter(0);
@@ -300,7 +308,7 @@ trait Iterator<T> {
 class MutableList<T>(mut array: [T]) {
     ...
     
-    fn extend<I: Iterator<T>>(self, mut iterator: I) {
+    fn extend<I: Iterator<T>>(mut self, iterator: I) {
         while true {
             match iterator.next() {
                 T item => self.add(item),
@@ -351,8 +359,8 @@ to be mixed with other types.
 ```ignorelang
 trait Node {
     fn bounds(self) => Bounds;
-    fn draw(self, Graphics g);
-    fn children(self) => MutableList<Node>;
+    fn draw(self, graphics: mut Graphics);
+    fn children(mut self) => MutableList<Node>;
 }
 
 fn draw_frame(nodes: List<Node>) {
@@ -363,29 +371,25 @@ fn draw_frame(nodes: List<Node>) {
 ### Concurrency
 
 Sinter helps users to write correct concurrent programs by discouraging use of shared memory by preventing concurrent
-access on types that are not explicitly marked as threadsafe. 
+access on types that are not explicitly marked as `sync`, i.e. `sync class Marker;`. 
 
-This is achieved by having the target type implement the `Sync` trait from the standard library.
+It is entirely possible to misuse the `sync` keyword and create deadlocks or other concurrency bugs. 
+This keyword allows the compiler to check thread boundary access at compile time, and to prevent **accidental**
+concurrent usage of types that are not marked as `sync`.
 
-It is entirely possible to misuse the `Sync` trait that Sinter provides and create deadlocks or other concurrency bugs. 
-The markers allow the compiler to check thread boundary access at compile time, and prevent concurrent usage of
-types that are not marked as being threadsafe.
+The primitive types in Sinter are all `sync` since they are immutable.
 
-The primitive types in Sinter all implement `Sync` since they are immutable.
+Closures can be sent across thread boundaries if all of their captured variables are `sync`.
 
 ```ignorelang
-use std::concurrent::Sync;
-
-class ConcurrentMap<K, V>(...) { ... };
-
-impl Sync for ConcurrentMap<K, V> { }
+sync class ConcurrentMap<K, V>(...) { ... };
 ```
 
 ### Comments
 Like most languages, Sinter supports single-line (or end-of-line) and multi-line (block) comments.
 
 ```ignorelang
-// This is an end-of-line comment
+// This is an single/end-of-line comment
 
 /* This is a block comment
    on multiple lines. */
