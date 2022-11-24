@@ -693,8 +693,7 @@ impl Parser {
     }
 
     fn parse_path_expr(&mut self, ident: InternedStr) -> Result<Expr> {
-        let path = self.parse_path_ty()?;
-        Ok(Expr::Path(Box::new(path)))
+        todo!()
     }
 
     fn parse_unary_expr(&mut self, operator: UnaryOp) -> Result<Expr> {

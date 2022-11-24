@@ -68,7 +68,7 @@
     "end": 39
   },
   {
-    "token_type": "Pipe",
+    "token_type": "BitwiseOr",
     "start": 40,
     "end": 41
   },

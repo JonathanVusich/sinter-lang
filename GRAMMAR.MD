@@ -9,17 +9,17 @@ _________________________________
 
 `useStmt => "use" qualifiedIdent`
 
-`classStmt => "inline"? "class" ident generics? params? ( objectFns | ";" )`
+`classStmt => "inline"? "class" ident genericDecls? params? ( objectFns | ";" )`
 
 `fnStmt => fnHead params fnTail`
 
 `letStmt => "let" "mut"? ident ( "=" expression )? ";"`
 
-`enumStmt => "enum" ident generics? enumBody ( objectFns | ";" )`
+`enumStmt => "enum" ident genericDecls? enumBody ( objectFns | ";" )`
 
-`traitStmt => "trait" ident generics? ( traitBody | ";" )`
+`traitStmt => "trait" ident genericDecls? ( traitBody | ";" )`
 
-`traitImplStmt => "impl" pathTy "for" ty ( objectFns | ";" )`
+`traitImplStmt => "impl" qualifiedIdent genericCallsite? "for" ty ( objectFns | ";" )`
 
 `blockStmt => "{" stmt* "}"`
 
@@ -65,9 +65,13 @@ _________________________________
 
 `unary => ( "+" | "-" | "~" | "!" ) unary | call`
 
-`call => primary ( "(" args? ")" | "[" expression "]" | "." ident )*`
+`call => primary ( fnCall | index | "." ident )*`
 
-`primary => literal | "self" | ident | "(" expression ")"`
+`fnCall => ( "::" genericCallsite ) "(" args? ")"`
+
+`index => "[" expression "]"`
+
+`primary => literal | "self" | path | "(" expression ")"`
 
 _________________________________
 ### Enum Definitions
@@ -83,7 +87,7 @@ _________________________________
 
 _________________________________
 ### Function Definitions
-`fnHead => "fn" ident generics?`
+`fnHead => "fn" ident genericDecls?`
 
 `fnTail => ("=>" ty)? blockStmt`
 
@@ -96,11 +100,11 @@ _________________________________
 _________________________________
 ### Generic Definitions
 
-`generics => "<" generic (, generic)* ">"`
+`genericDecls => "<" generic ( , generic )* ">"`
 
-`generic => ident (":" ty)?`
+`genericDecl => ident ( ":" traitBoundType )?`
 
-`genericTys => "<" path (, path)* ">"`
+`genericCallsite => "<" ty ( , ty )* ">"`
 
 _________________________________
 ### Parameter Definitions
@@ -127,22 +131,24 @@ _________________________________
 
 `ty => anyType ("|" anyType)*`
 
-`anyType => basicType | arrayType | pathType | closureType`
+`anyType => basicType | arrayType | traitBoundType | closureType`
 
 `basicType => "bool" | "None" | "u8" | "u16" | "u64" | 
               "i8" | "i16" | "i32" | i64" | "f32" | "f64"`
 
 `arrayType => "[" ty "]"`
 
-`pathType => path ("+" path)*`
+`traitBoundType => pathType ( "+" pathType )*`
 
-`closureType => "(" (ty (, ty)*)? ")" "=>" ( "(" closureType ")" | (basicType | arrayType | pathType) )`
+`pathType => qualifiedIdent genericDecls?`
+
+`closureType => "(" (ty ( , ty )* )? ")" "=>" ( "(" closureType ")" | (basicType | arrayType | path) )`
 
 
 _________________________________
 ### General Definitions
 
-`path => qualifiedIdent generics?`
+`path => ident ( "::" ( genericCallsite "::" | ident ) )`
 
 `qualifiedIdent => ident ("::" ident)*`
 

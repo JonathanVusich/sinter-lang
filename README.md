@@ -161,6 +161,22 @@ fn log_message(message: Loggable + Serializable) {
     println(message.format_log_message());
     send_message(message, logging_server);
 }
+
+class List<T>(array: [T]) {
+
+    pub fn new(initial_capacity: u64) -> Self {
+        Self([T; initial_capacity])
+    }
+    
+    pub fn push(mut self, item: T) {
+        ...
+    }
+}
+
+let list_of_ints = List::<i64>::new();
+let list_of_lists = List::<List<f64>>::new();
+let trait_bounds = List::<Loggable + Serializable>::new();
+let unions = List::<str | i64 | f64>::new();
 ```
 
 Using a generic type allows specialized code to be generated for each

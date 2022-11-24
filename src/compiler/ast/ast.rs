@@ -3,7 +3,7 @@ use crate::compiler::types::types::{InternedStr, Type};
 use crate::gc::block::Block;
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
-use std::path::Prefix;
+use std::path::{Path, Prefix};
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
@@ -62,7 +62,8 @@ pub struct GenericDecls {
 const EMPTY_GENERIC_DECL: GenericDecls = GenericDecls::new(Vec::new());
 
 impl GenericDecls {
-    pub fn new(generics: Vec<GenericDecl>) -> Self {
+
+    pub const fn new(generics: Vec<GenericDecl>) -> Self {
         Self { generics }
     }
 
@@ -470,6 +471,26 @@ impl IndexExpr {
         Self {
             lhs,
             rhs,
+        }
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum PathSegment {
+    Identifier(InternedStr),
+    GenericCallsite(GenericCallSite)
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct PathExpr {
+    segments: Vec<PathSegment>
+}
+
+impl PathExpr {
+
+    pub fn new(segments: Vec<PathSegment>) -> Self {
+        Self {
+            segments
         }
     }
 }
