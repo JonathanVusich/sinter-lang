@@ -71,7 +71,7 @@ _________________________________
 
 `index => "[" expression "]"`
 
-`primary => literal | "self" | path | "(" expression ")"`
+`primary => literal | "self" | path | "(" expression ")"`;
 
 _________________________________
 ### Enum Definitions
@@ -148,7 +148,7 @@ _________________________________
 _________________________________
 ### General Definitions
 
-`path => ident ( "::" ( genericCallsite "::" | ident ) )`
+`path => ident ( "::" ( genericCallsite "::" | ident ) )*`
 
 `qualifiedIdent => ident ("::" ident)*`
 

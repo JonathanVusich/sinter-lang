@@ -19,7 +19,10 @@ pub fn resolve_test_path<const N: usize>(paths: [&str; N]) -> Box<Path> {
 }
 
 #[cfg(test)]
-pub fn save<T: Serialize>(path: &Box<Path>, data: T) -> Result<()> {
+pub fn save<T: Serialize>(path: &Path, data: T) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -29,7 +32,7 @@ pub fn save<T: Serialize>(path: &Box<Path>, data: T) -> Result<()> {
 }
 
 #[cfg(test)]
-pub fn load<T: DeserializeOwned>(path: &Box<Path>) -> Result<T> {
+pub fn load<T: DeserializeOwned>(path: &Path) -> Result<T> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
     Ok(serde_json::from_reader(reader)?)

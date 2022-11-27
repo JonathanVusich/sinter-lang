@@ -373,7 +373,7 @@ pub enum Expr {
     AssignOp(Box<AssignOpExpr>),
     Field(Box<FieldExpr>),
     Index(Box<IndexExpr>),
-    Path(Box<PathTy>),
+    Path(PathExpr),
     Break,
     Continue,
     Try(Box<Expr>),

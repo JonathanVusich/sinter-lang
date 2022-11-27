@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixOp, LetStmt, Literal, Module, Mutability, Param, Params, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixOp, LetStmt, Literal, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -93,8 +93,7 @@ impl Parser {
             TokenType::LeftBracket => self.parse_block_stmt(),
 
             token => {
-                let pos = self.current_position();
-                self.unexpected_token(token, pos)
+                self.unexpected_token(token)
             }
         }
     }
@@ -118,8 +117,7 @@ impl Parser {
             TokenType::Enum => self.parse_enum_stmt(true),
             TokenType::Trait => self.parse_trait_stmt(true),
             token => {
-                let pos = self.current_position();
-                self.unexpected_token(token, pos)
+                self.unexpected_token(token)
             }
         }
     }
@@ -320,18 +318,13 @@ impl Parser {
 
     fn identifier(&mut self) -> Result<InternedStr> {
         self.bounds_check()?;
-        match self.current_type() {
-            TokenType::Identifier(ident) => {
-                self.advance();
-                Ok(ident)
-            }
-            _ => {
-                let pos = self.current_position();
-                self.expected_token(
-                    TokenType::Identifier(self.string_interner.get_or_intern("")),
-                    pos,
-                )
-            }
+        if let TokenType::Identifier(ident) = self.current_type() {
+            self.advance();
+            Ok(ident)
+        } else {
+            self.expected_token(TokenType::Identifier(
+                self.string_interner.get_or_intern(""),
+            ))
         }
     }
 
@@ -349,6 +342,9 @@ impl Parser {
 
     fn qualified_ident(&mut self) -> Result<QualifiedIdent> {
         let mut idents = Vec::new();
+        if let TokenType::Identifier(ident) = self.current_type() {
+        } else {
+        }
         loop {
             self.bounds_check()?;
             match self.current_type() {
@@ -366,11 +362,9 @@ impl Parser {
                     }
                 }
                 token => {
-                    let pos = self.current_position();
-                    return self.expected_token(
-                        TokenType::Identifier(self.string_interner.get_or_intern("")),
-                        pos,
-                    );
+                    return self.expected_token(TokenType::Identifier(
+                        self.string_interner.get_or_intern(""),
+                    ));
                 }
             }
         }
@@ -442,13 +436,9 @@ impl Parser {
 
                 Ok(EnumMemberStmt::new(ident, params, member_funcs))
             }
-            token => {
-                let pos = self.current_position();
-                self.expected_token(
-                    TokenType::Identifier(self.string_interner.get_or_intern("")),
-                    pos,
-                )
-            }
+            token => self.expected_token(TokenType::Identifier(
+                self.string_interner.get_or_intern(""),
+            )),
         }
     }
 
@@ -692,8 +682,39 @@ impl Parser {
         }
     }
 
-    fn parse_path_expr(&mut self, ident: InternedStr) -> Result<Expr> {
-        todo!()
+    fn parse_path_expr(&mut self) -> Result<Expr> {
+        let mut path_segments = Vec::new();
+        let first_ident = self.identifier()?;
+        path_segments.push(PathSegment::Identifier(first_ident));
+
+        loop {
+            if self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
+                self.advance_multiple(2);
+                match self.current_type() {
+                    TokenType::Less => {
+                        path_segments
+                            .push(PathSegment::GenericCallsite(self.generic_call_site()?));
+                        if !self.matches_multiple([
+                            TokenType::Colon,
+                            TokenType::Colon,
+                        ]) {
+                            return self.expected_token(TokenType::Colon);
+                        }
+                    }
+                    TokenType::Identifier(ident) => {
+                        path_segments.push(PathSegment::Identifier(ident));
+                        self.advance();
+                    }
+                    token => {
+                        return self.unexpected_token(token);
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+
+        Ok(Expr::Path(PathExpr::new(path_segments)))
     }
 
     fn parse_unary_expr(&mut self, operator: UnaryOp) -> Result<Expr> {
@@ -735,8 +756,7 @@ impl Parser {
 
                 // Handle unexpected token
                 token => {
-                    let pos = self.current_position();
-                    return self.unexpected_token(token, pos);
+                    return self.unexpected_token(token);
                 }
             }
         };
@@ -764,14 +784,12 @@ impl Parser {
                             GenericDecls::empty(),
                             Args::new(args),
                         )))
-                    },
+                    }
                     PostfixOp::LeftBracket => {
                         let rhs = self.expr()?;
                         self.expect(TokenType::RightBracket)?;
-                        Expr::Index(Box::new(IndexExpr::new(
-                            lhs, rhs
-                        )))
-                    },
+                        Expr::Index(Box::new(IndexExpr::new(lhs, rhs)))
+                    }
                     PostfixOp::Dot => {
                         todo!()
                     }
@@ -864,8 +882,7 @@ impl Parser {
                     if self.matches(delimiter) {
                         self.advance();
                     } else if i < N - 1 {
-                        let pos = self.current_position();
-                        return self.expected_token(delimiter, pos);
+                        return self.expected_token(delimiter);
                     }
                 }
                 if self.matches(scope_end) {
@@ -877,19 +894,16 @@ impl Parser {
         Ok(items)
     }
 
-    fn expected_token<T>(
-        &mut self,
-        token_type: TokenType,
-        token_position: TokenPosition,
-    ) -> Result<T> {
+    fn expected_token<T>(&mut self, token_type: TokenType) -> Result<T> {
+        let token_position = self.current_position();
         Err(ExpectedToken(token_type, token_position).into())
     }
 
     fn unexpected_token<T>(
         &mut self,
         token_type: TokenType,
-        token_position: TokenPosition,
     ) -> Result<T> {
+        let token_position = self.current_position();
         Err(UnexpectedToken(token_type, token_position).into())
     }
 
@@ -1081,6 +1095,7 @@ mod tests {
     enum CodeUnit {
         Module,
         Expression,
+        PathExpression,
         Ty,
     }
 
@@ -1091,6 +1106,7 @@ mod tests {
                 CodeUnit::Module => "module",
                 CodeUnit::Ty => "type",
                 CodeUnit::Expression => "expression",
+                CodeUnit::PathExpression => "path_expression",
             };
 
             resolve_test_path(["parser", folder, test_name])
@@ -1115,6 +1131,12 @@ mod tests {
                     parse_code(code, Parser::expr).unwrap(),
                     code_unit.folder_path(test_name),
                 );
+            }
+            CodeUnit::PathExpression => {
+                inner_compare(
+                    parse_code(code, Parser::parse_path_expr).unwrap(),
+                    code_unit.folder_path(test_name)
+                )
             }
         }
     }
@@ -1216,6 +1238,27 @@ mod tests {
     pub fn closure_expression() {
         let code = "(x, y) => x + y";
         // run_test(function_name!(), code, CodeUnit::Expression)
+    }
+
+    #[test]
+    #[named]
+    pub fn single_path_expr() {
+        let code = "std";
+        run_test(function_name!(), code, CodeUnit::PathExpression)
+    }
+
+    #[test]
+    #[named]
+    pub fn simple_path_expr() {
+        let code = "std::Clone";
+        run_test(function_name!(), code, CodeUnit::PathExpression)
+    }
+
+    #[test]
+    #[named]
+    pub fn generic_path_expr() {
+        let code = "std::HashMap::<T>::new";
+        run_test(function_name!(), code, CodeUnit::PathExpression)
     }
 
     macro_rules! simple_type {
