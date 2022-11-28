@@ -8,7 +8,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixOp, LetStmt, Literal, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{
+    Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr,
+    FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixOp,
+    LetStmt, Literal, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp,
+    QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt,
+    WhileStmt,
+};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -92,9 +98,7 @@ impl Parser {
             TokenType::While => self.parse_while_stmt(),
             TokenType::LeftBracket => self.parse_block_stmt(),
 
-            token => {
-                self.unexpected_token(token)
-            }
+            token => self.unexpected_token(token),
         }
     }
 
@@ -116,9 +120,7 @@ impl Parser {
             TokenType::Class => self.parse_class_stmt(true),
             TokenType::Enum => self.parse_enum_stmt(true),
             TokenType::Trait => self.parse_trait_stmt(true),
-            token => {
-                self.unexpected_token(token)
-            }
+            token => self.unexpected_token(token),
         }
     }
 
@@ -692,12 +694,8 @@ impl Parser {
                 self.advance_multiple(2);
                 match self.current_type() {
                     TokenType::Less => {
-                        path_segments
-                            .push(PathSegment::GenericCallsite(self.generic_call_site()?));
-                        if !self.matches_multiple([
-                            TokenType::Colon,
-                            TokenType::Colon,
-                        ]) {
+                        path_segments.push(PathSegment::GenericCallsite(self.generic_call_site()?));
+                        if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
                             return self.expected_token(TokenType::Colon);
                         }
                     }
@@ -727,7 +725,7 @@ impl Parser {
     fn parse_assignment_expr(&mut self, min_binding_power: u8) -> Result<Expr> {
         // Check for prefix operator
         let mut lhs = if let Some(unary_op) = prefix_op(self.current_type()) {
-            let ((), prefix_bp) = unary_op.prefix_binding_power();
+            let ((), prefix_bp) = unary_op.binding_power();
             let rhs = self.parse_assignment_expr(prefix_bp)?;
             Expr::Unary(Box::new(UnaryExpr::new(unary_op, rhs)))
         } else {
@@ -767,16 +765,14 @@ impl Parser {
             }
 
             if let Some(postfix_op) = postfix_op(self.next_type(1)) {
-                let (left_binding_power, ()) = postfix_op.postfix_binding_power();
+                let (left_binding_power, ()) = postfix_op.binding_power();
                 if left_binding_power < min_binding_power {
                     break;
                 }
                 self.advance();
 
-                // TODO: Figure out how to handle recursive dot operators
                 lhs = match postfix_op {
                     PostfixOp::LeftParentheses => {
-                        // TODO: Add support for generic callsites
                         let args =
                             self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
                         Expr::Call(Box::new(Call::new(
@@ -791,14 +787,17 @@ impl Parser {
                         Expr::Index(Box::new(IndexExpr::new(lhs, rhs)))
                     }
                     PostfixOp::Dot => {
-                        todo!()
+                        let ident = self.identifier()?;
+                        Expr::Field(Box::new(FieldExpr::new(lhs, ident)))
                     }
                 };
                 continue;
-            } else if let Some(infix_op) = infix_op(self.next_type(1)) {
-            } else {
-                break;
             }
+
+            if let Some(infix_op) = infix_op(self.next_type(1)) {
+                let left_bp, right_bp = infix_op.binding_power();
+            }
+            break;
         }
 
         todo!()
@@ -899,10 +898,7 @@ impl Parser {
         Err(ExpectedToken(token_type, token_position).into())
     }
 
-    fn unexpected_token<T>(
-        &mut self,
-        token_type: TokenType,
-    ) -> Result<T> {
+    fn unexpected_token<T>(&mut self, token_type: TokenType) -> Result<T> {
         let token_position = self.current_position();
         Err(UnexpectedToken(token_type, token_position).into())
     }
@@ -924,7 +920,7 @@ impl Parser {
     }
 
     fn current_type(&mut self) -> TokenType {
-        self.tokenized_input.tokens[self.pos].token_type
+        self.token_types[self.pos]
     }
 
     fn next(&self, delta: usize) -> Token {
@@ -1132,12 +1128,10 @@ mod tests {
                     code_unit.folder_path(test_name),
                 );
             }
-            CodeUnit::PathExpression => {
-                inner_compare(
-                    parse_code(code, Parser::parse_path_expr).unwrap(),
-                    code_unit.folder_path(test_name)
-                )
-            }
+            CodeUnit::PathExpression => inner_compare(
+                parse_code(code, Parser::parse_path_expr).unwrap(),
+                code_unit.folder_path(test_name),
+            ),
         }
     }
 

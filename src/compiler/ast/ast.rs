@@ -459,6 +459,16 @@ pub struct FieldExpr {
     ident: InternedStr,
 }
 
+impl FieldExpr {
+
+    pub fn new(lhs: Expr, ident: InternedStr) -> Self {
+        Self {
+            lhs,
+            ident
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IndexExpr {
     lhs: Expr,
@@ -606,7 +616,7 @@ pub enum UnaryOp {
 }
 
 impl UnaryOp {
-    pub fn prefix_binding_power(self) -> ((), u8) {
+    pub fn binding_power(self) -> ((), u8) {
         ((), 5)
     }
 }
@@ -619,7 +629,7 @@ pub enum PostfixOp {
 }
 
 impl PostfixOp {
-    pub fn postfix_binding_power(self) -> (u8, ()) {
+    pub fn binding_power(self) -> (u8, ()) {
         (11, ())
     }
 }
@@ -627,7 +637,26 @@ impl PostfixOp {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum InfixOp {
+    Assign,
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    Or,
+    And,
+    BitwiseOr,
+    BitwiseAnd,
+    Equal,
+    NotEqual,
+    LeftShift,
+    RightShift,
+    TripleRightShift,
+}
 
+impl InfixOp {
+    pub fn binding_power(self) -> (u8, u8) {
+
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]

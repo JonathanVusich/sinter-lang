@@ -67,7 +67,7 @@ _________________________________
 
 `call => primary ( fnCall | index | "." ident )*`
 
-`fnCall => ( "::" genericCallsite ) "(" args? ")"`
+`fnCall => ( "::" genericCallsite )? "(" args? ")"`
 
 `index => "[" expression "]"`
 
