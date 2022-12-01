@@ -8,13 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{
-    Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr,
-    FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixOp,
-    LetStmt, Literal, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp,
-    QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt,
-    WhileStmt,
-};
+use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, Literal, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -722,7 +716,7 @@ impl Parser {
         ))))
     }
 
-    fn parse_assignment_expr(&mut self, min_binding_power: u8) -> Result<Expr> {
+    fn parse_assignment_expr(&mut self, min_bp: u8) -> Result<Expr> {
         // Check for prefix operator
         let mut lhs = if let Some(unary_op) = prefix_op(self.current_type()) {
             let ((), prefix_bp) = unary_op.binding_power();
@@ -740,14 +734,14 @@ impl Parser {
 
                 // Handle parenthesized expression
                 TokenType::LeftParentheses => {
-                    let expr = self.parse_assignment_expr(min_binding_power)?;
+                    let expr = self.parse_assignment_expr(min_bp)?;
                     self.expect(TokenType::RightParentheses)?;
                     expr
                 }
 
                 // Handle index expression
                 TokenType::LeftBracket => {
-                    let expr = self.parse_assignment_expr(min_binding_power)?;
+                    let expr = self.parse_assignment_expr(min_bp)?;
                     self.expect(TokenType::RightBracket)?;
                     expr
                 }
@@ -764,9 +758,9 @@ impl Parser {
                 return self.unexpected_end();
             }
 
-            if let Some(postfix_op) = postfix_op(self.next_type(1)) {
-                let (left_binding_power, ()) = postfix_op.binding_power();
-                if left_binding_power < min_binding_power {
+            if let Some(postfix_op) = postfix_op(self.current_type()) {
+                let (left_bp, ()) = postfix_op.binding_power();
+                if left_bp < min_bp {
                     break;
                 }
                 self.advance();
@@ -794,17 +788,21 @@ impl Parser {
                 continue;
             }
 
-            if let Some(infix_op) = infix_op(self.next_type(1)) {
-                let left_bp, right_bp = infix_op.binding_power();
+            if let Some(infix_op) = infix_op(self.current_type()) {
+                let (left_bp, right_bp) = infix_op.binding_power();
+
+                if left_bp < min_bp {
+                    break;
+                }
+                self.advance();
+
+                let rhs = self.parse_assignment_expr(right_bp)?;
+
+                lhs = Expr::Infix(Box::new(InfixExpr::new(lhs, rhs, infix_op)))
             }
-            break;
         }
 
-        todo!()
-    }
-
-    fn parse_parenthesized_expr(&mut self) -> Result<Expr> {
-        todo!()
+        Ok(lhs)
     }
 
     fn parse_path_ty(&mut self) -> Result<PathTy> {
@@ -1016,8 +1014,26 @@ fn postfix_op(token: TokenType) -> Option<PostfixOp> {
     }
 }
 
-fn infix_op(token: TokenType) -> Option<InfixOp> {
-    todo!()
+fn infix_op(token_type: TokenType) -> Option<InfixOp> {
+    match token_type {
+        TokenType::Equal => Some(InfixOp::Assign),
+        TokenType::Plus => Some(InfixOp::Add),
+        TokenType::Minus => Some(InfixOp::Subtract),
+        TokenType::Star => Some(InfixOp::Multiply),
+        TokenType::Slash => Some(InfixOp::Divide),
+        TokenType::And => Some(InfixOp::And),
+        TokenType::Or => Some(InfixOp::Or),
+        TokenType::RightShift => Some(InfixOp::RightShift),
+        TokenType::LeftShift => Some(InfixOp::LeftShift),
+        TokenType::TripleRightShift => Some(InfixOp::TripleRightShift),
+        TokenType::EqualEqual => Some(InfixOp::Equal),
+        TokenType::BangEqual => Some(InfixOp::NotEqual),
+        TokenType::BitwiseOr => Some(InfixOp::BitwiseOr),
+        TokenType::BitwiseAnd => Some(InfixOp::BitwiseAnd),
+        TokenType::BitwiseComplement => Some(InfixOp::BitwiseComplement),
+        TokenType::BitwiseXor => Some(InfixOp::BitwiseXor),
+        _ => None
+    }
 }
 
 impl Display for ParseError {
@@ -1231,7 +1247,7 @@ mod tests {
     #[named]
     pub fn closure_expression() {
         let code = "(x, y) => x + y";
-        // run_test(function_name!(), code, CodeUnit::Expression)
+        run_test(function_name!(), code, CodeUnit::Expression)
     }
 
     #[test]
@@ -1338,16 +1354,16 @@ mod tests {
     #[named]
     pub fn complex_enum() {
         let code = concat!(
-            "enum Vector<X: Number + Display, Y: Number + Display> {\n",
+            "enum Vector<X: Number + Display, Y: Number + Display>(\n",
             "    Normalized(x: X, y: Y),\n",
-            "    Absolute(x: X, y: Y) {\n",
-            "        fn to_normalized(self) => Vector {\n",
-            "            return Normalized(self.x, self.y);\n",
-            "        }\n",
+            "    Absolute(x: X, y: Y)\n",
+            ") {\n",
+            "    fn to_normalized(self) => Vector {\n",
+            "        return Normalized(self.x, self.y);\n",
             "    }\n",
             "}"
         );
 
-        // compare(function_name!(), code, CodeUnit::Module);
+        // run_test(function_name!(), code, CodeUnit::Module);
     }
 }

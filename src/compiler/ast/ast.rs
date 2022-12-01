@@ -362,7 +362,7 @@ pub enum VarInitializer {
 pub enum Expr {
     Array(Vec<Expr>),
     Call(Box<Call>),
-    Binary(Box<BinaryExpr>),
+    Infix(Box<InfixExpr>),
     Unary(Box<UnaryExpr>),
     Literal(Literal),
     SelfRef,
@@ -370,7 +370,6 @@ pub enum Expr {
     Match(Box<MatchExpr>),
     Closure(Box<ClosureExpr>),
     Assign(Box<AssignExpr>),
-    AssignOp(Box<AssignOpExpr>),
     Field(Box<FieldExpr>),
     Index(Box<IndexExpr>),
     Path(PathExpr),
@@ -397,10 +396,21 @@ impl Call {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct BinaryExpr {
-    operator: BinaryOp,
+pub struct InfixExpr {
+    operator: InfixOp,
     lhs: Expr,
     rhs: Expr,
+}
+
+impl InfixExpr {
+
+    pub fn new(lhs: Expr, rhs: Expr, operator: InfixOp) -> Self {
+        Self {
+            operator,
+            lhs,
+            rhs,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -442,13 +452,6 @@ impl ClosureExpr {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct AssignExpr {
-    lhs: Expr,
-    rhs: Expr,
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct AssignOpExpr {
-    op: BinaryOp,
     lhs: Expr,
     rhs: Expr,
 }
@@ -590,23 +593,6 @@ pub enum AssignmentOp {
     ModuloAssign,
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub enum BinaryOp {
-    Or,
-    And,
-    Equal,
-    NotEqual,
-    Less,
-    Greater,
-    LessEq,
-    GreaterEq,
-    Plus,
-    Minus,
-    Multiply,
-    Divide,
-    Modulo,
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum UnaryOp {
     Bang,
@@ -638,14 +624,16 @@ impl PostfixOp {
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum InfixOp {
     Assign,
-    Plus,
-    Minus,
-    Star,
-    Slash,
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
     Or,
     And,
     BitwiseOr,
     BitwiseAnd,
+    BitwiseComplement,
+    BitwiseXor,
     Equal,
     NotEqual,
     LeftShift,
@@ -655,7 +643,9 @@ pub enum InfixOp {
 
 impl InfixOp {
     pub fn binding_power(self) -> (u8, u8) {
-
+        match self {
+            _ => (0, 0)
+        }
     }
 }
 
