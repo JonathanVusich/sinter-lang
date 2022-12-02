@@ -1,0 +1,16 @@
+{
+  "Infix": {
+    "operator": "Multiply",
+    "lhs": {
+      "Unary": {
+        "operator": "Minus",
+        "expr": {
+          "Integer": -1
+        }
+      }
+    },
+    "rhs": {
+      "Integer": 2
+    }
+  }
+}

@@ -363,7 +363,11 @@ pub enum Expr {
     Call(Box<Call>),
     Infix(Box<InfixExpr>),
     Unary(Box<UnaryExpr>),
-    Literal(Literal),
+    None,
+    Boolean(bool),
+    Integer(i64),
+    Float(f64),
+    String(InternedStr),
     SelfRef,
     Identifier(InternedStr),
     Match(Box<MatchExpr>),
@@ -464,13 +468,13 @@ impl FieldExpr {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IndexExpr {
-    lhs: Expr,
-    rhs: Expr,
+    expr: Expr,
+    key: Expr,
 }
 
 impl IndexExpr {
-    pub fn new(lhs: Expr, rhs: Expr) -> Self {
-        Self { lhs, rhs }
+    pub fn new(expr: Expr, key: Expr) -> Self {
+        Self { expr, key }
     }
 }
 
@@ -511,7 +515,10 @@ pub enum Pattern {
     Wildcard,
     Range(RangePattern),
     Or(OrPattern),
-    Literal(Literal),
+    String(InternedStr),
+    Boolean(bool),
+    Integer(i64),
+    Float(f64),
     Ty(TypePattern),
 }
 
@@ -557,15 +564,6 @@ impl BlockStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub enum Literal {
-    IntLiteral(i64),
-    FloatLiteral(f64),
-    BooleanLiteral(bool),
-    StringLiteral(InternedStr),
-    None,
-}
-
 #[derive(PartialEq, Eq, Debug)]
 pub enum AssignmentOp {
     Assign,
@@ -586,7 +584,7 @@ pub enum UnaryOp {
 
 impl UnaryOp {
     pub fn binding_power(self) -> ((), u8) {
-        ((), 19)
+        ((), 23)
     }
 }
 
@@ -599,7 +597,7 @@ pub enum PostfixOp {
 
 impl PostfixOp {
     pub fn binding_power(self) -> (u8, ()) {
-        (11, ())
+        (24, ())
     }
 }
 

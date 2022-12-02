@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, Literal, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -324,23 +324,8 @@ impl Parser {
         }
     }
 
-    fn float_literal(&mut self, float: f64) -> Result<Expr> {
-        Ok(Expr::Literal(Literal::FloatLiteral(float)))
-    }
-
-    fn integer_literal(&mut self, integer: i64) -> Result<Expr> {
-        Ok(Expr::Literal(Literal::IntLiteral(integer)))
-    }
-
-    fn string_literal(&mut self, interned: InternedStr) -> Result<Expr> {
-        Ok(Expr::Literal(Literal::StringLiteral(interned)))
-    }
-
     fn qualified_ident(&mut self) -> Result<QualifiedIdent> {
         let mut idents = Vec::new();
-        if let TokenType::Identifier(ident) = self.current_type() {
-        } else {
-        }
         loop {
             self.bounds_check()?;
             match self.current_type() {
@@ -365,7 +350,11 @@ impl Parser {
             }
         }
 
-        Ok(QualifiedIdent::new(idents))
+        if idents.is_empty() {
+            self.expected_token(TokenType::Identifier(self.string_interner.get_or_intern("")))
+        } else {
+            Ok(QualifiedIdent::new(idents))
+        }
     }
 
     fn generic_call_site(&mut self) -> Result<GenericCallSite> {
@@ -719,17 +708,18 @@ impl Parser {
     fn parse_assignment_expr(&mut self, min_bp: u8) -> Result<Expr> {
         // Check for prefix operator
         let mut lhs = if let Some(unary_op) = prefix_op(self.current_type()) {
+            self.advance();
             let ((), prefix_bp) = unary_op.binding_power();
             let rhs = self.parse_assignment_expr(prefix_bp)?;
             Expr::Unary(Box::new(UnaryExpr::new(unary_op, rhs)))
         } else {
             let expr = match self.current_type() {
                 TokenType::SelfLowercase => Expr::SelfRef,
-                TokenType::True => Expr::Literal(Literal::BooleanLiteral(true)),
-                TokenType::False => Expr::Literal(Literal::BooleanLiteral(false)),
-                TokenType::SignedInteger(int) => Expr::Literal(Literal::IntLiteral(int)),
-                TokenType::Float(float) => Expr::Literal(Literal::FloatLiteral(float)),
-                TokenType::String(string) => Expr::Literal(Literal::StringLiteral(string)),
+                TokenType::True => Expr::Boolean(true),
+                TokenType::False => Expr::Boolean(false),
+                TokenType::SignedInteger(int) => Expr::Integer(int),
+                TokenType::Float(float) => Expr::Float(float),
+                TokenType::String(string) => Expr::String(string),
                 TokenType::Identifier(ident) => Expr::Identifier(ident),
 
                 // Handle parenthesized expression
@@ -800,8 +790,11 @@ impl Parser {
 
                 let rhs = self.parse_assignment_expr(right_bp)?;
 
-                lhs = Expr::Infix(Box::new(InfixExpr::new(lhs, rhs, infix_op)))
+                lhs = Expr::Infix(Box::new(InfixExpr::new(lhs, rhs, infix_op)));
+                continue;
             }
+
+            break;
         }
 
         Ok(lhs)
@@ -1260,7 +1253,28 @@ mod tests {
     #[test]
     #[named]
     pub fn double_index_expression() {
-        let code = "x[1 + 1][2 + 2]";
+        let code = "x[0][1]";
+        run_test(function_name!(), code, CodeUnit::Expression);
+    }
+
+    #[test]
+    #[named]
+    pub fn add_and_multiply() {
+        let code = "1 + 2 * 3";
+        run_test(function_name!(), code, CodeUnit::Expression);
+    }
+
+    #[test]
+    #[named]
+    pub fn add_and_multiply_idents() {
+        let code = "a + b * c * d + e";
+        run_test(function_name!(), code, CodeUnit::Expression);
+    }
+
+    #[test]
+    #[named]
+    pub fn double_negate_and_multiply() {
+        let code = "--1 * 2";
         run_test(function_name!(), code, CodeUnit::Expression);
     }
 
@@ -1336,9 +1350,9 @@ mod tests {
     #[named]
     pub fn use_statements() {
         let code = concat!(
-            "use std::vector;",
-            "use std::array;",
-            "use std::map::HashMap;"
+        "use std::vector;",
+        "use std::array;",
+        "use std::map::HashMap;"
         );
 
         run_test(function_name!(), code, CodeUnit::Module);
@@ -1348,17 +1362,17 @@ mod tests {
     #[named]
     pub fn basic_enum() {
         let code = concat!(
-            "enum Planet(\n",
-            "    Mercury,\n",
-            "    Venus,\n",
-            "    Earth,\n",
-            "    Mars,\n",
-            "    Jupiter,\n",
-            "    Saturn,\n",
-            "    Uranus,\n",
-            "    Neptune,\n",
-            "    Pluto,\n",
-            ");"
+        "enum Planet(\n",
+        "    Mercury,\n",
+        "    Venus,\n",
+        "    Earth,\n",
+        "    Mars,\n",
+        "    Jupiter,\n",
+        "    Saturn,\n",
+        "    Uranus,\n",
+        "    Neptune,\n",
+        "    Pluto,\n",
+        ");"
         );
 
         run_test(function_name!(), code, CodeUnit::Module);
@@ -1368,14 +1382,14 @@ mod tests {
     #[named]
     pub fn complex_enum() {
         let code = concat!(
-            "enum Vector<X: Number + Display, Y: Number + Display>(\n",
-            "    Normalized(x: X, y: Y),\n",
-            "    Absolute(x: X, y: Y)\n",
-            ") {\n",
-            "    fn to_normalized(self) => Vector {\n",
-            "        return Normalized(self.x, self.y);\n",
-            "    }\n",
-            "}"
+        "enum Vector<X: Number + Display, Y: Number + Display>(\n",
+        "    Normalized(x: X, y: Y),\n",
+        "    Absolute(x: X, y: Y)\n",
+        ") {\n",
+        "    fn to_normalized(self) => Vector {\n",
+        "        return Normalized(self.x, self.y);\n",
+        "    }\n",
+        "}"
         );
 
         // run_test(function_name!(), code, CodeUnit::Module);

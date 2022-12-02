@@ -214,8 +214,8 @@ class Rectangle(width: f64, length: f64) {
         return (self.width * 2) + (self.height * 2);
     }
     
-    fn square(size: f64) => Rectangle {
-        return Rectangle(size, size);
+    fn square(size: f64) => Self {
+        return Self(size, size);
     }
 }
 ```
