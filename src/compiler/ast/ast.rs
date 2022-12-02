@@ -62,7 +62,6 @@ pub struct GenericDecls {
 const EMPTY_GENERIC_DECL: GenericDecls = GenericDecls::new(Vec::new());
 
 impl GenericDecls {
-
     pub const fn new(generics: Vec<GenericDecl>) -> Self {
         Self { generics }
     }
@@ -403,13 +402,8 @@ pub struct InfixExpr {
 }
 
 impl InfixExpr {
-
     pub fn new(lhs: Expr, rhs: Expr, operator: InfixOp) -> Self {
-        Self {
-            operator,
-            lhs,
-            rhs,
-        }
+        Self { operator, lhs, rhs }
     }
 }
 
@@ -463,12 +457,8 @@ pub struct FieldExpr {
 }
 
 impl FieldExpr {
-
     pub fn new(lhs: Expr, ident: InternedStr) -> Self {
-        Self {
-            lhs,
-            ident
-        }
+        Self { lhs, ident }
     }
 }
 
@@ -479,32 +469,25 @@ pub struct IndexExpr {
 }
 
 impl IndexExpr {
-
     pub fn new(lhs: Expr, rhs: Expr) -> Self {
-        Self {
-            lhs,
-            rhs,
-        }
+        Self { lhs, rhs }
     }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum PathSegment {
     Identifier(InternedStr),
-    GenericCallsite(GenericCallSite)
+    GenericCallsite(GenericCallSite),
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct PathExpr {
-    segments: Vec<PathSegment>
+    segments: Vec<PathSegment>,
 }
 
 impl PathExpr {
-
     pub fn new(segments: Vec<PathSegment>) -> Self {
-        Self {
-            segments
-        }
+        Self { segments }
     }
 }
 
@@ -603,7 +586,7 @@ pub enum UnaryOp {
 
 impl UnaryOp {
     pub fn binding_power(self) -> ((), u8) {
-        ((), 5)
+        ((), 19)
     }
 }
 
@@ -620,7 +603,6 @@ impl PostfixOp {
     }
 }
 
-
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum InfixOp {
     Assign,
@@ -628,8 +610,13 @@ pub enum InfixOp {
     Subtract,
     Multiply,
     Divide,
+    Modulo,
     Or,
     And,
+    Less,
+    Greater,
+    LessEqual,
+    GreaterEqual,
     BitwiseOr,
     BitwiseAnd,
     BitwiseComplement,
@@ -644,7 +631,22 @@ pub enum InfixOp {
 impl InfixOp {
     pub fn binding_power(self) -> (u8, u8) {
         match self {
-            _ => (0, 0)
+            InfixOp::Assign => (2, 1),
+            InfixOp::Or => (4, 3),
+            InfixOp::And => (5, 6),
+            InfixOp::BitwiseOr => (7, 8),
+            InfixOp::BitwiseXor => (9, 10),
+            InfixOp::BitwiseAnd => (11, 12),
+            InfixOp::Equal | InfixOp::NotEqual => (13, 14),
+            InfixOp::Less | InfixOp::Greater | InfixOp::LessEqual | InfixOp::GreaterEqual => {
+                (15, 16)
+            },
+            InfixOp::LeftShift | InfixOp::RightShift | InfixOp::TripleRightShift => {
+                (17, 18)
+            },
+            InfixOp::Add | InfixOp::Subtract => (19, 20),
+            InfixOp::Multiply | InfixOp::Divide | InfixOp::Modulo => (21, 22),
+            _ => panic!(),
         }
     }
 }

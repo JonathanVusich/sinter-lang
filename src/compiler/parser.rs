@@ -723,7 +723,7 @@ impl Parser {
             let rhs = self.parse_assignment_expr(prefix_bp)?;
             Expr::Unary(Box::new(UnaryExpr::new(unary_op, rhs)))
         } else {
-            match self.current_type() {
+            let expr = match self.current_type() {
                 TokenType::SelfLowercase => Expr::SelfRef,
                 TokenType::True => Expr::Literal(Literal::BooleanLiteral(true)),
                 TokenType::False => Expr::Literal(Literal::BooleanLiteral(false)),
@@ -750,12 +750,14 @@ impl Parser {
                 token => {
                     return self.unexpected_token(token);
                 }
-            }
+            };
+            self.advance();
+            expr
         };
 
         loop {
             if self.is_at_end() {
-                return self.unexpected_end();
+                break;
             }
 
             if let Some(postfix_op) = postfix_op(self.current_type()) {
@@ -1021,8 +1023,13 @@ fn infix_op(token_type: TokenType) -> Option<InfixOp> {
         TokenType::Minus => Some(InfixOp::Subtract),
         TokenType::Star => Some(InfixOp::Multiply),
         TokenType::Slash => Some(InfixOp::Divide),
+        TokenType::Percent => Some(InfixOp::Modulo),
         TokenType::And => Some(InfixOp::And),
         TokenType::Or => Some(InfixOp::Or),
+        TokenType::Less => Some(InfixOp::Less),
+        TokenType::LessEqual => Some(InfixOp::LessEqual),
+        TokenType::Greater => Some(InfixOp::Greater),
+        TokenType::GreaterEqual => Some(InfixOp::GreaterEqual),
         TokenType::RightShift => Some(InfixOp::RightShift),
         TokenType::LeftShift => Some(InfixOp::LeftShift),
         TokenType::TripleRightShift => Some(InfixOp::TripleRightShift),
@@ -1248,6 +1255,13 @@ mod tests {
     pub fn closure_expression() {
         let code = "(x, y) => x + y";
         run_test(function_name!(), code, CodeUnit::Expression)
+    }
+
+    #[test]
+    #[named]
+    pub fn double_index_expression() {
+        let code = "x[1 + 1][2 + 2]";
+        run_test(function_name!(), code, CodeUnit::Expression);
     }
 
     #[test]
