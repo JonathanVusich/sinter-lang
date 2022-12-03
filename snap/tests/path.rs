@@ -3,6 +3,6 @@ extern crate snap;
 
 #[test]
 #[snapshot]
-pub fn path() -> i32 {
+pub fn inner_func() -> usize {
     return 123;
 }

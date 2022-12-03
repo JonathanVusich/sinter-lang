@@ -1,57 +1,48 @@
 #![feature(proc_macro_span)]
+#![feature(const_extern_fn)]
 
 use proc_macro::{Span, TokenStream};
+use quote::{format_ident, quote, ToTokens};
 use std::path::PathBuf;
-use quote::{quote, ToTokens};
-use syn::{parse, parse_macro_input};
 use syn::ItemFn;
-
-struct FilePath {
-    path: PathBuf
-}
-
-impl ToTokens for FilePath {
-
-    fn to_tokens(&self, tokens: &mut quote::__private::TokenStream) {
-        for path in self.path.iter() {
-
-        }
-        todo!()
-    }
-}
+use syn::{parse, parse_macro_input};
 
 #[proc_macro_attribute]
 pub fn snapshot(ignored: TokenStream, tokens: TokenStream) -> TokenStream {
+    let mut resource_path = PathBuf::from("snapshots");
+
+    let mut source_path =
+    Span::call_site()
+        .source_file()
+        .path();
+
+    source_path.set_extension("");
+
+    source_path.iter()
+        .skip(1) // We skip the first dir because it is the 'src' dir.
+        .for_each(|p| resource_path.push(p));
+
     let mut parsed_fn = parse_macro_input!(tokens as ItemFn);
-    let name = parsed_fn.sig.ident.to_string();
+    let name = parsed_fn.sig.ident.clone();
 
-    let file_path = Span::call_site().source_file().path();
-    // Trim off the src path if it exists
-    let mut target_path = file_path.iter()
-        .skip_while(|segment| *segment == "src")
-        .collect::<PathBuf>();
+    resource_path.push(name.to_string());
+    resource_path.set_extension("json");
+    let path_str = resource_path.to_str().unwrap();
 
-    target_path.push(name);
+    let tokens = quote!(
+        pub fn #name() {
 
+            use std::path::PathBuf;
 
-    parsed_fn.block.stmts.insert(0, parse(quote!({
-    }).into()).unwrap());
+            #parsed_fn
 
-    quote!({
+            let mut manifest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            let snapshot_path = PathBuf::from(#path_str);
+        }
+    )
+    .into();
 
-        let mut pathbuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        pathbuf.push(target_path);
+    eprintln!("Tokens: {}", tokens);
 
-    }).into()
-}
-
-mod tests {
-
-    use crate::snapshot;
-
-    #[test]
-    #[snapshot]
-    pub fn source_file() {
-
-    }
+    tokens
 }
