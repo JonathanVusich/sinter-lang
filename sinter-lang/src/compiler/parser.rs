@@ -1295,6 +1295,11 @@ mod tests {
     #[test]
     #[named]
     pub fn generic_path_expr() {
+
+        fn do_something() -> usize {
+            42
+        }
+
         let code = "std::HashMap::<T>::new";
         run_test(function_name!(), code, CodeUnit::PathExpression)
     }
