@@ -17,12 +17,9 @@ pub fn snapshot(ignored: TokenStream, tokens: TokenStream) -> TokenStream {
         .path();
 
     source_path.set_extension("");
+    resource_path.push(source_path);
 
-    source_path.iter()
-        .skip(1) // We skip the first dir because it is the 'src' dir.
-        .for_each(|p| resource_path.push(p));
-
-    let mut parsed_fn = parse_macro_input!(tokens as ItemFn);
+    let parsed_fn = parse_macro_input!(tokens as ItemFn);
     let name = parsed_fn.sig.ident.clone();
 
     resource_path.push(name.to_string());
@@ -33,11 +30,16 @@ pub fn snapshot(ignored: TokenStream, tokens: TokenStream) -> TokenStream {
         pub fn #name() {
 
             use std::path::PathBuf;
+            use serde::{Serialize, DeserializeOwned};
 
             #parsed_fn
 
             let mut manifest_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             let snapshot_path = PathBuf::from(#path_str);
+
+            let value = #name();
+
+
         }
     )
     .into();
