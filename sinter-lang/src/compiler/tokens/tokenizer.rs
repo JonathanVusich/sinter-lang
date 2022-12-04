@@ -409,14 +409,10 @@ mod tests {
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
     use anyhow::Result;
-    use cfg_if::cfg_if;
-    use ::function_name::named;
+    use serde::de::Unexpected::Str;
     use crate::compiler::StringInterner;
-    cfg_if! {
-        if #[cfg(test)] {
-            use crate::util::utils::{load, save, resolve_test_path};
-        }
-    }
+
+    use snap::snapshot;
 
     #[cfg(test)]
     macro_rules! make_token {
@@ -437,155 +433,121 @@ mod tests {
     }
 
     #[cfg(test)]
-    macro_rules! test {
-        ($string_interner:expr, $tokens:expr, $matching_text:literal) => {
-            assert_eq!($tokens, Tokenizer::new($string_interner, $matching_text).into().tokens);
-        };
-        ($string_interner:expr, $tokens:expr, $matching_text:expr) => {
-            assert_eq!($tokens, Tokenizer::new($string_interner, $matching_text).into().tokens);
-        };
-    }
-
-    #[cfg(test)]
-    fn compare_tokens(test_name: &str, code: &str) {
-        let string_interner = StringInterner::default();
-        let tokenized_file = Tokenizer::new(string_interner, code).into();
-        if let Ok(loaded) = load::<Vec<Token>>(&resolve_test_path(["tokenizer", test_name])) {
-            assert_eq!(loaded, tokenized_file.tokens);
-        } else {
-            save(&resolve_test_path(["tokenizer", test_name]), &tokenized_file.tokens).expect("Error saving module!");
-        }
+    fn tokenize_str(code: &str) -> (StringInterner, TokenizedInput) {
+        let mut string_interner = StringInterner::default();
+        (string_interner, tokenize(string_interner.clone(), code).unwrap())
     }
 
     #[test]
-    pub fn tokenize_different_types_of_strings() {
-        let static_str = "pub class Random {}";
-        let string = String::from(static_str);
-
-        let string_interner = StringInterner::default();
-
-        let expected = tokenize!(
-            TokenType::Pub, 0, 3,
-            TokenType::Class, 4, 9,
-            TokenType::Identifier(string_interner.get_or_intern("Random")), 10, 16,
-            TokenType::LeftBrace, 17, 18,
-            TokenType::RightBrace, 18, 19
-        );
-
-        assert_eq!(expected, tokenize(string_interner.clone(), string).unwrap().tokens);
-        assert_eq!(expected, tokenize(string_interner, static_str).unwrap().tokens);
+    #[snapshot]
+    pub fn simple_class() -> (StringInterner, TokenizedInput) {
+        tokenize_str("pub class Random {}")
     }
 
     #[test]
-    #[named]
-    pub fn simple_class() {
-        compare_tokens(function_name!(), "pub class Random {}");
+    #[snapshot]
+    pub fn simple_enum() -> (StringInterner, TokenizedInput) {
+        tokenize_str("impl enum \n Reader \n [ ]")
     }
 
     #[test]
-    #[named]
-    pub fn simple_enum() {
-        compare_tokens(function_name!(), "impl enum \n Reader \n [ ]");
+    #[snapshot]
+    pub fn invalid_native_keyword() -> (StringInterner, TokenizedInput) {
+        tokenize_str("native nativer enative")
     }
 
     #[test]
-    #[named]
-    pub fn invalid_native_keyword() {
-        compare_tokens(function_name!(), "native nativer enative");
+    #[snapshot]
+    pub fn simple_expression() -> (StringInterner, TokenizedInput) {
+        tokenize_str("x = 123 >> 2 | 89 * 21")
     }
 
     #[test]
-    #[named]
-    pub fn simple_expression() {
-        compare_tokens(function_name!(), "x = 123 >> 2 | 89 * 21");
+    #[snapshot]
+    pub fn simple_trait() -> (StringInterner, TokenizedInput) {
+        tokenize_str("trait Serializable { }")
     }
 
     #[test]
-    #[named]
-    pub fn simple_trait() {
-        compare_tokens(function_name!(), "trait Serializable { }");
-    }
-
-    #[test]
-    #[named]
-    pub fn simple_iterator_trait() {
+    #[snapshot]
+    pub fn simple_iterator_trait() -> (StringInterner, TokenizedInput) {
         let code = concat!(
         "trait Iterator<T> {\n",
         "     fn next() => T | None;\n",
         "}"
         );
 
-        compare_tokens(function_name!(), code);
+        tokenize_str(code)
     }
 
     #[test]
-    #[named]
-    pub fn generic_point_class() {
-        compare_tokens(function_name!(), "class Point<T, U>(x: T, y: U);");
+    #[snapshot]
+    pub fn generic_point_class() -> (StringInterner, TokenizedInput) {
+        tokenize_str("class Point<T, U>(x: T, y: U);")
     }
 
     #[test]
-    #[named]
-    pub fn simple_main_stmt() {
-        compare_tokens(function_name!(),
-                       "fn main(arguments: [str]) { \
-                 print(arguments.to_string()); \
-             }");
+    #[snapshot]
+    pub fn simple_main_stmt() -> (StringInterner, TokenizedInput) {
+        tokenize_str(
+            concat!(
+            "fn main(arguments: [str]) {\n",
+            "    println(arguments.to_string());\n",
+            "}"
+            )
+        )
     }
 
     #[test]
-    #[named]
-    pub fn var_declarations() {
-        compare_tokens(function_name!(),
-                       concat!(
-                       "let mut x = None;\n",
-                       "let y = 0;"
-                       ),
-        );
+    #[snapshot]
+    pub fn var_declarations() -> (StringInterner, TokenizedInput) {
+        tokenize_str(
+            concat!(
+            "let mut x = None;\n",
+            "let y = 0;"
+            ))
     }
 
     #[test]
-    #[named]
-    pub fn uppercase_self() {
-        compare_tokens(function_name!(), "Self::lower_hir");
+    #[snapshot]
+    pub fn uppercase_self() -> (StringInterner, TokenizedInput) {
+        tokenize_str("Self::lower_hir")
     }
 
     #[test]
-    #[named]
-    pub fn parameter_parsing() {
-        compare_tokens(function_name!(), "fn mutate(mut self) => None;");
+    #[snapshot]
+    pub fn parameter_parsing() -> (StringInterner, TokenizedInput) {
+        tokenize_str("fn mutate(mut self) => None;")
     }
 
     #[test]
-    #[named]
-    pub fn bytearray_to_str() {
-        let code = concat!(
+    #[snapshot]
+    pub fn bytearray_to_str() -> (StringInterner, TokenizedInput) {
+        tokenize_str(concat!(
         r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
         "\n",
         r#"let bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];"#,
         "\n",
         r#"let greeting_from_array = str(bytearray); // "Hello world!""#
-        );
-
-        compare_tokens(function_name!(), code);
+        ))
     }
 
     #[test]
-    #[named]
-    pub fn empty_string() {
-        compare_tokens(function_name!(), r#""""#);
+    #[snapshot]
+    pub fn empty_string() -> (StringInterner, TokenizedInput) {
+        tokenize_str("")
     }
 
     #[test]
-    #[named]
-    pub fn small_a_string() {
-        compare_tokens(function_name!(), r#""a""#);
+    #[snapshot]
+    pub fn small_a_string() -> (StringInterner, TokenizedInput) {
+        tokenize_str("a")
     }
 
     #[test]
-    #[named]
-    pub fn scene_graph_node() {
-        let code = concat!(
+    #[snapshot]
+    pub fn scene_graph_node() -> (StringInterner, TokenizedInput) {
+        tokenize_str(concat!(
         "trait Node {\n",
         "   fn bounds() => Bounds;\n",
         "   fn draw(Graphics g);\n",
@@ -593,13 +555,12 @@ mod tests {
         "}\n",
         "\n",
         "fn draw_frame(nodes: List<Node>) { }"
-        );
-        compare_tokens(function_name!(), code);
+        ))
     }
 
     #[test]
-    #[named]
-    pub fn empty_class_with_traits() {
+    #[snapshot]
+    pub fn empty_class_with_traits() -> (StringInterner, TokenizedInput) {
         compare_tokens(function_name!(), "class SortedMap<T: Sortable + Hashable>;");
     }
 

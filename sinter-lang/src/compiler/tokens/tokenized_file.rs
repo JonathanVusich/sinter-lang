@@ -1,6 +1,7 @@
 use crate::compiler::tokens::token::Token;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct TokenizedInput {
     pub (crate) tokens: Vec<Token>,
     pub (crate) line_map: Vec<usize>,

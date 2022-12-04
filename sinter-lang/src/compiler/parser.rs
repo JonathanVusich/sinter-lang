@@ -1070,9 +1070,7 @@ mod tests {
     use std::sync::Arc;
 
     use snap::snapshot;
-    use ::function_name::named;
     use anyhow::{anyhow, Result};
-    use cfg_if::cfg_if;
     use lasso::ThreadedRodeo;
 
     use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
@@ -1093,70 +1091,12 @@ mod tests {
     use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBounds};
     use crate::compiler::StringInterner;
 
-    cfg_if! {
-        if #[cfg(test)] {
-            use crate::util::utils::{load, save, resolve_test_path};
-        }
-    }
-
     #[cfg(test)]
-    enum CodeUnit {
-        Module,
-        Expression,
-        PathExpression,
-        Ty,
-    }
-
-    #[cfg(test)]
-    impl CodeUnit {
-        fn folder_path(self, test_name: &str) -> Box<Path> {
-            let folder = match self {
-                CodeUnit::Module => "module",
-                CodeUnit::Ty => "type",
-                CodeUnit::Expression => "expression",
-                CodeUnit::PathExpression => "path_expression",
-            };
-
-            resolve_test_path(["parser", folder, test_name])
-        }
-    }
-
-    #[cfg(test)]
-    fn parse_code<T>(code: &str, parser_func: fn(&mut Parser) -> Result<T>) -> Result<(StringInterner, T)> {
-        let (interner, mut parser) = create_parser(code);
-        let parsed_val = parser_func(&mut parser)?;
-        Ok((interner, parsed_val))
-    }
-
-    #[cfg(test)]
-    macro_rules! parse {
-        ($code:literal) => {
-            parse_module($code).unwrap()
-        };
-        ($code:expr) => {
-            parse_module($code).unwrap()
-        }
-    }
-
-    #[cfg(test)]
-    macro_rules! parse_ty {
-        ($code:literal) => {
-            parse_code($code, Parser::parse_ty).unwrap()
-        }
-    }
-
-    #[cfg(test)]
-    macro_rules! parse_path {
-        ($code:literal) => {
-            parse_code($code, Parser::parse_path_expr).unwrap()
-        }
-    }
-
-    #[cfg(test)]
-    macro_rules! parse_expr {
-        ($code:literal) => {
-            parse_code($code, Parser::expr).unwrap()
-        }
+    fn create_parser(code: &str) -> (Arc<ThreadedRodeo>, Parser) {
+        let string_interner = StringInterner::default();
+        let tokens = tokenize(string_interner.clone(), code).unwrap();
+        let parser = Parser::new(string_interner.clone(), tokens);
+        (string_interner, parser)
     }
 
     #[cfg(test)]
@@ -1168,11 +1108,38 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn create_parser(code: &str) -> (Arc<ThreadedRodeo>, Parser) {
-        let string_interner = StringInterner::default();
-        let tokens = tokenize(string_interner.clone(), code).unwrap();
-        let parser = Parser::new(string_interner.clone(), tokens);
-        (string_interner, parser)
+    fn parse_code<T>(code: &str, parser_func: fn(&mut Parser) -> Result<T>) -> Result<(StringInterner, T)> {
+        let (interner, mut parser) = create_parser(code);
+        let parsed_val = parser_func(&mut parser)?;
+        Ok((interner, parsed_val))
+    }
+
+    #[cfg(test)]
+    macro_rules! parse {
+        ($code:expr) => {
+            parse_module($code).unwrap()
+        }
+    }
+
+    #[cfg(test)]
+    macro_rules! parse_ty {
+        ($code:expr) => {
+            parse_code($code, Parser::parse_ty).unwrap()
+        }
+    }
+
+    #[cfg(test)]
+    macro_rules! parse_path {
+        ($code:expr) => {
+            parse_code($code, Parser::parse_path_expr).unwrap()
+        }
+    }
+
+    #[cfg(test)]
+    macro_rules! parse_expr {
+        ($code:expr) => {
+            parse_code($code, Parser::expr).unwrap()
+        }
     }
 
     #[test]
