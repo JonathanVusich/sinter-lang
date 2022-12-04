@@ -26,3 +26,9 @@ pub fn inner_func() -> usize {
 pub fn serialize_complex_struct() -> Platform {
     Platform::MacOS
 }
+
+#[test]
+#[snapshot]
+pub fn serialize_error() -> Platform {
+    Platform::MacOS
+}

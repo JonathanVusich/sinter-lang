@@ -1074,15 +1074,10 @@ mod tests {
     use anyhow::{anyhow, Result};
     use cfg_if::cfg_if;
     use lasso::ThreadedRodeo;
-    use serde::de::DeserializeOwned;
-    use serde::{Deserialize, Serialize};
 
     use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::ast::Stmt::Enum;
-    use crate::compiler::ast::ast::{
-        Args, BlockStmt, Call, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, GenericDecl,
-        GenericDecls, LetStmt, Mutability, Param, Params, QualifiedIdent, Stmt,
-    };
+    use crate::compiler::ast::ast::{Args, BlockStmt, Call, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, GenericDecl, GenericDecls, LetStmt, Mutability, Param, Params, PathExpr, QualifiedIdent, Stmt};
     use crate::compiler::ast::ast::{Module, UseStmt};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{ParseError, Parser};
@@ -1127,44 +1122,6 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn run_test(test_name: &str, code: &str, code_unit: CodeUnit) {
-        match code_unit {
-            CodeUnit::Module => {
-                inner_compare(
-                    parse_code(code, Parser::parse).unwrap(),
-                    code_unit.folder_path(test_name),
-                );
-            }
-            CodeUnit::Ty => inner_compare(
-                parse_code(code, Parser::parse_ty).unwrap(),
-                code_unit.folder_path(test_name),
-            ),
-            CodeUnit::Expression => {
-                inner_compare(
-                    parse_code(code, Parser::expr).unwrap(),
-                    code_unit.folder_path(test_name),
-                );
-            }
-            CodeUnit::PathExpression => inner_compare(
-                parse_code(code, Parser::parse_path_expr).unwrap(),
-                code_unit.folder_path(test_name),
-            ),
-        }
-    }
-
-    #[cfg(test)]
-    fn inner_compare<T: DeserializeOwned + Serialize + Debug + PartialEq>(
-        value: T,
-        path: Box<Path>,
-    ) {
-        if let Ok(loaded) = load::<T>(&path) {
-            assert_eq!(loaded, value);
-        } else {
-            save(&path, value).expect("Error saving data!");
-        }
-    }
-
-    #[cfg(test)]
     fn parse_code<T>(code: &str, parser_func: fn(&mut Parser) -> Result<T>) -> Result<(StringInterner, T)> {
         let (interner, mut parser) = create_parser(code);
         let parsed_val = parser_func(&mut parser)?;
@@ -1174,6 +1131,9 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse {
         ($code:literal) => {
+            parse_module($code).unwrap()
+        };
+        ($code:expr) => {
             parse_module($code).unwrap()
         }
     }
@@ -1266,71 +1226,57 @@ mod tests {
     }
 
     #[test]
-    #[named]
-    pub fn closure_returns_trait_bound_or_none() {
-        let code = "() => [first::party::package::Send<V: std::Copy + std::Clone> + third::party::package::Sync<T> + std::Copy + std::Clone] | None";
-        run_test(function_name!(), code, CodeUnit::Ty);
+    #[snapshot]
+    pub fn closure_returns_trait_bound_or_none() -> (StringInterner, Type) {
+        parse_ty!("() => [first::party::package::Send<V: std::Copy + std::Clone> + third::party::package::Sync<T> + std::Copy + std::Clone] | None")
     }
 
     #[test]
-    #[named]
-    pub fn closure_expression() {
-        let code = "(x, y) => x + y";
-        run_test(function_name!(), code, CodeUnit::Expression)
+    #[snapshot]
+    pub fn closure_expression() -> (StringInterner, Expr) {
+        parse_expr!("(x, y) => x + y")
     }
 
     #[test]
-    #[named]
-    pub fn double_index_expression() {
-        let code = "x[0][1]";
-        run_test(function_name!(), code, CodeUnit::Expression);
+    #[snapshot]
+    pub fn double_index_expression() -> (StringInterner, Expr) {
+        parse_expr!("x[0][1]")
     }
 
     #[test]
-    #[named]
-    pub fn add_and_multiply() {
-        let code = "1 + 2 * 3";
-        run_test(function_name!(), code, CodeUnit::Expression);
+    #[snapshot]
+    pub fn add_and_multiply() -> (StringInterner, Expr) {
+        parse_expr!("1 + 2 * 3")
     }
 
     #[test]
-    #[named]
-    pub fn add_and_multiply_idents() {
-        let code = "a + b * c * d + e";
-        run_test(function_name!(), code, CodeUnit::Expression);
+    #[snapshot]
+    pub fn add_and_multiply_idents() -> (StringInterner, Expr) {
+        parse_expr!("a + b * c * d + e")
     }
 
     #[test]
-    #[named]
-    pub fn double_negate_and_multiply() {
-        let code = "--1 * 2";
-        run_test(function_name!(), code, CodeUnit::Expression);
+    #[snapshot]
+    pub fn double_negate_and_multiply() -> (StringInterner, Expr) {
+        parse_expr!("--1 * 2")
     }
 
     #[test]
-    #[named]
-    pub fn single_path_expr() {
-        let code = "std";
-        run_test(function_name!(), code, CodeUnit::PathExpression)
+    #[snapshot]
+    pub fn single_path_expr() -> (StringInterner, Expr) {
+        parse_path!("std")
     }
 
     #[test]
-    #[named]
-    pub fn simple_path_expr() {
-        let code = "std::Clone";
-        run_test(function_name!(), code, CodeUnit::PathExpression)
+    #[snapshot]
+    pub fn simple_path_expr() -> (StringInterner, Expr) {
+        parse_path!("std::Clone")
     }
 
     #[test]
-    #[named]
-    pub fn generic_path_expr() {
-
-        fn do_something() -> usize {
-            42
-        }
-
-        let code = "std::HashMap::<T>::new";
-        run_test(function_name!(), code, CodeUnit::PathExpression)
+    #[snapshot]
+    pub fn generic_path_expr() -> (StringInterner, Expr) {
+        parse_path!("std::HashMap::<T>::new")
     }
 
     macro_rules! simple_type {
@@ -1381,20 +1327,20 @@ mod tests {
     );
 
     #[test]
-    #[named]
-    pub fn use_statements() {
+    #[snapshot]
+    pub fn use_statements() -> (StringInterner, Module) {
         let code = concat!(
         "use std::vector;",
         "use std::array;",
         "use std::map::HashMap;"
         );
 
-        run_test(function_name!(), code, CodeUnit::Module);
+        parse!(code)
     }
 
     #[test]
-    #[named]
-    pub fn basic_enum() {
+    #[snapshot]
+    pub fn basic_enum() -> (StringInterner, Module) {
         let code = concat!(
         "enum Planet(\n",
         "    Mercury,\n",
@@ -1409,12 +1355,12 @@ mod tests {
         ");"
         );
 
-        run_test(function_name!(), code, CodeUnit::Module);
+        parse!(code)
     }
 
     #[test]
-    #[named]
-    pub fn complex_enum() {
+    #[snapshot]
+    pub fn complex_enum() -> (StringInterner, Module) {
         let code = concat!(
         "enum Vector<X: Number + Display, Y: Number + Display>(\n",
         "    Normalized(x: X, y: Y),\n",
@@ -1425,7 +1371,6 @@ mod tests {
         "    }\n",
         "}"
         );
-
-        // run_test(function_name!(), code, CodeUnit::Module);
+        parse!(code)
     }
 }
