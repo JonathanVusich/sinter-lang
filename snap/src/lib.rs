@@ -2,13 +2,13 @@
 #![feature(const_extern_fn)]
 
 use proc_macro::{Span, TokenStream};
-use quote::{format_ident, quote, ToTokens};
+use quote::quote;
 use std::path::PathBuf;
 use syn::{ItemFn, ReturnType};
-use syn::{parse, parse_macro_input};
+use syn::parse_macro_input;
 
 #[proc_macro_attribute]
-pub fn snapshot(ignored: TokenStream, tokens: TokenStream) -> TokenStream {
+pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
     let mut resource_path = PathBuf::from("snapshots");
 
     let mut source_path =
@@ -34,7 +34,7 @@ pub fn snapshot(ignored: TokenStream, tokens: TokenStream) -> TokenStream {
     resource_path.set_extension("json");
     let path_str = resource_path.to_str().unwrap();
 
-    let tokens = quote!(
+    quote!(
         pub fn #name() -> Result<(), Box<dyn std::error::Error>> {
 
             use std::fs::{File, OpenOptions};
@@ -49,7 +49,7 @@ pub fn snapshot(ignored: TokenStream, tokens: TokenStream) -> TokenStream {
 
             let value = #name();
 
-            if let Ok(file) = File::open(snapshot_path) {
+            if let Ok(file) = File::open(&snapshot_path) {
                 let reader = BufReader::new(file);
                 let saved_value: #ty = serde_json::from_reader(reader)?;
                 assert_eq!(saved_value, value);
@@ -61,15 +61,11 @@ pub fn snapshot(ignored: TokenStream, tokens: TokenStream) -> TokenStream {
                 let file = OpenOptions::new()
                     .write(true)
                     .create(true)
-                    .open(snapshot_path)?;
+                    .open(&snapshot_path)?;
                 let writer = BufWriter::new(file);
                 Ok(serde_json::to_writer_pretty(writer, &value)?)
             }
         }
     )
-    .into();
-
-    eprintln!("Tokens: {}", tokens);
-
-    tokens
+    .into()
 }

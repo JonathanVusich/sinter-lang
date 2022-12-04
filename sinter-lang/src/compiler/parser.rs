@@ -1069,6 +1069,7 @@ mod tests {
     use std::path::{Path, PathBuf};
     use std::sync::Arc;
 
+    use snap::snapshot;
     use ::function_name::named;
     use anyhow::{anyhow, Result};
     use cfg_if::cfg_if;
@@ -1164,9 +1165,38 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn parse_code<T>(code: &str, parser_func: fn(&mut Parser) -> Result<T>) -> Result<T> {
+    fn parse_code<T>(code: &str, parser_func: fn(&mut Parser) -> Result<T>) -> Result<(StringInterner, T)> {
         let (interner, mut parser) = create_parser(code);
-        parser_func(&mut parser)
+        let parsed_val = parser_func(&mut parser)?;
+        Ok((interner, parsed_val))
+    }
+
+    #[cfg(test)]
+    macro_rules! parse {
+        ($code:literal) => {
+            parse_module($code).unwrap()
+        }
+    }
+
+    #[cfg(test)]
+    macro_rules! parse_ty {
+        ($code:literal) => {
+            parse_code($code, Parser::parse_ty).unwrap()
+        }
+    }
+
+    #[cfg(test)]
+    macro_rules! parse_path {
+        ($code:literal) => {
+            parse_code($code, Parser::parse_path_expr).unwrap()
+        }
+    }
+
+    #[cfg(test)]
+    macro_rules! parse_expr {
+        ($code:literal) => {
+            parse_code($code, Parser::expr).unwrap()
+        }
     }
 
     #[cfg(test)]
@@ -1230,10 +1260,9 @@ mod tests {
     }
 
     #[test]
-    #[named]
-    pub fn closure_return_closure() {
-        let code = "() => (() => None)";
-        run_test(function_name!(), code, CodeUnit::Ty);
+    #[snapshot]
+    pub fn closure_return_closure() -> (StringInterner, Type) {
+        parse_ty!("() => (() => None)")
     }
 
     #[test]
