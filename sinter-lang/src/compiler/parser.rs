@@ -47,11 +47,7 @@ pub enum ClassType {
 
 impl Parser {
     fn new(string_interner: StringInterner, tokenized_input: TokenizedInput) -> Self {
-        let token_types = tokenized_input
-            .tokens
-            .iter()
-            .map(|f| f.token_type)
-            .collect();
+        let token_types = tokenized_input.tokens.iter().map(|f| f.token_type).collect();
         Self {
             string_interner,
             tokenized_input,
@@ -468,9 +464,10 @@ impl Parser {
     }
 
     fn block_stmt(&mut self) -> Result<BlockStmt> {
-        self.expect(TokenType::LeftBrace)?;
-        let stmts = self.parse_outer_stmts()?;
-        self.expect(TokenType::RightBrace)?;
+        let stmts = self.parse_multiple_with_scope(
+            Self::parse_outer_stmt,
+            TokenType::LeftBrace,
+            TokenType::RightBrace)?;
         Ok(BlockStmt::new(stmts))
     }
 
@@ -489,8 +486,7 @@ impl Parser {
 
     fn parse_ty(&mut self) -> Result<Type> {
         self.bounds_check()?;
-        let mut tys =
-            self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
+        let mut tys = self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
         if tys.len() > 1 {
             Ok(Union(tys))
         } else {
@@ -593,8 +589,7 @@ impl Parser {
         match self.current_type() {
             TokenType::Plus => {
                 self.advance();
-                let mut paths =
-                    self.parse_multiple_with_delimiter(Self::parse_path_ty, TokenType::Plus)?;
+                let mut paths = self.parse_multiple_with_delimiter(Self::parse_path_ty, TokenType::Plus)?;
                 paths.insert(0, path);
                 Ok(TraitBounds(paths))
             }
@@ -661,9 +656,9 @@ impl Parser {
             Ok(Return(ReturnStmt::new(None)))
         } else {
             let expression = self.expr()?;
-            let return_stmt = ReturnStmt::new(Some(expression));
+            self.expect(TokenType::Semicolon)?;
 
-            Ok(Return(return_stmt))
+            Ok(Return(ReturnStmt::new(Some(expression))))
         }
     }
 
@@ -759,8 +754,8 @@ impl Parser {
 
                 lhs = match postfix_op {
                     PostfixOp::LeftParentheses => {
-                        let args =
-                            self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
+                        let args = self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
+                        self.expect(TokenType::RightParentheses)?;
                         Expr::Call(Box::new(Call::new(
                             lhs,
                             GenericDecls::empty(),

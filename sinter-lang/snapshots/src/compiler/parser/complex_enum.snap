@@ -1,0 +1,230 @@
+[
+  {
+    "Y": 5,
+    "y": 8,
+    "Normalized": 6,
+    "Number": 3,
+    "x": 7,
+    "X": 2,
+    "Display": 4,
+    "Vector": 1,
+    "to_normalized": 10,
+    "Absolute": 9,
+    "self": 11
+  },
+  {
+    "stmts": [
+      {
+        "Enum": {
+          "name": 1,
+          "generics": {
+            "generics": [
+              {
+                "ident": 2,
+                "trait_bound": {
+                  "TraitBounds": [
+                    {
+                      "ident": {
+                        "idents": [
+                          3
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    },
+                    {
+                      "ident": {
+                        "idents": [
+                          4
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "ident": 5,
+                "trait_bound": {
+                  "TraitBounds": [
+                    {
+                      "ident": {
+                        "idents": [
+                          3
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    },
+                    {
+                      "ident": {
+                        "idents": [
+                          4
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "is_sync": false,
+          "members": [
+            {
+              "name": 6,
+              "parameters": {
+                "params": [
+                  {
+                    "name": 7,
+                    "ty": {
+                      "Path": {
+                        "ident": {
+                          "idents": [
+                            2
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    },
+                    "mutability": "Immutable"
+                  },
+                  {
+                    "name": 8,
+                    "ty": {
+                      "Path": {
+                        "ident": {
+                          "idents": [
+                            5
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "member_functions": []
+            },
+            {
+              "name": 9,
+              "parameters": {
+                "params": [
+                  {
+                    "name": 7,
+                    "ty": {
+                      "Path": {
+                        "ident": {
+                          "idents": [
+                            2
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    },
+                    "mutability": "Immutable"
+                  },
+                  {
+                    "name": 8,
+                    "ty": {
+                      "Path": {
+                        "ident": {
+                          "idents": [
+                            5
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "member_functions": []
+            }
+          ],
+          "fn_stmts": [
+            {
+              "sig": {
+                "name": 10,
+                "generic_types": {
+                  "generics": []
+                },
+                "parameters": {
+                  "params": [
+                    {
+                      "name": 11,
+                      "ty": "Infer",
+                      "mutability": "Immutable"
+                    }
+                  ]
+                },
+                "return_type": {
+                  "Path": {
+                    "ident": {
+                      "idents": [
+                        1
+                      ]
+                    },
+                    "generics": {
+                      "generics": []
+                    }
+                  }
+                }
+              },
+              "body": {
+                "stmts": [
+                  {
+                    "Return": {
+                      "value": {
+                        "Call": {
+                          "func": {
+                            "Identifier": 6
+                          },
+                          "generic_tys": {
+                            "generics": []
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "Field": {
+                                  "lhs": "SelfRef",
+                                  "ident": 7
+                                }
+                              },
+                              {
+                                "Field": {
+                                  "lhs": "SelfRef",
+                                  "ident": 8
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

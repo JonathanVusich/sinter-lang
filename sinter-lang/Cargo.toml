@@ -31,7 +31,7 @@ snap = { path = "../snap" }
 criterion = "0.3.5"
 
 [profile.test]
-opt-level=3
+# opt-level=3
 
 [[bench]]
 name = "block_allocation"
