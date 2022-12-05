@@ -1,0 +1,44 @@
+[
+  {
+    "e": 5,
+    "c": 3,
+    "a": 1,
+    "b": 2,
+    "d": 4
+  },
+  {
+    "Infix": {
+      "operator": "Add",
+      "lhs": {
+        "Infix": {
+          "operator": "Add",
+          "lhs": {
+            "Identifier": 1
+          },
+          "rhs": {
+            "Infix": {
+              "operator": "Multiply",
+              "lhs": {
+                "Infix": {
+                  "operator": "Multiply",
+                  "lhs": {
+                    "Identifier": 2
+                  },
+                  "rhs": {
+                    "Identifier": 3
+                  }
+                }
+              },
+              "rhs": {
+                "Identifier": 4
+              }
+            }
+          }
+        }
+      },
+      "rhs": {
+        "Identifier": 5
+      }
+    }
+  }
+]

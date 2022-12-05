@@ -1,0 +1,44 @@
+[
+  {
+    "map": 4,
+    "array": 3,
+    "vector": 2,
+    "HashMap": 5,
+    "std": 1
+  },
+  {
+    "stmts": [
+      {
+        "Use": {
+          "ident": {
+            "idents": [
+              1,
+              2
+            ]
+          }
+        }
+      },
+      {
+        "Use": {
+          "ident": {
+            "idents": [
+              1,
+              3
+            ]
+          }
+        }
+      },
+      {
+        "Use": {
+          "ident": {
+            "idents": [
+              1,
+              4,
+              5
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {},
+  {
+    "tokens": [
+      {
+        "token_type": {
+          "Float": 123.45
+        },
+        "start": 0,
+        "end": 6
+      }
+    ],
+    "line_map": [],
+    "line_counter": 0
+  }
+]

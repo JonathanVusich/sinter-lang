@@ -1,0 +1,41 @@
+[
+  {
+    "T": 3,
+    "std": 1,
+    "new": 4,
+    "HashMap": 2
+  },
+  {
+    "Path": {
+      "segments": [
+        {
+          "Identifier": 1
+        },
+        {
+          "Identifier": 2
+        },
+        {
+          "GenericCallsite": {
+            "generics": [
+              {
+                "Path": {
+                  "ident": {
+                    "idents": [
+                      3
+                    ]
+                  },
+                  "generics": {
+                    "generics": []
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "Identifier": 4
+        }
+      ]
+    }
+  }
+]

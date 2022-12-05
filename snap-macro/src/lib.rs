@@ -32,7 +32,7 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
     }
 
     resource_path.push(name.to_string());
-    resource_path.set_extension("json");
+    resource_path.set_extension("snap");
     let path_str = resource_path.to_str().unwrap();
 
     quote!(

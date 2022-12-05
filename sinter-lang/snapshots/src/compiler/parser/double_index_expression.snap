@@ -1,0 +1,22 @@
+[
+  {
+    "x": 1
+  },
+  {
+    "Index": {
+      "expr": {
+        "Index": {
+          "expr": {
+            "Identifier": 1
+          },
+          "key": {
+            "Integer": 0
+          }
+        }
+      },
+      "key": {
+        "Integer": 1
+      }
+    }
+  }
+]

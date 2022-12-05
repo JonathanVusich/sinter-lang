@@ -1,0 +1,93 @@
+[
+  {
+    "Pluto": 10,
+    "Venus": 3,
+    "Mercury": 2,
+    "Saturn": 7,
+    "Planet": 1,
+    "Uranus": 8,
+    "Neptune": 9,
+    "Earth": 4,
+    "Jupiter": 6,
+    "Mars": 5
+  },
+  {
+    "stmts": [
+      {
+        "Enum": {
+          "name": 1,
+          "generics": {
+            "generics": []
+          },
+          "is_sync": false,
+          "members": [
+            {
+              "name": 2,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 3,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 4,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 5,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 6,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 7,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 8,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 9,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 10,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            }
+          ],
+          "fn_stmts": []
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,18 @@
+[
+  {
+    "Clone": 2,
+    "std": 1
+  },
+  {
+    "Path": {
+      "segments": [
+        {
+          "Identifier": 1
+        },
+        {
+          "Identifier": 2
+        }
+      ]
+    }
+  }
+]

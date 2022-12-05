@@ -415,27 +415,9 @@ mod tests {
     use snap::snapshot;
 
     #[cfg(test)]
-    macro_rules! make_token {
-        ($token_ident:expr, $start:tt, $current:tt) => {
-            Token::new($token_ident, $start, $current)
-        };
-    }
-
-    #[cfg(test)]
-    macro_rules! tokenize {
-        ($($token_ident:expr, $start:literal, $current:literal),*) => {
-            vec![
-                $(
-                    make_token!($token_ident, $start, $current),
-                )*
-            ]
-        }
-    }
-
-    #[cfg(test)]
     fn tokenize_str(code: &str) -> (StringInterner, TokenizedInput) {
-        let mut string_interner = StringInterner::default();
-        (string_interner, tokenize(string_interner.clone(), code).unwrap())
+        let string_interner = StringInterner::default();
+        (string_interner.clone(), tokenize(string_interner, code).unwrap())
     }
 
     #[test]
@@ -561,12 +543,12 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn empty_class_with_traits() -> (StringInterner, TokenizedInput) {
-        compare_tokens(function_name!(), "class SortedMap<T: Sortable + Hashable>;");
+        tokenize_str("class SortedMap<T: Sortable + Hashable>;")
     }
 
     #[test]
-    #[named]
-    pub fn enum_with_member_funcs() {
+    #[snapshot]
+    pub fn enum_with_member_funcs() -> (StringInterner, TokenizedInput) {
         let code = concat!(
         "enum Message {\n",
         "    Text(message: str),\n",
@@ -577,12 +559,12 @@ mod tests {
         "    },\n",
         "}"
         );
-        compare_tokens(function_name!(), code);
+        tokenize_str(code)
     }
 
     #[test]
-    #[named]
-    pub fn complex_enum() {
+    #[snapshot]
+    pub fn complex_enum() -> (StringInterner, TokenizedInput) {
         let code = concat!(
         "enum Vector<X: Number + Display, Y: Number + Display> {\n",
         "    Normalized(x: X, y: Y),\n",
@@ -593,52 +575,54 @@ mod tests {
         "    }\n",
         "}"
         );
-        compare_tokens(function_name!(), code);
+        tokenize_str(code)
     }
 
     #[test]
-    #[named]
-    pub fn for_loop() {
-        let code = concat!(
-        "for x in 0..100 { }"
-        );
-
-        compare_tokens(function_name!(), code);
+    #[snapshot]
+    pub fn for_loop() -> (StringInterner, TokenizedInput) {
+        tokenize_str("for x in 0..100 { }")
     }
 
     #[test]
-    #[named]
-    pub fn let_stmt_none() {
-        compare_tokens(function_name!(), "let x: None;")
+    #[snapshot]
+    pub fn let_stmt_none() -> (StringInterner, TokenizedInput) {
+        tokenize_str("let x: None;")
     }
 
     #[test]
-    #[named]
-    pub fn simple_statement() {
-        compare_tokens(function_name!(), "use std::vector::Vector");
+    #[snapshot]
+    pub fn simple_statement() -> (StringInterner, TokenizedInput) {
+        tokenize_str("use std::vector::Vector")
     }
 
     #[test]
-    pub fn float_parsing() {
-        let string_interner = StringInterner::default();
-
-        test!(string_interner.clone(), tokenize!(TokenType::Float(123.45), 0, 6), "123.45");
-
-        test!(string_interner, tokenize!(TokenType::Float(123.01), 1, 7), " 123.01");
+    #[snapshot]
+    pub fn parse_float_base_case() -> (StringInterner, TokenizedInput) {
+        tokenize_str("123.45")
     }
 
     #[test]
-    pub fn int_parsing() {
-        let string_interner = StringInterner::default();
+    #[snapshot]
+    pub fn parse_float_with_preceding_whitespace() -> (StringInterner, TokenizedInput) {
+        tokenize_str(" 123.45")
+    }
 
-        test!(string_interner.clone(), tokenize!(TokenType::SignedInteger(-123), 0, 4), "-123");
+    #[test]
+    #[snapshot]
+    pub fn parse_positive_int() -> (StringInterner, TokenizedInput) {
+        tokenize_str("123")
+    }
 
-        test!(string_interner.clone(), tokenize!(TokenType::SignedInteger(123), 0, 3), "123");
+    #[test]
+    #[snapshot]
+    pub fn parse_negative_int() -> (StringInterner, TokenizedInput) {
+        tokenize_str("-123")
+    }
 
-        test!(
-            string_interner,
-            tokenize!(TokenType::SignedInteger(123), 0, 3, TokenType::Dot, 3, 4),
-            "123."
-        );
+    #[test]
+    #[snapshot]
+    pub fn parse_int_with_dot_after() -> (StringInterner, TokenizedInput) {
+        tokenize_str("123.")
     }
 }

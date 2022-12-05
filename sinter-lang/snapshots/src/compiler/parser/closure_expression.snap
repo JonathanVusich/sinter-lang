@@ -1,0 +1,27 @@
+[
+  {
+    "x": 1,
+    "y": 2
+  },
+  {
+    "Closure": {
+      "params": [
+        1,
+        2
+      ],
+      "stmt": {
+        "Expression": {
+          "Infix": {
+            "operator": "Add",
+            "lhs": {
+              "Identifier": 1
+            },
+            "rhs": {
+              "Identifier": 2
+            }
+          }
+        }
+      }
+    }
+  }
+]
