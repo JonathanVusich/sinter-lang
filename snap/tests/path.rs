@@ -1,9 +1,8 @@
-#[macro_use]
-extern crate snap;
-
+use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
+use snap::{snapshot, snapshot_path};
 
-#[derive(Serialize, Deserialize, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub enum Platform {
     Windows,
     Linux,

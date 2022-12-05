@@ -8,9 +8,11 @@ edition = "2021"
 [toolchain]
 channel = "nightly"
 
+[lib]
+proc-macro = true
+
 [dependencies]
 syn = { version = "1.0.99", features = ["full"]}
 quote = "1.0.21"
 serde_json = "1.0.82"
 serde = { version = "1.0.140", features = ["derive"] }
-snap-macro = { path = "../snap-macro" }
