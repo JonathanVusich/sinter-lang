@@ -1,0 +1,5 @@
+error: expected return type
+ --> tests/no_specified_type.rs:6:5
+  |
+6 |     fn no_type_specified() {
+  |     ^^^^^^^^^^^^^^^^^^^^^^

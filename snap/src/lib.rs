@@ -2,8 +2,9 @@
 #![feature(const_extern_fn)]
 
 use proc_macro::{Span, TokenStream};
-use quote::quote;
 use std::path::PathBuf;
+
+use quote::quote;
 use syn::{ItemFn, ReturnType, Type};
 use syn::parse_macro_input;
 use syn::spanned::Spanned;
@@ -28,7 +29,7 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
     if let ReturnType::Type(_, boxed_type) = return_ty {
         ty = boxed_type;
     } else {
-        return syn::Error::new(return_ty.span(), "expected return type").to_compile_error().into();
+        return syn::Error::new(parsed_fn.sig.span(), "expected return type").to_compile_error().into();
     }
 
     resource_path.push(name.to_string());
@@ -43,22 +44,13 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
             use std::path::{Path, PathBuf};
             use serde::{Serialize, Deserialize};
 
-            macro_rules! snapshot_path {
-                () => {
-                    {
-                        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-                        path.push(PathBuf::from(#path_str));
-                        path
-                    }
-                }
-            }
-
+            let mut snap_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            snap_path.push(PathBuf::from(#path_str));
 
             #parsed_fn
 
             let value = #name();
 
-            let snap_path = snapshot_path!();
             if let Ok(file) = File::open(&snap_path) {
                 let reader = BufReader::new(file);
                 let saved_value: #ty = serde_json::from_reader(reader)?;
@@ -78,4 +70,27 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
         }
     )
         .into()
+}
+
+#[proc_macro]
+#[doc(hidden)]
+pub fn snapshot_folder(_ignored: TokenStream) -> TokenStream {
+    let mut resource_path = PathBuf::from("snapshots");
+
+    let mut source_path =
+        Span::call_site()
+            .source_file()
+            .path();
+
+    source_path.set_extension("");
+    resource_path.push(source_path);
+    let path_str = resource_path.to_str().unwrap();
+
+    quote!({
+        use std::path::{Path, PathBuf};
+
+        let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        path.push(PathBuf::from(#path_str));
+        path
+    }).into()
 }

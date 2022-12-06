@@ -1,18 +1,37 @@
 use std::fs::File;
-use snap::{snapshot};
+use std::io::BufReader;
+use std::panic;
+use std::path::{Path, PathBuf};
+use snap::{snapshot, snapshot_folder};
 
 #[test]
-#[snapshot]
-pub fn assert_file_is_created() -> usize {
-    let vec = vec![0];
-    let path = snapshot_path!();
+pub fn assert_file_is_created() -> std::io::Result<()> {
 
-    assert!(File::open(path).is_err());
+    let mut path: PathBuf = snapshot_folder!();
+    path.push("write_usize");
+    path.set_extension("snap");
 
-    0
-}
+    fn actual_test(path: &Path) {
 
+        File::open(&path).unwrap_err();
 
-#[test]
-pub fn test_fn() {
+        #[snapshot]
+        pub fn write_usize() -> usize {
+            17
+        }
+
+        write_usize().unwrap();
+
+        let open_file = File::open(&path).unwrap();
+
+        let value: usize = serde_json::from_reader(BufReader::new(open_file)).unwrap();
+
+        assert_eq!(17, value);
+    }
+
+    let _ignored = panic::catch_unwind(|| {
+        actual_test(&path);
+    });
+
+    std::fs::remove_file(&path)
 }
