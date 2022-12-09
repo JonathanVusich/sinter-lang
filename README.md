@@ -386,19 +386,23 @@ fn draw_frame(nodes: List<Node>) {
 
 ### Concurrency
 
-Sinter helps users to write correct concurrent programs by discouraging use of shared memory by preventing concurrent
-access on types that are not explicitly marked as `sync`, i.e. `sync class Marker;`. 
+Sinter helps users to write correct concurrent programs by preventing concurrent
+references to types that do not implement the `std::Sync` trait. 
 
-It is entirely possible to misuse the `sync` keyword and create deadlocks or other concurrency bugs. 
-This keyword allows the compiler to check thread boundary access at compile time, and to prevent **accidental**
-concurrent usage of types that are not marked as `sync`.
+It is entirely possible to misuse the `std::Sync` trait and create deadlocks or other concurrency bugs. 
+This trait is a special methodless trait that allows the compiler to check thread boundary access at compile time, and to prevent **accidental**
+concurrent usage of types that do not implement `std::Sync`.
 
-The primitive types in Sinter are all `sync` since they are immutable.
+The primitive types in Sinter all implement `std::Sync` since they are immutable.
 
-Closures can be sent across thread boundaries if all of their captured variables are `sync`.
+Closures can be sent across thread boundaries if all of their captured variables implement `std::Sync`.
 
 ```ignorelang
-sync class ConcurrentMap<K, V>(...) { ... };
+use std::Sync;
+
+class ConcurrentMap<K, V>(...) { ... };
+
+impl Sync for ConcurrentMap<K, V>;
 ```
 
 ### Comments

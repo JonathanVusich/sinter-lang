@@ -285,12 +285,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn peek_next(&mut self) -> Option<&'this str> {
-        let remaining = self.chars.len();
-        if remaining > 1 {
-            Some(self.chars[self.chars.len() - 2])
-        } else {
-            None
-        }
+        self.chars.get(self.chars.len() - 2).copied()
     }
 
     fn matches(&mut self, expected: &str) -> bool {
