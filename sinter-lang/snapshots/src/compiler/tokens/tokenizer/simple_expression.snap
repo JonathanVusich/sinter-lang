@@ -58,6 +58,18 @@
         },
         "start": 20,
         "end": 22
+      },
+      {
+        "token_type": "BitwiseAnd",
+        "start": 23,
+        "end": 24
+      },
+      {
+        "token_type": {
+          "SignedInteger": 2
+        },
+        "start": 25,
+        "end": 26
       }
     ],
     "line_map": [],

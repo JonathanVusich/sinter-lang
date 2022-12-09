@@ -55,7 +55,6 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
     "use" => TokenType::Use,
     "None" => TokenType::None,
     "inline" => TokenType::Inline,
-    "sync" => TokenType::Sync,
     "in" => TokenType::In,
 };
 
@@ -93,6 +92,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn scan_token(&mut self) {
+        self.start = self.current;
         if let Some(char) = self.next() {
             match char {
                 "&" => {
@@ -113,8 +113,8 @@ impl<'this> Tokenizer<'this> {
                 ":" => self.create_token(TokenType::Colon),
                 ";" => self.create_token(TokenType::Semicolon),
                 "-" => {
-                    if let Some(char) = self.peek() && is_digit(char) {
-                        self.parse_num();
+                    if let Some(digit) = self.peek() && is_digit(digit) {
+                        self.parse_num(char);
                     } else{
                         self.create_token(TokenType::Minus)
                     }
@@ -173,14 +173,18 @@ impl<'this> Tokenizer<'this> {
                     }
                 }
                 "\"" => self.parse_string(),
-                "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => self.parse_num(),
+                "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => self.parse_num(char),
                 _ => self.parse_identifier(char),
             }
         }
     }
 
     fn parse_identifier(&mut self, character: &str) {
-        let chars = self.take_while(is_ident);
+        let mut chars = vec![character];
+        while let Some(char) = self.peek() && is_ident(char) {
+            chars.push(char);
+            self.next();
+        }
 
         let identifier = chars.join("");
         let token_type = KEYWORDS.get(&identifier).copied()
@@ -192,8 +196,8 @@ impl<'this> Tokenizer<'this> {
         self.create_token(token_type);
     }
 
-    fn parse_num(&mut self) {
-        let mut tokens = vec![];
+    fn parse_num(&mut self, char: &str) {
+        let mut tokens = vec![char];
 
         while let Some(char) = self.peek() && is_digit(char) {
             tokens.push(char);
@@ -229,7 +233,8 @@ impl<'this> Tokenizer<'this> {
 
     fn parse_string(&mut self) {
         let mut tokens = vec![];
-        while let Some(char) = self.next() && char != "\"" {
+        while let Some(char) = self.peek() && char != "\"" {
+            self.next();
             if char == "\n" {
                 self.tokenized_file.add_line_break(self.current);
             }
@@ -270,13 +275,6 @@ impl<'this> Tokenizer<'this> {
         }
     }
 
-    fn take_while<F: FnMut(&str) -> bool>(&mut self, mut predicate: F) -> Vec<&'this str> {
-        self.chars.iter()
-            .take_while(|f| predicate(f))
-            .copied()
-            .collect()
-    }
-
     fn next(&mut self) -> Option<&'this str> {
         self.current += 1;
         self.chars.pop()
@@ -297,7 +295,6 @@ impl<'this> Tokenizer<'this> {
 
     fn matches(&mut self, expected: &str) -> bool {
         if let Some(char) = self.peek() && char == expected {
-            self.current += 1;
             self.next();
             true
         } else {
