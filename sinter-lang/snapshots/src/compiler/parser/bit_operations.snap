@@ -1,0 +1,74 @@
+[
+  {
+    "x": 1
+  },
+  {
+    "Infix": {
+      "operator": "BitwiseOr",
+      "lhs": {
+        "Infix": {
+          "operator": "RightShift",
+          "lhs": {
+            "Infix": {
+              "operator": "Add",
+              "lhs": {
+                "Infix": {
+                  "operator": "Subtract",
+                  "lhs": {
+                    "Infix": {
+                      "operator": "Add",
+                      "lhs": {
+                        "Identifier": 1
+                      },
+                      "rhs": {
+                        "Infix": {
+                          "operator": "Divide",
+                          "lhs": {
+                            "Infix": {
+                              "operator": "Multiply",
+                              "lhs": {
+                                "Identifier": 1
+                              },
+                              "rhs": {
+                                "Identifier": 1
+                              }
+                            }
+                          },
+                          "rhs": {
+                            "Identifier": 1
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "rhs": {
+                    "Unary": {
+                      "operator": "Minus",
+                      "expr": {
+                        "Unary": {
+                          "operator": "Minus",
+                          "expr": {
+                            "Identifier": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "rhs": {
+                "Integer": 3
+              }
+            }
+          },
+          "rhs": {
+            "Integer": 1
+          }
+        }
+      },
+      "rhs": {
+        "Integer": 2
+      }
+    }
+  }
+]

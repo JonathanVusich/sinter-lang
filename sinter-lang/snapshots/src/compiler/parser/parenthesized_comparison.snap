@@ -1,0 +1,38 @@
+[
+  {},
+  {
+    "Infix": {
+      "operator": "Less",
+      "lhs": {
+        "Infix": {
+          "operator": "Add",
+          "lhs": {
+            "Integer": 1
+          },
+          "rhs": {
+            "Infix": {
+              "operator": "Multiply",
+              "lhs": {
+                "Integer": 2
+              },
+              "rhs": {
+                "Integer": 4
+              }
+            }
+          }
+        }
+      },
+      "rhs": {
+        "Infix": {
+          "operator": "Subtract",
+          "lhs": {
+            "Integer": 2
+          },
+          "rhs": {
+            "Integer": 1
+          }
+        }
+      }
+    }
+  }
+]

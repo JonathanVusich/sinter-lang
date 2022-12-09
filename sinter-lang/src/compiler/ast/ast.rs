@@ -88,10 +88,12 @@ pub struct Params {
 }
 
 impl Params {
-    pub fn new(params: Vec<Param>) -> Self {
+    pub const fn new(params: Vec<Param>) -> Self {
         Self { params }
     }
 }
+
+pub const EMPTY_ARGS: Args = Args::new(Vec::new());
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Args {
@@ -99,8 +101,12 @@ pub struct Args {
 }
 
 impl Args {
-    pub fn new(args: Vec<Expr>) -> Self {
+    pub const fn new(args: Vec<Expr>) -> Self {
         Self { args }
+    }
+
+    pub fn empty() -> Self {
+        EMPTY_ARGS
     }
 }
 

@@ -1,0 +1,14 @@
+[
+  {},
+  {
+    "Infix": {
+      "operator": "Less",
+      "lhs": {
+        "Integer": 1
+      },
+      "rhs": {
+        "Integer": 2
+      }
+    }
+  }
+]

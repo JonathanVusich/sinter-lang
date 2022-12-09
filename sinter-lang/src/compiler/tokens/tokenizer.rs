@@ -62,7 +62,7 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
 #[derive(Debug)]
 struct Tokenizer<'this> {
     string_interner: StringInterner,
-    source_chars: Vec<&'this str>,
+    chars: Vec<&'this str>,
     tokenized_file: TokenizedInput,
     start: usize,
     current: usize,
@@ -70,10 +70,13 @@ struct Tokenizer<'this> {
 
 impl<'this> Tokenizer<'this> {
     pub fn new(string_interner: StringInterner, source: &'this str) -> Self {
-        let source_chars = source.graphemes(true).collect::<Vec<&'this str>>();
+        let source_chars = source
+            .graphemes(true)
+            .rev()
+            .collect::<Vec<&'this str>>();
         Self {
             string_interner,
-            source_chars,
+            chars: source_chars,
             tokenized_file: TokenizedInput::new(),
             start: 0,
             current: 0,
@@ -81,7 +84,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     pub fn into(mut self) -> TokenizedInput {
-        while !self.is_at_end() {
+        while !self.chars.is_empty() {
             self.skip_whitespace();
             self.scan_token();
         }
@@ -90,100 +93,96 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn scan_token(&mut self) {
-        if self.is_at_end() {
-            return;
-        }
-        let char = self.advance();
-
-        match char {
-            "&" => {
-                if self.matches("&") {
-                    self.create_token(TokenType::And)
-                } else {
-                    self.create_token(TokenType::BitwiseAnd)
-                }
-            }
-            "{" => self.create_token(TokenType::LeftBrace),
-            "}" => self.create_token(TokenType::RightBrace),
-            "[" => self.create_token(TokenType::LeftBracket),
-            "]" => self.create_token(TokenType::RightBracket),
-            "(" => self.create_token(TokenType::LeftParentheses),
-            ")" => self.create_token(TokenType::RightParentheses),
-            "," => self.create_token(TokenType::Comma),
-            "." => self.create_token(TokenType::Dot),
-            ":" => self.create_token(TokenType::Colon),
-            ";" => self.create_token(TokenType::Semicolon),
-            "-" => {
-                if self.matcher(is_digit) {
-                    self.parse_num()
-                } else {
-                    self.create_token(TokenType::Minus)
-                }
-            }
-            "+" => self.create_token(TokenType::Plus),
-            "/" => self.create_token(TokenType::Slash),
-            "%" => self.create_token(TokenType::Percent),
-            "*" => self.create_token(TokenType::Star),
-            "|" => {
-                if self.matches("|") {
-                    self.create_token(TokenType::Or)
-                } else {
-                    self.create_token(TokenType::BitwiseOr)
-                }
-            }
-            "~" => self.create_token(TokenType::BitwiseComplement),
-            "^" => self.create_token(TokenType::BitwiseXor),
-            "!" => {
-                if self.matches("=") {
-                    self.create_token(TokenType::BangEqual)
-                } else {
-                    self.create_token(TokenType::Bang)
-                }
-            }
-            "=" => {
-                if self.matches("=") {
-                    self.create_token(TokenType::EqualEqual)
-                } else if self.matches(">") {
-                    self.create_token(TokenType::RightArrow)
-                } else {
-                    self.create_token(TokenType::Equal)
-                }
-            }
-            "<" => {
-                if self.matches("=") {
-                    self.create_token(TokenType::LessEqual)
-                } else if self.matches("<") {
-                    self.create_token(TokenType::LeftShift)
-                } else {
-                    self.create_token(TokenType::Less)
-                }
-            }
-            ">" => {
-                if self.matches("=") {
-                    self.create_token(TokenType::GreaterEqual)
-                } else if self.matches(">") {
-                    if self.peek_next().contains(&">") {
-                        self.create_token(TokenType::TripleRightShift)
+        if let Some(char) = self.next() {
+            match char {
+                "&" => {
+                    if self.matches("&") {
+                        self.create_token(TokenType::And)
                     } else {
-                        self.create_token(TokenType::RightShift)
+                        self.create_token(TokenType::BitwiseAnd)
                     }
-                } else if self.matches("=") {
-                    self.create_token(TokenType::GreaterEqual)
-                } else {
-                    self.create_token(TokenType::Greater)
                 }
+                "{" => self.create_token(TokenType::LeftBrace),
+                "}" => self.create_token(TokenType::RightBrace),
+                "[" => self.create_token(TokenType::LeftBracket),
+                "]" => self.create_token(TokenType::RightBracket),
+                "(" => self.create_token(TokenType::LeftParentheses),
+                ")" => self.create_token(TokenType::RightParentheses),
+                "," => self.create_token(TokenType::Comma),
+                "." => self.create_token(TokenType::Dot),
+                ":" => self.create_token(TokenType::Colon),
+                ";" => self.create_token(TokenType::Semicolon),
+                "-" => {
+                    if let Some(char) = self.peek() && is_digit(char) {
+                        self.parse_num();
+                    } else{
+                        self.create_token(TokenType::Minus)
+                    }
+                }
+                "+" => self.create_token(TokenType::Plus),
+                "/" => self.create_token(TokenType::Slash),
+                "%" => self.create_token(TokenType::Percent),
+                "*" => self.create_token(TokenType::Star),
+                "|" => {
+                    if self.matches("|") {
+                        self.create_token(TokenType::Or)
+                    } else {
+                        self.create_token(TokenType::BitwiseOr)
+                    }
+                }
+                "~" => self.create_token(TokenType::BitwiseComplement),
+                "^" => self.create_token(TokenType::BitwiseXor),
+                "!" => {
+                    if self.matches("=") {
+                        self.create_token(TokenType::BangEqual)
+                    } else {
+                        self.create_token(TokenType::Bang)
+                    }
+                }
+                "=" => {
+                    if self.matches("=") {
+                        self.create_token(TokenType::EqualEqual)
+                    } else if self.matches(">") {
+                        self.create_token(TokenType::RightArrow)
+                    } else {
+                        self.create_token(TokenType::Equal)
+                    }
+                }
+                "<" => {
+                    if self.matches("=") {
+                        self.create_token(TokenType::LessEqual)
+                    } else if self.matches("<") {
+                        self.create_token(TokenType::LeftShift)
+                    } else {
+                        self.create_token(TokenType::Less)
+                    }
+                }
+                ">" => {
+                    if self.matches("=") {
+                        self.create_token(TokenType::GreaterEqual)
+                    } else if self.matches(">") {
+                        if self.peek_next().contains(&">") {
+                            self.create_token(TokenType::TripleRightShift)
+                        } else {
+                            self.create_token(TokenType::RightShift)
+                        }
+                    } else if self.matches("=") {
+                        self.create_token(TokenType::GreaterEqual)
+                    } else {
+                        self.create_token(TokenType::Greater)
+                    }
+                }
+                "\"" => self.parse_string(),
+                "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => self.parse_num(),
+                _ => self.parse_identifier(char),
             }
-            "\"" => self.parse_string(),
-            "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => self.parse_num(),
-            _ => self.parse_identifier(char),
         }
     }
 
     fn parse_identifier(&mut self, character: &str) {
-        while !self.is_at_end() && self.is_valid_identifier() {
-            self.advance();
-        }
-        let identifier = self.source_chars[self.start..self.current].join("");
+        let chars = self.take_while(is_ident);
+
+        let identifier = chars.join("");
         let token_type = KEYWORDS.get(&identifier).copied()
             .unwrap_or_else(|| {
                 let interned_str = self.string_interner.get_or_intern(identifier);
@@ -193,43 +192,25 @@ impl<'this> Tokenizer<'this> {
         self.create_token(token_type);
     }
 
-    fn check_keyword(
-        &mut self,
-        start: usize,
-        remainder: &'static str,
-        token_type: TokenType,
-    ) -> Option<TokenType> {
-        println!("Check keyword!");
-        let end = self.start + start + remainder.len();
-        if end > self.source_chars.len() {
-            return None;
-        }
-
-        let next_chars = self.source_chars[self.start + start..end].join("");
-        if next_chars == remainder
-            && (end == self.source_chars.len()
-            || end < self.source_chars.len() && is_delimiter(self.source_chars[end]))
-        {
-            self.current = end;
-            return Some(token_type);
-        }
-        None
-    }
-
     fn parse_num(&mut self) {
-        while !self.is_at_end() && is_digit(self.peek()) {
-            self.advance();
+        let mut tokens = vec![];
+
+        while let Some(char) = self.peek() && is_digit(char) {
+            tokens.push(char);
+            self.next();
         }
 
-        if !self.is_at_end() && self.peek() == "." && is_digit(self.peek_next().unwrap_or("")) {
-            self.advance();
+        if let Some(char) = self.peek() && char == "."
+            && let Some(next) = self.peek_next() && is_digit(next) {
+            tokens.push(char);
+            self.next();
 
-            while !self.is_at_end() && is_digit(self.peek()) {
-                self.advance();
+            while let Some(char) = self.peek() && is_digit(char) {
+                tokens.push(char);
+                self.next();
             }
 
-            let token_type: TokenType = self.source_chars[self.start..self.current]
-                .join("")
+            let token_type: TokenType = tokens.join("")
                 .parse::<f64>()
                 .map(TokenType::Float)
                 .unwrap_or_else(|_| TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid float.")));
@@ -238,8 +219,7 @@ impl<'this> Tokenizer<'this> {
             return;
         }
 
-        let token_type: TokenType = self.source_chars[self.start..self.current]
-            .join("")
+        let token_type: TokenType = tokens.join("")
             .parse::<i64>()
             .map(TokenType::SignedInteger)
             .unwrap_or_else(|_| TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid integer.")));
@@ -248,99 +228,105 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn parse_string(&mut self) {
-        while !self.is_at_end() && self.peek() != "\"" {
-            if self.peek() == "\n" {
+        let mut tokens = vec![];
+        while let Some(char) = self.next() && char != "\"" {
+            if char == "\n" {
                 self.tokenized_file.add_line_break(self.current);
             }
-            self.advance();
+            tokens.push(char);
         }
 
-        if self.is_at_end() {
-            self.create_unrecognized_token("Unterminated string.");
-            return;
+        if let Some(char) = self.next() && char == "\"" {
+            let string = tokens.join("");
+            let interned_str = self.string_interner.get_or_intern(string);
+
+            self.create_token(TokenType::String(interned_str))
+        } else {
+            self.create_unrecognized_token("Unterminated string.")
         }
-
-        self.advance();
-
-        let string = self.source_chars[self.start + 1..self.current - 1].join("");
-        let interned_str = self.string_interner.get_or_intern(string);
-
-        self.create_token(TokenType::String(interned_str));
     }
 
     fn skip_whitespace(&mut self) {
-        loop {
-            if self.is_at_end() {
-                return;
-            }
-            let char = self.peek();
+        while let Some(char) = self.peek() {
             match char {
                 " " | "\r" | "\t" => {
-                    self.advance();
+                    self.next();
                 }
                 "\n" => {
                     self.tokenized_file.add_line_break(self.current);
-                    self.advance();
+                    self.next();
                 }
                 "/" => {
                     if let Some("/") = self.peek_next() {
-                        while !self.is_at_end() && self.peek() != "\n" {
-                            self.advance();
+                        while let Some(char) = self.peek() && char != "\n" {
+                            self.next();
                         }
+                    } else {
+                        break;
                     }
                 }
                 _ => break,
             }
         }
-        self.start = self.current;
     }
 
-    fn is_at_end(&self) -> bool {
-        self.current == self.source_chars.len()
+    fn take_while<F: FnMut(&str) -> bool>(&mut self, mut predicate: F) -> Vec<&'this str> {
+        self.chars.iter()
+            .take_while(|f| predicate(f))
+            .copied()
+            .collect()
     }
 
-    fn advance(&mut self) -> &'this str {
+    fn next(&mut self) -> Option<&'this str> {
         self.current += 1;
-        self.source_chars[self.current - 1]
+        self.chars.pop()
     }
 
-    fn peek(&mut self) -> &'this str {
-        self.source_chars[self.current]
+    fn peek(&mut self) -> Option<&'this str> {
+        self.chars.last().copied()
     }
 
     fn peek_next(&mut self) -> Option<&'this str> {
-        if self.current >= self.source_chars.len() - 1 {
-            None
+        let remaining = self.chars.len();
+        if remaining > 1 {
+            Some(self.chars[self.chars.len() - 2])
         } else {
-            Some(self.source_chars[self.current + 1])
+            None
         }
     }
 
     fn matches(&mut self, expected: &str) -> bool {
-        if self.is_at_end() {
-            return false;
-        }
-        if expected != self.source_chars[self.current] {
-            return false;
-        }
-        self.current += 1;
-        true
-    }
-
-    fn matcher<T: FnOnce(&str) -> bool>(&mut self, func: T) -> bool {
-        if self.is_at_end() {
-            return false;
-        }
-        let result = func(self.source_chars[self.current]);
-        if result {
+        if let Some(char) = self.peek() && char == expected {
             self.current += 1;
+            self.next();
+            true
+        } else {
+            false
         }
-        result
     }
 
-    fn is_valid_identifier(&self) -> bool {
-        !matches!(
-            self.source_chars[self.current],
+    fn create_unrecognized_token(&mut self, error_message: &'static str) {
+        let interned_error = self.string_interner.get_or_intern(error_message);
+        self.create_token(TokenType::Unrecognized(interned_error));
+    }
+
+    fn create_token(&mut self, token_type: TokenType) {
+        let token = Token::new(token_type, self.start, self.current);
+        self.start = self.current;
+        self.tokenized_file.tokens.push(token);
+    }
+}
+
+fn is_digit(word: &str) -> bool {
+    matches!(
+        word,
+        "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+    )
+}
+
+fn is_ident(char: &str) -> bool {
+    !matches!(
+            char,
             "\r" | "\t"
                 | "\n"
                 | " "
@@ -376,25 +362,6 @@ impl<'this> Tokenizer<'this> {
                 | "?"
                 | "/"
         )
-    }
-
-    fn create_unrecognized_token(&mut self, error_message: &'static str) {
-        let interned_error = self.string_interner.get_or_intern(error_message);
-        self.create_token(TokenType::Unrecognized(interned_error));
-    }
-
-    fn create_token(&mut self, token_type: TokenType) {
-        let token = Token::new(token_type, self.start, self.current);
-        self.start = self.current;
-        self.tokenized_file.tokens.push(token);
-    }
-}
-
-fn is_digit(word: &str) -> bool {
-    matches!(
-        word,
-        "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-    )
 }
 
 fn is_delimiter(char: &str) -> bool {
@@ -441,7 +408,7 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn simple_expression() -> (StringInterner, TokenizedInput) {
-        tokenize_str("x = 123 >> 2 | 89 * 21")
+        tokenize_str("x = 123 >> 2 | 89 * 21 & 2")
     }
 
     #[test]

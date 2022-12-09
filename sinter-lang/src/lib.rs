@@ -11,6 +11,7 @@
 #![feature(entry_insert)]
 #![feature(hash_set_entry)]
 #![feature(option_result_contains)]
+#![feature(let_chains)]
 
 extern crate core;
 

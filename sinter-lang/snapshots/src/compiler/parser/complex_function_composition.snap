@@ -1,0 +1,80 @@
+[
+  {
+    "f": 1,
+    "g": 2,
+    "h": 3
+  },
+  {
+    "Infix": {
+      "operator": "Add",
+      "lhs": {
+        "Infix": {
+          "operator": "Add",
+          "lhs": {
+            "Integer": 1
+          },
+          "rhs": {
+            "Integer": 2
+          }
+        }
+      },
+      "rhs": {
+        "Infix": {
+          "operator": "Multiply",
+          "lhs": {
+            "Infix": {
+              "operator": "Multiply",
+              "lhs": {
+                "Call": {
+                  "func": {
+                    "Identifier": 1
+                  },
+                  "generic_tys": {
+                    "generics": []
+                  },
+                  "args": {
+                    "args": [
+                      {
+                        "Call": {
+                          "func": {
+                            "Identifier": 2
+                          },
+                          "generic_tys": {
+                            "generics": []
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "Call": {
+                                  "func": {
+                                    "Identifier": 3
+                                  },
+                                  "generic_tys": {
+                                    "generics": []
+                                  },
+                                  "args": {
+                                    "args": []
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "rhs": {
+                "Integer": 3
+              }
+            }
+          },
+          "rhs": {
+            "Integer": 4
+          }
+        }
+      }
+    }
+  }
+]

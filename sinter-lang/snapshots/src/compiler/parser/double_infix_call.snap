@@ -1,0 +1,33 @@
+[
+  {
+    "g": 2,
+    "f": 1
+  },
+  {
+    "Unary": {
+      "operator": "Minus",
+      "expr": {
+        "Unary": {
+          "operator": "Minus",
+          "expr": {
+            "Call": {
+              "func": {
+                "Identifier": 1
+              },
+              "generic_tys": {
+                "generics": []
+              },
+              "args": {
+                "args": [
+                  {
+                    "Identifier": 2
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

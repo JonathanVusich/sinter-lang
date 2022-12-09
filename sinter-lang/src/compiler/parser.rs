@@ -708,7 +708,9 @@ impl Parser {
             let rhs = self.parse_assignment_expr(prefix_bp)?;
             Expr::Unary(Box::new(UnaryExpr::new(unary_op, rhs)))
         } else {
-            let expr = match self.current_type() {
+            let current = self.current_type();
+            self.advance();
+            let expr = match current {
                 TokenType::SelfLowercase => Expr::SelfRef,
                 TokenType::True => Expr::Boolean(true),
                 TokenType::False => Expr::Boolean(false),
@@ -736,7 +738,6 @@ impl Parser {
                     return self.unexpected_token(token);
                 }
             };
-            self.advance();
             expr
         };
 
@@ -750,24 +751,22 @@ impl Parser {
                 if left_bp < min_bp {
                     break;
                 }
-                self.advance();
 
                 lhs = match postfix_op {
                     PostfixOp::LeftParentheses => {
-                        let args = self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
-                        self.expect(TokenType::RightParentheses)?;
+                        let args = self.parse_multiple_with_scope_delimiter::<Expr, 1>(Self::expr, TokenType::Comma, TokenType::LeftParentheses, TokenType::RightParentheses)?;
                         Expr::Call(Box::new(Call::new(
-                            lhs,
-                            GenericDecls::empty(),
-                            Args::new(args),
+                            lhs, GenericDecls::empty(), Args::new(args)
                         )))
                     }
                     PostfixOp::LeftBracket => {
+                        self.advance();
                         let rhs = self.expr()?;
                         self.expect(TokenType::RightBracket)?;
                         Expr::Index(Box::new(IndexExpr::new(lhs, rhs)))
                     }
                     PostfixOp::Dot => {
+                        self.advance();
                         let ident = self.identifier()?;
                         Expr::Field(Box::new(FieldExpr::new(lhs, ident)))
                     }
@@ -1195,14 +1194,8 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn closure_expression() -> (StringInterner, Expr) {
-        parse_expr!("(x, y) => x + y")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn double_index_expression() -> (StringInterner, Expr) {
-        parse_expr!("x[0][1]")
+    pub fn single_value() -> (StringInterner, Expr) {
+        parse_expr!("1")
     }
 
     #[test]
@@ -1217,10 +1210,77 @@ mod tests {
         parse_expr!("a + b * c * d + e")
     }
 
+
+    #[test]
+    #[snapshot]
+    pub fn function_composition() -> (StringInterner, Expr) {
+        parse_expr!("f(g(h()))")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn complex_function_composition() -> (StringInterner, Expr) {
+        parse_expr!("1 + 2 + f(g(h())) * 3 * 4")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn double_infix() -> (StringInterner, Expr) {
+        parse_expr!("--1 * 2")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn double_infix_call() -> (StringInterner, Expr) {
+        parse_expr!("--f(g)")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn parenthesized_expr() -> (StringInterner, Expr) {
+        parse_expr!("(((0)))")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn closure_expression() -> (StringInterner, Expr) {
+        parse_expr!("(x, y) => x + y")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn double_index_expression() -> (StringInterner, Expr) {
+        parse_expr!("x[0][1]")
+    }
+
     #[test]
     #[snapshot]
     pub fn double_negate_and_multiply() -> (StringInterner, Expr) {
         parse_expr!("--1 * 2")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn comparison() -> (StringInterner, Expr) {
+        parse_expr!("1 < 2")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn parenthesized_comparison() -> (StringInterner, Expr) {
+        parse_expr!("(1 + 2 * 4) < (2 - 1)")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn complex_conditional() -> (StringInterner, Expr) {
+        parse_expr!("year % 4 == 0 && year % 100 != 0 || year % 400 == 0")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn bit_operations() -> (StringInterner, Expr) {
+        parse_expr!("x + x * x / x - --x + 3 >> 1 | 2")
     }
 
     #[test]

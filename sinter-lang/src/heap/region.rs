@@ -35,7 +35,7 @@ impl Region {
         }
         let min_size = num_blocks * BLOCK_SIZE;
         let size = match min_size.checked_add(page::size()) {
-            Some(offset) => ((offset - 1) & !(page::size() - 1)),
+            Some(offset) => (offset - 1) & !(page::size() - 1),
             None => return Err(SizeTooLarge),
         };
 

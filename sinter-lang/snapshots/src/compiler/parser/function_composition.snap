@@ -1,0 +1,48 @@
+[
+  {
+    "g": 2,
+    "f": 1,
+    "h": 3
+  },
+  {
+    "Call": {
+      "func": {
+        "Identifier": 1
+      },
+      "generic_tys": {
+        "generics": []
+      },
+      "args": {
+        "args": [
+          {
+            "Call": {
+              "func": {
+                "Identifier": 2
+              },
+              "generic_tys": {
+                "generics": []
+              },
+              "args": {
+                "args": [
+                  {
+                    "Call": {
+                      "func": {
+                        "Identifier": 3
+                      },
+                      "generic_tys": {
+                        "generics": []
+                      },
+                      "args": {
+                        "args": []
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+]
