@@ -69,13 +69,12 @@ struct Tokenizer<'this> {
 
 impl<'this> Tokenizer<'this> {
     pub fn new(string_interner: StringInterner, source: &'this str) -> Self {
-        let source_chars = source
+        let chars = source
             .graphemes(true)
-            .rev()
             .collect::<Vec<&'this str>>();
         Self {
             string_interner,
-            chars: source_chars,
+            chars,
             tokenized_file: TokenizedInput::new(),
             start: 0,
             current: 0,
@@ -83,7 +82,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     pub fn into(mut self) -> TokenizedInput {
-        while !self.chars.is_empty() {
+        while self.current <= self.chars.len() {
             self.skip_whitespace();
             self.scan_token();
         }
@@ -276,16 +275,17 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn next(&mut self) -> Option<&'this str> {
+        let char = self.chars.get(self.current).copied();
         self.current += 1;
-        self.chars.pop()
+        char
     }
 
     fn peek(&mut self) -> Option<&'this str> {
-        self.chars.last().copied()
+        self.chars.get(self.current).copied()
     }
 
     fn peek_next(&mut self) -> Option<&'this str> {
-        self.chars.get(self.chars.len() - 2).copied()
+        self.chars.get(self.current + 1).copied()
     }
 
     fn matches(&mut self, expected: &str) -> bool {
