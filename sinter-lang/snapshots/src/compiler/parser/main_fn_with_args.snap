@@ -1,0 +1,75 @@
+[
+  {
+    "print": 4,
+    "to_str": 5,
+    "main": 1,
+    "args": 2,
+    "str": 3
+  },
+  {
+    "stmts": [
+      {
+        "Fn": {
+          "sig": {
+            "name": 1,
+            "generic_types": {
+              "generics": []
+            },
+            "parameters": {
+              "params": [
+                {
+                  "name": 2,
+                  "ty": {
+                    "Array": {
+                      "Basic": "Str"
+                    }
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "return_type": null
+          },
+          "body": {
+            "stmts": [
+              {
+                "Expression": {
+                  "Call": {
+                    "func": {
+                      "Identifier": 4
+                    },
+                    "generic_tys": {
+                      "generics": []
+                    },
+                    "args": {
+                      "args": [
+                        {
+                          "Call": {
+                            "func": {
+                              "Field": {
+                                "lhs": {
+                                  "Identifier": 2
+                                },
+                                "ident": 5
+                              }
+                            },
+                            "generic_tys": {
+                              "generics": []
+                            },
+                            "args": {
+                              "args": []
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

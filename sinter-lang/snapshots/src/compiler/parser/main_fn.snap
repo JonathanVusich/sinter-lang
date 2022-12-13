@@ -1,0 +1,48 @@
+[
+  {
+    "print": 2,
+    "Hello world!": 3,
+    "main": 1
+  },
+  {
+    "stmts": [
+      {
+        "Fn": {
+          "sig": {
+            "name": 1,
+            "generic_types": {
+              "generics": []
+            },
+            "parameters": {
+              "params": []
+            },
+            "return_type": null
+          },
+          "body": {
+            "stmts": [
+              {
+                "Expression": {
+                  "Call": {
+                    "func": {
+                      "Identifier": 2
+                    },
+                    "generic_tys": {
+                      "generics": []
+                    },
+                    "args": {
+                      "args": [
+                        {
+                          "String": 3
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

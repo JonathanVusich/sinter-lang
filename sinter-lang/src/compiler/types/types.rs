@@ -28,5 +28,6 @@ pub enum BasicType {
     I64,
     F32,
     F64,
+    Str,
     None,
 }

@@ -9,10 +9,10 @@ use serde::{Deserialize, Serialize};
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
-use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof, UnexpectedToken};
+use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
-use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8};
+use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8, Str};
 use crate::compiler::types::types::Type::{
     Basic, Closure, ImplicitSelf, Infer, Path, TraitBounds, Union,
 };
@@ -36,6 +36,7 @@ struct Parser {
 enum ParseError {
     UnexpectedEof(TokenPosition),
     ExpectedToken(TokenType, TokenPosition),
+    ExpectedTokens(Vec<TokenType>, TokenPosition),
     UnexpectedToken(TokenType, TokenPosition),
 }
 
@@ -80,13 +81,24 @@ impl Parser {
                 TokenType::Enum => self.parse_enum_stmt(),
                 TokenType::Trait => self.parse_trait_stmt(),
                 TokenType::Impl => self.parse_trait_impl_stmt(),
-                TokenType::For => self.parse_for_stmt(),
-                TokenType::If => self.parse_if_stmt(),
-                TokenType::Return => self.parse_return_stmt(),
-                TokenType::While => self.parse_while_stmt(),
-                TokenType::LeftBracket => self.parse_block_stmt(),
 
                 token => self.unexpected_token(token),
+            }
+        } else {
+            self.unexpected_end()
+        }
+    }
+
+    fn parse_inner_stmt(&mut self) -> Result<Stmt> {
+        if let Some(current) = self.current() {
+            match current {
+                TokenType::Let => self.parse_let_stmt(),
+                TokenType::For => self.parse_for_stmt(),
+                TokenType::While => self.parse_while_stmt(),
+                TokenType::LeftBracket => self.parse_block_stmt(),
+                TokenType::Return => self.parse_return_stmt(),
+                TokenType::If => self.parse_if_stmt(),
+                token => self.parse_expression()
             }
         } else {
             self.unexpected_end()
@@ -134,7 +146,14 @@ impl Parser {
         let name = self.identifier()?;
         let generic_types = self.generic_decls()?;
         let members = self.parenthesized_params()?;
-        let member_functions = self.fn_stmts()?;
+        let member_functions = if self.matches(TokenType::LeftBrace) {
+            self.fn_stmts()?
+        } else if self.matches(TokenType::Semicolon) {
+            self.advance();
+            Vec::new()
+        } else {
+            return self.expected_tokens(vec![TokenType::LeftBrace, TokenType::Semicolon])
+        };
 
         let class_stmt = ClassStmt::new(
             name,
@@ -237,7 +256,9 @@ impl Parser {
     }
 
     fn parse_expression(&mut self) -> Result<Stmt> {
-        Ok(Stmt::Expression(self.expr()?))
+        let expr = self.expr()?;
+        self.expect(TokenType::Semicolon)?;
+        Ok(Stmt::Expression(expr))
     }
 
     fn expr(&mut self) -> Result<Expr> {
@@ -296,7 +317,8 @@ impl Parser {
         let stmt = if self.matches(TokenType::LeftBrace) {
             self.parse_block_stmt()?
         } else {
-            self.parse_expression()?
+            let expr = self.expr()?;
+            Stmt::Expression(expr)
         };
 
         Ok(Expr::Closure(Box::new(ClosureExpr::new(vars, stmt))))
@@ -449,7 +471,7 @@ impl Parser {
 
     fn block_stmt(&mut self) -> Result<BlockStmt> {
         let stmts = self.parse_multiple_with_scope(
-            Self::parse_outer_stmt,
+            Self::parse_inner_stmt,
             TokenType::LeftBrace,
             TokenType::RightBrace)?;
         Ok(BlockStmt::new(stmts))
@@ -522,6 +544,10 @@ impl Parser {
                     "f64" => {
                         self.advance();
                         Ok(Basic(F64))
+                    }
+                    "str" => {
+                        self.advance();
+                        Ok(Basic(Str))
                     }
                     token => self.parse_qualified_ty(),
                 },
@@ -623,10 +649,6 @@ impl Parser {
         let range_expr = self.expr()?;
         let body = self.block_stmt()?;
         Ok(For(ForStmt::new(range_expr, body)))
-    }
-
-    fn parse_match_expr(&mut self) -> Result<Expr> {
-        todo!()
     }
 
     fn parse_break_expr(&mut self) -> Result<Expr> {
@@ -870,6 +892,11 @@ impl Parser {
         Err(ExpectedToken(token_type, token_position).into())
     }
 
+    fn expected_tokens<T>(&mut self, token_types: Vec<TokenType>) -> Result<T> {
+        let token_position = self.current_position().unwrap_or(self.last_position());
+        Err(ExpectedTokens(token_types, token_position).into())
+    }
+
     fn unexpected_token<T>(&mut self, token_type: TokenType) -> Result<T> {
         let token_position = self.current_position().unwrap_or(self.last_position());
         Err(UnexpectedToken(token_type, token_position).into())
@@ -1010,6 +1037,11 @@ impl Display for ParseError {
                 "expected token {} at {}:{}!",
                 token_type, pos.line, pos.pos
             ),
+            ExpectedTokens(token_types, pos) => write!(
+                f,
+                "expected tokens {} at {}:{}!",
+                token_types, pos.line, pos.pos
+            ),
             UnexpectedToken(token_type, pos) => write!(
                 f,
                 "unrecognized token {} at {}:{}!",
@@ -1050,7 +1082,7 @@ mod tests {
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::BasicType;
     use crate::compiler::types::types::BasicType::{
-        F32, F64, I16, I32, I64, I8, U16, U32, U64, U8,
+        F32, F64, I16, I32, I64, I8, U16, U32, U64, U8, Str,
     };
     use crate::compiler::types::types::Type;
     use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBounds};
@@ -1289,6 +1321,7 @@ mod tests {
         };
     }
 
+    simple_type!(Basic(Str), str_type, "str");
     simple_type!(Basic(U8), u8_type, "u8");
     simple_type!(Basic(U16), u16_type, "u16");
     simple_type!(Basic(U32), u32_type, "u32");
@@ -1315,6 +1348,7 @@ mod tests {
         none_array_type,
         "[None]"
     );
+    simple_type!(Array(Box::new(Basic(Str))), str_array_type, "[str]");
 
     #[test]
     #[snapshot]
@@ -1363,4 +1397,41 @@ mod tests {
         );
         parse!(code)
     }
+
+    #[test]
+    #[snapshot]
+    pub fn main_fn() -> (StringInterner, Module) {
+        let code = concat!(
+        "fn main() {\n",
+        "    print(\"Hello world!\");\n",
+        "}");
+
+        parse!(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn main_fn_with_args() -> (StringInterner, Module) {
+        let code = concat!(
+        "fn main(args: [str]) {\n",
+        "    print(args.to_str());\n",
+        "}");
+
+        parse!(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn declare_classes_and_vars() -> (StringInterner, Module) {
+        let code = concat!(
+        "inline class Point(x: f64, y: f64);\n",
+        "class Node;\n",
+        "let i32_array: [i32] = [1, 2, 3];\n",
+        "let point_array = [Point(1.0, 2.0), Point(1.5, 2.5)];\n",
+        "let node_array = [Node(), Node()];"
+        );
+
+        parse!(code)
+    }
 }
+
