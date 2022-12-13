@@ -63,32 +63,33 @@ impl Parser {
 
     fn parse_outer_stmts(&mut self) -> Result<Vec<Stmt>> {
         let mut stmts = Vec::new();
-        while !self.is_at_end() {
-            self.bounds_check()?;
+        while self.pos < self.token_types.len() {
             stmts.push(self.parse_outer_stmt()?);
         }
         Ok(stmts)
     }
 
     fn parse_outer_stmt(&mut self) -> Result<Stmt> {
-        self.bounds_check()?;
-        match self.current_type() {
-            TokenType::Use => self.parse_use_stmt(),
-            TokenType::Sync => self.parse_type_definition(),
-            TokenType::Inline => self.parse_class_stmt(false),
-            TokenType::Class => self.parse_class_stmt(false),
-            TokenType::Fn => self.parse_fn_stmt(),
-            TokenType::Let => self.parse_let_stmt(),
-            TokenType::Enum => self.parse_enum_stmt(false),
-            TokenType::Trait => self.parse_trait_stmt(false),
-            TokenType::Impl => self.parse_trait_impl_stmt(),
-            TokenType::For => self.parse_for_stmt(),
-            TokenType::If => self.parse_if_stmt(),
-            TokenType::Return => self.parse_return_stmt(),
-            TokenType::While => self.parse_while_stmt(),
-            TokenType::LeftBracket => self.parse_block_stmt(),
+        if let Some(current) = self.current() {
+            match current {
+                TokenType::Use => self.parse_use_stmt(),
+                TokenType::Inline => self.parse_class_stmt(),
+                TokenType::Class => self.parse_class_stmt(),
+                TokenType::Fn => self.parse_fn_stmt(),
+                TokenType::Let => self.parse_let_stmt(),
+                TokenType::Enum => self.parse_enum_stmt(),
+                TokenType::Trait => self.parse_trait_stmt(),
+                TokenType::Impl => self.parse_trait_impl_stmt(),
+                TokenType::For => self.parse_for_stmt(),
+                TokenType::If => self.parse_if_stmt(),
+                TokenType::Return => self.parse_return_stmt(),
+                TokenType::While => self.parse_while_stmt(),
+                TokenType::LeftBracket => self.parse_block_stmt(),
 
-            token => self.unexpected_token(token),
+                token => self.unexpected_token(token),
+            }
+        } else {
+            self.unexpected_end()
         }
     }
 
@@ -104,28 +105,24 @@ impl Parser {
     }
 
     fn parse_type_definition(&mut self) -> Result<Stmt> {
-        self.expect(TokenType::Sync)?;
-        match self.current_type() {
-            TokenType::Inline => self.parse_class_stmt(true),
-            TokenType::Class => self.parse_class_stmt(true),
-            TokenType::Enum => self.parse_enum_stmt(true),
-            TokenType::Trait => self.parse_trait_stmt(true),
-            token => self.unexpected_token(token),
+        if let Some(current) = self.current() {
+            match current {
+                TokenType::Inline => self.parse_class_stmt(),
+                TokenType::Class => self.parse_class_stmt(),
+                TokenType::Enum => self.parse_enum_stmt(),
+                TokenType::Trait => self.parse_trait_stmt(),
+                token => self.unexpected_token(token),
+            }
+        } else {
+            self.unexpected_end()
         }
     }
 
-    fn parse_class_stmt(&mut self, is_sync: bool) -> Result<Stmt> {
+    fn parse_class_stmt(&mut self) -> Result<Stmt> {
         Ok(Stmt::Class(self.class_stmt()?))
     }
 
     fn class_stmt(&mut self) -> Result<ClassStmt> {
-        let is_sync = if self.matches(TokenType::Sync) {
-            self.advance();
-            true
-        } else {
-            false
-        };
-
         let class_type = if self.matches(TokenType::Inline) {
             self.advance();
             self.expect(TokenType::Class)?;
@@ -142,7 +139,6 @@ impl Parser {
         let class_stmt = ClassStmt::new(
             name,
             class_type,
-            is_sync,
             generic_types,
             members,
             member_functions,
@@ -186,11 +182,11 @@ impl Parser {
         Ok(let_stmt)
     }
 
-    fn parse_enum_stmt(&mut self, is_sync: bool) -> Result<Stmt> {
-        Ok(Enum(self.enum_stmt(is_sync)?))
+    fn parse_enum_stmt(&mut self) -> Result<Stmt> {
+        Ok(Enum(self.enum_stmt()?))
     }
 
-    fn enum_stmt(&mut self, is_sync: bool) -> Result<EnumStmt> {
+    fn enum_stmt(&mut self) -> Result<EnumStmt> {
         self.expect(TokenType::Enum)?;
         let name = self.identifier()?;
         let generics = self.generic_decls()?;
@@ -203,26 +199,25 @@ impl Parser {
             Vec::new()
         };
 
-        let enum_stmt = EnumStmt::new(name, generics, is_sync, enum_members, object_fns);
+        let enum_stmt = EnumStmt::new(name, generics, enum_members, object_fns);
 
         Ok(enum_stmt)
     }
 
-    fn parse_trait_stmt(&mut self, is_sync: bool) -> Result<Stmt> {
-        Ok(Stmt::Trait(self.trait_stmt(is_sync)?))
+    fn parse_trait_stmt(&mut self) -> Result<Stmt> {
+        Ok(Stmt::Trait(self.trait_stmt()?))
     }
 
-    fn trait_stmt(&mut self, is_sync: bool) -> Result<TraitStmt> {
+    fn trait_stmt(&mut self) -> Result<TraitStmt> {
         self.expect(TokenType::Trait)?;
         let identifier = self.identifier()?;
         let generics = self.generic_decls()?;
         if self.matches(TokenType::Semicolon) {
-            Ok(TraitStmt::new(identifier, generics, is_sync, Vec::new()))
+            Ok(TraitStmt::new(identifier, generics, Vec::new()))
         } else {
             Ok(TraitStmt::new(
                 identifier,
                 generics,
-                is_sync,
                 self.fn_stmts()?,
             ))
         }
@@ -246,7 +241,6 @@ impl Parser {
     }
 
     fn expr(&mut self) -> Result<Expr> {
-        self.bounds_check()?;
         if self.matches_closure() {
             return self.parse_closure_expr();
         }
@@ -309,8 +303,7 @@ impl Parser {
     }
 
     fn identifier(&mut self) -> Result<InternedStr> {
-        self.bounds_check()?;
-        if let TokenType::Identifier(ident) = self.current_type() {
+        if let Some(TokenType::Identifier(ident)) = self.current() {
             self.advance();
             Ok(ident)
         } else {
@@ -323,26 +316,20 @@ impl Parser {
     fn qualified_ident(&mut self) -> Result<QualifiedIdent> {
         let mut idents = Vec::new();
         loop {
-            self.bounds_check()?;
-            match self.current_type() {
-                TokenType::Identifier(ident) => {
-                    idents.push(ident);
-                    if self.matches_multiple([
-                        TokenType::Identifier(ident),
-                        TokenType::Colon,
-                        TokenType::Colon,
-                    ]) {
-                        self.advance_multiple(3);
-                    } else {
-                        self.advance();
-                        break;
-                    }
+            if let Some(TokenType::Identifier(ident)) = self.current() {
+                idents.push(ident);
+                if self.matches_multiple([
+                    TokenType::Identifier(ident),
+                    TokenType::Colon,
+                    TokenType::Colon,
+                ]) {
+                    self.advance_multiple(3);
+                } else {
+                    self.advance();
+                    break;
                 }
-                token => {
-                    return self.expected_token(TokenType::Identifier(
-                        self.string_interner.get_or_intern(""),
-                    ));
-                }
+            } else {
+                return self.expected_token(TokenType::Identifier(self.string_interner.get_or_intern("")));
             }
         }
 
@@ -407,19 +394,16 @@ impl Parser {
     }
 
     fn enum_member(&mut self) -> Result<EnumMemberStmt> {
-        self.bounds_check()?;
-        match self.current_type() {
-            TokenType::Identifier(ident) => {
-                self.advance();
+        if let Some(TokenType::Identifier(ident)) = self.current() {
+            self.advance();
+            let params = self.parenthesized_params()?;
+            let member_funcs = self.fn_stmts()?;
 
-                let params = self.parenthesized_params()?;
-                let member_funcs = self.fn_stmts()?;
-
-                Ok(EnumMemberStmt::new(ident, params, member_funcs))
-            }
-            token => self.expected_token(TokenType::Identifier(
-                self.string_interner.get_or_intern(""),
-            )),
+            Ok(EnumMemberStmt::new(ident, params, member_funcs))
+        } else {
+            self.expected_token(TokenType::Identifier(
+                self.string_interner.get_or_intern("")
+            ))
         }
     }
 
@@ -485,7 +469,6 @@ impl Parser {
     }
 
     fn parse_ty(&mut self) -> Result<Type> {
-        self.bounds_check()?;
         let mut tys = self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
         if tys.len() > 1 {
             Ok(Union(tys))
@@ -495,61 +478,65 @@ impl Parser {
     }
 
     fn parse_any_ty(&mut self) -> Result<Type> {
-        match self.current_type() {
-            TokenType::LeftParentheses => self.parse_closure_ty(),
-            TokenType::LeftBracket => self.parse_array_ty(),
-            TokenType::Identifier(ident) => match self.string_interner.resolve(&ident) {
-                "u8" => {
+        if let Some(current) = self.current() {
+            match current {
+                TokenType::LeftParentheses => self.parse_closure_ty(),
+                TokenType::LeftBracket => self.parse_array_ty(),
+                TokenType::Identifier(ident) => match self.string_interner.resolve(&ident) {
+                    "u8" => {
+                        self.advance();
+                        Ok(Basic(U8))
+                    }
+                    "u16" => {
+                        self.advance();
+                        Ok(Basic(U16))
+                    }
+                    "u32" => {
+                        self.advance();
+                        Ok(Basic(U32))
+                    }
+                    "u64" => {
+                        self.advance();
+                        Ok(Basic(U64))
+                    }
+                    "i8" => {
+                        self.advance();
+                        Ok(Basic(I8))
+                    }
+                    "i16" => {
+                        self.advance();
+                        Ok(Basic(I16))
+                    }
+                    "i32" => {
+                        self.advance();
+                        Ok(Basic(I32))
+                    }
+                    "i64" => {
+                        self.advance();
+                        Ok(Basic(I64))
+                    }
+                    "f32" => {
+                        self.advance();
+                        Ok(Basic(F32))
+                    }
+                    "f64" => {
+                        self.advance();
+                        Ok(Basic(F64))
+                    }
+                    token => self.parse_qualified_ty(),
+                },
+                TokenType::None => {
                     self.advance();
-                    Ok(Basic(U8))
+                    Ok(Basic(BasicType::None))
                 }
-                "u16" => {
+                TokenType::SelfCapitalized => {
                     self.advance();
-                    Ok(Basic(U16))
+                    Ok(ImplicitSelf)
                 }
-                "u32" => {
-                    self.advance();
-                    Ok(Basic(U32))
-                }
-                "u64" => {
-                    self.advance();
-                    Ok(Basic(U64))
-                }
-                "i8" => {
-                    self.advance();
-                    Ok(Basic(I8))
-                }
-                "i16" => {
-                    self.advance();
-                    Ok(Basic(I16))
-                }
-                "i32" => {
-                    self.advance();
-                    Ok(Basic(I32))
-                }
-                "i64" => {
-                    self.advance();
-                    Ok(Basic(I64))
-                }
-                "f32" => {
-                    self.advance();
-                    Ok(Basic(F32))
-                }
-                "f64" => {
-                    self.advance();
-                    Ok(Basic(F64))
-                }
-                token => self.parse_qualified_ty(),
-            },
-            TokenType::None => {
-                self.advance();
-                Ok(Basic(BasicType::None))
+                _ => Ok(Infer),
             }
-            TokenType::SelfCapitalized => {
-                self.advance();
-                Ok(ImplicitSelf)
-            }
-            _ => Ok(Infer),
+        } else {
+            self.unexpected_end()
         }
     }
 
@@ -562,17 +549,20 @@ impl Parser {
         )?;
         self.expect(TokenType::RightArrow)?;
 
-        let return_ty = match self.current_type() {
-            TokenType::LeftParentheses => {
-                self.expect(TokenType::LeftParentheses)?;
-                let closure_ty = self.parse_closure_ty()?;
-                self.expect(TokenType::RightParentheses)?;
-                closure_ty
-            }
-            _ => self.parse_ty()?,
-        };
-
-        Ok(Closure(tys, Box::new(return_ty)))
+        if let Some(current) = self.current() {
+            let return_ty = match current {
+                TokenType::LeftParentheses => {
+                    self.expect(TokenType::LeftParentheses)?;
+                    let closure_ty = self.parse_closure_ty()?;
+                    self.expect(TokenType::RightParentheses)?;
+                    closure_ty
+                }
+                _ => self.parse_ty()?,
+            };
+            Ok(Closure(tys, Box::new(return_ty)))
+        } else {
+            self.unexpected_end()
+        }
     }
 
     fn parse_array_ty(&mut self) -> Result<Type> {
@@ -584,16 +574,14 @@ impl Parser {
 
     fn parse_qualified_ty(&mut self) -> Result<Type> {
         let path = self.parse_path_ty()?;
-        self.bounds_check()?;
 
-        match self.current_type() {
-            TokenType::Plus => {
-                self.advance();
-                let mut paths = self.parse_multiple_with_delimiter(Self::parse_path_ty, TokenType::Plus)?;
-                paths.insert(0, path);
-                Ok(TraitBounds(paths))
-            }
-            _ => Ok(Path(path)),
+        if let Some(TokenType::Plus) = self.current() {
+            self.advance();
+            let mut paths = self.parse_multiple_with_delimiter(Self::parse_path_ty, TokenType::Plus)?;
+            paths.insert(0, path);
+            Ok(TraitBounds(paths))
+        } else {
+            Ok(Path(path))
         }
     }
 
@@ -670,19 +658,21 @@ impl Parser {
         loop {
             if self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
                 self.advance_multiple(2);
-                match self.current_type() {
-                    TokenType::Less => {
-                        path_segments.push(PathSegment::GenericCallsite(self.generic_call_site()?));
-                        if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
-                            return self.expected_token(TokenType::Colon);
+                if let Some(current) = self.current() {
+                    match current {
+                        TokenType::Less => {
+                            path_segments.push(PathSegment::GenericCallsite(self.generic_call_site()?));
+                            if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
+                                return self.expected_token(TokenType::Colon);
+                            }
                         }
-                    }
-                    TokenType::Identifier(ident) => {
-                        path_segments.push(PathSegment::Identifier(ident));
-                        self.advance();
-                    }
-                    token => {
-                        return self.unexpected_token(token);
+                        TokenType::Identifier(ident) => {
+                            path_segments.push(PathSegment::Identifier(ident));
+                            self.advance();
+                        }
+                        token => {
+                            return self.unexpected_token(token);
+                        }
                     }
                 }
             } else {
@@ -702,14 +692,14 @@ impl Parser {
 
     fn parse_assignment_expr(&mut self, min_bp: u8) -> Result<Expr> {
         // Check for prefix operator
-        let mut lhs = if let Some(unary_op) = prefix_op(self.current_type()) {
+        let mut lhs = if let Some(Some(prefix_op)) = self.current().map(prefix_op) {
             self.advance();
-            let ((), prefix_bp) = unary_op.binding_power();
+            let ((), prefix_bp) = prefix_op.binding_power();
             let rhs = self.parse_assignment_expr(prefix_bp)?;
-            Expr::Unary(Box::new(UnaryExpr::new(unary_op, rhs)))
-        } else {
-            let current = self.current_type();
+            Expr::Unary(Box::new(UnaryExpr::new(prefix_op, rhs)))
+        } else if let Some(current) = self.current() {
             self.advance();
+
             let expr = match current {
                 TokenType::SelfLowercase => Expr::SelfRef,
                 TokenType::True => Expr::Boolean(true),
@@ -739,14 +729,12 @@ impl Parser {
                 }
             };
             expr
+        } else {
+            return self.unexpected_end();
         };
 
-        loop {
-            if self.is_at_end() {
-                break;
-            }
-
-            if let Some(postfix_op) = postfix_op(self.current_type()) {
+        while let Some(current) = self.current() {
+            if let Some(postfix_op) = postfix_op(current) {
                 let (left_bp, ()) = postfix_op.binding_power();
                 if left_bp < min_bp {
                     break;
@@ -774,7 +762,7 @@ impl Parser {
                 continue;
             }
 
-            if let Some(infix_op) = infix_op(self.current_type()) {
+            if let Some(infix_op) = infix_op(current) {
                 let (left_bp, right_bp) = infix_op.binding_power();
 
                 if left_bp < min_bp {
@@ -807,7 +795,6 @@ impl Parser {
     ) -> Result<Vec<T>> {
         let mut items = Vec::new();
         loop {
-            self.bounds_check()?;
             items.push(parse_rule(self)?);
             if self.matches(delimiter) {
                 self.advance();
@@ -834,7 +821,6 @@ impl Parser {
             }
 
             loop {
-                self.bounds_check()?;
                 items.push(parse_rule(self)?);
                 if self.matches(scope_end) {
                     self.advance();
@@ -862,7 +848,6 @@ impl Parser {
             }
 
             loop {
-                self.bounds_check()?;
                 items.push(parse_rule(self)?);
                 for i in 0..N {
                     if self.matches(delimiter) {
@@ -881,33 +866,25 @@ impl Parser {
     }
 
     fn expected_token<T>(&mut self, token_type: TokenType) -> Result<T> {
-        let token_position = self.current_position();
+        let token_position = self.current_position().unwrap_or(self.last_position());
         Err(ExpectedToken(token_type, token_position).into())
     }
 
     fn unexpected_token<T>(&mut self, token_type: TokenType) -> Result<T> {
-        let token_position = self.current_position();
+        let token_position = self.current_position().unwrap_or(self.last_position());
         Err(UnexpectedToken(token_type, token_position).into())
-    }
-
-    fn bounds_check(&mut self) -> Result<()> {
-        if self.is_at_end() {
-            self.unexpected_end()
-        } else {
-            Ok(())
-        }
     }
 
     fn unexpected_end<T>(&mut self) -> Result<T> {
         Err(UnexpectedEof(self.last_position()).into())
     }
 
-    fn current(&mut self) -> Token {
-        self.tokenized_input.tokens[self.pos]
+    fn current_token(&mut self) -> Option<Token> {
+        self.tokenized_input.tokens.get(self.pos).copied()
     }
 
-    fn current_type(&mut self) -> TokenType {
-        self.token_types[self.pos]
+    fn current(&mut self) -> Option<TokenType> {
+        self.token_types.get(self.pos).copied()
     }
 
     fn next(&self, delta: usize) -> Token {
@@ -918,9 +895,12 @@ impl Parser {
         self.token_types[self.pos + delta]
     }
 
-    fn current_position(&mut self) -> TokenPosition {
-        let token = self.current();
-        self.tokenized_input.token_position(token.start)
+    fn current_position(&mut self) -> Option<TokenPosition> {
+        if let Some(token) = self.current_token() {
+            Some(self.tokenized_input.token_position(token.start))
+        } else {
+            None
+        }
     }
 
     fn next_position(&mut self, delta: usize) -> TokenPosition {
@@ -946,41 +926,32 @@ impl Parser {
     }
 
     fn expect(&mut self, token_type: TokenType) -> Result<()> {
-        if self.is_at_end() {
-            Err(ExpectedToken(token_type, self.last_position()).into())
-        } else if self.current_type() != token_type {
-            Err(ExpectedToken(token_type, self.current_position()).into())
-        } else {
+        if let Some(current) = self.current() && current == token_type {
             self.advance();
             Ok(())
+        } else {
+            self.expected_token(token_type)
         }
     }
 
     fn matches(&mut self, token_type: TokenType) -> bool {
-        !self.is_at_end() && self.current_type() == token_type
+        if let Some(current) = self.current() && current == token_type {
+            true
+        } else {
+            false
+        }
     }
 
     fn matches_multiple<const N: usize>(&mut self, tokens: [TokenType; N]) -> bool {
-        if self.token_types.len() < self.pos + tokens.len() {
+        let end = self.pos + tokens.len();
+        if self.token_types.len() < end {
             return false;
         }
-        tokens == self.token_types[self.pos..self.pos + tokens.len()]
-    }
-
-    fn is_at_end(&self) -> bool {
-        self.pos >= self.token_types.len()
+        tokens == self.token_types[self.pos..end]
     }
 
     fn remaining(&self) -> usize {
         self.token_types.len() - (self.pos + 1)
-    }
-}
-
-fn infix_bp(token: TokenType) -> (u8, u8) {
-    match token {
-        TokenType::Plus | TokenType::Minus => (1, 2),
-        TokenType::Star | TokenType::Slash => (3, 4),
-        token => panic!("Unexpected infix operator {}!", token),
     }
 }
 
@@ -1143,7 +1114,7 @@ mod tests {
                 panic!();
             }
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(UnexpectedEof(pos)) => {}
+                Some(ExpectedToken(Identifier(_), pos)) => {}
                 _ => {
                     panic!();
                 }
@@ -1153,9 +1124,7 @@ mod tests {
         match parse_module("use std::vector::Vector") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedToken(token, _)) => {
-                    assert_eq!(*token, TokenType::Semicolon)
-                }
+                Some(ExpectedToken(TokenType::Semicolon, _)) => {}
                 _ => panic!(),
             },
         }
@@ -1171,9 +1140,8 @@ mod tests {
         match parse_module("use") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(UnexpectedEof(pos)) => {}
+                Some(ExpectedToken(TokenType::Identifier(_), pos)) => {}
                 _ => {
-                    println!("{}", error);
                     panic!()
                 }
             },

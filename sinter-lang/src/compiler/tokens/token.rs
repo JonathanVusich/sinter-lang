@@ -100,7 +100,6 @@ pub enum TokenType {
     None,
 
     Inline,
-    Sync
 }
 
 impl TokenType {
@@ -190,7 +189,6 @@ impl Display for TokenType {
             TokenType::Use => write!(f, "use"),
             TokenType::None => write!(f, "None"),
             TokenType::Inline => write!(f, "inline"),
-            TokenType::Sync => write!(f, "sync"),
             TokenType::Let => write!(f, "let"),
             TokenType::Mut => write!(f, "mut"),
             TokenType::In => write!(f, "in"),

@@ -120,7 +120,6 @@ pub enum Mutability {
 pub struct ClassStmt {
     name: InternedStr,
     class_type: ClassType,
-    is_sync: bool,
     generic_types: GenericDecls,
     members: Params,
     member_functions: Vec<FnStmt>,
@@ -130,7 +129,6 @@ impl ClassStmt {
     pub fn new(
         name: InternedStr,
         class_type: ClassType,
-        sync: bool,
         generic_types: GenericDecls,
         members: Params,
         member_functions: Vec<FnStmt>,
@@ -138,7 +136,6 @@ impl ClassStmt {
         Self {
             name,
             class_type,
-            is_sync: sync,
             generic_types,
             members,
             member_functions,
@@ -150,7 +147,6 @@ impl ClassStmt {
 pub struct EnumStmt {
     name: InternedStr,
     generics: GenericDecls,
-    is_sync: bool,
     members: Vec<EnumMemberStmt>,
     fn_stmts: Vec<FnStmt>,
 }
@@ -159,14 +155,12 @@ impl EnumStmt {
     pub fn new(
         name: InternedStr,
         generics: GenericDecls,
-        is_sync: bool,
         members: Vec<EnumMemberStmt>,
         fn_stmts: Vec<FnStmt>,
     ) -> Self {
         Self {
             name,
             generics,
-            is_sync,
             members,
             fn_stmts,
         }
@@ -185,7 +179,6 @@ impl EnumStmt {
 pub struct TraitStmt {
     ident: InternedStr,
     generics: GenericDecls,
-    is_sync: bool,
     functions: Vec<FnStmt>,
 }
 
@@ -193,13 +186,11 @@ impl TraitStmt {
     pub fn new(
         ident: InternedStr,
         generics: GenericDecls,
-        is_sync: bool,
         functions: Vec<FnStmt>,
     ) -> Self {
         Self {
             ident,
             generics,
-            is_sync,
             functions,
         }
     }
