@@ -1,0 +1,167 @@
+[
+  {
+    "y": 4,
+    "i32": 7,
+    "point_array": 8,
+    "i32_array": 6,
+    "x": 2,
+    "Point": 1,
+    "f64": 3,
+    "Node": 5,
+    "node_array": 9
+  },
+  {
+    "stmts": [
+      {
+        "Class": {
+          "name": 1,
+          "class_type": "Inline",
+          "generic_types": {
+            "generics": []
+          },
+          "members": {
+            "params": [
+              {
+                "name": 2,
+                "ty": {
+                  "Basic": "F64"
+                },
+                "mutability": "Immutable"
+              },
+              {
+                "name": 4,
+                "ty": {
+                  "Basic": "F64"
+                },
+                "mutability": "Immutable"
+              }
+            ]
+          },
+          "member_functions": []
+        }
+      },
+      {
+        "Class": {
+          "name": 5,
+          "class_type": "Reference",
+          "generic_types": {
+            "generics": []
+          },
+          "members": {
+            "params": []
+          },
+          "member_functions": []
+        }
+      },
+      {
+        "Let": {
+          "ident": 6,
+          "ty": {
+            "Array": {
+              "Basic": "I32"
+            }
+          },
+          "initializer": {
+            "Array": [
+              {
+                "Integer": 1
+              },
+              {
+                "Integer": 2
+              },
+              {
+                "Integer": 3
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Let": {
+          "ident": 8,
+          "ty": null,
+          "initializer": {
+            "Array": [
+              {
+                "Call": {
+                  "func": {
+                    "Identifier": 1
+                  },
+                  "generic_tys": {
+                    "generics": []
+                  },
+                  "args": {
+                    "args": [
+                      {
+                        "Float": 1.0
+                      },
+                      {
+                        "Float": 2.0
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "Call": {
+                  "func": {
+                    "Identifier": 1
+                  },
+                  "generic_tys": {
+                    "generics": []
+                  },
+                  "args": {
+                    "args": [
+                      {
+                        "Float": 1.5
+                      },
+                      {
+                        "Float": 2.5
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Let": {
+          "ident": 9,
+          "ty": null,
+          "initializer": {
+            "Array": [
+              {
+                "Call": {
+                  "func": {
+                    "Identifier": 5
+                  },
+                  "generic_tys": {
+                    "generics": []
+                  },
+                  "args": {
+                    "args": []
+                  }
+                }
+              },
+              {
+                "Call": {
+                  "func": {
+                    "Identifier": 5
+                  },
+                  "generic_tys": {
+                    "generics": []
+                  },
+                  "args": {
+                    "args": []
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

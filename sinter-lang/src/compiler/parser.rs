@@ -36,8 +36,32 @@ struct Parser {
 enum ParseError {
     UnexpectedEof(TokenPosition),
     ExpectedToken(TokenType, TokenPosition),
-    ExpectedTokens(Vec<TokenType>, TokenPosition),
+    ExpectedTokens(TokenTypes, TokenPosition),
     UnexpectedToken(TokenType, TokenPosition),
+}
+
+#[derive(Debug)]
+struct TokenTypes {
+    token_types: Vec<TokenType>
+}
+
+impl TokenTypes {
+    pub fn new(token_types: Vec<TokenType>) -> Self {
+        Self {
+            token_types
+        }
+    }
+}
+
+impl Display for TokenTypes {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+        self.token_types.iter()
+            .fold(Ok(()), |result, token_type| {
+                result.and_then(|_| write!(f, "{token_type}"))
+            })?;
+        write!(f, "]")
+    }
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -740,9 +764,9 @@ impl Parser {
 
                 // Handle index expression
                 TokenType::LeftBracket => {
-                    let expr = self.parse_assignment_expr(min_bp)?;
+                    let exprs = self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
                     self.expect(TokenType::RightBracket)?;
-                    expr
+                    Expr::Array(exprs)
                 }
 
                 // Handle unexpected token
@@ -894,7 +918,7 @@ impl Parser {
 
     fn expected_tokens<T>(&mut self, token_types: Vec<TokenType>) -> Result<T> {
         let token_position = self.current_position().unwrap_or(self.last_position());
-        Err(ExpectedTokens(token_types, token_position).into())
+        Err(ExpectedTokens(TokenTypes::new(token_types), token_position).into())
     }
 
     fn unexpected_token<T>(&mut self, token_type: TokenType) -> Result<T> {
