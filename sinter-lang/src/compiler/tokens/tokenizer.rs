@@ -588,14 +588,15 @@ mod tests {
     #[snapshot]
     pub fn fns_with_union_types() -> (StringInterner, TokenizedInput) {
         let code = concat!(
-        "fn find_user(user_name: str) => User | None {\n",
+        "fn find_user(user_name: str) => User | None | LoadError {\n",
+        "    match load_user_info() {\n",
+        "        UserInfo info => {},\n",
+        "        LoadError error => {},\n",
+        "        None => {},\n",
+        "    }\n",
         "}\n\n",
         "fn load_user_info(user: User) => UserInfo | None | LoadError {\n",
-        "}\n\n",
-        "match load_user_info() {\n",
-        "    UserInfo info => {},\n",
-        "    LoadError error => {},\n",
-        "    None => {},\n",
+        "    return None;",
         "}\n\n",
         "enum LoadError(\n",
         "    Timeout,\n",

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
@@ -780,6 +780,13 @@ impl Parser {
                     Expr::Array(exprs)
                 }
 
+                // Handle match expression
+                TokenType::Match => {
+                    let source = self.expr()?;
+                    let match_arms = self.parse_multiple_with_scope(Self::parse_match_arm, TokenType::LeftBrace, TokenType::RightBrace)?;
+                    Expr::Match(Box::new(MatchExpr::new(source, match_arms)))
+                }
+
                 // Handle unexpected token
                 token => {
                     return self.unexpected_token(token);
@@ -837,6 +844,10 @@ impl Parser {
         }
 
         Ok(lhs)
+    }
+
+    fn parse_match_arm(&mut self) -> Result<MatchArm> {
+        todo!()
     }
 
     fn parse_path_ty(&mut self) -> Result<PathTy> {
@@ -1521,14 +1532,15 @@ mod tests {
     #[snapshot]
     pub fn fns_with_union_types() -> (StringInterner, Module) {
         let code = concat!(
-        "fn find_user(user_name: str) => User | None {\n",
+        "fn find_user(user_name: str) => User | None | LoadError {\n",
+        "    match load_user_info() {\n",
+        "        UserInfo info => {},\n",
+        "        LoadError error => {},\n",
+        "        None => {},\n",
+        "    }\n",
         "}\n\n",
         "fn load_user_info(user: User) => UserInfo | None | LoadError {\n",
-        "}\n\n",
-        "match load_user_info() {\n",
-        "    UserInfo info => {},\n",
-        "    LoadError error => {},\n",
-        "    None => {},\n",
+        "    return None;",
         "}\n\n",
         "enum LoadError(\n",
         "    Timeout,\n",
