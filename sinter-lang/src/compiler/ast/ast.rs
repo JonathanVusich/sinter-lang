@@ -424,8 +424,17 @@ impl UnaryExpr {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct MatchExpr {
-    expr: Expr,
+    source: Expr,
     arms: Vec<MatchArm>,
+}
+
+impl MatchExpr {
+    pub fn new(source: Expr, arms: Vec<MatchArm>) -> Self {
+        Self {
+            source,
+            arms
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
