@@ -1,0 +1,118 @@
+[
+  {
+    "mut_var": 1,
+    "x": 2
+  },
+  {
+    "tokens": [
+      {
+        "token_type": "Fn",
+        "start": 0,
+        "end": 2
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "start": 3,
+        "end": 10
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 10,
+        "end": 11
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 11,
+        "end": 12
+      },
+      {
+        "token_type": "LeftBrace",
+        "start": 13,
+        "end": 14
+      },
+      {
+        "token_type": "Let",
+        "start": 19,
+        "end": 22
+      },
+      {
+        "token_type": "Mut",
+        "start": 23,
+        "end": 26
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 27,
+        "end": 28
+      },
+      {
+        "token_type": "Equal",
+        "start": 29,
+        "end": 30
+      },
+      {
+        "token_type": {
+          "SignedInteger": 5
+        },
+        "start": 31,
+        "end": 32
+      },
+      {
+        "token_type": "Semicolon",
+        "start": 32,
+        "end": 33
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 64,
+        "end": 65
+      },
+      {
+        "token_type": "Equal",
+        "start": 66,
+        "end": 67
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 68,
+        "end": 69
+      },
+      {
+        "token_type": "Plus",
+        "start": 70,
+        "end": 71
+      },
+      {
+        "token_type": {
+          "SignedInteger": 1
+        },
+        "start": 72,
+        "end": 73
+      },
+      {
+        "token_type": "Semicolon",
+        "start": 73,
+        "end": 74
+      },
+      {
+        "token_type": "RightBrace",
+        "start": 75,
+        "end": 76
+      }
+    ],
+    "line_map": [
+      14,
+      59,
+      74
+    ],
+    "line_counter": 3
+  }
+]

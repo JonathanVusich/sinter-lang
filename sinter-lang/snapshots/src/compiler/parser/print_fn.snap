@@ -1,0 +1,57 @@
+[
+  {
+    "print": 1,
+    "text": 2,
+    "str": 3,
+    "println": 4
+  },
+  {
+    "stmts": [
+      {
+        "Fn": {
+          "sig": {
+            "name": 1,
+            "generic_types": {
+              "generics": []
+            },
+            "parameters": {
+              "params": [
+                {
+                  "name": 2,
+                  "ty": {
+                    "Basic": "Str"
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "return_type": null
+          },
+          "body": {
+            "stmts": [
+              {
+                "Expression": {
+                  "Call": {
+                    "func": {
+                      "Identifier": 4
+                    },
+                    "generic_tys": {
+                      "generics": []
+                    },
+                    "args": {
+                      "args": [
+                        {
+                          "Identifier": 2
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

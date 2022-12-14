@@ -72,28 +72,21 @@ fn sum(a: i64, b: i64) => i64 {
 }
 ```
 
-A function that returns no meaningful value.
-```ignorelang
-fn print_sum(a: i64, b: i64) {
-    print("sum of {a} and {b} is {a + b}.");
-}
-```
-
 ### Variables
 Local and global variables can be assigned using the keyword `let`.
 
 ```ignorelang
 let a: i64 = 1; // Immediate assignment
 let b = 2; // `i64` type is inferred
-let c: i64; // Type is required when no initializer is provided
-c = 3; // Deferred assignment
 ```
 
 Variables that can be reassigned must be prefixed with the `mut` keyword. Global variables cannot be mutable.
 
 ```ignorelang
-let mut x = 5; // `i64` type is inferred
-x = x + 1;
+fn mut_var() {
+    let mut x = 5; // `i64` type is inferred
+    x = x + 1;
+}
 ```
 
 Variables can be defined within a struct or function definition.
@@ -134,10 +127,10 @@ match load_user_info(...) {
     None => {...},
 }
 
-enum LoadError {
+enum LoadError( 
     Timeout,
     ConnectionClosed,
-}
+);
 ```
 
 Functions can operate on types that implement traits through either the use of generic types

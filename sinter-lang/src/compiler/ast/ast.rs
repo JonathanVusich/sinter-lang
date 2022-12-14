@@ -334,14 +334,16 @@ pub struct ArgumentDecl {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct LetStmt {
     ident: InternedStr,
+    mutability: Mutability,
     ty: Option<Type>,
     initializer: Option<Expr>,
 }
 
 impl LetStmt {
-    pub fn new(ident: InternedStr, ty: Option<Type>, initializer: Option<Expr>) -> Self {
+    pub fn new(ident: InternedStr, mutability: Mutability, ty: Option<Type>, initializer: Option<Expr>) -> Self {
         LetStmt {
             ident,
+            mutability,
             ty,
             initializer,
         }

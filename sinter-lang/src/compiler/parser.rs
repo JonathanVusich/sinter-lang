@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
@@ -208,6 +209,16 @@ impl Parser {
 
     fn let_stmt(&mut self) -> Result<LetStmt> {
         self.expect(TokenType::Let)?;
+        let mutability = match self.current() {
+            Some(TokenType::Mut) => {
+                self.advance();
+                Mutable
+            },
+            Some(TokenType::Identifier(_)) => Immutable,
+            _ => {
+                return self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(self.string_interner.get_or_intern(""))])
+            }
+        };
         let identifier = self.identifier()?;
         let mut ty = None;
         let mut initializer = None;
@@ -220,7 +231,7 @@ impl Parser {
             initializer = Some(self.expr()?);
         }
         self.expect(TokenType::Semicolon)?;
-        let let_stmt = LetStmt::new(identifier, ty, initializer);
+        let let_stmt = LetStmt::new(identifier, mutability, ty, initializer);
 
         Ok(let_stmt)
     }
@@ -1336,6 +1347,7 @@ mod tests {
                 assert_eq!(
                     vec![Stmt::Let(LetStmt::new(
                         string_interner.get("x").unwrap(),
+                        Mutability::Immutable,
                         ty,
                         None
                     ))],
@@ -1444,6 +1456,7 @@ mod tests {
         parse!(code)
     }
 
+
     #[test]
     #[snapshot]
     pub fn declare_classes_and_vars() -> (StringInterner, Module) {
@@ -1455,6 +1468,73 @@ mod tests {
         "let node_array = [Node(), Node()];"
         );
 
+        parse!(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn simple_add_func() -> (StringInterner, Module) {
+        let code = concat!(
+        "fn sum(a: i64, b: i64) => i64 {\n",
+        "    return a + b;\n",
+        "}"
+        );
+
+        parse!(code)
+    }
+
+
+    #[test]
+    #[snapshot]
+    pub fn var_declarations() -> (StringInterner, Module) {
+        let code = concat!(
+        "let a: i64 = 1; // Immediate assignment\n",
+        "let b = 2; // `i64` type is inferred\n"
+        );
+        parse!(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn mutable_assignment() -> (StringInterner, Module) {
+        let code = concat!(
+        "fn mut_var() {\n",
+        "    let mut x = 5; // `i64` type is inferred\n",
+        "    x = x + 1;\n",
+        "}"
+        );
+        parse!(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn print_fn() -> (StringInterner, Module) {
+        let code = concat!(
+        "fn print(text: str) {\n",
+        "    println(text);\n",
+        "}"
+        );
+        parse!(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn fns_with_union_types() -> (StringInterner, Module) {
+        let code = concat!(
+        "fn find_user(user_name: str) => User | None {\n",
+        "}\n\n",
+        "fn load_user_info(user: User) => UserInfo | None | LoadError {\n",
+        "}\n\n",
+        "match load_user_info() {\n",
+        "    UserInfo info => {},\n",
+        "    LoadError error => {},\n",
+        "    None => {},\n",
+        "}\n\n",
+        "enum LoadError(\n",
+        "    Timeout,\n",
+        "    ConnectionClosed,\n",
+        ");"
+        );
         parse!(code)
     }
 }

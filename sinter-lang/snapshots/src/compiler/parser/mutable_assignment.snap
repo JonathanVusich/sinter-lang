@@ -1,0 +1,59 @@
+[
+  {
+    "x": 2,
+    "mut_var": 1
+  },
+  {
+    "stmts": [
+      {
+        "Fn": {
+          "sig": {
+            "name": 1,
+            "generic_types": {
+              "generics": []
+            },
+            "parameters": {
+              "params": []
+            },
+            "return_type": null
+          },
+          "body": {
+            "stmts": [
+              {
+                "Let": {
+                  "ident": 2,
+                  "mutability": "Mutable",
+                  "ty": null,
+                  "initializer": {
+                    "Integer": 5
+                  }
+                }
+              },
+              {
+                "Expression": {
+                  "Infix": {
+                    "operator": "Assign",
+                    "lhs": {
+                      "Identifier": 2
+                    },
+                    "rhs": {
+                      "Infix": {
+                        "operator": "Add",
+                        "lhs": {
+                          "Identifier": 2
+                        },
+                        "rhs": {
+                          "Integer": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

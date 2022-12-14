@@ -1,0 +1,62 @@
+[
+  {
+    "a": 2,
+    "b": 4,
+    "i64": 3,
+    "sum": 1
+  },
+  {
+    "stmts": [
+      {
+        "Fn": {
+          "sig": {
+            "name": 1,
+            "generic_types": {
+              "generics": []
+            },
+            "parameters": {
+              "params": [
+                {
+                  "name": 2,
+                  "ty": {
+                    "Basic": "I64"
+                  },
+                  "mutability": "Immutable"
+                },
+                {
+                  "name": 4,
+                  "ty": {
+                    "Basic": "I64"
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "return_type": {
+              "Basic": "I64"
+            }
+          },
+          "body": {
+            "stmts": [
+              {
+                "Return": {
+                  "value": {
+                    "Infix": {
+                      "operator": "Add",
+                      "lhs": {
+                        "Identifier": 2
+                      },
+                      "rhs": {
+                        "Identifier": 4
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

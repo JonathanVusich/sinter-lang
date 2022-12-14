@@ -1,0 +1,97 @@
+[
+  {
+    "print": 1,
+    "text": 2,
+    "str": 3,
+    "println": 4
+  },
+  {
+    "tokens": [
+      {
+        "token_type": "Fn",
+        "start": 0,
+        "end": 2
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "start": 3,
+        "end": 8
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 8,
+        "end": 9
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 9,
+        "end": 13
+      },
+      {
+        "token_type": "Colon",
+        "start": 13,
+        "end": 14
+      },
+      {
+        "token_type": {
+          "Identifier": 3
+        },
+        "start": 15,
+        "end": 18
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 18,
+        "end": 19
+      },
+      {
+        "token_type": "LeftBrace",
+        "start": 20,
+        "end": 21
+      },
+      {
+        "token_type": {
+          "Identifier": 4
+        },
+        "start": 22,
+        "end": 29
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 29,
+        "end": 30
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 30,
+        "end": 34
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 34,
+        "end": 35
+      },
+      {
+        "token_type": "Semicolon",
+        "start": 35,
+        "end": 36
+      },
+      {
+        "token_type": "RightBrace",
+        "start": 37,
+        "end": 38
+      }
+    ],
+    "line_map": [
+      21,
+      36
+    ],
+    "line_counter": 2
+  }
+]

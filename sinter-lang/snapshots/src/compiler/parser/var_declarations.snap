@@ -1,0 +1,33 @@
+[
+  {
+    "a": 1,
+    "i64": 2,
+    "b": 3
+  },
+  {
+    "stmts": [
+      {
+        "Let": {
+          "ident": 1,
+          "mutability": "Immutable",
+          "ty": {
+            "Basic": "I64"
+          },
+          "initializer": {
+            "Integer": 1
+          }
+        }
+      },
+      {
+        "Let": {
+          "ident": 3,
+          "mutability": "Immutable",
+          "ty": null,
+          "initializer": {
+            "Integer": 2
+          }
+        }
+      }
+    ]
+  }
+]

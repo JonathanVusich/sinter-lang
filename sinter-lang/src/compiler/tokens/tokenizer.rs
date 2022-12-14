@@ -6,13 +6,13 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 
+use anyhow::Result;
 use phf::phf_map;
+use unicode_segmentation::UnicodeSegmentation;
 
+use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
-use anyhow::Result;
-use unicode_segmentation::UnicodeSegmentation;
-use crate::compiler::StringInterner;
 use crate::compiler::types::types::InternedStr;
 
 pub fn tokenize_file(string_interner: StringInterner, path: &Path) -> Result<TokenizedInput> {
@@ -364,14 +364,16 @@ mod tests {
     use std::fs::File;
     use std::io::{BufReader, BufWriter};
     use std::path::Path;
+
+    use anyhow::Result;
+    use serde::de::Unexpected::Str;
+
+    use snap::snapshot;
+
+    use crate::compiler::StringInterner;
     use crate::compiler::tokens::token::{Token, TokenType};
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
-    use anyhow::Result;
-    use serde::de::Unexpected::Str;
-    use crate::compiler::StringInterner;
-
-    use snap::snapshot;
 
     #[cfg(test)]
     fn tokenize_str(code: &str) -> (StringInterner, TokenizedInput) {
@@ -547,6 +549,60 @@ mod tests {
     #[snapshot]
     pub fn let_stmt_none() -> (StringInterner, TokenizedInput) {
         tokenize_str("let x: None;")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn multiple_let_stmts() -> (StringInterner, TokenizedInput) {
+        let code = concat!(
+        "let a: i64 = 1; // Immediate assignment\n",
+        "let b = 2; // `i64` type is inferred\n"
+        );
+        tokenize_str(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn mutable_assignment() -> (StringInterner, TokenizedInput) {
+        let code = concat!(
+            "fn mut_var() {\n",
+            "    let mut x = 5; // `i64` type is inferred\n",
+            "    x = x + 1;\n",
+            "}"
+        );
+        tokenize_str(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn print_fn() -> (StringInterner, TokenizedInput) {
+        let code = concat!(
+        "fn print(text: str) {\n",
+        "    println(text);\n",
+        "}"
+        );
+        tokenize_str(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn fns_with_union_types() -> (StringInterner, TokenizedInput) {
+        let code = concat!(
+        "fn find_user(user_name: str) => User | None {\n",
+        "}\n\n",
+        "fn load_user_info(user: User) => UserInfo | None | LoadError {\n",
+        "}\n\n",
+        "match load_user_info() {\n",
+        "    UserInfo info => {},\n",
+        "    LoadError error => {},\n",
+        "    None => {},\n",
+        "}\n\n",
+        "enum LoadError(\n",
+        "    Timeout,\n",
+        "    ConnectionClosed,\n",
+        ");"
+        );
+        tokenize_str(code)
     }
 
     #[test]
