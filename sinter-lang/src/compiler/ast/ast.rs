@@ -527,7 +527,7 @@ pub enum Pattern {
     Boolean(bool),
     Integer(i64),
     Float(f64),
-    Ty(TypePattern),
+    Ty(Type),
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -539,11 +539,6 @@ pub struct RangePattern {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct OrPattern {
     patterns: Vec<Pattern>,
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct TypePattern {
-    tys: Vec<Type>,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]

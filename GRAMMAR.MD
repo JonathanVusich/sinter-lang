@@ -2,7 +2,7 @@
 
 `outerStmt => useStmt | classStmt | fnStmt | letStmt | enumStmt | traitStmt | traitImplStmt`
 
-`stmt => forStmt | ifStmt | returnStmt | whileStmt | blockStmt | letStmt | expression`
+`stmt => forStmt | ifStmt | returnStmt | whileStmt | matchStmt | blockStmt | letStmt | expression`
 
 _________________________________
 ### Outer Statement Definitions
@@ -33,6 +33,8 @@ _________________________________
 `returnStmt => "return" expression?`
 
 `whileStmt => "while" expression blockStmt`
+
+`matchStmt => "match" expression matchBlock`
 
 _________________________________
 ### Expression Definitions
@@ -125,9 +127,22 @@ _________________________________
 `arg => expression`
 
 _________________________________
+### Match Definitions
+
+`matchBlock => "{" matchArm* "}"`
+
+`matchArm => pattern "=>" ( blockStmt | expression "," )`
+
+`pattern => matcher expression? ( "|" matcher expression? )*`
+
+`matcher => "_" | literal ".." literal | string | boolean | number | ty`
+
+_________________________________
 ### Type Definitions
 
-`literal => "true" | "false" | "None" | number | string`
+`literal => boolean | "None" | number | string`
+
+`boolean => "true" | "false"`
 
 `ty => anyType ("|" anyType)*`
 
