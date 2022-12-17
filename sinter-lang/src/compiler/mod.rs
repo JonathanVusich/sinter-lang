@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 use lasso::{Spur, ThreadedRodeo};
 use rustc_hash::FxHasher;
 use std::hash::{BuildHasher, BuildHasherDefault};

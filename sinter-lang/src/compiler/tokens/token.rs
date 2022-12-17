@@ -68,6 +68,8 @@ pub enum TokenType {
     BitwiseXor,
     BitwiseComplement,
 
+    Underscore,
+
     Else,
     If,
     False,
@@ -198,6 +200,7 @@ impl Display for TokenType {
             TokenType::BitwiseAnd => write!(f, "&"),
             TokenType::BitwiseXor => write!(f, "^"),
             TokenType::BitwiseComplement => write!(f, "~"),
+            TokenType::Underscore => write!(f, "_")
         }
     }
 }

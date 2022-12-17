@@ -129,6 +129,7 @@ impl<'this> Tokenizer<'this> {
                         self.create_token(TokenType::BitwiseOr)
                     }
                 }
+                "_" => self.create_token(TokenType::Underscore),
                 "~" => self.create_token(TokenType::BitwiseComplement),
                 "^" => self.create_token(TokenType::BitwiseXor),
                 "!" => {

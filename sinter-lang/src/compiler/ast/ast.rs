@@ -440,8 +440,16 @@ impl MatchExpr {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct MatchArm {
     pattern: Pattern,
-    guard: Option<Expr>,
-    body: Expr,
+    body: Stmt,
+}
+
+impl MatchArm {
+    pub fn new(pattern: Pattern, body: Stmt) -> Self {
+        Self {
+            pattern,
+            body
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -521,24 +529,36 @@ impl RangeExpr {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Pattern {
     Wildcard,
-    Range(RangePattern),
     Or(OrPattern),
-    String(InternedStr),
     Boolean(bool),
     Integer(i64),
     Float(f64),
-    Ty(Type),
+    String(InternedStr),
+    Ty(Type, Option<InternedStr>),
+    None
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct RangePattern {
-    start: Expr,
-    end: Expr,
+pub enum Range {
+    Default(i64, i64), // 1..3
+    Full, // ..
+    From(i64), // 1..
+    FromInclusive(i64, i64), // 1..=3
+    To(i64), // ..3
+    ToInclusive(i64) // ..=3
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct OrPattern {
     patterns: Vec<Pattern>,
+}
+
+impl OrPattern {
+    pub fn new(patterns: Vec<Pattern>) -> Self {
+        Self {
+            patterns
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]

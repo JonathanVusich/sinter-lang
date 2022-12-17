@@ -5,11 +5,10 @@ use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use winapi::um::winnt::TokenType;
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
@@ -315,9 +314,9 @@ impl Parser {
                 return false;
             }
             match self.next_type(lookahead) {
-                TokenType::Identifier(ident) => match self.next_type(lookahead + 1) {
-                    TokenType::Comma => lookahead += 2,
-                    TokenType::RightParentheses => {
+                Some(TokenType::Identifier(ident)) => match self.next_type(lookahead + 1) {
+                    Some(TokenType::Comma) => lookahead += 2,
+                    Some(TokenType::RightParentheses) => {
                         lookahead += 2;
                         matches_closure = true;
                         break;
@@ -337,7 +336,7 @@ impl Parser {
             return false;
         }
 
-        self.next_type(lookahead) == TokenType::RightArrow
+        self.next_type(lookahead) == Some(TokenType::RightArrow)
     }
 
     fn parse_closure_expr(&mut self) -> Result<Expr> {
@@ -520,9 +519,9 @@ impl Parser {
     fn mutability(&mut self) -> Mutability {
         if self.matches(TokenType::Mut) {
             self.advance();
-            Mutability::Mutable
+            Mutable
         } else {
-            Mutability::Immutable
+            Immutable
         }
     }
 
@@ -766,6 +765,7 @@ impl Parser {
                 TokenType::Float(float) => Expr::Float(float),
                 TokenType::String(string) => Expr::String(string),
                 TokenType::Identifier(ident) => Expr::Identifier(ident),
+                TokenType::None => Expr::None,
 
                 // Handle parenthesized expression
                 TokenType::LeftParentheses => {
@@ -784,7 +784,7 @@ impl Parser {
                 // Handle match expression
                 TokenType::Match => {
                     let source = self.expr()?;
-                    let match_arms = self.parse_multiple_with_scope(Self::parse_match_arm, TokenType::LeftBrace, TokenType::RightBrace)?;
+                    let match_arms = self.parse_multiple_with_scope_delimiter::<MatchArm, 1>(Self::parse_match_arm, TokenType::Comma, TokenType::LeftBrace, TokenType::RightBrace)?;
                     Expr::Match(Box::new(MatchExpr::new(source, match_arms)))
                 }
 
@@ -848,19 +848,43 @@ impl Parser {
     }
 
     fn parse_match_arm(&mut self) -> Result<MatchArm> {
-        let pattern = self.parse_pattern()?;
+        let mut patterns = self.parse_multiple_with_delimiter(Self::parse_pattern, TokenType::BitwiseOr)?;
+        let pattern = if patterns.len() > 1 {
+            Pattern::Or(OrPattern::new(patterns))
+        } else {
+            patterns.remove(0)
+        };
+
         self.expect(TokenType::RightArrow)?;
         let stmt = if self.matches(TokenType::LeftBrace) {
-            self.parse_block_stmt()?;
+            self.parse_block_stmt()?
         } else {
-            self.parse_expression()?;
+            Stmt::Expression(self.expr()?)
         };
-        
-        todo!()
+        Ok(MatchArm::new(pattern, stmt))
     }
 
-    fn parse_patter(&mut self) -> Result<Pattern> {
-        todo!()
+    fn parse_pattern(&mut self) -> Result<Pattern> {
+        match self.current() {
+            Some(TokenType::String(str)) => Ok(Pattern::String(str)),
+            Some(TokenType::SignedInteger(integer)) => Ok(Pattern::Integer(integer)),
+            Some(TokenType::Float(float)) => Ok(Pattern::Float(float)),
+            Some(TokenType::True) => Ok(Pattern::Boolean(true)),
+            Some(TokenType::False) => Ok(Pattern::Boolean(false)),
+            Some(TokenType::Underscore) => Ok(Pattern::Wildcard),
+            Some(token_type) => {
+                let ty = self.parse_any_ty()?;
+                let ident = match self.current() {
+                    Some(TokenType::Identifier(str)) => {
+                        self.advance();
+                        Some(str)
+                    },
+                    _ => None
+                };
+                Ok(Pattern::Ty(ty, ident))
+            },
+            None => self.unexpected_end()
+        }
     }
 
     fn parse_path_ty(&mut self) -> Result<PathTy> {
@@ -973,12 +997,12 @@ impl Parser {
         self.token_types.get(self.pos).copied()
     }
 
-    fn next(&self, delta: usize) -> Token {
-        self.tokenized_input.tokens[self.pos + delta]
+    fn next(&self, delta: usize) -> Option<Token> {
+        self.tokenized_input.tokens.get(self.pos + delta).copied()
     }
 
-    fn next_type(&self, delta: usize) -> TokenType {
-        self.token_types[self.pos + delta]
+    fn next_type(&self, delta: usize) -> Option<TokenType> {
+        self.token_types.get(self.pos + delta).copied()
     }
 
     fn current_position(&mut self) -> Option<TokenPosition> {
@@ -989,18 +1013,16 @@ impl Parser {
         }
     }
 
-    fn next_position(&mut self, delta: usize) -> TokenPosition {
-        let token = self.next(delta);
-        self.tokenized_input.token_position(token.start)
+    fn next_position(&mut self, delta: usize) -> Option<TokenPosition> {
+        self.next(delta).map(|token| self.tokenized_input.token_position(token.start))
     }
 
-    fn last(&mut self) -> Token {
-        self.tokenized_input.tokens[&self.tokenized_input.tokens.len() - 1]
+    fn last(&mut self) -> Option<Token> {
+        self.tokenized_input.tokens.last().copied()
     }
 
     fn last_position(&mut self) -> TokenPosition {
-        let token = self.last();
-        self.tokenized_input.token_position(token.end)
+        self.last().map(|token| self.tokenized_input.token_position(token.end)).unwrap_or(TokenPosition::new(0, 0))
     }
 
     fn advance(&mut self) {
@@ -1545,12 +1567,11 @@ mod tests {
     #[snapshot]
     pub fn fns_with_union_types() -> (StringInterner, Module) {
         let code = concat!(
-        "fn find_user(user_name: str) => User | None | LoadError {\n",
-        "    match load_user_info() {\n",
-        "        UserInfo info => {},\n",
-        "        LoadError error => {},\n",
-        "        None => {},\n",
-        "    }\n",
+        "fn find_user(user_name: str) => User | None {\n",
+        "    return match load_user_info() {\n",
+        "        UserInfo info => info,\n",
+        "        LoadError | None => None,\n",
+        "    };\n",
         "}\n\n",
         "fn load_user_info(user: User) => UserInfo | None | LoadError {\n",
         "    return None;",

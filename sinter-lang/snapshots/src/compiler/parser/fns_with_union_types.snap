@@ -1,0 +1,241 @@
+[
+  {
+    "load_user_info": 5,
+    "find_user": 1,
+    "info": 7,
+    "user": 9,
+    "UserInfo": 6,
+    "LoadError": 8,
+    "ConnectionClosed": 11,
+    "User": 4,
+    "Timeout": 10,
+    "user_name": 2,
+    "str": 3
+  },
+  {
+    "stmts": [
+      {
+        "Fn": {
+          "sig": {
+            "name": 1,
+            "generic_types": {
+              "generics": []
+            },
+            "parameters": {
+              "params": [
+                {
+                  "name": 2,
+                  "ty": {
+                    "Basic": "Str"
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "return_type": {
+              "Union": [
+                {
+                  "Path": {
+                    "ident": {
+                      "idents": [
+                        4
+                      ]
+                    },
+                    "generics": {
+                      "generics": []
+                    }
+                  }
+                },
+                {
+                  "Basic": "None"
+                }
+              ]
+            }
+          },
+          "body": {
+            "stmts": [
+              {
+                "Return": {
+                  "value": {
+                    "Match": {
+                      "source": {
+                        "Call": {
+                          "func": {
+                            "Identifier": 5
+                          },
+                          "generic_tys": {
+                            "generics": []
+                          },
+                          "args": {
+                            "args": []
+                          }
+                        }
+                      },
+                      "arms": [
+                        {
+                          "pattern": {
+                            "Ty": [
+                              {
+                                "Path": {
+                                  "ident": {
+                                    "idents": [
+                                      6
+                                    ]
+                                  },
+                                  "generics": {
+                                    "generics": []
+                                  }
+                                }
+                              },
+                              7
+                            ]
+                          },
+                          "body": {
+                            "Expression": {
+                              "Identifier": 7
+                            }
+                          }
+                        },
+                        {
+                          "pattern": {
+                            "Or": {
+                              "patterns": [
+                                {
+                                  "Ty": [
+                                    {
+                                      "Path": {
+                                        "ident": {
+                                          "idents": [
+                                            8
+                                          ]
+                                        },
+                                        "generics": {
+                                          "generics": []
+                                        }
+                                      }
+                                    },
+                                    null
+                                  ]
+                                },
+                                {
+                                  "Ty": [
+                                    {
+                                      "Basic": "None"
+                                    },
+                                    null
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          "body": {
+                            "Expression": "None"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Fn": {
+          "sig": {
+            "name": 5,
+            "generic_types": {
+              "generics": []
+            },
+            "parameters": {
+              "params": [
+                {
+                  "name": 9,
+                  "ty": {
+                    "Path": {
+                      "ident": {
+                        "idents": [
+                          4
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    }
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "return_type": {
+              "Union": [
+                {
+                  "Path": {
+                    "ident": {
+                      "idents": [
+                        6
+                      ]
+                    },
+                    "generics": {
+                      "generics": []
+                    }
+                  }
+                },
+                {
+                  "Basic": "None"
+                },
+                {
+                  "Path": {
+                    "ident": {
+                      "idents": [
+                        8
+                      ]
+                    },
+                    "generics": {
+                      "generics": []
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "body": {
+            "stmts": [
+              {
+                "Return": {
+                  "value": "None"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Enum": {
+          "name": 8,
+          "generics": {
+            "generics": []
+          },
+          "members": [
+            {
+              "name": 10,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 11,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            }
+          ],
+          "fn_stmts": []
+        }
+      }
+    ]
+  }
+]

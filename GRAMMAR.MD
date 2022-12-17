@@ -129,13 +129,15 @@ _________________________________
 _________________________________
 ### Match Definitions
 
-`matchBlock => "{" matchArm* "}"`
+`matchBlock => "{" matchArm ( , matchArm )* ,? "}"`
 
-`matchArm => pattern "=>" ( blockStmt | expression "," )`
+`matchArm => multiPattern "=>" ( blockStmt | expression )`
 
-`pattern => matcher expression? ( "|" matcher expression? )*`
+`multiPattern => pattern ( "|" pattern )*`
 
-`matcher => "_" | literal ".." literal | string | boolean | number | ty`
+`pattern => matcher expression?`
+
+`matcher => "_" | string | boolean | number | ( ty identifier? ) `
 
 _________________________________
 ### Type Definitions
