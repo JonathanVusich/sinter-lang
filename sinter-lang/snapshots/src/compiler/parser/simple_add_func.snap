@@ -1,9 +1,9 @@
 [
   {
-    "a": 2,
-    "b": 4,
+    "sum": 1,
     "i64": 3,
-    "sum": 1
+    "b": 4,
+    "a": 2
   },
   {
     "stmts": [
@@ -39,8 +39,8 @@
           "body": {
             "stmts": [
               {
-                "Return": {
-                  "value": {
+                "Expression": {
+                  "expr": {
                     "Infix": {
                       "operator": "Add",
                       "lhs": {
@@ -50,7 +50,8 @@
                         "Identifier": 4
                       }
                     }
-                  }
+                  },
+                  "implicit_return": false
                 }
               }
             ]

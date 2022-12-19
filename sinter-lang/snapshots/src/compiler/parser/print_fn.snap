@@ -2,8 +2,8 @@
   {
     "print": 1,
     "text": 2,
-    "str": 3,
-    "println": 4
+    "println": 4,
+    "str": 3
   },
   {
     "stmts": [
@@ -31,21 +31,24 @@
             "stmts": [
               {
                 "Expression": {
-                  "Call": {
-                    "func": {
-                      "Identifier": 4
-                    },
-                    "generic_tys": {
-                      "generics": []
-                    },
-                    "args": {
-                      "args": [
-                        {
-                          "Identifier": 2
-                        }
-                      ]
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Identifier": 4
+                      },
+                      "generic_tys": {
+                        "generics": []
+                      },
+                      "args": {
+                        "args": [
+                          {
+                            "Identifier": 2
+                          }
+                        ]
+                      }
                     }
-                  }
+                  },
+                  "implicit_return": true
                 }
               }
             ]

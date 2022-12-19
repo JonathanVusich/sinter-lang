@@ -1,16 +1,16 @@
 [
   {
-    "load_user_info": 5,
     "find_user": 1,
-    "info": 7,
-    "user": 9,
-    "UserInfo": 6,
+    "str": 3,
     "LoadError": 8,
-    "ConnectionClosed": 11,
-    "User": 4,
-    "Timeout": 10,
     "user_name": 2,
-    "str": 3
+    "info": 7,
+    "UserInfo": 6,
+    "load_user_info": 5,
+    "User": 4,
+    "user": 9,
+    "Timeout": 10,
+    "ConnectionClosed": 11
   },
   {
     "stmts": [
@@ -55,8 +55,8 @@
           "body": {
             "stmts": [
               {
-                "Return": {
-                  "value": {
+                "Expression": {
+                  "expr": {
                     "Match": {
                       "source": {
                         "Call": {
@@ -92,7 +92,10 @@
                           },
                           "body": {
                             "Expression": {
-                              "Identifier": 7
+                              "expr": {
+                                "Identifier": 7
+                              },
+                              "implicit_return": true
                             }
                           }
                         },
@@ -129,12 +132,16 @@
                             }
                           },
                           "body": {
-                            "Expression": "None"
+                            "Expression": {
+                              "expr": "None",
+                              "implicit_return": true
+                            }
                           }
                         }
                       ]
                     }
-                  }
+                  },
+                  "implicit_return": false
                 }
               }
             ]

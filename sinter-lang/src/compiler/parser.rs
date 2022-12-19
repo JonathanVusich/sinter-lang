@@ -292,8 +292,13 @@ impl Parser {
 
     fn parse_expression(&mut self) -> Result<Stmt> {
         let expr = self.expr()?;
-        self.expect(TokenType::Semicolon)?;
-        Ok(Stmt::Expression(expr))
+        let implicit_return = if self.matches(TokenType::Semicolon) {
+            self.advance();
+            true
+        } else {
+            false
+        };
+        Ok(Stmt::Expression { expr, implicit_return })
     }
 
     fn expr(&mut self) -> Result<Expr> {
@@ -353,7 +358,7 @@ impl Parser {
             self.parse_block_stmt()?
         } else {
             let expr = self.expr()?;
-            Stmt::Expression(expr)
+            Stmt::Expression { expr, implicit_return: true }
         };
 
         Ok(Expr::Closure(Box::new(ClosureExpr::new(vars, stmt))))
@@ -859,7 +864,7 @@ impl Parser {
         let stmt = if self.matches(TokenType::LeftBrace) {
             self.parse_block_stmt()?
         } else {
-            Stmt::Expression(self.expr()?)
+            Stmt::Expression { expr: self.expr()?, implicit_return: true }
         };
         Ok(MatchArm::new(pattern, stmt))
     }
@@ -1473,7 +1478,7 @@ mod tests {
         "    Absolute(x: X, y: Y)\n",
         ") {\n",
         "    fn to_normalized(self) => Vector {\n",
-        "        return Normalized(self.x, self.y);\n",
+        "        Normalized(self.x, self.y)\n",
         "    }\n",
         "}"
         );
@@ -1522,7 +1527,7 @@ mod tests {
     pub fn simple_add_func() -> (StringInterner, Module) {
         let code = concat!(
         "fn sum(a: i64, b: i64) => i64 {\n",
-        "    return a + b;\n",
+        "    a + b\n",
         "}"
         );
 
@@ -1568,10 +1573,10 @@ mod tests {
     pub fn fns_with_union_types() -> (StringInterner, Module) {
         let code = concat!(
         "fn find_user(user_name: str) => User | None {\n",
-        "    return match load_user_info() {\n",
+        "    match load_user_info() {\n",
         "        UserInfo info => info,\n",
         "        LoadError | None => None,\n",
-        "    };\n",
+        "    }\n",
         "}\n\n",
         "fn load_user_info(user: User) => UserInfo | None | LoadError {\n",
         "    return None;",
@@ -1582,6 +1587,12 @@ mod tests {
         ");"
         );
         parse!(code)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn trait_example() -> (StringInterner, Module) {
+        todo!()
     }
 }
 

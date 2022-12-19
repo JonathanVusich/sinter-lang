@@ -1,10 +1,10 @@
 [
   {
-    "print": 4,
     "to_str": 5,
+    "str": 3,
+    "print": 4,
     "main": 1,
-    "args": 2,
-    "str": 3
+    "args": 2
   },
   {
     "stmts": [
@@ -34,36 +34,39 @@
             "stmts": [
               {
                 "Expression": {
-                  "Call": {
-                    "func": {
-                      "Identifier": 4
-                    },
-                    "generic_tys": {
-                      "generics": []
-                    },
-                    "args": {
-                      "args": [
-                        {
-                          "Call": {
-                            "func": {
-                              "Field": {
-                                "lhs": {
-                                  "Identifier": 2
-                                },
-                                "ident": 5
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Identifier": 4
+                      },
+                      "generic_tys": {
+                        "generics": []
+                      },
+                      "args": {
+                        "args": [
+                          {
+                            "Call": {
+                              "func": {
+                                "Field": {
+                                  "lhs": {
+                                    "Identifier": 2
+                                  },
+                                  "ident": 5
+                                }
+                              },
+                              "generic_tys": {
+                                "generics": []
+                              },
+                              "args": {
+                                "args": []
                               }
-                            },
-                            "generic_tys": {
-                              "generics": []
-                            },
-                            "args": {
-                              "args": []
                             }
                           }
-                        }
-                      ]
+                        ]
+                      }
                     }
-                  }
+                  },
+                  "implicit_return": true
                 }
               }
             ]

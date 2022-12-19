@@ -1,8 +1,8 @@
 [
   {
-    "print": 2,
     "Hello world!": 3,
-    "main": 1
+    "main": 1,
+    "print": 2
   },
   {
     "stmts": [
@@ -22,21 +22,24 @@
             "stmts": [
               {
                 "Expression": {
-                  "Call": {
-                    "func": {
-                      "Identifier": 2
-                    },
-                    "generic_tys": {
-                      "generics": []
-                    },
-                    "args": {
-                      "args": [
-                        {
-                          "String": 3
-                        }
-                      ]
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Identifier": 2
+                      },
+                      "generic_tys": {
+                        "generics": []
+                      },
+                      "args": {
+                        "args": [
+                          {
+                            "String": 3
+                          }
+                        ]
+                      }
                     }
-                  }
+                  },
+                  "implicit_return": true
                 }
               }
             ]

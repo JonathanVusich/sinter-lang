@@ -686,7 +686,10 @@ pub enum Stmt {
     Return(ReturnStmt),
     While(WhileStmt),
     Block(BlockStmt),
-    Expression(Expr),
+    Expression {
+        expr: Expr,
+        implicit_return: bool
+    },
 }
 
 mod tests {}

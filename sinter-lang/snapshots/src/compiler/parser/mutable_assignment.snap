@@ -1,7 +1,7 @@
 [
   {
-    "x": 2,
-    "mut_var": 1
+    "mut_var": 1,
+    "x": 2
   },
   {
     "stmts": [
@@ -31,23 +31,26 @@
               },
               {
                 "Expression": {
-                  "Infix": {
-                    "operator": "Assign",
-                    "lhs": {
-                      "Identifier": 2
-                    },
-                    "rhs": {
-                      "Infix": {
-                        "operator": "Add",
-                        "lhs": {
-                          "Identifier": 2
-                        },
-                        "rhs": {
-                          "Integer": 1
+                  "expr": {
+                    "Infix": {
+                      "operator": "Assign",
+                      "lhs": {
+                        "Identifier": 2
+                      },
+                      "rhs": {
+                        "Infix": {
+                          "operator": "Add",
+                          "lhs": {
+                            "Identifier": 2
+                          },
+                          "rhs": {
+                            "Integer": 1
+                          }
                         }
                       }
                     }
-                  }
+                  },
+                  "implicit_return": true
                 }
               }
             ]

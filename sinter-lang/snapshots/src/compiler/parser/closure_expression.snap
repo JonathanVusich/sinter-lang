@@ -1,7 +1,7 @@
 [
   {
-    "x": 1,
-    "y": 2
+    "y": 2,
+    "x": 1
   },
   {
     "Closure": {
@@ -11,15 +11,18 @@
       ],
       "stmt": {
         "Expression": {
-          "Infix": {
-            "operator": "Add",
-            "lhs": {
-              "Identifier": 1
-            },
-            "rhs": {
-              "Identifier": 2
+          "expr": {
+            "Infix": {
+              "operator": "Add",
+              "lhs": {
+                "Identifier": 1
+              },
+              "rhs": {
+                "Identifier": 2
+              }
             }
-          }
+          },
+          "implicit_return": true
         }
       }
     }
