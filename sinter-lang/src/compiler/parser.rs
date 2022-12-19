@@ -714,7 +714,7 @@ impl Parser {
         }
     }
 
-    fn parse_path_expr(&mut self) -> Result<Expr> {
+    fn parse_path_expr(&mut self) -> Result<PathExpr> {
         let mut path_segments = Vec::new();
         let first_ident = self.identifier()?;
         path_segments.push(PathSegment::Identifier(first_ident));
@@ -722,29 +722,27 @@ impl Parser {
         loop {
             if self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
                 self.advance_multiple(2);
-                if let Some(current) = self.current() {
-                    match current {
-                        TokenType::Less => {
-                            path_segments.push(PathSegment::GenericCallsite(self.generic_call_site()?));
-                            if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
-                                return self.expected_token(TokenType::Colon);
-                            }
+                match self.current() {
+                    Some(TokenType::Less) => {
+                        let generic_paths = self.parse_multiple_with_scope_delimiter::<PathExpr, 1>(Self::parse_path_expr, TokenType::Comma, TokenType::Less, TokenType::Greater)?;
+                        path_segments.push(PathSegment::Generic(generic_paths));
+                        if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
+                            return self.expected_token(TokenType::Colon);
                         }
-                        TokenType::Identifier(ident) => {
-                            path_segments.push(PathSegment::Identifier(ident));
-                            self.advance();
-                        }
-                        token => {
-                            return self.unexpected_token(token);
-                        }
+                    },
+                    Some(TokenType::Identifier(ident)) => {
+                        path_segments.push(PathSegment::Identifier(ident));
+                        self.advance();
                     }
+                    Some(token) => return self.expected_tokens(vec![TokenType::Less, TokenType::Identifier(self.string_interner.get_or_intern(""))]),
+                    None => return self.unexpected_end()
                 }
             } else {
                 break;
             }
         }
 
-        Ok(Expr::Path(PathExpr::new(path_segments)))
+        Ok(PathExpr::new(path_segments))
     }
 
     fn parse_unary_expr(&mut self, operator: UnaryOp) -> Result<Expr> {
@@ -788,7 +786,7 @@ impl Parser {
                     self.advance();
                     Expr::String(string)
                 }
-                TokenType::Identifier(ident) => self.parse_path_expr()?,
+                TokenType::Identifier(ident) => Expr::Path(self.parse_path_expr()?),
                 TokenType::SelfCapitalized => {
                     self.advance();
                     let ident = self.string_interner.get_or_intern("Self");
@@ -1421,19 +1419,19 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn single_path_expr() -> (StringInterner, Expr) {
+    pub fn single_path_expr() -> (StringInterner, PathExpr) {
         parse_path!("std")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_path_expr() -> (StringInterner, Expr) {
+    pub fn simple_path_expr() -> (StringInterner, PathExpr) {
         parse_path!("std::Clone")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_path_expr() -> (StringInterner, Expr) {
+    pub fn generic_path_expr() -> (StringInterner, PathExpr) {
         parse_path!("std::HashMap::<T>::new")
     }
 

@@ -500,7 +500,7 @@ pub enum ArrayExpr {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum PathSegment {
     Identifier(InternedStr),
-    GenericCallsite(GenericCallSite),
+    Generic(Vec<PathExpr>),
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
