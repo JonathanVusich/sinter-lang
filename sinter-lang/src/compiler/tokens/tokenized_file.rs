@@ -32,7 +32,7 @@ impl TokenizedInput {
         } else {
             pos
         };
-        TokenPosition::new(line, line_pos)
+        TokenPosition::new(line + 1, line_pos)
     }
 
     pub fn add_line_break(&mut self, pos: usize) {

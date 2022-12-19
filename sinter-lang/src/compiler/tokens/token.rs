@@ -163,7 +163,7 @@ impl Display for TokenType {
             TokenType::LessEqual => write!(f, "<="),
             TokenType::Identifier(identifier) => write!(f, "identifier"),
             TokenType::String(_) => write!(f, "string"),
-            TokenType::SignedInteger(_) => write!(f, "signed integer"),
+            TokenType::SignedInteger(i) => write!(f, "signed integer"),
             TokenType::Float(_) => write!(f, "float"),
             TokenType::Class => write!(f, "class"),
             TokenType::Fn => write!(f, "fn"),

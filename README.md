@@ -145,6 +145,18 @@ fn log_trait_message(message: Loggable + Serializable) {
     println(message.format_log_message());
 }
 
+```
+
+Classes can also declare generic types as members. Using a generic type allows the compiler to generate  
+class definitions for each concrete type. This improves performance significantly at the expense of compile time overhead
+and binary size. 
+
+Using a trait reference only generates a single class definition, but has performance limitations. Reference classes
+already contain extra information for introspection, but inline classes and primitives have to be wrapped in a fat 
+pointer in order for the runtime to inspect the objects at runtime. This uses more processor cycles and memory, 
+but can be a valuable tool in cold paths where there are many different types being passed.
+
+```ignorelang
 class List<T>(array: [T]) {
 
     pub fn new(initial_capacity: u64) -> Self {
@@ -161,14 +173,6 @@ let list_of_lists = List::<List<f64>>::new();
 let trait_bounds = List::<Loggable + Serializable>::new();
 let unions = List::<str | i64 | f64>::new();
 ```
-
-Using a generic type allows specialized code to be generated for each
-concrete type which improves performance at the expense of compile time
-code generation.
-
-Using a trait reference allows dynamic dispatch, but has the limitation of being compatible
-only with reference classes. Inline classes do not contain runtime type information and thus 
-cannot be used for dynamic dispatch.
 
 ### Defining classes and instances
 

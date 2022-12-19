@@ -72,6 +72,7 @@ impl<'this> Tokenizer<'this> {
         let chars = source
             .graphemes(true)
             .collect::<Vec<&'this str>>();
+
         Self {
             string_interner,
             chars,
@@ -197,6 +198,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn parse_num(&mut self, char: &str) {
+        let negative = char == "-";
         let mut tokens = vec![char];
 
         while let Some(char) = self.peek() && is_digit(char) {
@@ -223,11 +225,10 @@ impl<'this> Tokenizer<'this> {
             return;
         }
 
-        let token_type: TokenType = tokens.join("")
+        let token_type = tokens.join("")
             .parse::<i64>()
             .map(TokenType::SignedInteger)
             .unwrap_or_else(|_| TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid integer.")));
-
         self.create_token(token_type);
     }
 
@@ -257,13 +258,14 @@ impl<'this> Tokenizer<'this> {
                 " " | "\r" | "\t" => {
                     self.next();
                 }
-                "\n" => {
+                "\n" | "\r\n" => {
                     self.tokenized_file.add_line_break(self.current);
                     self.next();
                 }
                 "/" => {
                     if let Some("/") = self.peek_next() {
-                        while let Some(char) = self.peek() && char != "\n" {
+                        while let Some(char) = self.peek()
+                            && char != "\n" && char != "\r\n" {
                             self.next();
                         }
                     } else {
@@ -399,6 +401,42 @@ mod tests {
     #[snapshot]
     pub fn invalid_native_keyword() -> (StringInterner, TokenizedInput) {
         tokenize_str("native nativer enative")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn simple_statement() -> (StringInterner, TokenizedInput) {
+        tokenize_str("use std::vector::Vector")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn parse_float_base_case() -> (StringInterner, TokenizedInput) {
+        tokenize_str("123.45")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn parse_float_with_preceding_whitespace() -> (StringInterner, TokenizedInput) {
+        tokenize_str(" 123.45")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn parse_positive_int() -> (StringInterner, TokenizedInput) {
+        tokenize_str("123")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn parse_negative_int() -> (StringInterner, TokenizedInput) {
+        tokenize_str("-123")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn parse_int_with_dot_after() -> (StringInterner, TokenizedInput) {
+        tokenize_str("123.")
     }
 
     #[test]
@@ -606,37 +644,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn simple_statement() -> (StringInterner, TokenizedInput) {
-        tokenize_str("use std::vector::Vector")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn parse_float_base_case() -> (StringInterner, TokenizedInput) {
-        tokenize_str("123.45")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn parse_float_with_preceding_whitespace() -> (StringInterner, TokenizedInput) {
-        tokenize_str(" 123.45")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn parse_positive_int() -> (StringInterner, TokenizedInput) {
-        tokenize_str("123")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn parse_negative_int() -> (StringInterner, TokenizedInput) {
-        tokenize_str("-123")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn parse_int_with_dot_after() -> (StringInterner, TokenizedInput) {
-        tokenize_str("123.")
+    pub fn generic_lists() -> (StringInterner, TokenizedInput) {
+        tokenize_str(utils::read_file(["short_examples", "generic_lists.si"]))
     }
 }

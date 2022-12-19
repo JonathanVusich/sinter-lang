@@ -1,14 +1,14 @@
 [
   {
-    "node_array": 9,
-    "Point": 1,
-    "i32_array": 6,
-    "x": 2,
     "y": 4,
-    "f64": 3,
-    "i32": 7,
+    "point_array": 8,
+    "Point": 1,
     "Node": 5,
-    "point_array": 8
+    "node_array": 9,
+    "i32": 7,
+    "f64": 3,
+    "x": 2,
+    "i32_array": 6
   },
   {
     "stmts": [
@@ -63,17 +63,19 @@
             }
           },
           "initializer": {
-            "Array": [
-              {
-                "Integer": 1
-              },
-              {
-                "Integer": 2
-              },
-              {
-                "Integer": 3
-              }
-            ]
+            "Array": {
+              "Initializer": [
+                {
+                  "Integer": 1
+                },
+                {
+                  "Integer": 2
+                },
+                {
+                  "Integer": 3
+                }
+              ]
+            }
           }
         }
       },
@@ -83,60 +85,62 @@
           "mutability": "Immutable",
           "ty": null,
           "initializer": {
-            "Array": [
-              {
-                "Call": {
-                  "func": {
-                    "Path": {
-                      "segments": [
+            "Array": {
+              "Initializer": [
+                {
+                  "Call": {
+                    "func": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "Identifier": 1
+                          }
+                        ]
+                      }
+                    },
+                    "generic_tys": {
+                      "generics": []
+                    },
+                    "args": {
+                      "args": [
                         {
-                          "Identifier": 1
+                          "Float": 1.0
+                        },
+                        {
+                          "Float": 2.0
                         }
                       ]
                     }
-                  },
-                  "generic_tys": {
-                    "generics": []
-                  },
-                  "args": {
-                    "args": [
-                      {
-                        "Float": 1.0
-                      },
-                      {
-                        "Float": 2.0
-                      }
-                    ]
                   }
-                }
-              },
-              {
-                "Call": {
-                  "func": {
-                    "Path": {
-                      "segments": [
+                },
+                {
+                  "Call": {
+                    "func": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "Identifier": 1
+                          }
+                        ]
+                      }
+                    },
+                    "generic_tys": {
+                      "generics": []
+                    },
+                    "args": {
+                      "args": [
                         {
-                          "Identifier": 1
+                          "Float": 1.5
+                        },
+                        {
+                          "Float": 2.5
                         }
                       ]
                     }
-                  },
-                  "generic_tys": {
-                    "generics": []
-                  },
-                  "args": {
-                    "args": [
-                      {
-                        "Float": 1.5
-                      },
-                      {
-                        "Float": 2.5
-                      }
-                    ]
                   }
                 }
-              }
-            ]
+              ]
+            }
           }
         }
       },
@@ -146,46 +150,48 @@
           "mutability": "Immutable",
           "ty": null,
           "initializer": {
-            "Array": [
-              {
-                "Call": {
-                  "func": {
-                    "Path": {
-                      "segments": [
-                        {
-                          "Identifier": 5
-                        }
-                      ]
+            "Array": {
+              "Initializer": [
+                {
+                  "Call": {
+                    "func": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "Identifier": 5
+                          }
+                        ]
+                      }
+                    },
+                    "generic_tys": {
+                      "generics": []
+                    },
+                    "args": {
+                      "args": []
                     }
-                  },
-                  "generic_tys": {
-                    "generics": []
-                  },
-                  "args": {
-                    "args": []
+                  }
+                },
+                {
+                  "Call": {
+                    "func": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "Identifier": 5
+                          }
+                        ]
+                      }
+                    },
+                    "generic_tys": {
+                      "generics": []
+                    },
+                    "args": {
+                      "args": []
+                    }
                   }
                 }
-              },
-              {
-                "Call": {
-                  "func": {
-                    "Path": {
-                      "segments": [
-                        {
-                          "Identifier": 5
-                        }
-                      ]
-                    }
-                  },
-                  "generic_tys": {
-                    "generics": []
-                  },
-                  "args": {
-                    "args": []
-                  }
-                }
-              }
-            ]
+              ]
+            }
           }
         }
       }

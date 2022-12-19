@@ -1,21 +1,21 @@
 [
   {
-    "y": 8,
     "self": 16,
-    "x": 7,
-    "abs": 12,
-    "Y": 5,
-    "Vector": 1,
+    "y": 8,
+    "Absolute": 9,
+    "magnitude": 13,
+    "Normalized": 6,
+    "math": 14,
     "normalized": 11,
     "Number": 3,
-    "Absolute": 9,
-    "Display": 4,
-    "sqrt": 15,
-    "magnitude": 13,
-    "math": 14,
-    "Normalized": 6,
     "X": 2,
-    "to_normalized": 10
+    "abs": 12,
+    "x": 7,
+    "Y": 5,
+    "sqrt": 15,
+    "to_normalized": 10,
+    "Display": 4,
+    "Vector": 1
   },
   {
     "stmts": [
@@ -197,7 +197,15 @@
                     "Expression": {
                       "expr": {
                         "Match": {
-                          "source": "SelfRef",
+                          "source": {
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 16
+                                }
+                              ]
+                            }
+                          },
                           "arms": [
                             {
                               "pattern": {

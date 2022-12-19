@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{Args, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
@@ -41,7 +41,7 @@ enum ParseError {
 
 #[derive(Debug)]
 struct TokenTypes {
-    token_types: Vec<TokenType>
+    token_types: Vec<TokenType>,
 }
 
 impl TokenTypes {
@@ -175,7 +175,7 @@ impl Parser {
             self.advance();
             Vec::new()
         } else {
-            return self.expected_tokens(vec![TokenType::LeftBrace, TokenType::Semicolon])
+            return self.expected_tokens(vec![TokenType::LeftBrace, TokenType::Semicolon]);
         };
 
         let class_stmt = ClassStmt::new(
@@ -211,10 +211,10 @@ impl Parser {
             Some(TokenType::Mut) => {
                 self.advance();
                 Mutable
-            },
+            }
             Some(TokenType::Identifier(_)) => Immutable,
             _ => {
-                return self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(self.string_interner.get_or_intern(""))])
+                return self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(self.string_interner.get_or_intern(""))]);
             }
         };
         let identifier = self.identifier()?;
@@ -762,37 +762,42 @@ impl Parser {
             let rhs = self.parse_assignment_expr(prefix_bp)?;
             Expr::Unary(Box::new(UnaryExpr::new(prefix_op, rhs)))
         } else if let Some(current) = self.current() {
-
             let expr = match current {
                 TokenType::SelfLowercase => {
                     self.advance();
-                    Expr::SelfRef
-                },
+                    let ident = self.string_interner.get_or_intern("self");
+                    Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
+                }
                 TokenType::True => {
                     self.advance();
                     Expr::Boolean(true)
-                },
+                }
                 TokenType::False => {
                     self.advance();
                     Expr::Boolean(false)
-                },
+                }
                 TokenType::SignedInteger(int) => {
                     self.advance();
                     Expr::Integer(int)
-                },
+                }
                 TokenType::Float(float) => {
                     self.advance();
                     Expr::Float(float)
-                },
+                }
                 TokenType::String(string) => {
                     self.advance();
                     Expr::String(string)
-                },
+                }
                 TokenType::Identifier(ident) => self.parse_path_expr()?,
+                TokenType::SelfCapitalized => {
+                    self.advance();
+                    let ident = self.string_interner.get_or_intern("Self");
+                    Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
+                }
                 TokenType::None => {
                     self.advance();
                     Expr::None
-                },
+                }
 
                 // Handle parenthesized expression
                 TokenType::LeftParentheses => {
@@ -802,12 +807,31 @@ impl Parser {
                     expr
                 }
 
-                // Handle index expression
+                // Handle array expression
                 TokenType::LeftBracket => {
                     self.advance();
-                    let exprs = self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
-                    self.expect(TokenType::RightBracket)?;
-                    Expr::Array(exprs)
+                    let expr = self.expr()?;
+                    match self.current() {
+                        Some(TokenType::Semicolon) => {
+                            self.advance();
+                            let size = self.expr()?;
+                            self.expect(TokenType::RightBracket)?;
+                            Expr::Array(Box::new(ArrayExpr::SizedInitializer(expr, size)))
+                        }
+                        Some(TokenType::Comma) => {
+                            self.advance();
+                            let mut exprs = vec![expr];
+                            exprs.extend(self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?);
+                            self.expect(TokenType::RightBracket)?;
+                            Expr::Array(Box::new(ArrayExpr::Initializer(exprs)))
+                        }
+                        Some(token) => {
+                            return self.expected_tokens(vec![TokenType::Semicolon, TokenType::Comma]);
+                        }
+                        None => {
+                            return self.unexpected_end();
+                        }
+                    }
                 }
 
                 // Handle match expression
@@ -839,7 +863,7 @@ impl Parser {
                     PostfixOp::LeftParentheses => {
                         let args = self.parse_multiple_with_scope_delimiter::<Expr, 1>(Self::expr, TokenType::Comma, TokenType::LeftParentheses, TokenType::RightParentheses)?;
                         Expr::Call(Box::new(Call::new(
-                            lhs, GenericDecls::empty(), Args::new(args)
+                            lhs, GenericDecls::empty(), Args::new(args),
                         )))
                     }
                     PostfixOp::LeftBracket => {
@@ -908,11 +932,11 @@ impl Parser {
                     Some(TokenType::Identifier(str)) => {
                         self.advance();
                         Some(str)
-                    },
+                    }
                     _ => None
                 };
                 Ok(Pattern::Ty(ty, ident))
-            },
+            }
             None => self.unexpected_end()
         }
     }
@@ -1594,6 +1618,12 @@ mod tests {
     #[snapshot]
     pub fn trait_vs_generic() -> (StringInterner, Module) {
         parse!(utils::read_file(["short_examples", "trait_vs_generic.si"]))
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn generic_lists() -> (StringInterner, Module) {
+        parse!(utils::read_file(["short_examples", "generic_lists.si"]))
     }
 }
 

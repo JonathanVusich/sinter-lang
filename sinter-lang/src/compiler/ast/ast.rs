@@ -358,7 +358,7 @@ pub enum VarInitializer {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Expr {
-    Array(Vec<Expr>),
+    Array(Box<ArrayExpr>),
     Call(Box<Call>),
     Infix(Box<InfixExpr>),
     Unary(Box<UnaryExpr>),
@@ -367,7 +367,6 @@ pub enum Expr {
     Integer(i64),
     Float(f64),
     String(InternedStr),
-    SelfRef,
     Match(Box<MatchExpr>),
     Closure(Box<ClosureExpr>),
     Assign(Box<AssignExpr>),
@@ -376,7 +375,6 @@ pub enum Expr {
     Path(PathExpr),
     Break,
     Continue,
-    Try(Box<Expr>),
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -491,6 +489,12 @@ impl IndexExpr {
     pub fn new(expr: Expr, key: Expr) -> Self {
         Self { expr, key }
     }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum ArrayExpr {
+    SizedInitializer(Expr, Expr),
+    Initializer(Vec<Expr>)
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
