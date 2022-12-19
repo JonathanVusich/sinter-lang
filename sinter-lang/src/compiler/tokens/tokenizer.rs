@@ -594,6 +594,12 @@ mod tests {
 
     #[test]
     #[snapshot]
+    pub fn vector_enum() -> (StringInterner, TokenizedInput) {
+        tokenize_str(utils::read_file(["short_examples", "vector_enum.si"]))
+    }
+
+    #[test]
+    #[snapshot]
     pub fn simple_statement() -> (StringInterner, TokenizedInput) {
         tokenize_str("use std::vector::Vector")
     }

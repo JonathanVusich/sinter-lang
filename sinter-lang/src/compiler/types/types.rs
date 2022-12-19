@@ -12,7 +12,8 @@ pub enum Type {
     TraitBounds(Vec<PathTy>),
     Closure(Vec<Type>, Box<Type>),
     Infer,
-    ImplicitSelf,
+    SelfPath,
+    SelfRef,
     Basic(BasicType),
 }
 

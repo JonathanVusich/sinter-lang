@@ -14,9 +14,7 @@ use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, Unexpec
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8, Str};
-use crate::compiler::types::types::Type::{
-    Basic, Closure, ImplicitSelf, Infer, Path, TraitBounds, Union,
-};
+use crate::compiler::types::types::Type::{Basic, Closure, SelfPath, Infer, Path, TraitBounds, Union, SelfRef};
 use crate::compiler::types::types::{BasicType, InternedStr, Type};
 use crate::compiler::StringInterner;
 use crate::gc::block::Block;
@@ -486,7 +484,7 @@ impl Parser {
         if self.matches(TokenType::SelfLowercase) {
             self.advance();
             ident = self.string_interner.get_or_intern("self");
-            ty = Infer;
+            ty = SelfRef;
         } else {
             ident = self.identifier()?;
             self.expect(TokenType::Colon)?;
@@ -597,7 +595,11 @@ impl Parser {
                 }
                 TokenType::SelfCapitalized => {
                     self.advance();
-                    Ok(ImplicitSelf)
+                    Ok(SelfPath)
+                }
+                TokenType::SelfLowercase => {
+                    self.advance();
+                    Ok(SelfRef)
                 }
                 _ => Ok(Infer),
             }
@@ -1495,18 +1497,8 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn complex_enum() -> (StringInterner, Module) {
-        let code = concat!(
-        "enum Vector<X: Number + Display, Y: Number + Display>(\n",
-        "    Normalized(x: X, y: Y),\n",
-        "    Absolute(x: X, y: Y)\n",
-        ") {\n",
-        "    fn to_normalized(self) => Vector {\n",
-        "        Normalized(self.x, self.y)\n",
-        "    }\n",
-        "}"
-        );
-        parse!(code)
+    pub fn vector_enum() -> (StringInterner, Module) {
+        parse!(utils::read_file(["short_examples", "vector_enum.si"]))
     }
 
     #[test]
@@ -1598,10 +1590,10 @@ mod tests {
         parse!(utils::read_file(["short_examples", "returning_error_union.si"]))
     }
 
-    #[test]
-    #[snapshot]
-    pub fn trait_example() -> (StringInterner, Module) {
-        todo!()
-    }
+    // #[test]
+    // #[snapshot]
+    // pub fn trait_example() -> (StringInterner, Module) {
+    //     todo!()
+    // }
 }
 

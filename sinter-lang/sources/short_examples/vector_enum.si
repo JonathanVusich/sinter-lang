@@ -1,0 +1,14 @@
+enum Vector<X: Number + Display, Y: Number + Display>(
+    Normalized(x: X, y: Y),
+    Absolute(x: X, y: Y),
+) {
+    fn to_normalized(self) => Vector {
+        match self {
+            Normalized normalized => normalized,
+            Absolute abs => {
+                let magnitude = math::sqrt(abs.x * abs.x + abs.y * abs.y);
+                Normalized(abs.x / magnitude, abs.y / magnitude)
+            }
+        }
+    }
+}

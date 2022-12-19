@@ -1,0 +1,456 @@
+[
+  {
+    "y": 8,
+    "self": 16,
+    "x": 7,
+    "abs": 12,
+    "Y": 5,
+    "Vector": 1,
+    "normalized": 11,
+    "Number": 3,
+    "Absolute": 9,
+    "Display": 4,
+    "sqrt": 15,
+    "magnitude": 13,
+    "math": 14,
+    "Normalized": 6,
+    "X": 2,
+    "to_normalized": 10
+  },
+  {
+    "stmts": [
+      {
+        "Enum": {
+          "name": 1,
+          "generics": {
+            "generics": [
+              {
+                "ident": 2,
+                "trait_bound": {
+                  "TraitBounds": [
+                    {
+                      "ident": {
+                        "idents": [
+                          3
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    },
+                    {
+                      "ident": {
+                        "idents": [
+                          4
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "ident": 5,
+                "trait_bound": {
+                  "TraitBounds": [
+                    {
+                      "ident": {
+                        "idents": [
+                          3
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    },
+                    {
+                      "ident": {
+                        "idents": [
+                          4
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "members": [
+            {
+              "name": 6,
+              "parameters": {
+                "params": [
+                  {
+                    "name": 7,
+                    "ty": {
+                      "Path": {
+                        "ident": {
+                          "idents": [
+                            2
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    },
+                    "mutability": "Immutable"
+                  },
+                  {
+                    "name": 8,
+                    "ty": {
+                      "Path": {
+                        "ident": {
+                          "idents": [
+                            5
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "member_functions": []
+            },
+            {
+              "name": 9,
+              "parameters": {
+                "params": [
+                  {
+                    "name": 7,
+                    "ty": {
+                      "Path": {
+                        "ident": {
+                          "idents": [
+                            2
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    },
+                    "mutability": "Immutable"
+                  },
+                  {
+                    "name": 8,
+                    "ty": {
+                      "Path": {
+                        "ident": {
+                          "idents": [
+                            5
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "member_functions": []
+            }
+          ],
+          "fn_stmts": [
+            {
+              "sig": {
+                "name": 10,
+                "generic_types": {
+                  "generics": []
+                },
+                "parameters": {
+                  "params": [
+                    {
+                      "name": 16,
+                      "ty": "SelfRef",
+                      "mutability": "Immutable"
+                    }
+                  ]
+                },
+                "return_type": {
+                  "Path": {
+                    "ident": {
+                      "idents": [
+                        1
+                      ]
+                    },
+                    "generics": {
+                      "generics": []
+                    }
+                  }
+                }
+              },
+              "body": {
+                "stmts": [
+                  {
+                    "Expression": {
+                      "expr": {
+                        "Match": {
+                          "source": "SelfRef",
+                          "arms": [
+                            {
+                              "pattern": {
+                                "Ty": [
+                                  {
+                                    "Path": {
+                                      "ident": {
+                                        "idents": [
+                                          6
+                                        ]
+                                      },
+                                      "generics": {
+                                        "generics": []
+                                      }
+                                    }
+                                  },
+                                  11
+                                ]
+                              },
+                              "body": {
+                                "Expression": {
+                                  "expr": {
+                                    "Path": {
+                                      "segments": [
+                                        {
+                                          "Identifier": 11
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "implicit_return": true
+                                }
+                              }
+                            },
+                            {
+                              "pattern": {
+                                "Ty": [
+                                  {
+                                    "Path": {
+                                      "ident": {
+                                        "idents": [
+                                          9
+                                        ]
+                                      },
+                                      "generics": {
+                                        "generics": []
+                                      }
+                                    }
+                                  },
+                                  12
+                                ]
+                              },
+                              "body": {
+                                "Block": {
+                                  "stmts": [
+                                    {
+                                      "Let": {
+                                        "ident": 13,
+                                        "mutability": "Immutable",
+                                        "ty": null,
+                                        "initializer": {
+                                          "Call": {
+                                            "func": {
+                                              "Path": {
+                                                "segments": [
+                                                  {
+                                                    "Identifier": 14
+                                                  },
+                                                  {
+                                                    "Identifier": 15
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "generic_tys": {
+                                              "generics": []
+                                            },
+                                            "args": {
+                                              "args": [
+                                                {
+                                                  "Infix": {
+                                                    "operator": "Add",
+                                                    "lhs": {
+                                                      "Infix": {
+                                                        "operator": "Multiply",
+                                                        "lhs": {
+                                                          "Field": {
+                                                            "lhs": {
+                                                              "Path": {
+                                                                "segments": [
+                                                                  {
+                                                                    "Identifier": 12
+                                                                  }
+                                                                ]
+                                                              }
+                                                            },
+                                                            "ident": 7
+                                                          }
+                                                        },
+                                                        "rhs": {
+                                                          "Field": {
+                                                            "lhs": {
+                                                              "Path": {
+                                                                "segments": [
+                                                                  {
+                                                                    "Identifier": 12
+                                                                  }
+                                                                ]
+                                                              }
+                                                            },
+                                                            "ident": 7
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    "rhs": {
+                                                      "Infix": {
+                                                        "operator": "Multiply",
+                                                        "lhs": {
+                                                          "Field": {
+                                                            "lhs": {
+                                                              "Path": {
+                                                                "segments": [
+                                                                  {
+                                                                    "Identifier": 12
+                                                                  }
+                                                                ]
+                                                              }
+                                                            },
+                                                            "ident": 8
+                                                          }
+                                                        },
+                                                        "rhs": {
+                                                          "Field": {
+                                                            "lhs": {
+                                                              "Path": {
+                                                                "segments": [
+                                                                  {
+                                                                    "Identifier": 12
+                                                                  }
+                                                                ]
+                                                              }
+                                                            },
+                                                            "ident": 8
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "Expression": {
+                                        "expr": {
+                                          "Call": {
+                                            "func": {
+                                              "Path": {
+                                                "segments": [
+                                                  {
+                                                    "Identifier": 6
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "generic_tys": {
+                                              "generics": []
+                                            },
+                                            "args": {
+                                              "args": [
+                                                {
+                                                  "Infix": {
+                                                    "operator": "Divide",
+                                                    "lhs": {
+                                                      "Field": {
+                                                        "lhs": {
+                                                          "Path": {
+                                                            "segments": [
+                                                              {
+                                                                "Identifier": 12
+                                                              }
+                                                            ]
+                                                          }
+                                                        },
+                                                        "ident": 7
+                                                      }
+                                                    },
+                                                    "rhs": {
+                                                      "Path": {
+                                                        "segments": [
+                                                          {
+                                                            "Identifier": 13
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "Infix": {
+                                                    "operator": "Divide",
+                                                    "lhs": {
+                                                      "Field": {
+                                                        "lhs": {
+                                                          "Path": {
+                                                            "segments": [
+                                                              {
+                                                                "Identifier": 12
+                                                              }
+                                                            ]
+                                                          }
+                                                        },
+                                                        "ident": 8
+                                                      }
+                                                    },
+                                                    "rhs": {
+                                                      "Path": {
+                                                        "segments": [
+                                                          {
+                                                            "Identifier": 13
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        "implicit_return": false
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "implicit_return": false
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+]
