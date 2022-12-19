@@ -600,6 +600,12 @@ mod tests {
 
     #[test]
     #[snapshot]
+    pub fn trait_vs_generic() -> (StringInterner, TokenizedInput) {
+        tokenize_str(utils::read_file(["short_examples", "trait_vs_generic.si"]))
+    }
+
+    #[test]
+    #[snapshot]
     pub fn simple_statement() -> (StringInterner, TokenizedInput) {
         tokenize_str("use std::vector::Vector")
     }

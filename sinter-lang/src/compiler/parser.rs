@@ -1590,10 +1590,10 @@ mod tests {
         parse!(utils::read_file(["short_examples", "returning_error_union.si"]))
     }
 
-    // #[test]
-    // #[snapshot]
-    // pub fn trait_example() -> (StringInterner, Module) {
-    //     todo!()
-    // }
+    #[test]
+    #[snapshot]
+    pub fn trait_vs_generic() -> (StringInterner, Module) {
+        parse!(utils::read_file(["short_examples", "trait_vs_generic.si"]))
+    }
 }
 
