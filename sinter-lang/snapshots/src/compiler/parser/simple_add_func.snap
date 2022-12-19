@@ -1,9 +1,9 @@
 [
   {
     "sum": 1,
-    "i64": 3,
+    "a": 2,
     "b": 4,
-    "a": 2
+    "i64": 3
   },
   {
     "stmts": [
@@ -44,10 +44,22 @@
                     "Infix": {
                       "operator": "Add",
                       "lhs": {
-                        "Identifier": 2
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 2
+                            }
+                          ]
+                        }
                       },
                       "rhs": {
-                        "Identifier": 4
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 4
+                            }
+                          ]
+                        }
                       }
                     }
                   },

@@ -1,14 +1,14 @@
 [
   {
-    "i32": 7,
-    "Point": 1,
-    "point_array": 8,
     "node_array": 9,
-    "y": 4,
+    "Point": 1,
     "i32_array": 6,
-    "f64": 3,
     "x": 2,
-    "Node": 5
+    "y": 4,
+    "f64": 3,
+    "i32": 7,
+    "Node": 5,
+    "point_array": 8
   },
   {
     "stmts": [
@@ -87,7 +87,13 @@
               {
                 "Call": {
                   "func": {
-                    "Identifier": 1
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 1
+                        }
+                      ]
+                    }
                   },
                   "generic_tys": {
                     "generics": []
@@ -107,7 +113,13 @@
               {
                 "Call": {
                   "func": {
-                    "Identifier": 1
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 1
+                        }
+                      ]
+                    }
                   },
                   "generic_tys": {
                     "generics": []
@@ -138,7 +150,13 @@
               {
                 "Call": {
                   "func": {
-                    "Identifier": 5
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 5
+                        }
+                      ]
+                    }
                   },
                   "generic_tys": {
                     "generics": []
@@ -151,7 +169,13 @@
               {
                 "Call": {
                   "func": {
-                    "Identifier": 5
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 5
+                        }
+                      ]
+                    }
                   },
                   "generic_tys": {
                     "generics": []

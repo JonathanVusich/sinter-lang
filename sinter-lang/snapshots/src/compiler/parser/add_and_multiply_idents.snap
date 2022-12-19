@@ -1,9 +1,9 @@
 [
   {
-    "e": 5,
     "c": 3,
     "a": 1,
     "b": 2,
+    "e": 5,
     "d": 4
   },
   {
@@ -13,7 +13,13 @@
         "Infix": {
           "operator": "Add",
           "lhs": {
-            "Identifier": 1
+            "Path": {
+              "segments": [
+                {
+                  "Identifier": 1
+                }
+              ]
+            }
           },
           "rhs": {
             "Infix": {
@@ -22,22 +28,46 @@
                 "Infix": {
                   "operator": "Multiply",
                   "lhs": {
-                    "Identifier": 2
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 2
+                        }
+                      ]
+                    }
                   },
                   "rhs": {
-                    "Identifier": 3
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 3
+                        }
+                      ]
+                    }
                   }
                 }
               },
               "rhs": {
-                "Identifier": 4
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 4
+                    }
+                  ]
+                }
               }
             }
           }
         }
       },
       "rhs": {
-        "Identifier": 5
+        "Path": {
+          "segments": [
+            {
+              "Identifier": 5
+            }
+          ]
+        }
       }
     }
   }

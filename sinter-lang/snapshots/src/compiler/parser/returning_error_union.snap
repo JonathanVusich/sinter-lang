@@ -1,0 +1,294 @@
+[
+  {
+    "write_bytes": 12,
+    "BufferOverflow": 11,
+    "len": 10,
+    "Serializable": 3,
+    "T": 2,
+    "MalformedBytes": 13,
+    "to_bytes": 7,
+    "remaining": 9,
+    "value": 4,
+    "bytes": 6,
+    "WriteError": 5,
+    "buffer": 8,
+    "write": 1
+  },
+  {
+    "stmts": [
+      {
+        "Fn": {
+          "sig": {
+            "name": 1,
+            "generic_types": {
+              "generics": [
+                {
+                  "ident": 2,
+                  "trait_bound": {
+                    "TraitBounds": [
+                      {
+                        "ident": {
+                          "idents": [
+                            3
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "parameters": {
+              "params": [
+                {
+                  "name": 4,
+                  "ty": {
+                    "Path": {
+                      "ident": {
+                        "idents": [
+                          2
+                        ]
+                      },
+                      "generics": {
+                        "generics": []
+                      }
+                    }
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "return_type": {
+              "Union": [
+                {
+                  "Basic": "None"
+                },
+                {
+                  "Path": {
+                    "ident": {
+                      "idents": [
+                        5
+                      ]
+                    },
+                    "generics": {
+                      "generics": []
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "body": {
+            "stmts": [
+              {
+                "Let": {
+                  "ident": 6,
+                  "mutability": "Immutable",
+                  "ty": null,
+                  "initializer": {
+                    "Call": {
+                      "func": {
+                        "Field": {
+                          "lhs": {
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 4
+                                }
+                              ]
+                            }
+                          },
+                          "ident": 7
+                        }
+                      },
+                      "generic_tys": {
+                        "generics": []
+                      },
+                      "args": {
+                        "args": []
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "If": {
+                  "condition": {
+                    "Infix": {
+                      "operator": "Less",
+                      "lhs": {
+                        "Call": {
+                          "func": {
+                            "Field": {
+                              "lhs": {
+                                "Path": {
+                                  "segments": [
+                                    {
+                                      "Identifier": 8
+                                    }
+                                  ]
+                                }
+                              },
+                              "ident": 9
+                            }
+                          },
+                          "generic_tys": {
+                            "generics": []
+                          },
+                          "args": {
+                            "args": []
+                          }
+                        }
+                      },
+                      "rhs": {
+                        "Call": {
+                          "func": {
+                            "Field": {
+                              "lhs": {
+                                "Path": {
+                                  "segments": [
+                                    {
+                                      "Identifier": 6
+                                    }
+                                  ]
+                                }
+                              },
+                              "ident": 10
+                            }
+                          },
+                          "generic_tys": {
+                            "generics": []
+                          },
+                          "args": {
+                            "args": []
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "if_true": {
+                    "stmts": [
+                      {
+                        "Expression": {
+                          "expr": {
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 5
+                                },
+                                {
+                                  "Identifier": 11
+                                }
+                              ]
+                            }
+                          },
+                          "implicit_return": false
+                        }
+                      }
+                    ]
+                  },
+                  "if_false": {
+                    "stmts": []
+                  }
+                }
+              },
+              {
+                "If": {
+                  "condition": {
+                    "Unary": {
+                      "operator": "Bang",
+                      "expr": {
+                        "Call": {
+                          "func": {
+                            "Field": {
+                              "lhs": {
+                                "Path": {
+                                  "segments": [
+                                    {
+                                      "Identifier": 8
+                                    }
+                                  ]
+                                }
+                              },
+                              "ident": 12
+                            }
+                          },
+                          "generic_tys": {
+                            "generics": []
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "Path": {
+                                  "segments": [
+                                    {
+                                      "Identifier": 6
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "if_true": {
+                    "stmts": [
+                      {
+                        "Expression": {
+                          "expr": {
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 5
+                                },
+                                {
+                                  "Identifier": 13
+                                }
+                              ]
+                            }
+                          },
+                          "implicit_return": false
+                        }
+                      }
+                    ]
+                  },
+                  "if_false": null
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Enum": {
+          "name": 5,
+          "generics": {
+            "generics": []
+          },
+          "members": [
+            {
+              "name": 11,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            },
+            {
+              "name": 13,
+              "parameters": {
+                "params": []
+              },
+              "member_functions": []
+            }
+          ],
+          "fn_stmts": []
+        }
+      }
+    ]
+  }
+]

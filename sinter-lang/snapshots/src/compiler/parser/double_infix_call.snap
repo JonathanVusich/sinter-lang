@@ -12,7 +12,13 @@
           "expr": {
             "Call": {
               "func": {
-                "Identifier": 1
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 1
+                    }
+                  ]
+                }
               },
               "generic_tys": {
                 "generics": []
@@ -20,7 +26,13 @@
               "args": {
                 "args": [
                   {
-                    "Identifier": 2
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 2
+                        }
+                      ]
+                    }
                   }
                 ]
               }

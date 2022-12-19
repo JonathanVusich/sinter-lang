@@ -15,10 +15,22 @@
             "Infix": {
               "operator": "Add",
               "lhs": {
-                "Identifier": 1
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 1
+                    }
+                  ]
+                }
               },
               "rhs": {
-                "Identifier": 2
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 2
+                    }
+                  ]
+                }
               }
             }
           },

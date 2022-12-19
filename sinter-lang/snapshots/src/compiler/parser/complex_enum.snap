@@ -1,16 +1,16 @@
 [
   {
+    "Y": 5,
     "Normalized": 6,
+    "Display": 4,
     "Vector": 1,
     "X": 2,
     "self": 11,
-    "Number": 3,
-    "Display": 4,
-    "y": 8,
-    "x": 7,
     "to_normalized": 10,
-    "Y": 5,
-    "Absolute": 9
+    "x": 7,
+    "Absolute": 9,
+    "y": 8,
+    "Number": 3
   },
   {
     "stmts": [
@@ -193,7 +193,13 @@
                       "expr": {
                         "Call": {
                           "func": {
-                            "Identifier": 6
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 6
+                                }
+                              ]
+                            }
                           },
                           "generic_tys": {
                             "generics": []

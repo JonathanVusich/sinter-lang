@@ -1,10 +1,10 @@
 [
   {
-    "to_str": 5,
+    "args": 2,
     "str": 3,
-    "print": 4,
+    "to_str": 5,
     "main": 1,
-    "args": 2
+    "print": 4
   },
   {
     "stmts": [
@@ -37,7 +37,13 @@
                   "expr": {
                     "Call": {
                       "func": {
-                        "Identifier": 4
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 4
+                            }
+                          ]
+                        }
                       },
                       "generic_tys": {
                         "generics": []
@@ -49,7 +55,13 @@
                               "func": {
                                 "Field": {
                                   "lhs": {
-                                    "Identifier": 2
+                                    "Path": {
+                                      "segments": [
+                                        {
+                                          "Identifier": 2
+                                        }
+                                      ]
+                                    }
                                   },
                                   "ident": 5
                                 }

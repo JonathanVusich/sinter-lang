@@ -375,9 +375,10 @@ mod tests {
     use crate::compiler::tokens::token::{Token, TokenType};
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
+    use crate::util::utils;
 
     #[cfg(test)]
-    fn tokenize_str(code: &str) -> (StringInterner, TokenizedInput) {
+    fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner, TokenizedInput) {
         let string_interner = StringInterner::default();
         (string_interner.clone(), tokenize(string_interner, code).unwrap())
     }
@@ -588,23 +589,7 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn fns_with_union_types() -> (StringInterner, TokenizedInput) {
-        let code = concat!(
-        "fn find_user(user_name: str) => User | None | LoadError {\n",
-        "    match load_user_info() {\n",
-        "        UserInfo info => {},\n",
-        "        LoadError error => {},\n",
-        "        None => {},\n",
-        "    }\n",
-        "}\n\n",
-        "fn load_user_info(user: User) => UserInfo | None | LoadError {\n",
-        "    return None;",
-        "}\n\n",
-        "enum LoadError(\n",
-        "    Timeout,\n",
-        "    ConnectionClosed,\n",
-        ");"
-        );
-        tokenize_str(code)
+        tokenize_str(utils::read_file(["short_examples", "returning_error_union.si"]))
     }
 
     #[test]

@@ -68,7 +68,7 @@ An example function that returns the sum of two integers.
 
 ```ignorelang
 fn sum(a: i64, b: i64) => i64 {
-    return a + b;
+    a + b
 }
 ```
 
@@ -83,9 +83,9 @@ let b = 2; // `i64` type is inferred
 Variables that can be reassigned must be prefixed with the `mut` keyword. Global variables cannot be mutable.
 
 ```ignorelang
-fn mut_var() {
+fn generate_num() => i64 {
     let mut x = 5; // `i64` type is inferred
-    x = x + 1;
+    x + 1
 }
 ```
 
@@ -97,7 +97,7 @@ To define a  function, use the `fn` keyword.
 
 ```ignorelang
 fn add(a: i64, b: i64) => i64 {
-    return a + b;
+    a + b
 } 
 ```
 
@@ -113,23 +113,19 @@ fn print(text: str) {
 Functions may return alternative values such as an error or empty value by using the `|` operator to denote a union type.
 
 ```ignorelang
-fn find_user(user_name: str) => User | None {
-    ...
+fn write<T: Serializable>(value: T) => None | WriteError {
+    let bytes = value.to_bytes();
+    if (buffer.remaining() < bytes.len()) {
+        WriteError::BufferOverflow
+    } else if (!buffer.write_bytes(bytes)) {
+        WriteError::MalformedBytes
+    }
+    // None is implied by no return value.
 }
 
-fn load_user_info(user: User) => UserInfo | None | LoadError {
-    ...
-}
-
-match load_user_info(...) {
-    UserInfo info => {...},
-    LoadError error => {...},
-    None => {...},
-}
-
-enum LoadError( 
-    Timeout,
-    ConnectionClosed,
+enum WriteError( 
+    BufferOverflow,
+    MalformedBytes,
 );
 ```
 
@@ -141,18 +137,12 @@ trait Loggable {
     fn format_log_message(self) => str;
 }
 
-fn send_message<T: Serializable>(message: T, mut output: Output) {
-    ...
+fn log_specialized_message<T: Loggable + Serializable>(message: T) {
+    println(message.format_log_message());
 }
 
-fn log_message<T: Loggable + Serializable>(message: T) {
+fn log_trait_message(message: Loggable + Serializable) {
     println(message.format_log_message());
-    send_message(message, logging_server);
-}
-
-fn log_message(message: Loggable + Serializable) {
-    println(message.format_log_message());
-    send_message(message, logging_server);
 }
 
 class List<T>(array: [T]) {

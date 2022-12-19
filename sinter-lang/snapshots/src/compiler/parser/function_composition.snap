@@ -1,13 +1,19 @@
 [
   {
-    "g": 2,
+    "h": 3,
     "f": 1,
-    "h": 3
+    "g": 2
   },
   {
     "Call": {
       "func": {
-        "Identifier": 1
+        "Path": {
+          "segments": [
+            {
+              "Identifier": 1
+            }
+          ]
+        }
       },
       "generic_tys": {
         "generics": []
@@ -17,7 +23,13 @@
           {
             "Call": {
               "func": {
-                "Identifier": 2
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 2
+                    }
+                  ]
+                }
               },
               "generic_tys": {
                 "generics": []
@@ -27,7 +39,13 @@
                   {
                     "Call": {
                       "func": {
-                        "Identifier": 3
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 3
+                            }
+                          ]
+                        }
                       },
                       "generic_tys": {
                         "generics": []

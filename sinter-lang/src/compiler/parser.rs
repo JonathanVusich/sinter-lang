@@ -760,20 +760,41 @@ impl Parser {
             let rhs = self.parse_assignment_expr(prefix_bp)?;
             Expr::Unary(Box::new(UnaryExpr::new(prefix_op, rhs)))
         } else if let Some(current) = self.current() {
-            self.advance();
 
             let expr = match current {
-                TokenType::SelfLowercase => Expr::SelfRef,
-                TokenType::True => Expr::Boolean(true),
-                TokenType::False => Expr::Boolean(false),
-                TokenType::SignedInteger(int) => Expr::Integer(int),
-                TokenType::Float(float) => Expr::Float(float),
-                TokenType::String(string) => Expr::String(string),
-                TokenType::Identifier(ident) => Expr::Identifier(ident),
-                TokenType::None => Expr::None,
+                TokenType::SelfLowercase => {
+                    self.advance();
+                    Expr::SelfRef
+                },
+                TokenType::True => {
+                    self.advance();
+                    Expr::Boolean(true)
+                },
+                TokenType::False => {
+                    self.advance();
+                    Expr::Boolean(false)
+                },
+                TokenType::SignedInteger(int) => {
+                    self.advance();
+                    Expr::Integer(int)
+                },
+                TokenType::Float(float) => {
+                    self.advance();
+                    Expr::Float(float)
+                },
+                TokenType::String(string) => {
+                    self.advance();
+                    Expr::String(string)
+                },
+                TokenType::Identifier(ident) => self.parse_path_expr()?,
+                TokenType::None => {
+                    self.advance();
+                    Expr::None
+                },
 
                 // Handle parenthesized expression
                 TokenType::LeftParentheses => {
+                    self.advance();
                     let expr = self.parse_assignment_expr(min_bp)?;
                     self.expect(TokenType::RightParentheses)?;
                     expr
@@ -781,6 +802,7 @@ impl Parser {
 
                 // Handle index expression
                 TokenType::LeftBracket => {
+                    self.advance();
                     let exprs = self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
                     self.expect(TokenType::RightBracket)?;
                     Expr::Array(exprs)
@@ -788,6 +810,7 @@ impl Parser {
 
                 // Handle match expression
                 TokenType::Match => {
+                    self.advance();
                     let source = self.expr()?;
                     let match_arms = self.parse_multiple_with_scope_delimiter::<MatchArm, 1>(Self::parse_match_arm, TokenType::Comma, TokenType::LeftBrace, TokenType::RightBrace)?;
                     Expr::Match(Box::new(MatchExpr::new(source, match_arms)))
@@ -1173,6 +1196,7 @@ mod tests {
     use crate::compiler::types::types::Type;
     use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBounds};
     use crate::compiler::StringInterner;
+    use crate::util::utils;
 
     #[cfg(test)]
     fn create_parser(code: &str) -> (Arc<ThreadedRodeo>, Parser) {
@@ -1183,8 +1207,8 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn parse_module(code: &str) -> Result<(StringInterner, Module)> {
-        let (string_interner, mut parser) = create_parser(code);
+    fn parse_module<T: AsRef<str>>(code: T) -> Result<(StringInterner, Module)> {
+        let (string_interner, mut parser) = create_parser(code.as_ref());
         let module = parser.parse()?;
 
         Ok((string_interner, module))
@@ -1570,23 +1594,8 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn fns_with_union_types() -> (StringInterner, Module) {
-        let code = concat!(
-        "fn find_user(user_name: str) => User | None {\n",
-        "    match load_user_info() {\n",
-        "        UserInfo info => info,\n",
-        "        LoadError | None => None,\n",
-        "    }\n",
-        "}\n\n",
-        "fn load_user_info(user: User) => UserInfo | None | LoadError {\n",
-        "    return None;",
-        "}\n\n",
-        "enum LoadError(\n",
-        "    Timeout,\n",
-        "    ConnectionClosed,\n",
-        ");"
-        );
-        parse!(code)
+    pub fn returning_error_union() -> (StringInterner, Module) {
+        parse!(utils::read_file(["short_examples", "returning_error_union.si"]))
     }
 
     #[test]

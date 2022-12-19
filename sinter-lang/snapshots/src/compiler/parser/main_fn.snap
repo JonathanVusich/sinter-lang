@@ -1,8 +1,8 @@
 [
   {
-    "Hello world!": 3,
     "main": 1,
-    "print": 2
+    "print": 2,
+    "Hello world!": 3
   },
   {
     "stmts": [
@@ -25,7 +25,13 @@
                   "expr": {
                     "Call": {
                       "func": {
-                        "Identifier": 2
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 2
+                            }
+                          ]
+                        }
                       },
                       "generic_tys": {
                         "generics": []

@@ -368,7 +368,6 @@ pub enum Expr {
     Float(f64),
     String(InternedStr),
     SelfRef,
-    Identifier(InternedStr),
     Match(Box<MatchExpr>),
     Closure(Box<ClosureExpr>),
     Assign(Box<AssignExpr>),

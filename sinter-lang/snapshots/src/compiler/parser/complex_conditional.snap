@@ -15,7 +15,13 @@
                 "Infix": {
                   "operator": "Modulo",
                   "lhs": {
-                    "Identifier": 1
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 1
+                        }
+                      ]
+                    }
                   },
                   "rhs": {
                     "Integer": 4
@@ -34,7 +40,13 @@
                 "Infix": {
                   "operator": "Modulo",
                   "lhs": {
-                    "Identifier": 1
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 1
+                        }
+                      ]
+                    }
                   },
                   "rhs": {
                     "Integer": 100
@@ -55,7 +67,13 @@
             "Infix": {
               "operator": "Modulo",
               "lhs": {
-                "Identifier": 1
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 1
+                    }
+                  ]
+                }
               },
               "rhs": {
                 "Integer": 400

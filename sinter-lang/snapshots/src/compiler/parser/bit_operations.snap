@@ -18,7 +18,13 @@
                     "Infix": {
                       "operator": "Add",
                       "lhs": {
-                        "Identifier": 1
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 1
+                            }
+                          ]
+                        }
                       },
                       "rhs": {
                         "Infix": {
@@ -27,15 +33,33 @@
                             "Infix": {
                               "operator": "Multiply",
                               "lhs": {
-                                "Identifier": 1
+                                "Path": {
+                                  "segments": [
+                                    {
+                                      "Identifier": 1
+                                    }
+                                  ]
+                                }
                               },
                               "rhs": {
-                                "Identifier": 1
+                                "Path": {
+                                  "segments": [
+                                    {
+                                      "Identifier": 1
+                                    }
+                                  ]
+                                }
                               }
                             }
                           },
                           "rhs": {
-                            "Identifier": 1
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 1
+                                }
+                              ]
+                            }
                           }
                         }
                       }
@@ -48,7 +72,13 @@
                         "Unary": {
                           "operator": "Minus",
                           "expr": {
-                            "Identifier": 1
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 1
+                                }
+                              ]
+                            }
                           }
                         }
                       }

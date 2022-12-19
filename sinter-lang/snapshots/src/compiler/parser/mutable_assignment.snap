@@ -35,13 +35,25 @@
                     "Infix": {
                       "operator": "Assign",
                       "lhs": {
-                        "Identifier": 2
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 2
+                            }
+                          ]
+                        }
                       },
                       "rhs": {
                         "Infix": {
                           "operator": "Add",
                           "lhs": {
-                            "Identifier": 2
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 2
+                                }
+                              ]
+                            }
                           },
                           "rhs": {
                             "Integer": 1
