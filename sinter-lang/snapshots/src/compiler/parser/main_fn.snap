@@ -1,7 +1,7 @@
 [
   {
-    "main": 1,
     "print": 2,
+    "main": 1,
     "Hello world!": 3
   },
   {
@@ -10,8 +10,8 @@
         "Fn": {
           "sig": {
             "name": 1,
-            "generic_types": {
-              "generics": []
+            "generic_params": {
+              "params": []
             },
             "parameters": {
               "params": []
@@ -32,9 +32,6 @@
                             }
                           ]
                         }
-                      },
-                      "generic_tys": {
-                        "generics": []
                       },
                       "args": {
                         "args": [

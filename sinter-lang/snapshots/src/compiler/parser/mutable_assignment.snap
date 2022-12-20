@@ -1,7 +1,7 @@
 [
   {
-    "mut_var": 1,
-    "x": 2
+    "x": 2,
+    "mut_var": 1
   },
   {
     "stmts": [
@@ -9,8 +9,8 @@
         "Fn": {
           "sig": {
             "name": 1,
-            "generic_types": {
-              "generics": []
+            "generic_params": {
+              "params": []
             },
             "parameters": {
               "params": []

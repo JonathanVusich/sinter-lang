@@ -1,41 +1,35 @@
 [
   {
     "T": 3,
-    "std": 1,
     "new": 4,
+    "std": 1,
     "HashMap": 2
   },
   {
-    "Path": {
-      "segments": [
-        {
-          "Identifier": 1
-        },
-        {
-          "Identifier": 2
-        },
-        {
-          "GenericCallsite": {
-            "generics": [
-              {
-                "Path": {
-                  "ident": {
-                    "idents": [
-                      3
-                    ]
-                  },
-                  "generics": {
-                    "generics": []
-                  }
-                }
-              }
-            ]
+    "segments": [
+      {
+        "Identifier": 1
+      },
+      {
+        "Identifier": 2
+      },
+      {
+        "Generic": [
+          {
+            "Path": {
+              "ident": {
+                "idents": [
+                  3
+                ]
+              },
+              "generics": []
+            }
           }
-        },
-        {
-          "Identifier": 4
-        }
-      ]
-    }
+        ]
+      },
+      {
+        "Identifier": 4
+      }
+    ]
   }
 ]

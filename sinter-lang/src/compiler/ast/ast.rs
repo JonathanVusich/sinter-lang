@@ -44,6 +44,8 @@ impl TraitBound {
     }
 }
 
+pub type Generics = Vec<Type>;
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct PathTy {
     ident: QualifiedIdent,
@@ -67,22 +69,34 @@ impl UseStmt {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Debug, Default, Serialize, Deserialize)]
-pub struct Generics {
-    generics: Vec<Generic>,
+const EMPTY_GENERIC_DECL: GenericParams = GenericParams::new(Vec::new());
+
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct GenericParams {
+    params: Vec<GenericParam>,
 }
 
-const EMPTY_GENERIC_DECL: Generics = Generics::new(Vec::new());
-
-impl Generics {
-    pub const fn new(generics: Vec<Generic>) -> Self {
-        Self { generics }
-    }
-
-    pub fn empty() -> Self {
-        EMPTY_GENERIC_DECL
+impl GenericParams {
+    pub const fn new(params: Vec<GenericParam>) -> Self {
+        Self { params }
     }
 }
+
+#[derive(Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
+pub struct GenericParam {
+    ident: InternedStr,
+    trait_bound: Option<TraitBound>,
+}
+
+impl GenericParam {
+    pub fn new(ident: InternedStr, trait_bound: Option<TraitBound>) -> Self {
+        Self {
+            ident,
+            trait_bound,
+        }
+    }
+}
+
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug, Serialize, Deserialize)]
 pub struct GenericCallSite {
@@ -133,7 +147,7 @@ pub enum Mutability {
 pub struct ClassStmt {
     name: InternedStr,
     class_type: ClassType,
-    generic_types: Generics,
+    generic_params: GenericParams,
     members: Params,
     member_functions: Vec<FnStmt>,
 }
@@ -142,14 +156,14 @@ impl ClassStmt {
     pub fn new(
         name: InternedStr,
         class_type: ClassType,
-        generic_types: Generics,
+        generic_params: GenericParams,
         members: Params,
         member_functions: Vec<FnStmt>,
     ) -> Self {
         Self {
             name,
             class_type,
-            generic_types,
+            generic_params,
             members,
             member_functions,
         }
@@ -159,7 +173,7 @@ impl ClassStmt {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumStmt {
     name: InternedStr,
-    generics: Generics,
+    generic_params: GenericParams,
     members: Vec<EnumMemberStmt>,
     fn_stmts: Vec<FnStmt>,
 }
@@ -167,20 +181,20 @@ pub struct EnumStmt {
 impl EnumStmt {
     pub fn new(
         name: InternedStr,
-        generics: Generics,
+        generic_params: GenericParams,
         members: Vec<EnumMemberStmt>,
         fn_stmts: Vec<FnStmt>,
     ) -> Self {
         Self {
             name,
-            generics,
+            generic_params,
             members,
             fn_stmts,
         }
     }
 
-    pub fn generics(&self) -> &Generics {
-        &self.generics
+    pub fn generic_params(&self) -> &GenericParams {
+        &self.generic_params
     }
 
     pub fn members(&self) -> &[EnumMemberStmt] {
@@ -191,19 +205,19 @@ impl EnumStmt {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitStmt {
     ident: InternedStr,
-    generics: Generics,
+    generic_params: GenericParams,
     functions: Vec<FnStmt>,
 }
 
 impl TraitStmt {
     pub fn new(
         ident: InternedStr,
-        generics: Generics,
+        generic_params: GenericParams,
         functions: Vec<FnStmt>,
     ) -> Self {
         Self {
             ident,
-            generics,
+            generic_params,
             functions,
         }
     }
@@ -268,23 +282,6 @@ impl IfStmt {
     }
 }
 
-pub enum ParameterizedType {
-    Concrete(Type),
-    Generic(Generic),
-}
-
-#[derive(PartialEq, Eq, Hash, Clone, Debug, Serialize, Deserialize)]
-pub struct Generic {
-    ident: InternedStr,
-    trait_bound: Option<TraitBound>,
-}
-
-impl Generic {
-    pub fn new(ident: InternedStr, trait_bound: Option<TraitBound>) -> Self {
-        Self { ident, trait_bound }
-    }
-}
-
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumMemberStmt {
     name: InternedStr,
@@ -305,7 +302,7 @@ impl EnumMemberStmt {
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct FnSig {
     name: InternedStr,
-    generic_types: Generics,
+    generic_params: GenericParams,
     parameters: Params,
     return_type: Option<Type>,
 }
@@ -313,13 +310,13 @@ pub struct FnSig {
 impl FnSig {
     pub fn new(
         name: InternedStr,
-        generic_types: Generics,
+        generic_params: GenericParams,
         parameters: Params,
         return_type: Option<Type>,
     ) -> Self {
         Self {
             name,
-            generic_types,
+            generic_params,
             parameters,
             return_type,
         }
@@ -398,15 +395,13 @@ pub enum Expr {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Call {
     func: Expr,
-    generic_tys: Generics,
     args: Args,
 }
 
 impl Call {
-    pub fn new(func: Expr, generic_tys: Generics, args: Args) -> Self {
+    pub fn new(func: Expr, args: Args) -> Self {
         Self {
             func,
-            generic_tys,
             args,
         }
     }

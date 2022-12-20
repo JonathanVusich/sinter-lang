@@ -9,15 +9,15 @@ _________________________________
 
 `useStmt => "use" qualifiedIdent`
 
-`classStmt => "inline"? "class" ident genericDecls? params? ( objectFns | ";" )`
+`classStmt => "inline"? "class" ident genericParams? params? ( objectFns | ";" )`
 
 `fnStmt => fnHead params fnTail`
 
 `letStmt => "let" "mut"? ident ( "=" expression )? ";"`
 
-`enumStmt => "enum" ident genericDecls? enumBody ( objectFns | ";" )`
+`enumStmt => "enum" ident genericParams? enumBody ( objectFns | ";" )`
 
-`traitStmt => "trait" ident genericDecls? ( traitBody | ";" )`
+`traitStmt => "trait" ident genericParams? ( traitBody | ";" )`
 
 `traitImplStmt => "impl" qualifiedIdent genericCallsite? "for" ty ( objectFns | ";" )`
 
@@ -89,7 +89,7 @@ _________________________________
 
 _________________________________
 ### Function Definitions
-`fnHead => "fn" ident genericDecls?`
+`fnHead => "fn" ident genericParams?`
 
 `fnTail => ("=>" ty)? blockStmt`
 
@@ -102,11 +102,11 @@ _________________________________
 _________________________________
 ### Generic Definitions
 
-`genericDecls => "<" generic ( , generic )* ">"`
+`generics => "<" ty ( , ty )* ">"`
 
-`genericDecl => ident ( ":" traitBoundType )?`
+`genericParams => "<" genericParam ( , genericParam )* ">"`
 
-`genericCallsite => "<" ty ( , ty )* ">"`
+`genericParam => ident ( ":" traitBoundType )`
 
 _________________________________
 ### Parameter Definitions
@@ -157,7 +157,7 @@ _________________________________
 
 `traitBoundType => pathType ( "+" pathType )*`
 
-`pathType => qualifiedIdent genericDecls?`
+`pathType => qualifiedIdent generics?`
 
 `closureType => "(" (ty ( , ty )* )? ")" "=>" ( "(" closureType ")" | (basicType | arrayType | path) )`
 

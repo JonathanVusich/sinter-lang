@@ -1,9 +1,9 @@
 [
   {
+    "str": 3,
     "println": 4,
     "print": 1,
-    "text": 2,
-    "str": 3
+    "text": 2
   },
   {
     "stmts": [
@@ -11,8 +11,8 @@
         "Fn": {
           "sig": {
             "name": 1,
-            "generic_types": {
-              "generics": []
+            "generic_params": {
+              "params": []
             },
             "parameters": {
               "params": [
@@ -41,9 +41,6 @@
                             }
                           ]
                         }
-                      },
-                      "generic_tys": {
-                        "generics": []
                       },
                       "args": {
                         "args": [

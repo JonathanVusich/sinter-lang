@@ -1,25 +1,24 @@
 [
   {
-    "Pluto": 10,
-    "Venus": 3,
-    "Mercury": 2,
-    "Saturn": 7,
-    "Planet": 1,
-    "Uranus": 8,
     "Neptune": 9,
-    "Earth": 4,
+    "Uranus": 8,
     "Jupiter": 6,
-    "Mars": 5
+    "Planet": 1,
+    "Pluto": 10,
+    "Saturn": 7,
+    "Mars": 5,
+    "Earth": 4,
+    "Venus": 3,
+    "Mercury": 2
   },
   {
     "stmts": [
       {
         "Enum": {
           "name": 1,
-          "generics": {
-            "generics": []
+          "generic_params": {
+            "params": []
           },
-          "is_sync": false,
           "members": [
             {
               "name": 2,

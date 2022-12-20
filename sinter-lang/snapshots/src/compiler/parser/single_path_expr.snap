@@ -3,12 +3,10 @@
     "std": 1
   },
   {
-    "Path": {
-      "segments": [
-        {
-          "Identifier": 1
-        }
-      ]
-    }
+    "segments": [
+      {
+        "Identifier": 1
+      }
+    ]
   }
 ]

@@ -1,14 +1,14 @@
 [
   {
     "y": 4,
+    "x": 2,
+    "node_array": 9,
     "point_array": 8,
     "Point": 1,
-    "Node": 5,
-    "node_array": 9,
-    "i32": 7,
     "f64": 3,
-    "x": 2,
-    "i32_array": 6
+    "Node": 5,
+    "i32_array": 6,
+    "i32": 7
   },
   {
     "stmts": [
@@ -16,8 +16,8 @@
         "Class": {
           "name": 1,
           "class_type": "Inline",
-          "generic_types": {
-            "generics": []
+          "generic_params": {
+            "params": []
           },
           "members": {
             "params": [
@@ -44,8 +44,8 @@
         "Class": {
           "name": 5,
           "class_type": "Reference",
-          "generic_types": {
-            "generics": []
+          "generic_params": {
+            "params": []
           },
           "members": {
             "params": []
@@ -98,9 +98,6 @@
                         ]
                       }
                     },
-                    "generic_tys": {
-                      "generics": []
-                    },
                     "args": {
                       "args": [
                         {
@@ -123,9 +120,6 @@
                           }
                         ]
                       }
-                    },
-                    "generic_tys": {
-                      "generics": []
                     },
                     "args": {
                       "args": [
@@ -163,9 +157,6 @@
                         ]
                       }
                     },
-                    "generic_tys": {
-                      "generics": []
-                    },
                     "args": {
                       "args": []
                     }
@@ -181,9 +172,6 @@
                           }
                         ]
                       }
-                    },
-                    "generic_tys": {
-                      "generics": []
                     },
                     "args": {
                       "args": []
