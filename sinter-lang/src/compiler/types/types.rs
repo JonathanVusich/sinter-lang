@@ -1,4 +1,4 @@
-use crate::compiler::ast::ast::{QualifiedIdent, PathTy};
+use crate::compiler::ast::ast::{QualifiedIdent, PathTy, TraitBound};
 use lasso::Spur;
 use serde::{Deserialize, Serialize};
 
@@ -9,11 +9,10 @@ pub enum Type {
     Array(Box<Type>),
     Path(PathTy),
     Union(Vec<Type>),
-    TraitBounds(Vec<PathTy>),
+    TraitBound(TraitBound),
     Closure(Vec<Type>, Box<Type>),
     Infer,
-    SelfPath,
-    SelfRef,
+    QSelf,
     Basic(BasicType),
 }
 

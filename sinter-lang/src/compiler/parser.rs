@@ -8,13 +8,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericDecl, GenericDecls, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, Generic, Generics, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, TraitBound};
 use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
 use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8, Str};
-use crate::compiler::types::types::Type::{Basic, Closure, SelfPath, Infer, Path, TraitBounds, Union, SelfRef};
+use crate::compiler::types::types::Type::{Basic, Closure, Infer, Path, Union, QSelf};
 use crate::compiler::types::types::{BasicType, InternedStr, Type};
 use crate::compiler::StringInterner;
 use crate::gc::block::Block;
@@ -167,7 +167,7 @@ impl Parser {
             ClassType::Reference
         };
         let name = self.identifier()?;
-        let generic_types = self.generic_decls()?;
+        let generic_types = self.generics()?;
         let members = self.parenthesized_params()?;
         let member_functions = if self.matches(TokenType::LeftBrace) {
             self.fn_stmts()?
@@ -241,7 +241,7 @@ impl Parser {
     fn enum_stmt(&mut self) -> Result<EnumStmt> {
         self.expect(TokenType::Enum)?;
         let name = self.identifier()?;
-        let generics = self.generic_decls()?;
+        let generics = self.generics()?;
         let enum_members = self.enum_members()?;
 
         let object_fns = if self.matches(TokenType::LeftBrace) {
@@ -263,7 +263,7 @@ impl Parser {
     fn trait_stmt(&mut self) -> Result<TraitStmt> {
         self.expect(TokenType::Trait)?;
         let identifier = self.identifier()?;
-        let generics = self.generic_decls()?;
+        let generics = self.generics()?;
         if self.matches(TokenType::Semicolon) {
             Ok(TraitStmt::new(identifier, generics, Vec::new()))
         } else {
@@ -410,38 +410,39 @@ impl Parser {
         Ok(GenericCallSite::new(generic_tys))
     }
 
-    fn generic_decls(&mut self) -> Result<GenericDecls> {
-        let generic_tys = self.parse_multiple_with_scope_delimiter::<GenericDecl, 1>(
-            Self::generic_decl,
+    fn generics(&mut self) -> Result<Generics> {
+        let generic_tys = self.parse_multiple_with_scope_delimiter::<Generic, 1>(
+            Self::generic,
             TokenType::Comma,
             TokenType::Less,
             TokenType::Greater,
         )?;
-        Ok(GenericDecls::new(generic_tys))
+        Ok(Generics::new(generic_tys))
     }
 
-    fn generic_decl(&mut self) -> Result<GenericDecl> {
+    fn generic(&mut self) -> Result<Generic> {
         let ident = self.identifier()?;
-        let mut trait_bound: Option<Type> = None;
+        let mut trait_bound: Option<TraitBound> = None;
         if self.matches(TokenType::Colon) {
             self.advance();
             trait_bound = Some(self.trait_bound()?);
         }
-        Ok(GenericDecl::new(ident, trait_bound))
+        Ok(Generic::new(ident, trait_bound))
     }
 
     fn fn_stmts(&mut self) -> Result<Vec<FnStmt>> {
         self.parse_multiple_with_scope(Self::fn_stmt, TokenType::LeftBrace, TokenType::RightBrace)
     }
 
-    fn trait_bound(&mut self) -> Result<Type> {
+    fn trait_bound(&mut self) -> Result<TraitBound> {
         let mut paths = Vec::new();
         paths.push(self.parse_path_ty()?);
         while self.matches(TokenType::Plus) {
             self.advance();
             paths.push(self.parse_path_ty()?);
         }
-        Ok(TraitBounds(paths))
+        let trait_bound = TraitBound::new(paths);
+        Ok(trait_bound)
     }
 
     fn enum_members(&mut self) -> Result<Vec<EnumMemberStmt>> {
@@ -484,7 +485,7 @@ impl Parser {
         if self.matches(TokenType::SelfLowercase) {
             self.advance();
             ident = self.string_interner.get_or_intern("self");
-            ty = SelfRef;
+            ty = QSelf;
         } else {
             ident = self.identifier()?;
             self.expect(TokenType::Colon)?;
@@ -496,7 +497,7 @@ impl Parser {
 
     fn function_signature(&mut self) -> Result<FnSig> {
         let identifier = self.identifier()?;
-        let generics = self.generic_decls()?;
+        let generics = self.generics()?;
         let params = self.parenthesized_params()?;
         let mut ty = None;
         if self.matches(TokenType::RightArrow) {
@@ -538,73 +539,38 @@ impl Parser {
     }
 
     fn parse_any_ty(&mut self) -> Result<Type> {
-        if let Some(current) = self.current() {
-            match current {
-                TokenType::LeftParentheses => self.parse_closure_ty(),
-                TokenType::LeftBracket => self.parse_array_ty(),
-                TokenType::Identifier(ident) => match self.string_interner.resolve(&ident) {
-                    "u8" => {
-                        self.advance();
-                        Ok(Basic(U8))
-                    }
-                    "u16" => {
-                        self.advance();
-                        Ok(Basic(U16))
-                    }
-                    "u32" => {
-                        self.advance();
-                        Ok(Basic(U32))
-                    }
-                    "u64" => {
-                        self.advance();
-                        Ok(Basic(U64))
-                    }
-                    "i8" => {
-                        self.advance();
-                        Ok(Basic(I8))
-                    }
-                    "i16" => {
-                        self.advance();
-                        Ok(Basic(I16))
-                    }
-                    "i32" => {
-                        self.advance();
-                        Ok(Basic(I32))
-                    }
-                    "i64" => {
-                        self.advance();
-                        Ok(Basic(I64))
-                    }
-                    "f32" => {
-                        self.advance();
-                        Ok(Basic(F32))
-                    }
-                    "f64" => {
-                        self.advance();
-                        Ok(Basic(F64))
-                    }
-                    "str" => {
-                        self.advance();
-                        Ok(Basic(Str))
-                    }
-                    token => self.parse_qualified_ty(),
-                },
-                TokenType::None => {
-                    self.advance();
-                    Ok(Basic(BasicType::None))
+        match self.current() {
+            Some(TokenType::LeftParentheses) => self.parse_closure_ty(),
+            Some(TokenType::LeftBracket) => self.parse_array_ty(),
+            Some(TokenType::None) => {
+                self.advance();
+                Ok(Basic(BasicType::None))
+            },
+            Some(TokenType::Identifier(ident)) => {
+                // These built in types are officially encoded as strings to avoid them being
+                // tokenized as keywords.
+                let ident = self.string_interner.resolve(&ident);
+                match ident {
+                    "u8" => Ok(Basic(U8)),
+                    "u16" => Ok(Basic(U16)),
+                    "u32" => Ok(Basic(U32)),
+                    "u64" => Ok(Basic(U64)),
+                    "i8" => Ok(Basic(I8)),
+                    "i16" => Ok(Basic(I16)),
+                    "i32" => Ok(Basic(I32)),
+                    "i64" => Ok(Basic(I64)),
+                    "f32" => Ok(Basic(F32)),
+                    "f64" => Ok(Basic(F64)),
+                    "str" => Ok(Basic(Str)),
+                    other => self.parse_qualified_ty()
                 }
-                TokenType::SelfCapitalized => {
-                    self.advance();
-                    Ok(SelfPath)
-                }
-                TokenType::SelfLowercase => {
-                    self.advance();
-                    Ok(SelfRef)
-                }
-                _ => Ok(Infer),
+            },
+            Some(TokenType::SelfCapitalized) => {
+                self.advance();
+                Ok(QSelf)
             }
-        } else {
-            self.unexpected_end()
+            Some(token) => Ok(Infer),
+            None => return self.unexpected_end()
         }
     }
 
@@ -647,14 +613,10 @@ impl Parser {
             self.advance();
             let mut paths = self.parse_multiple_with_delimiter(Self::parse_path_ty, TokenType::Plus)?;
             paths.insert(0, path);
-            Ok(TraitBounds(paths))
+            Ok(Type::TraitBound(paths))
         } else {
             Ok(Path(path))
         }
-    }
-
-    fn parse_array_expr(&mut self) -> Result<Expr> {
-        todo!()
     }
 
     fn parse_if_stmt(&mut self) -> Result<Stmt> {
@@ -724,7 +686,7 @@ impl Parser {
                 self.advance_multiple(2);
                 match self.current() {
                     Some(TokenType::Less) => {
-                        let generic_paths = self.parse_multiple_with_scope_delimiter::<PathExpr, 1>(Self::parse_path_expr, TokenType::Comma, TokenType::Less, TokenType::Greater)?;
+                        let generic_paths = self.parse_multiple_with_scope_delimiter::<Type, 1>(Self::parse_any_ty, TokenType::Comma, TokenType::Less, TokenType::Greater)?;
                         path_segments.push(PathSegment::Generic(generic_paths));
                         if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
                             return self.expected_token(TokenType::Colon);
@@ -861,7 +823,7 @@ impl Parser {
                     PostfixOp::LeftParentheses => {
                         let args = self.parse_multiple_with_scope_delimiter::<Expr, 1>(Self::expr, TokenType::Comma, TokenType::LeftParentheses, TokenType::RightParentheses)?;
                         Expr::Call(Box::new(Call::new(
-                            lhs, GenericDecls::empty(), Args::new(args),
+                            lhs, Generics::empty(), Args::new(args),
                         )))
                     }
                     PostfixOp::LeftBracket => {
@@ -941,7 +903,7 @@ impl Parser {
 
     fn parse_path_ty(&mut self) -> Result<PathTy> {
         let ident = self.qualified_ident()?;
-        let generic_decls = self.generic_decls()?;
+        let generic_decls = self.generics()?;
         Ok(PathTy::new(ident, generic_decls))
     }
 
@@ -1205,7 +1167,7 @@ mod tests {
 
     use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::ast::Stmt::Enum;
-    use crate::compiler::ast::ast::{Args, BlockStmt, Call, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, GenericDecl, GenericDecls, LetStmt, Mutability, Param, Params, PathExpr, QualifiedIdent, Stmt};
+    use crate::compiler::ast::ast::{Args, BlockStmt, Call, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, Generic, Generics, LetStmt, Mutability, Param, Params, PathExpr, QualifiedIdent, Stmt};
     use crate::compiler::ast::ast::{Module, UseStmt};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{ParseError, Parser};
@@ -1218,7 +1180,7 @@ mod tests {
         F32, F64, I16, I32, I64, I8, U16, U32, U64, U8, Str,
     };
     use crate::compiler::types::types::Type;
-    use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBounds};
+    use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBound};
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
@@ -1324,6 +1286,12 @@ mod tests {
     #[snapshot]
     pub fn closure_returns_trait_bound_or_none() -> (StringInterner, Type) {
         parse_ty!("() => [first::party::package::Send<V: std::Copy + std::Clone> + third::party::package::Sync<T> + std::Copy + std::Clone] | None")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn generic_type() -> (StringInterner, Type) {
+        parse_ty!("List<List<i64>>")
     }
 
     #[test]
