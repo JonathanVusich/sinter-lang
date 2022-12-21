@@ -2,8 +2,8 @@
   {
     "sum": 1,
     "a": 2,
-    "b": 4,
-    "i64": 3
+    "i64": 3,
+    "b": 4
   },
   {
     "stmts": [
@@ -11,8 +11,8 @@
         "Fn": {
           "sig": {
             "name": 1,
-            "generic_types": {
-              "generics": []
+            "generic_params": {
+              "params": []
             },
             "parameters": {
               "params": [

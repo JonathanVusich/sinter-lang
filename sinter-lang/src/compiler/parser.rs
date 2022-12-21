@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::ast::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, TraitBound, GenericParam, GenericParams};
+use crate::compiler::ast::ast::Expr::Infix;
 use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
@@ -749,7 +750,7 @@ impl Parser {
 
     fn parse_assignment_expr(&mut self, min_bp: u8) -> Result<Expr> {
         // Check for prefix operator
-        let mut lhs = if let Some(Some(prefix_op)) = self.current().map(prefix_op) {
+        let mut lhs = if let Some(prefix_op) = self.prefix_op() {
             self.advance();
             let ((), prefix_bp) = prefix_op.binding_power();
             let rhs = self.parse_assignment_expr(prefix_bp)?;
@@ -892,6 +893,125 @@ impl Parser {
         }
 
         Ok(lhs)
+    }
+
+    fn prefix_op(&mut self) -> Option<UnaryOp> {
+        match self.current() {
+            Some(TokenType::Bang) => {
+                self.advance();
+                Some(UnaryOp::Bang)
+            },
+            Some(TokenType::Plus) => {
+                self.advance();
+                Some(UnaryOp::Plus)
+            },
+            Some(TokenType::Minus) => {
+                self.advance();
+                Some(UnaryOp::Minus)
+            },
+            Some(TokenType::BitwiseComplement) => {
+                self.advance();
+                Some(UnaryOp::BitwiseComplement)
+            },
+            _ => None,
+        }
+    }
+
+    fn infix_op(&mut self) -> Option<InfixOp> {
+        match self.current() {
+            Some(TokenType::Equal) => {
+                self.advance();
+                Some(InfixOp::Assign)
+            },
+            Some(TokenType::Plus) => {
+                self.advance();
+                Some(InfixOp::Add)
+            },
+            Some(TokenType::Minus) => {
+                self.advance();
+                Some(InfixOp::Subtract)
+            },
+            Some(TokenType::Star) => {
+                self.advance();
+                Some(InfixOp::Multiply)
+            },
+            Some(TokenType::Slash) => {
+                self.advance();
+                Some(InfixOp::Divide)
+            },
+            Some(TokenType::Percent) => {
+                self.advance();
+                Some(InfixOp::Modulo)
+            },
+            Some(TokenType::And) => {
+                self.advance();
+                Some(InfixOp::And)
+            },
+            Some(TokenType::Or) => {
+                self.advance();
+                Some(InfixOp::Or)
+            },
+            Some(TokenType::Less) => {
+                self.advance();
+                if self.matches(TokenType::Less) {
+                    self.advance();
+                    Some(InfixOp::LeftShift)
+                } else {
+                    Some(InfixOp::Less)
+                }
+            },
+            Some(TokenType::LessEqual) => {
+                self.advance();
+                Some(InfixOp::LessEqual)
+            },
+            Some(TokenType::Greater) => {
+                self.advance();
+                if self.matches(TokenType::Greater) {
+                    self.advance();
+                    if self.matches(TokenType::Greater) {
+                        self.advance();
+                        Some(InfixOp::TripleRightShift)
+                    } else {
+                        Some(InfixOp::RightShift)
+                    }
+                } else {
+                    Some(InfixOp::Greater)
+                }
+            },
+            Some(TokenType::GreaterEqual) => {
+                self.advance();
+                Some(InfixOp::GreaterEqual)
+            },
+            Some(TokenType::EqualEqual) => {
+                self.advance();
+                Some(InfixOp::Equal)
+            },
+            Some(TokenType::BangEqual) => {
+                self.advance();
+                Some(InfixOp::NotEqual)
+            },
+            Some(TokenType::BitwiseOr) => {
+                self.advance();
+                Some(InfixOp::BitwiseOr)
+            },
+            Some(TokenType::BitwiseAnd) => {
+                self.advance();
+                Some(InfixOp::BitwiseAnd)
+            },
+            Some(TokenType::BitwiseComplement) => {
+                self.advance();
+                Some(InfixOp::BitwiseComplement)
+            },
+            Some(TokenType::BitwiseXor) => {
+                self.advance();
+                Some(InfixOp::BitwiseXor)
+            },
+            _ => None,
+        }
+    }
+
+    fn postfix_op(&mut self) -> Option<PostfixOp> {
+        todo!()
     }
 
     fn parse_match_arm(&mut self) -> Result<MatchArm> {
@@ -1110,49 +1230,12 @@ impl Parser {
     }
 }
 
-fn prefix_op(token: TokenType) -> Option<UnaryOp> {
-    match token {
-        TokenType::Bang => Some(UnaryOp::Bang),
-        TokenType::Plus => Some(UnaryOp::Plus),
-        TokenType::Minus => Some(UnaryOp::Minus),
-        TokenType::BitwiseComplement => Some(UnaryOp::BitwiseComplement),
-        _ => None,
-    }
-}
-
 fn postfix_op(token: TokenType) -> Option<PostfixOp> {
     match token {
         TokenType::LeftBracket => Some(PostfixOp::LeftBracket),
         TokenType::LeftParentheses => Some(PostfixOp::LeftParentheses),
         TokenType::Dot => Some(PostfixOp::Dot),
         _ => None,
-    }
-}
-
-fn infix_op(token_type: TokenType) -> Option<InfixOp> {
-    match token_type {
-        TokenType::Equal => Some(InfixOp::Assign),
-        TokenType::Plus => Some(InfixOp::Add),
-        TokenType::Minus => Some(InfixOp::Subtract),
-        TokenType::Star => Some(InfixOp::Multiply),
-        TokenType::Slash => Some(InfixOp::Divide),
-        TokenType::Percent => Some(InfixOp::Modulo),
-        TokenType::And => Some(InfixOp::And),
-        TokenType::Or => Some(InfixOp::Or),
-        TokenType::Less => Some(InfixOp::Less),
-        TokenType::LessEqual => Some(InfixOp::LessEqual),
-        TokenType::Greater => Some(InfixOp::Greater),
-        TokenType::GreaterEqual => Some(InfixOp::GreaterEqual),
-        TokenType::RightShift => Some(InfixOp::RightShift),
-        TokenType::LeftShift => Some(InfixOp::LeftShift),
-        TokenType::TripleRightShift => Some(InfixOp::TripleRightShift),
-        TokenType::EqualEqual => Some(InfixOp::Equal),
-        TokenType::BangEqual => Some(InfixOp::NotEqual),
-        TokenType::BitwiseOr => Some(InfixOp::BitwiseOr),
-        TokenType::BitwiseAnd => Some(InfixOp::BitwiseAnd),
-        TokenType::BitwiseComplement => Some(InfixOp::BitwiseComplement),
-        TokenType::BitwiseXor => Some(InfixOp::BitwiseXor),
-        _ => None
     }
 }
 

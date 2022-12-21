@@ -41,12 +41,9 @@ pub enum TokenType {
 
     Greater,
     GreaterEqual,
-    RightShift,
-    TripleRightShift,
 
     Less,
     LessEqual,
-    LeftShift,
 
     Identifier(InternedStr),
     String(InternedStr),
@@ -102,34 +99,6 @@ pub enum TokenType {
     None,
 
     Inline,
-}
-
-impl TokenType {
-
-    pub fn is_operator(self) -> bool {
-        matches!(self, TokenType::Equal |
-            TokenType::Or |
-            TokenType::And |
-            TokenType::BitwiseOr |
-            TokenType::BitwiseXor |
-            TokenType::BitwiseAnd |
-            TokenType::BitwiseComplement |
-            TokenType::EqualEqual |
-            TokenType::BangEqual |
-            TokenType::Less |
-            TokenType::Greater |
-            TokenType::LessEqual |
-            TokenType::GreaterEqual |
-            TokenType::LeftShift |
-            TokenType::RightShift |
-            TokenType::TripleRightShift |
-            TokenType::Plus |
-            TokenType::Minus |
-            TokenType::Star |
-            TokenType::Slash |
-            TokenType::Percent |
-            TokenType::Bang)
-    }
 }
 
 impl Display for TokenType {
@@ -194,9 +163,6 @@ impl Display for TokenType {
             TokenType::Let => write!(f, "let"),
             TokenType::Mut => write!(f, "mut"),
             TokenType::In => write!(f, "in"),
-            TokenType::RightShift => write!(f, ">>"),
-            TokenType::TripleRightShift => write!(f, ">>>"),
-            TokenType::LeftShift => write!(f, "<<"),
             TokenType::BitwiseAnd => write!(f, "&"),
             TokenType::BitwiseXor => write!(f, "^"),
             TokenType::BitwiseComplement => write!(f, "~"),

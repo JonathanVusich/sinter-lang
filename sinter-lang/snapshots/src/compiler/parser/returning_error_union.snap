@@ -1,20 +1,20 @@
 [
   {
-    "MalformedBytes\r\n": 13,
-    "len": 10,
-    "value": 4,
-    "BufferOverflow": 14,
-    "remaining": 9,
-    "MalformedBytes": 15,
     "bytes": 6,
+    "to_bytes": 7,
     "write_bytes": 12,
+    "WriteError": 5,
+    "MalformedBytes\r\n": 13,
+    "write": 1,
+    "len": 10,
+    "BufferOverflow": 14,
     "buffer": 8,
     "Serializable": 3,
-    "WriteError": 5,
     "T": 2,
+    "remaining": 9,
+    "value": 4,
     "BufferOverflow\r\n": 11,
-    "to_bytes": 7,
-    "write": 1
+    "MalformedBytes": 15
   },
   {
     "stmts": [
@@ -22,21 +22,19 @@
         "Fn": {
           "sig": {
             "name": 1,
-            "generic_types": {
-              "generics": [
+            "generic_params": {
+              "params": [
                 {
                   "ident": 2,
                   "trait_bound": {
-                    "TraitBounds": [
+                    "bounds": [
                       {
                         "ident": {
                           "idents": [
                             3
                           ]
                         },
-                        "generics": {
-                          "generics": []
-                        }
+                        "generics": []
                       }
                     ]
                   }
@@ -54,9 +52,7 @@
                           2
                         ]
                       },
-                      "generics": {
-                        "generics": []
-                      }
+                      "generics": []
                     }
                   },
                   "mutability": "Immutable"
@@ -75,9 +71,7 @@
                         5
                       ]
                     },
-                    "generics": {
-                      "generics": []
-                    }
+                    "generics": []
                   }
                 }
               ]
@@ -105,9 +99,6 @@
                           },
                           "ident": 7
                         }
-                      },
-                      "generic_tys": {
-                        "generics": []
                       },
                       "args": {
                         "args": []
@@ -137,9 +128,6 @@
                               "ident": 9
                             }
                           },
-                          "generic_tys": {
-                            "generics": []
-                          },
                           "args": {
                             "args": []
                           }
@@ -160,9 +148,6 @@
                               },
                               "ident": 10
                             }
-                          },
-                          "generic_tys": {
-                            "generics": []
                           },
                           "args": {
                             "args": []
@@ -218,9 +203,6 @@
                               "ident": 12
                             }
                           },
-                          "generic_tys": {
-                            "generics": []
-                          },
                           "args": {
                             "args": [
                               {
@@ -269,8 +251,8 @@
       {
         "Enum": {
           "name": 5,
-          "generics": {
-            "generics": []
+          "generic_params": {
+            "params": []
           },
           "members": [
             {
