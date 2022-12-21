@@ -1,0 +1,46 @@
+[
+  {
+    "f": 1,
+    "g": 2
+  },
+  {
+    "tokens": [
+      {
+        "token_type": "Minus",
+        "start": 0,
+        "end": 1
+      },
+      {
+        "token_type": "Minus",
+        "start": 1,
+        "end": 2
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "start": 2,
+        "end": 3
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 3,
+        "end": 4
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 4,
+        "end": 5
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 5,
+        "end": 6
+      }
+    ],
+    "line_map": [],
+    "line_counter": 0
+  }
+]

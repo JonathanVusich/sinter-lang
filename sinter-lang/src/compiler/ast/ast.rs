@@ -686,6 +686,15 @@ impl InfixOp {
             _ => panic!(),
         }
     }
+    
+    pub fn token_len(self) -> usize {
+        match self {
+            InfixOp::LeftShift => 2,
+            InfixOp::RightShift => 2,
+            InfixOp::TripleRightShift => 3,
+            _ => 1,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]

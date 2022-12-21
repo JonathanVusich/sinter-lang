@@ -24,8 +24,13 @@
         "end": 7
       },
       {
-        "token_type": "RightShift",
+        "token_type": "Greater",
         "start": 8,
+        "end": 9
+      },
+      {
+        "token_type": "Greater",
+        "start": 9,
         "end": 10
       },
       {

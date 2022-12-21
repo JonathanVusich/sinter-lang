@@ -1,0 +1,237 @@
+[
+  {
+    "Loggable": 1,
+    "format_log_message": 2,
+    "message": 7,
+    "str": 3,
+    "self": 10,
+    "log_specialized_message": 4,
+    "T": 5,
+    "Serializable": 6,
+    "log_trait_message": 9,
+    "println": 8
+  },
+  {
+    "stmts": [
+      {
+        "Trait": {
+          "ident": 1,
+          "generic_params": {
+            "params": []
+          },
+          "functions": [
+            {
+              "sig": {
+                "name": 2,
+                "generic_params": {
+                  "params": []
+                },
+                "parameters": {
+                  "params": [
+                    {
+                      "name": 10,
+                      "ty": "QSelf",
+                      "mutability": "Immutable"
+                    }
+                  ]
+                },
+                "return_type": {
+                  "Basic": "Str"
+                }
+              },
+              "body": null
+            }
+          ]
+        }
+      },
+      {
+        "Fn": {
+          "sig": {
+            "name": 4,
+            "generic_params": {
+              "params": [
+                {
+                  "ident": 5,
+                  "trait_bound": {
+                    "bounds": [
+                      {
+                        "ident": {
+                          "idents": [
+                            1
+                          ]
+                        },
+                        "generics": []
+                      },
+                      {
+                        "ident": {
+                          "idents": [
+                            6
+                          ]
+                        },
+                        "generics": []
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "parameters": {
+              "params": [
+                {
+                  "name": 7,
+                  "ty": {
+                    "Path": {
+                      "ident": {
+                        "idents": [
+                          5
+                        ]
+                      },
+                      "generics": []
+                    }
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "return_type": null
+          },
+          "body": {
+            "stmts": [
+              {
+                "Expression": {
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 8
+                            }
+                          ]
+                        }
+                      },
+                      "args": {
+                        "args": [
+                          {
+                            "Call": {
+                              "func": {
+                                "Field": {
+                                  "lhs": {
+                                    "Path": {
+                                      "segments": [
+                                        {
+                                          "Identifier": 7
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "ident": 2
+                                }
+                              },
+                              "args": {
+                                "args": []
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "implicit_return": true
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "Fn": {
+          "sig": {
+            "name": 9,
+            "generic_params": {
+              "params": []
+            },
+            "parameters": {
+              "params": [
+                {
+                  "name": 7,
+                  "ty": {
+                    "TraitBound": {
+                      "bounds": [
+                        {
+                          "ident": {
+                            "idents": [
+                              1
+                            ]
+                          },
+                          "generics": []
+                        },
+                        {
+                          "ident": {
+                            "idents": [
+                              6
+                            ]
+                          },
+                          "generics": []
+                        }
+                      ]
+                    }
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "return_type": null
+          },
+          "body": {
+            "stmts": [
+              {
+                "Expression": {
+                  "expr": {
+                    "Call": {
+                      "func": {
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 8
+                            }
+                          ]
+                        }
+                      },
+                      "args": {
+                        "args": [
+                          {
+                            "Call": {
+                              "func": {
+                                "Field": {
+                                  "lhs": {
+                                    "Path": {
+                                      "segments": [
+                                        {
+                                          "Identifier": 7
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "ident": 2
+                                }
+                              },
+                              "args": {
+                                "args": []
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "implicit_return": true
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

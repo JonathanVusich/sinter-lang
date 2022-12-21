@@ -1,18 +1,20 @@
 [
   {
-    "T": 2,
-    "value": 4,
-    "remaining": 9,
-    "bytes": 6,
-    "buffer": 8,
+    "BufferOverflow": 14,
     "write": 1,
-    "MalformedBytes": 13,
-    "WriteError": 5,
     "to_bytes": 7,
-    "BufferOverflow": 11,
+    "WriteError": 5,
+    "bytes": 6,
+    "remaining": 9,
+    "MalformedBytes": 15,
+    "buffer": 8,
+    "T": 2,
+    "MalformedBytes\r\n": 13,
     "write_bytes": 12,
-    "len": 10,
-    "Serializable": 3
+    "Serializable": 3,
+    "BufferOverflow\r\n": 11,
+    "value": 4,
+    "len": 10
   },
   {
     "tokens": [
@@ -269,7 +271,7 @@
           "Identifier": 11
         },
         "start": 157,
-        "end": 171
+        "end": 172
       },
       {
         "token_type": "RightBrace",
@@ -364,7 +366,7 @@
           "Identifier": 13
         },
         "start": 237,
-        "end": 251
+        "end": 252
       },
       {
         "token_type": "RightBrace",
@@ -395,7 +397,7 @@
       },
       {
         "token_type": {
-          "Identifier": 11
+          "Identifier": 14
         },
         "start": 326,
         "end": 340
@@ -407,7 +409,7 @@
       },
       {
         "token_type": {
-          "Identifier": 13
+          "Identifier": 15
         },
         "start": 346,
         "end": 360
@@ -432,9 +434,7 @@
       58,
       92,
       136,
-      171,
       216,
-      251,
       257,
       300,
       302,
@@ -444,6 +444,6 @@
       361,
       364
     ],
-    "line_counter": 14
+    "line_counter": 12
   }
 ]

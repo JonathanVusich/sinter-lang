@@ -1,0 +1,33 @@
+[
+  {},
+  {
+    "tokens": [
+      {
+        "token_type": "Minus",
+        "start": 0,
+        "end": 1
+      },
+      {
+        "token_type": {
+          "SignedInteger": -1
+        },
+        "start": 1,
+        "end": 3
+      },
+      {
+        "token_type": "Star",
+        "start": 4,
+        "end": 5
+      },
+      {
+        "token_type": {
+          "SignedInteger": 2
+        },
+        "start": 6,
+        "end": 7
+      }
+    ],
+    "line_map": [],
+    "line_counter": 0
+  }
+]

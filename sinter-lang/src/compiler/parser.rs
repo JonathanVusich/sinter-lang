@@ -169,7 +169,7 @@ impl Parser {
         };
         let name = self.identifier()?;
         let generic_types = self.generic_params()?;
-        let members = self.parenthesized_params()?;
+        let members = self.params()?;
         let member_functions = if self.matches(TokenType::LeftBrace) {
             self.fn_stmts()?
         } else if self.matches(TokenType::Semicolon) {
@@ -195,11 +195,26 @@ impl Parser {
     }
 
     fn fn_stmt(&mut self) -> Result<FnStmt> {
-        self.expect(TokenType::Fn)?;
-        let signature = self.function_signature()?;
+        let signature = self.fn_signature(false)?;
         let stmt = self.block_stmt()?;
 
         Ok(FnStmt::new(signature, Some(stmt)))
+    }
+
+    fn fn_trait_stmt(&mut self) -> Result<FnStmt> {
+        let signature = self.fn_signature(true)?;
+        match self.current() {
+            Some(TokenType::Semicolon) => {
+                self.advance();
+                Ok(FnStmt::new(signature, None))
+            },
+            Some(TokenType::LeftBrace) => {
+                let stmt = self.block_stmt()?;
+                Ok(FnStmt::new(signature, Some(stmt)))
+            },
+            Some(token) => self.unexpected_token(token),
+            None => self.unexpected_end()
+        }
     }
 
     fn parse_let_stmt(&mut self) -> Result<Stmt> {
@@ -271,7 +286,7 @@ impl Parser {
             Ok(TraitStmt::new(
                 identifier,
                 generics,
-                self.fn_stmts()?,
+                self.fn_trait_stmts()?,
             ))
         }
     }
@@ -435,6 +450,10 @@ impl Parser {
         self.parse_multiple_with_scope(Self::fn_stmt, TokenType::LeftBrace, TokenType::RightBrace)
     }
 
+    fn fn_trait_stmts(&mut self) -> Result<Vec<FnStmt>> {
+        self.parse_multiple_with_scope(Self::fn_trait_stmt, TokenType::LeftBrace, TokenType::RightBrace)
+    }
+
     fn trait_bound(&mut self) -> Result<TraitBound> {
         let mut paths = Vec::new();
         paths.push(self.parse_path_ty()?);
@@ -458,7 +477,7 @@ impl Parser {
     fn enum_member(&mut self) -> Result<EnumMemberStmt> {
         if let Some(TokenType::Identifier(ident)) = self.current() {
             self.advance();
-            let params = self.parenthesized_params()?;
+            let params = self.params()?;
             let member_funcs = self.fn_stmts()?;
 
             Ok(EnumMemberStmt::new(ident, params, member_funcs))
@@ -469,9 +488,9 @@ impl Parser {
         }
     }
 
-    fn parenthesized_params(&mut self) -> Result<Params> {
+    fn params(&mut self) -> Result<Params> {
         let params = self.parse_multiple_with_scope_delimiter::<Param, 1>(
-            Self::parameter,
+            Self::param,
             TokenType::Comma,
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
@@ -479,7 +498,19 @@ impl Parser {
         Ok(Params::new(params))
     }
 
-    fn parameter(&mut self) -> Result<Param> {
+    fn self_params(&mut self) -> Result<Params> {
+        let mut params = Vec::new();
+        self.expect(TokenType::LeftParentheses)?;
+        params.push(self.self_param()?);
+        if self.matches(TokenType::Comma) {
+            self.advance();
+            params.extend(self.parse_multiple_with_delimiter(Self::param, TokenType::Comma)?);
+        }
+        self.expect(TokenType::RightParentheses)?;
+        Ok(Params::new(params))
+    }
+
+    fn param(&mut self) -> Result<Param> {
         let mutability = self.mutability();
         let ident;
         let ty;
@@ -496,10 +527,25 @@ impl Parser {
         Ok(Param::new(ident, ty, mutability))
     }
 
-    fn function_signature(&mut self) -> Result<FnSig> {
+    fn self_param(&mut self) -> Result<Param> {
+        let mutability = self.mutability();
+        if !self.matches(TokenType::SelfLowercase) {
+            self.expected_token(TokenType::SelfLowercase)
+        } else {
+            self.advance();
+            Ok(Param::new(self.string_interner.get_or_intern("self"), QSelf, mutability))
+        }
+    }
+
+    fn fn_signature(&mut self, require_self: bool) -> Result<FnSig> {
+        self.expect(TokenType::Fn)?;
         let identifier = self.identifier()?;
         let generics = self.generic_params()?;
-        let params = self.parenthesized_params()?;
+        let params = if require_self {
+            self.self_params()?
+        } else {
+            self.params()?
+        };
         let mut ty = None;
         if self.matches(TokenType::RightArrow) {
             self.advance();
@@ -847,7 +893,7 @@ impl Parser {
         };
 
         while let Some(current) = self.current() {
-            if let Some(postfix_op) = postfix_op(current) {
+            if let Some(postfix_op) = self.postfix_op() {
                 let (left_bp, ()) = postfix_op.binding_power();
                 if left_bp < min_bp {
                     break;
@@ -875,13 +921,13 @@ impl Parser {
                 continue;
             }
 
-            if let Some(infix_op) = infix_op(current) {
+            if let Some(infix_op) = self.infix_op() {
                 let (left_bp, right_bp) = infix_op.binding_power();
 
                 if left_bp < min_bp {
                     break;
                 }
-                self.advance();
+                self.advance_multiple(infix_op.token_len());
 
                 let rhs = self.parse_assignment_expr(right_bp)?;
 
@@ -897,121 +943,59 @@ impl Parser {
 
     fn prefix_op(&mut self) -> Option<UnaryOp> {
         match self.current() {
-            Some(TokenType::Bang) => {
-                self.advance();
-                Some(UnaryOp::Bang)
-            },
-            Some(TokenType::Plus) => {
-                self.advance();
-                Some(UnaryOp::Plus)
-            },
-            Some(TokenType::Minus) => {
-                self.advance();
-                Some(UnaryOp::Minus)
-            },
-            Some(TokenType::BitwiseComplement) => {
-                self.advance();
-                Some(UnaryOp::BitwiseComplement)
-            },
+            Some(TokenType::Bang) => Some(UnaryOp::Bang),
+            Some(TokenType::Plus) => Some(UnaryOp::Plus),
+            Some(TokenType::Minus) => Some(UnaryOp::Minus),
+            Some(TokenType::BitwiseComplement) => Some(UnaryOp::BitwiseComplement),
             _ => None,
         }
     }
 
     fn infix_op(&mut self) -> Option<InfixOp> {
         match self.current() {
-            Some(TokenType::Equal) => {
-                self.advance();
-                Some(InfixOp::Assign)
-            },
-            Some(TokenType::Plus) => {
-                self.advance();
-                Some(InfixOp::Add)
-            },
-            Some(TokenType::Minus) => {
-                self.advance();
-                Some(InfixOp::Subtract)
-            },
-            Some(TokenType::Star) => {
-                self.advance();
-                Some(InfixOp::Multiply)
-            },
-            Some(TokenType::Slash) => {
-                self.advance();
-                Some(InfixOp::Divide)
-            },
-            Some(TokenType::Percent) => {
-                self.advance();
-                Some(InfixOp::Modulo)
-            },
-            Some(TokenType::And) => {
-                self.advance();
-                Some(InfixOp::And)
-            },
-            Some(TokenType::Or) => {
-                self.advance();
-                Some(InfixOp::Or)
-            },
+            Some(TokenType::Equal) => Some(InfixOp::Assign),
+            Some(TokenType::Plus) => Some(InfixOp::Add),
+            Some(TokenType::Minus) => Some(InfixOp::Subtract),
+            Some(TokenType::Star) => Some(InfixOp::Multiply),
+            Some(TokenType::Slash) => Some(InfixOp::Divide),
+            Some(TokenType::Percent) => Some(InfixOp::Modulo),
+            Some(TokenType::And) => Some(InfixOp::And),
+            Some(TokenType::Or) => Some(InfixOp::Or),
             Some(TokenType::Less) => {
-                self.advance();
-                if self.matches(TokenType::Less) {
-                    self.advance();
+                if self.matches_multiple([TokenType::Less, TokenType::Less]) {
                     Some(InfixOp::LeftShift)
                 } else {
                     Some(InfixOp::Less)
                 }
             },
-            Some(TokenType::LessEqual) => {
-                self.advance();
-                Some(InfixOp::LessEqual)
-            },
+            Some(TokenType::LessEqual) => Some(InfixOp::LessEqual),
             Some(TokenType::Greater) => {
-                self.advance();
-                if self.matches(TokenType::Greater) {
-                    self.advance();
-                    if self.matches(TokenType::Greater) {
-                        self.advance();
-                        Some(InfixOp::TripleRightShift)
-                    } else {
-                        Some(InfixOp::RightShift)
-                    }
+                if self.matches_multiple([TokenType::Greater, TokenType::Greater, TokenType::Greater]) {
+                    Some(InfixOp::TripleRightShift)
+                } else if self.matches_multiple([TokenType::Greater, TokenType::Greater]) {
+                    Some(InfixOp::RightShift)
                 } else {
                     Some(InfixOp::Greater)
                 }
             },
-            Some(TokenType::GreaterEqual) => {
-                self.advance();
-                Some(InfixOp::GreaterEqual)
-            },
-            Some(TokenType::EqualEqual) => {
-                self.advance();
-                Some(InfixOp::Equal)
-            },
-            Some(TokenType::BangEqual) => {
-                self.advance();
-                Some(InfixOp::NotEqual)
-            },
-            Some(TokenType::BitwiseOr) => {
-                self.advance();
-                Some(InfixOp::BitwiseOr)
-            },
-            Some(TokenType::BitwiseAnd) => {
-                self.advance();
-                Some(InfixOp::BitwiseAnd)
-            },
-            Some(TokenType::BitwiseComplement) => {
-                self.advance();
-                Some(InfixOp::BitwiseComplement)
-            },
-            Some(TokenType::BitwiseXor) => {
-                self.advance();
-                Some(InfixOp::BitwiseXor)
-            },
+            Some(TokenType::GreaterEqual) => Some(InfixOp::GreaterEqual),
+            Some(TokenType::EqualEqual) => Some(InfixOp::Equal),
+            Some(TokenType::BangEqual) => Some(InfixOp::NotEqual),
+            Some(TokenType::BitwiseOr) => Some(InfixOp::BitwiseOr),
+            Some(TokenType::BitwiseAnd) => Some(InfixOp::BitwiseAnd),
+            Some(TokenType::BitwiseComplement) => Some(InfixOp::BitwiseComplement),
+            Some(TokenType::BitwiseXor) => Some(InfixOp::BitwiseXor),
             _ => None,
         }
     }
 
     fn postfix_op(&mut self) -> Option<PostfixOp> {
-        todo!()
+        match self.current() {
+            Some(TokenType::LeftBracket) => Some(PostfixOp::LeftBracket),
+            Some(TokenType::LeftParentheses) => Some(PostfixOp::LeftParentheses),
+            Some(TokenType::Dot) => Some(PostfixOp::Dot),
+            _ => None,
+        }
     }
 
     fn parse_match_arm(&mut self) -> Result<MatchArm> {
@@ -1227,15 +1211,6 @@ impl Parser {
 
     fn remaining(&self) -> usize {
         self.token_types.len() - (self.pos + 1)
-    }
-}
-
-fn postfix_op(token: TokenType) -> Option<PostfixOp> {
-    match token {
-        TokenType::LeftBracket => Some(PostfixOp::LeftBracket),
-        TokenType::LeftParentheses => Some(PostfixOp::LeftParentheses),
-        TokenType::Dot => Some(PostfixOp::Dot),
-        _ => None,
     }
 }
 

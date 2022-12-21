@@ -91,13 +91,15 @@ _________________________________
 ### Function Definitions
 `fnHead => "fn" ident genericParams?`
 
-`fnTail => ("=>" ty)? blockStmt`
+`fnTail => ( "=>" ty )? blockStmt`
+
+`fnTailNoImpl => ( "=>" ty )? ";"`
 
 `fnTraitStmt => fnSelfStmt | fnSelfNoImplStmt`
 
-`fnSelfStmt => fnHead selfParams  ` 
+`fnSelfStmt => fnHead selfParams fnTail` 
 
-`fnSelfNoImplStmt => "fn" ident selfParams ";"`
+`fnSelfNoImplStmt => fnHead selfParams fnTailNoImpl";"`
 
 _________________________________
 ### Generic Definitions

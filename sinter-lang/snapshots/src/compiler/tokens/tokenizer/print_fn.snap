@@ -1,8 +1,8 @@
 [
   {
-    "print": 1,
     "text": 2,
     "str": 3,
+    "print": 1,
     "println": 4
   },
   {
@@ -57,40 +57,40 @@
         "token_type": {
           "Identifier": 4
         },
-        "start": 22,
-        "end": 29
+        "start": 26,
+        "end": 33
       },
       {
         "token_type": "LeftParentheses",
-        "start": 29,
-        "end": 30
+        "start": 33,
+        "end": 34
       },
       {
         "token_type": {
           "Identifier": 2
         },
-        "start": 30,
-        "end": 34
+        "start": 34,
+        "end": 38
       },
       {
         "token_type": "RightParentheses",
-        "start": 34,
-        "end": 35
+        "start": 38,
+        "end": 39
       },
       {
         "token_type": "Semicolon",
-        "start": 35,
-        "end": 36
+        "start": 39,
+        "end": 40
       },
       {
         "token_type": "RightBrace",
-        "start": 37,
-        "end": 38
+        "start": 41,
+        "end": 42
       }
     ],
     "line_map": [
       21,
-      36
+      40
     ],
     "line_counter": 2
   }

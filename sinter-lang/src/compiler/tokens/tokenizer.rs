@@ -152,22 +152,12 @@ impl<'this> Tokenizer<'this> {
                 "<" => {
                     if self.matches("=") {
                         self.create_token(TokenType::LessEqual)
-                    } else if self.matches("<") {
-                        self.create_token(TokenType::LeftShift)
                     } else {
                         self.create_token(TokenType::Less)
                     }
                 }
                 ">" => {
                     if self.matches("=") {
-                        self.create_token(TokenType::GreaterEqual)
-                    } else if self.matches(">") {
-                        if self.peek_next().contains(&">") {
-                            self.create_token(TokenType::TripleRightShift)
-                        } else {
-                            self.create_token(TokenType::RightShift)
-                        }
-                    } else if self.matches("=") {
                         self.create_token(TokenType::GreaterEqual)
                     } else {
                         self.create_token(TokenType::Greater)
@@ -256,6 +246,7 @@ impl<'this> Tokenizer<'this> {
         while let Some(char) = self.peek() {
             match char {
                 " " | "\r" | "\t" => {
+                    // TODO: Properly handle tab spacing for span reprinting
                     self.next();
                 }
                 "\n" | "\r\n" => {
@@ -443,6 +434,24 @@ mod tests {
     #[snapshot]
     pub fn simple_expression() -> (StringInterner, TokenizedInput) {
         tokenize_str("x = 123 >> 2 | 89 * 21 & 2")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn complex_function_composition() -> (StringInterner, TokenizedInput) {
+        tokenize_str("1 + 2 + f(g(h())) * 3 * 4")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn double_infix() -> (StringInterner, TokenizedInput) {
+        tokenize_str("--1 * 2")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn double_infix_call() -> (StringInterner, TokenizedInput) {
+        tokenize_str("--f(g)")
     }
 
     #[test]
