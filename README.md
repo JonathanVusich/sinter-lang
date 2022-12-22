@@ -264,7 +264,7 @@ Enums can also contain a payload and functions that are specific to each member:
 enum Message(
     Text(message: str),
     Photo(caption: str, photo: SerializedPhoto) {
-        fn size(self) {
+        fn size(self) => u64 {
             return self.photo.size();
         }
     },
