@@ -326,7 +326,7 @@ impl Parser {
         if !self.matches(TokenType::LeftParentheses) {
             return false;
         }
-        let mut lookahead = self.pos + 1;
+        let mut lookahead = 1;
         let matches_closure;
         loop {
             if self.remaining() < 2 {
@@ -1709,6 +1709,12 @@ mod tests {
     #[snapshot]
     pub fn generic_lists() -> (StringInterner, Module) {
         parse!(utils::read_file(["short_examples", "generic_lists.si"]))
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn rectangle_class() -> (StringInterner, Module) {
+        parse!(utils::read_file(["short_examples", "rectangle_class.si"]))
     }
 }
 

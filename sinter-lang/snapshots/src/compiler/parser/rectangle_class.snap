@@ -1,0 +1,187 @@
+[
+  {
+    "height": 6,
+    "Self": 10,
+    "length": 4,
+    "perimeter": 5,
+    "square": 7,
+    "size": 8,
+    "width": 2,
+    "f64": 3,
+    "self": 9,
+    "Rectangle": 1
+  },
+  {
+    "stmts": [
+      {
+        "Class": {
+          "name": 1,
+          "class_type": "Reference",
+          "generic_params": {
+            "params": []
+          },
+          "members": {
+            "params": [
+              {
+                "name": 2,
+                "ty": {
+                  "Basic": "F64"
+                },
+                "mutability": "Immutable"
+              },
+              {
+                "name": 4,
+                "ty": {
+                  "Basic": "F64"
+                },
+                "mutability": "Immutable"
+              }
+            ]
+          },
+          "member_functions": [
+            {
+              "sig": {
+                "name": 5,
+                "generic_params": {
+                  "params": []
+                },
+                "parameters": {
+                  "params": [
+                    {
+                      "name": 9,
+                      "ty": "QSelf",
+                      "mutability": "Immutable"
+                    }
+                  ]
+                },
+                "return_type": {
+                  "Basic": "F64"
+                }
+              },
+              "body": {
+                "stmts": [
+                  {
+                    "Return": {
+                      "value": {
+                        "Infix": {
+                          "operator": "Add",
+                          "lhs": {
+                            "Infix": {
+                              "operator": "Multiply",
+                              "lhs": {
+                                "Field": {
+                                  "lhs": {
+                                    "Path": {
+                                      "segments": [
+                                        {
+                                          "Identifier": 9
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "ident": 2
+                                }
+                              },
+                              "rhs": {
+                                "Integer": 2
+                              }
+                            }
+                          },
+                          "rhs": {
+                            "Infix": {
+                              "operator": "Multiply",
+                              "lhs": {
+                                "Field": {
+                                  "lhs": {
+                                    "Path": {
+                                      "segments": [
+                                        {
+                                          "Identifier": 9
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "ident": 6
+                                }
+                              },
+                              "rhs": {
+                                "Integer": 2
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "sig": {
+                "name": 7,
+                "generic_params": {
+                  "params": []
+                },
+                "parameters": {
+                  "params": [
+                    {
+                      "name": 8,
+                      "ty": {
+                        "Basic": "F64"
+                      },
+                      "mutability": "Immutable"
+                    }
+                  ]
+                },
+                "return_type": "QSelf"
+              },
+              "body": {
+                "stmts": [
+                  {
+                    "Return": {
+                      "value": {
+                        "Call": {
+                          "func": {
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 10
+                                }
+                              ]
+                            }
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "Path": {
+                                  "segments": [
+                                    {
+                                      "Identifier": 8
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "Path": {
+                                  "segments": [
+                                    {
+                                      "Identifier": 8
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

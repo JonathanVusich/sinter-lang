@@ -656,4 +656,10 @@ mod tests {
     pub fn generic_lists() -> (StringInterner, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "generic_lists.si"]))
     }
+
+    #[test]
+    #[snapshot]
+    pub fn rectangle_class() -> (StringInterner, TokenizedInput) {
+        tokenize_str(utils::read_file(["short_examples", "rectangle_class.si"]))
+    }
 }
