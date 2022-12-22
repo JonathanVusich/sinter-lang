@@ -662,4 +662,10 @@ mod tests {
     pub fn rectangle_class() -> (StringInterner, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "rectangle_class.si"]))
     }
+
+    #[test]
+    #[snapshot]
+    pub fn enum_message() -> (StringInterner, TokenizedInput) {
+        tokenize_str(utils::read_file(["short_examples", "enum_message.si"]))
+    }
 }
