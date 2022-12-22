@@ -664,7 +664,16 @@ impl Parser {
         self.expect(TokenType::RightArrow)?;
 
         if let Some(current) = self.current() {
-            Ok(Closure(tys, Box::new(self.parse_ty()?)))
+            let return_ty = match current {
+                TokenType::LeftParentheses => {
+                    self.expect(TokenType::LeftParentheses)?;
+                    let closure_ty = self.parse_closure_ty()?;
+                    self.expect(TokenType::RightParentheses)?;
+                    closure_ty
+                }
+                _ => self.parse_ty()?,
+            };
+            Ok(Closure(tys, Box::new(return_ty)))
         } else {
             self.unexpected_end()
         }
@@ -1098,6 +1107,10 @@ impl Parser {
                 items.push(parse_rule(self)?);
                 if self.matches_multiple([delimiter; N]) {
                     self.advance_multiple(N);
+                    if self.matches(scope_end) {
+                        self.advance();
+                        break;
+                    }
                 } else if self.matches(scope_end) {
                     self.advance();
                     break;
