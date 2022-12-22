@@ -1,0 +1,44 @@
+[
+  {
+    "List": 1,
+    "Serializable": 3,
+    "new": 4,
+    "Loggable": 2
+  },
+  {
+    "segments": [
+      {
+        "Identifier": 1
+      },
+      {
+        "Generic": [
+          {
+            "TraitBound": {
+              "bounds": [
+                {
+                  "ident": {
+                    "idents": [
+                      2
+                    ]
+                  },
+                  "generics": []
+                },
+                {
+                  "ident": {
+                    "idents": [
+                      3
+                    ]
+                  },
+                  "generics": []
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "Identifier": 4
+      }
+    ]
+  }
+]

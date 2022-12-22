@@ -1,0 +1,35 @@
+[
+  {
+    "List": 1,
+    "new": 3,
+    "f64": 2
+  },
+  {
+    "segments": [
+      {
+        "Identifier": 1
+      },
+      {
+        "Generic": [
+          {
+            "Path": {
+              "ident": {
+                "idents": [
+                  1
+                ]
+              },
+              "generics": [
+                {
+                  "Basic": "F64"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "Identifier": 3
+      }
+    ]
+  }
+]

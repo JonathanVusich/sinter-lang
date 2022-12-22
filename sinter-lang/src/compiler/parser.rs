@@ -1,23 +1,23 @@
 use std::error::Error;
-use std::fmt::Alignment::Right;
 use std::fmt::{Display, Formatter};
+use std::fmt::Alignment::Right;
 use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
-use crate::compiler::ast::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, TraitBound, GenericParam, GenericParams};
+use crate::compiler::ast::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::ast::ast::Expr::Infix;
 use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
+use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
 use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken};
-use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
-use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, U16, U32, U64, U8, Str};
-use crate::compiler::types::types::Type::{Basic, Closure, Infer, Path, Union, QSelf};
-use crate::compiler::types::types::{BasicType, InternedStr, Type};
 use crate::compiler::StringInterner;
+use crate::compiler::tokens::token::{Token, TokenType};
+use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
+use crate::compiler::types::types::{BasicType, InternedStr, Type};
+use crate::compiler::types::types::BasicType::{F32, F64, I16, I32, I64, I8, Str, U16, U32, U64, U8};
+use crate::compiler::types::types::Type::{Basic, Closure, Infer, Path, QSelf, Union};
 use crate::gc::block::Block;
 
 pub fn parse(string_interner: StringInterner, input: TokenizedInput) -> Result<Module> {
@@ -319,7 +319,7 @@ impl Parser {
         if self.matches_closure() {
             return self.parse_closure_expr();
         }
-        self.parse_assignment_expr(0)
+        self.parse_expr(0)
     }
 
     fn matches_closure(&mut self) -> bool {
@@ -664,16 +664,7 @@ impl Parser {
         self.expect(TokenType::RightArrow)?;
 
         if let Some(current) = self.current() {
-            let return_ty = match current {
-                TokenType::LeftParentheses => {
-                    self.expect(TokenType::LeftParentheses)?;
-                    let closure_ty = self.parse_closure_ty()?;
-                    self.expect(TokenType::RightParentheses)?;
-                    closure_ty
-                }
-                _ => self.parse_ty()?,
-            };
-            Ok(Closure(tys, Box::new(return_ty)))
+            Ok(Closure(tys, Box::new(self.parse_ty()?)))
         } else {
             self.unexpected_end()
         }
@@ -766,7 +757,7 @@ impl Parser {
                 self.advance_multiple(2);
                 match self.current() {
                     Some(TokenType::Less) => {
-                        let generic_paths = self.parse_multiple_with_scope_delimiter::<Type, 1>(Self::parse_any_ty, TokenType::Comma, TokenType::Less, TokenType::Greater)?;
+                        let generic_paths = self.parse_multiple_with_scope_delimiter::<Type, 1>(Self::parse_ty, TokenType::Comma, TokenType::Less, TokenType::Greater)?;
                         path_segments.push(PathSegment::Generic(generic_paths));
                         if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
                             return self.expected_token(TokenType::Colon);
@@ -794,12 +785,12 @@ impl Parser {
         ))))
     }
 
-    fn parse_assignment_expr(&mut self, min_bp: u8) -> Result<Expr> {
+    fn parse_expr(&mut self, min_bp: u8) -> Result<Expr> {
         // Check for prefix operator
         let mut lhs = if let Some(prefix_op) = self.prefix_op() {
             self.advance();
             let ((), prefix_bp) = prefix_op.binding_power();
-            let rhs = self.parse_assignment_expr(prefix_bp)?;
+            let rhs = self.parse_expr(prefix_bp)?;
             Expr::Unary(Box::new(UnaryExpr::new(prefix_op, rhs)))
         } else if let Some(current) = self.current() {
             let expr = match current {
@@ -842,7 +833,7 @@ impl Parser {
                 // Handle parenthesized expression
                 TokenType::LeftParentheses => {
                     self.advance();
-                    let expr = self.parse_assignment_expr(min_bp)?;
+                    let expr = self.parse_expr(min_bp)?;
                     self.expect(TokenType::RightParentheses)?;
                     expr
                 }
@@ -929,7 +920,7 @@ impl Parser {
                 }
                 self.advance_multiple(infix_op.token_len());
 
-                let rhs = self.parse_assignment_expr(right_bp)?;
+                let rhs = self.parse_expr(right_bp)?;
 
                 lhs = Expr::Infix(Box::new(InfixExpr::new(lhs, rhs, infix_op)));
                 continue;
@@ -1105,16 +1096,16 @@ impl Parser {
 
             loop {
                 items.push(parse_rule(self)?);
-                for i in 0..N {
-                    if self.matches(delimiter) {
-                        self.advance();
-                    } else if i < N - 1 {
-                        return self.expected_token(delimiter);
-                    }
-                }
-                if self.matches(scope_end) {
+                if self.matches_multiple([delimiter; N]) {
+                    self.advance_multiple(N);
+                } else if self.matches(scope_end) {
                     self.advance();
                     break;
+                } else {
+                    return match self.current() {
+                        Some(token) => self.unexpected_token(token),
+                        None => self.unexpected_end()
+                    };
                 }
             }
         }
@@ -1252,27 +1243,28 @@ mod tests {
     use std::path::{Path, PathBuf};
     use std::sync::Arc;
 
-    use snap::snapshot;
     use anyhow::{anyhow, Result};
     use lasso::ThreadedRodeo;
 
-    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
-    use crate::compiler::ast::ast::Stmt::Enum;
+    use snap::snapshot;
+
     use crate::compiler::ast::ast::{Args, BlockStmt, Call, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability, Param, Params, PathExpr, QualifiedIdent, Stmt};
     use crate::compiler::ast::ast::{Module, UseStmt};
-    use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
+    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
+    use crate::compiler::ast::ast::Stmt::Enum;
     use crate::compiler::parser::{ParseError, Parser};
+    use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
+    use crate::compiler::StringInterner;
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::Identifier;
-    use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
+    use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenPosition};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::BasicType;
     use crate::compiler::types::types::BasicType::{
-        F32, F64, I16, I32, I64, I8, U16, U32, U64, U8, Str,
+        F32, F64, I16, I32, I64, I8, Str, U16, U32, U64, U8,
     };
     use crate::compiler::types::types::Type;
     use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBound};
-    use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
@@ -1374,9 +1366,15 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    pub fn bad_closure_returns_trait_bound_or_none() {
+        parse_ty!("() => [first::party::package::Send<V: std::Copy + std::Clone> + third::party::package::Sync<T> + std::Copy + std::Clone] | None");
+    }
+
+    #[test]
     #[snapshot]
     pub fn closure_returns_trait_bound_or_none() -> (StringInterner, Type) {
-        parse_ty!("() => [first::party::package::Send<V: std::Copy + std::Clone> + third::party::package::Sync<T> + std::Copy + std::Clone] | None")
+        parse_ty!("() => [first::party::package::Send<K, V> + third::party::package::Sync<T> + std::Copy + std::Clone] | None")
     }
 
     #[test]
@@ -1494,6 +1492,23 @@ mod tests {
         parse_path!("std::HashMap::<T>::new")
     }
 
+    #[test]
+    #[snapshot]
+    pub fn nested_generic_path() -> (StringInterner, PathExpr) {
+        parse_path!("List::<List<f64>>::new")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn generic_trait_bound_path() -> (StringInterner, PathExpr) {
+        parse_path!("List::<Loggable + Serializable>::new")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn generic_union_path() -> (StringInterner, PathExpr) {
+        parse_path!("List::<str | i64 | f64>::new")
+    }
     macro_rules! simple_type {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]

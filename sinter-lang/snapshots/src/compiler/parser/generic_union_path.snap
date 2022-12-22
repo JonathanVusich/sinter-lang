@@ -1,0 +1,36 @@
+[
+  {
+    "str": 2,
+    "i64": 3,
+    "new": 5,
+    "List": 1,
+    "f64": 4
+  },
+  {
+    "segments": [
+      {
+        "Identifier": 1
+      },
+      {
+        "Generic": [
+          {
+            "Union": [
+              {
+                "Basic": "Str"
+              },
+              {
+                "Basic": "I64"
+              },
+              {
+                "Basic": "F64"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "Identifier": 5
+      }
+    ]
+  }
+]

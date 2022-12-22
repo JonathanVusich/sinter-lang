@@ -1,0 +1,313 @@
+[
+  {
+    "u64": 5,
+    "f64": 11,
+    "Self": 17,
+    "trait_bounds": 12,
+    "i64": 9,
+    "new": 6,
+    "size": 4,
+    "list_of_ints": 8,
+    "list_of_lists": 10,
+    "unions": 15,
+    "List": 1,
+    "T": 2,
+    "str": 16,
+    "Serializable": 14,
+    "array": 3,
+    "Loggable": 13,
+    "initial_capacity": 7
+  },
+  {
+    "stmts": [
+      {
+        "Class": {
+          "name": 1,
+          "class_type": "Reference",
+          "generic_params": {
+            "params": [
+              {
+                "ident": 2,
+                "trait_bound": null
+              }
+            ]
+          },
+          "members": {
+            "params": [
+              {
+                "name": 3,
+                "ty": {
+                  "Array": {
+                    "Path": {
+                      "ident": {
+                        "idents": [
+                          2
+                        ]
+                      },
+                      "generics": []
+                    }
+                  }
+                },
+                "mutability": "Immutable"
+              },
+              {
+                "name": 4,
+                "ty": {
+                  "Basic": "U64"
+                },
+                "mutability": "Immutable"
+              }
+            ]
+          },
+          "member_functions": [
+            {
+              "sig": {
+                "name": 6,
+                "generic_params": {
+                  "params": []
+                },
+                "parameters": {
+                  "params": [
+                    {
+                      "name": 7,
+                      "ty": {
+                        "Basic": "U64"
+                      },
+                      "mutability": "Immutable"
+                    }
+                  ]
+                },
+                "return_type": "QSelf"
+              },
+              "body": {
+                "stmts": [
+                  {
+                    "Expression": {
+                      "expr": {
+                        "Call": {
+                          "func": {
+                            "Path": {
+                              "segments": [
+                                {
+                                  "Identifier": 17
+                                }
+                              ]
+                            }
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "Array": {
+                                  "SizedInitializer": [
+                                    {
+                                      "Path": {
+                                        "segments": [
+                                          {
+                                            "Identifier": 2
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "Path": {
+                                        "segments": [
+                                          {
+                                            "Identifier": 7
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "Integer": 0
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "implicit_return": false
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "Let": {
+          "ident": 8,
+          "mutability": "Immutable",
+          "ty": null,
+          "initializer": {
+            "Call": {
+              "func": {
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 1
+                    },
+                    {
+                      "Generic": [
+                        {
+                          "Basic": "I64"
+                        }
+                      ]
+                    },
+                    {
+                      "Identifier": 6
+                    }
+                  ]
+                }
+              },
+              "args": {
+                "args": []
+              }
+            }
+          }
+        }
+      },
+      {
+        "Let": {
+          "ident": 10,
+          "mutability": "Immutable",
+          "ty": null,
+          "initializer": {
+            "Call": {
+              "func": {
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 1
+                    },
+                    {
+                      "Generic": [
+                        {
+                          "Path": {
+                            "ident": {
+                              "idents": [
+                                1
+                              ]
+                            },
+                            "generics": [
+                              {
+                                "Basic": "F64"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Identifier": 6
+                    }
+                  ]
+                }
+              },
+              "args": {
+                "args": []
+              }
+            }
+          }
+        }
+      },
+      {
+        "Let": {
+          "ident": 12,
+          "mutability": "Immutable",
+          "ty": null,
+          "initializer": {
+            "Call": {
+              "func": {
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 1
+                    },
+                    {
+                      "Generic": [
+                        {
+                          "TraitBound": {
+                            "bounds": [
+                              {
+                                "ident": {
+                                  "idents": [
+                                    13
+                                  ]
+                                },
+                                "generics": []
+                              },
+                              {
+                                "ident": {
+                                  "idents": [
+                                    14
+                                  ]
+                                },
+                                "generics": []
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Identifier": 6
+                    }
+                  ]
+                }
+              },
+              "args": {
+                "args": []
+              }
+            }
+          }
+        }
+      },
+      {
+        "Let": {
+          "ident": 15,
+          "mutability": "Immutable",
+          "ty": null,
+          "initializer": {
+            "Call": {
+              "func": {
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 1
+                    },
+                    {
+                      "Generic": [
+                        {
+                          "Union": [
+                            {
+                              "Basic": "Str"
+                            },
+                            {
+                              "Basic": "I64"
+                            },
+                            {
+                              "Basic": "F64"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "Identifier": 6
+                    }
+                  ]
+                }
+              },
+              "args": {
+                "args": []
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]
