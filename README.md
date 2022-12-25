@@ -322,6 +322,19 @@ class MutableList<T>(mut array: [T]) {
 }
 ```
 
+### Pattern matching
+
+Sinter provides a `match` expression which is very useful for dispatching complicated control flow.
+
+```ignorelang
+match number {
+    1 => println!("One!"),
+    2 | 3 | 5 | 7 | 11 => println!("This is a prime"),
+    13..=19 => println!("A teen"),
+    _ => print("Unremarkable"),
+}
+```
+
 ### Generic types
 
 Functions and class can use generic type definitions in order to allow usability with

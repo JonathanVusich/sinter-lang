@@ -1722,5 +1722,11 @@ mod tests {
     pub fn enum_message() -> (StringInterner, Module) {
         parse!(utils::read_file(["short_examples", "enum_message.si"]))
     }
+
+    #[test]
+    #[snapshot]
+    pub fn match_expression() -> (StringInterner, Module) {
+        parse!(utils::read_file(["short_examples", "match_expression.si"]))
+    }
 }
 
