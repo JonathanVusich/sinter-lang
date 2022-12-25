@@ -4,8 +4,9 @@ fn write<T: Serializable>(value: T) => None | WriteError {
         WriteError::BufferOverflow
     } else if (!buffer.write_bytes(bytes)) {
         WriteError::MalformedBytes
+    } else {
+        None
     }
-    // None is implied by no return value.
 }
 
 enum WriteError( 

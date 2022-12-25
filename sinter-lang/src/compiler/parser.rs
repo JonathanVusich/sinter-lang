@@ -1016,23 +1016,51 @@ impl Parser {
     }
 
     fn parse_pattern(&mut self) -> Result<Pattern> {
+        // TODO: Support range patterns
         match self.current() {
-            Some(TokenType::String(str)) => Ok(Pattern::String(str)),
-            Some(TokenType::SignedInteger(integer)) => Ok(Pattern::Integer(integer)),
-            Some(TokenType::Float(float)) => Ok(Pattern::Float(float)),
-            Some(TokenType::True) => Ok(Pattern::Boolean(true)),
-            Some(TokenType::False) => Ok(Pattern::Boolean(false)),
-            Some(TokenType::Underscore) => Ok(Pattern::Wildcard),
+            Some(TokenType::String(str)) => {
+                self.advance();
+                Ok(Pattern::String(str))
+            },
+            Some(TokenType::SignedInteger(integer)) => {
+                self.advance();
+                Ok(Pattern::Integer(integer))
+            },
+            Some(TokenType::Float(float)) => {
+                self.advance();
+                Ok(Pattern::Float(float))
+            },
+            Some(TokenType::True) => {
+                self.advance();
+                Ok(Pattern::Boolean(true))
+            },
+            Some(TokenType::False) => {
+                self.advance();
+                Ok(Pattern::Boolean(false))
+            },
+            Some(TokenType::Underscore) => {
+                self.advance();
+                Ok(Pattern::Wildcard)
+            },
             Some(token_type) => {
                 let ty = self.parse_any_ty()?;
-                let ident = match self.current() {
+                match self.current() {
+                    Some(TokenType::LeftParentheses) => {
+                        self.advance();
+                        let exprs = self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
+                        self.expect(TokenType::RightParentheses)?;
+                        Ok(Pattern::Destructure(ty, exprs))
+                    }
                     Some(TokenType::Identifier(str)) => {
                         self.advance();
-                        Some(str)
+                        Ok(Pattern::Ty(ty, Some(str)))
                     }
-                    _ => None
-                };
-                Ok(Pattern::Ty(ty, ident))
+                    Some(TokenType::RightArrow) => {
+                        Ok(Pattern::Ty(ty, None))
+                    }
+                    Some(token) => self.unexpected_token(token),
+                    None => self.unexpected_end()
+                }
             }
             None => self.unexpected_end()
         }
@@ -1297,8 +1325,8 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn parse_code<T>(code: &str, parser_func: fn(&mut Parser) -> Result<T>) -> Result<(StringInterner, T)> {
-        let (interner, mut parser) = create_parser(code);
+    fn parse_code<T, I: AsRef<str>>(code: I, parser_func: fn(&mut Parser) -> Result<T>) -> Result<(StringInterner, T)> {
+        let (interner, mut parser) = create_parser(code.as_ref());
         let parsed_val = parser_func(&mut parser)?;
         Ok((interner, parsed_val))
     }
@@ -1725,8 +1753,14 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn match_expression() -> (StringInterner, Module) {
-        parse!(utils::read_file(["short_examples", "match_expression.si"]))
+    pub fn int_match() -> (StringInterner, Expr) {
+        parse_expr!(utils::read_file(["short_examples", "int_match.si"]))
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn enum_match() -> (StringInterner, Module) {
+        parse!(utils::read_file(["short_examples", "enum_match.si"]))
     }
 }
 

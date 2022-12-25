@@ -551,6 +551,7 @@ pub enum Pattern {
     Float(f64),
     String(InternedStr),
     Ty(Type, Option<InternedStr>),
+    Destructure(Type, Vec<Expr>),
     None
 }
 

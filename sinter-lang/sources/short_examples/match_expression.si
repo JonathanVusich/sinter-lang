@@ -1,8 +1,0 @@
-fn describe_num(number: u64) {
-    match number {
-        1 => print("One!"),
-        2 | 3 | 5 | 7 | 11 => print("This is a prime"),
-        13..=19 => print("A teen"),
-        _ => print("Unremarkable"),
-    }
-}

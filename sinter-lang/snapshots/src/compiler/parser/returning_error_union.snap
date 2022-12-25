@@ -1,20 +1,18 @@
 [
   {
-    "bytes": 6,
-    "to_bytes": 7,
-    "write_bytes": 12,
-    "WriteError": 5,
-    "MalformedBytes\r\n": 13,
-    "write": 1,
-    "len": 10,
-    "BufferOverflow": 14,
+    "MalformedBytes": 13,
     "buffer": 8,
-    "Serializable": 3,
-    "T": 2,
-    "remaining": 9,
+    "write_bytes": 12,
     "value": 4,
-    "BufferOverflow\r\n": 11,
-    "MalformedBytes": 15
+    "bytes": 6,
+    "WriteError": 5,
+    "to_bytes": 7,
+    "len": 10,
+    "remaining": 9,
+    "BufferOverflow": 11,
+    "write": 1,
+    "T": 2,
+    "Serializable": 3
   },
   {
     "stmts": [
@@ -241,7 +239,16 @@
                       }
                     ]
                   },
-                  "if_false": null
+                  "if_false": {
+                    "stmts": [
+                      {
+                        "Expression": {
+                          "expr": "None",
+                          "implicit_return": false
+                        }
+                      }
+                    ]
+                  }
                 }
               }
             ]
@@ -256,14 +263,14 @@
           },
           "members": [
             {
-              "name": 14,
+              "name": 11,
               "parameters": {
                 "params": []
               },
               "member_functions": []
             },
             {
-              "name": 15,
+              "name": 13,
               "parameters": {
                 "params": []
               },

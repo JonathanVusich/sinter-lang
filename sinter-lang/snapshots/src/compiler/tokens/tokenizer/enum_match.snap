@@ -1,0 +1,313 @@
+[
+  {
+    "caption": 10,
+    "Text": 4,
+    "Message": 3,
+    "photo": 7,
+    "message": 2,
+    "str": 9,
+    "Photo": 6,
+    "extracted_text": 1,
+    "": 8,
+    "null": 5
+  },
+  {
+    "tokens": [
+      {
+        "token_type": "Let",
+        "start": 0,
+        "end": 3
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "start": 4,
+        "end": 18
+      },
+      {
+        "token_type": "Equal",
+        "start": 19,
+        "end": 20
+      },
+      {
+        "token_type": "Match",
+        "start": 21,
+        "end": 26
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 27,
+        "end": 34
+      },
+      {
+        "token_type": "LeftBrace",
+        "start": 35,
+        "end": 36
+      },
+      {
+        "token_type": {
+          "Identifier": 3
+        },
+        "start": 41,
+        "end": 48
+      },
+      {
+        "token_type": "Colon",
+        "start": 48,
+        "end": 49
+      },
+      {
+        "token_type": "Colon",
+        "start": 49,
+        "end": 50
+      },
+      {
+        "token_type": {
+          "Identifier": 4
+        },
+        "start": 50,
+        "end": 54
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 54,
+        "end": 55
+      },
+      {
+        "token_type": {
+          "String": 5
+        },
+        "start": 55,
+        "end": 61
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 61,
+        "end": 62
+      },
+      {
+        "token_type": "BitwiseOr",
+        "start": 63,
+        "end": 64
+      },
+      {
+        "token_type": {
+          "Identifier": 3
+        },
+        "start": 65,
+        "end": 72
+      },
+      {
+        "token_type": "Colon",
+        "start": 72,
+        "end": 73
+      },
+      {
+        "token_type": "Colon",
+        "start": 73,
+        "end": 74
+      },
+      {
+        "token_type": {
+          "Identifier": 6
+        },
+        "start": 74,
+        "end": 79
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 79,
+        "end": 80
+      },
+      {
+        "token_type": {
+          "String": 5
+        },
+        "start": 80,
+        "end": 86
+      },
+      {
+        "token_type": "Comma",
+        "start": 86,
+        "end": 87
+      },
+      {
+        "token_type": {
+          "Identifier": 7
+        },
+        "start": 88,
+        "end": 93
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 93,
+        "end": 94
+      },
+      {
+        "token_type": "RightArrow",
+        "start": 95,
+        "end": 97
+      },
+      {
+        "token_type": {
+          "String": 8
+        },
+        "start": 98,
+        "end": 100
+      },
+      {
+        "token_type": "Comma",
+        "start": 100,
+        "end": 101
+      },
+      {
+        "token_type": {
+          "Identifier": 3
+        },
+        "start": 106,
+        "end": 113
+      },
+      {
+        "token_type": "Colon",
+        "start": 113,
+        "end": 114
+      },
+      {
+        "token_type": "Colon",
+        "start": 114,
+        "end": 115
+      },
+      {
+        "token_type": {
+          "Identifier": 4
+        },
+        "start": 115,
+        "end": 119
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 119,
+        "end": 120
+      },
+      {
+        "token_type": {
+          "Identifier": 9
+        },
+        "start": 120,
+        "end": 123
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 123,
+        "end": 124
+      },
+      {
+        "token_type": "RightArrow",
+        "start": 125,
+        "end": 127
+      },
+      {
+        "token_type": {
+          "Identifier": 9
+        },
+        "start": 128,
+        "end": 131
+      },
+      {
+        "token_type": "Comma",
+        "start": 131,
+        "end": 132
+      },
+      {
+        "token_type": {
+          "Identifier": 3
+        },
+        "start": 137,
+        "end": 144
+      },
+      {
+        "token_type": "Colon",
+        "start": 144,
+        "end": 145
+      },
+      {
+        "token_type": "Colon",
+        "start": 145,
+        "end": 146
+      },
+      {
+        "token_type": {
+          "Identifier": 6
+        },
+        "start": 146,
+        "end": 151
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 151,
+        "end": 152
+      },
+      {
+        "token_type": {
+          "Identifier": 10
+        },
+        "start": 152,
+        "end": 159
+      },
+      {
+        "token_type": "Comma",
+        "start": 159,
+        "end": 160
+      },
+      {
+        "token_type": {
+          "Identifier": 7
+        },
+        "start": 161,
+        "end": 166
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 166,
+        "end": 167
+      },
+      {
+        "token_type": "RightArrow",
+        "start": 168,
+        "end": 170
+      },
+      {
+        "token_type": {
+          "Identifier": 10
+        },
+        "start": 171,
+        "end": 178
+      },
+      {
+        "token_type": "Comma",
+        "start": 178,
+        "end": 179
+      },
+      {
+        "token_type": "RightBrace",
+        "start": 180,
+        "end": 181
+      },
+      {
+        "token_type": "Semicolon",
+        "start": 181,
+        "end": 182
+      }
+    ],
+    "line_map": [
+      36,
+      101,
+      132,
+      179
+    ],
+    "line_counter": 4
+  }
+]

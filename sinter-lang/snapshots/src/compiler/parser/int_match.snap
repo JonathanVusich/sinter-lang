@@ -1,0 +1,130 @@
+[
+  {
+    "Unremarkable": 5,
+    "One!": 3,
+    "This is a prime": 4,
+    "print": 2,
+    "number": 1
+  },
+  {
+    "Match": {
+      "source": {
+        "Path": {
+          "segments": [
+            {
+              "Identifier": 1
+            }
+          ]
+        }
+      },
+      "arms": [
+        {
+          "pattern": {
+            "Integer": 1
+          },
+          "body": {
+            "Expression": {
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 2
+                        }
+                      ]
+                    }
+                  },
+                  "args": {
+                    "args": [
+                      {
+                        "String": 3
+                      }
+                    ]
+                  }
+                }
+              },
+              "implicit_return": true
+            }
+          }
+        },
+        {
+          "pattern": {
+            "Or": {
+              "patterns": [
+                {
+                  "Integer": 2
+                },
+                {
+                  "Integer": 3
+                },
+                {
+                  "Integer": 5
+                },
+                {
+                  "Integer": 7
+                },
+                {
+                  "Integer": 11
+                }
+              ]
+            }
+          },
+          "body": {
+            "Expression": {
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 2
+                        }
+                      ]
+                    }
+                  },
+                  "args": {
+                    "args": [
+                      {
+                        "String": 4
+                      }
+                    ]
+                  }
+                }
+              },
+              "implicit_return": true
+            }
+          }
+        },
+        {
+          "pattern": "Wildcard",
+          "body": {
+            "Expression": {
+              "expr": {
+                "Call": {
+                  "func": {
+                    "Path": {
+                      "segments": [
+                        {
+                          "Identifier": 2
+                        }
+                      ]
+                    }
+                  },
+                  "args": {
+                    "args": [
+                      {
+                        "String": 5
+                      }
+                    ]
+                  }
+                }
+              },
+              "implicit_return": true
+            }
+          }
+        }
+      ]
+    }
+  }
+]

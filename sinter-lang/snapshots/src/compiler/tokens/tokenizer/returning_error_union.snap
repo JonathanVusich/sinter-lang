@@ -1,19 +1,17 @@
 [
   {
-    "BufferOverflow": 14,
-    "write": 1,
-    "to_bytes": 7,
-    "WriteError": 5,
     "bytes": 6,
-    "remaining": 9,
-    "MalformedBytes": 15,
-    "buffer": 8,
-    "T": 2,
-    "MalformedBytes\r\n": 13,
-    "write_bytes": 12,
     "Serializable": 3,
-    "BufferOverflow\r\n": 11,
+    "to_bytes": 7,
+    "BufferOverflow": 11,
+    "WriteError": 5,
+    "T": 2,
+    "write_bytes": 12,
+    "write": 1,
+    "MalformedBytes": 13,
     "value": 4,
+    "buffer": 8,
+    "remaining": 9,
     "len": 10
   },
   {
@@ -271,7 +269,7 @@
           "Identifier": 11
         },
         "start": 157,
-        "end": 172
+        "end": 171
       },
       {
         "token_type": "RightBrace",
@@ -366,7 +364,7 @@
           "Identifier": 13
         },
         "start": 237,
-        "end": 252
+        "end": 251
       },
       {
         "token_type": "RightBrace",
@@ -374,76 +372,99 @@
         "end": 257
       },
       {
+        "token_type": "Else",
+        "start": 258,
+        "end": 262
+      },
+      {
+        "token_type": "LeftBrace",
+        "start": 263,
+        "end": 264
+      },
+      {
+        "token_type": "None",
+        "start": 273,
+        "end": 277
+      },
+      {
         "token_type": "RightBrace",
-        "start": 301,
-        "end": 302
+        "start": 282,
+        "end": 283
+      },
+      {
+        "token_type": "RightBrace",
+        "start": 284,
+        "end": 285
       },
       {
         "token_type": "Enum",
-        "start": 304,
-        "end": 308
+        "start": 287,
+        "end": 291
       },
       {
         "token_type": {
           "Identifier": 5
         },
-        "start": 309,
-        "end": 319
+        "start": 292,
+        "end": 302
       },
       {
         "token_type": "LeftParentheses",
-        "start": 319,
-        "end": 320
+        "start": 302,
+        "end": 303
       },
       {
         "token_type": {
-          "Identifier": 14
+          "Identifier": 11
         },
-        "start": 326,
-        "end": 340
+        "start": 309,
+        "end": 323
       },
       {
         "token_type": "Comma",
-        "start": 340,
-        "end": 341
+        "start": 323,
+        "end": 324
       },
       {
         "token_type": {
-          "Identifier": 15
+          "Identifier": 13
         },
-        "start": 346,
-        "end": 360
+        "start": 329,
+        "end": 343
       },
       {
         "token_type": "Comma",
-        "start": 360,
-        "end": 361
+        "start": 343,
+        "end": 344
       },
       {
         "token_type": "RightParentheses",
-        "start": 362,
-        "end": 363
+        "start": 345,
+        "end": 346
       },
       {
         "token_type": "Semicolon",
-        "start": 363,
-        "end": 364
+        "start": 346,
+        "end": 347
       }
     ],
     "line_map": [
       58,
       92,
       136,
+      171,
       216,
-      257,
-      300,
-      302,
-      303,
-      321,
-      341,
-      361,
-      364
+      251,
+      264,
+      277,
+      283,
+      285,
+      286,
+      304,
+      324,
+      344,
+      347
     ],
-    "line_counter": 12
+    "line_counter": 15
   }
 ]

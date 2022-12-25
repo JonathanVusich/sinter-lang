@@ -1,0 +1,212 @@
+[
+  {
+    "One!": 3,
+    "This is a prime": 4,
+    "print": 2,
+    "Unremarkable": 5,
+    "number": 1
+  },
+  {
+    "tokens": [
+      {
+        "token_type": "Match",
+        "start": 0,
+        "end": 5
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "start": 6,
+        "end": 12
+      },
+      {
+        "token_type": "LeftBrace",
+        "start": 13,
+        "end": 14
+      },
+      {
+        "token_type": {
+          "SignedInteger": 1
+        },
+        "start": 19,
+        "end": 20
+      },
+      {
+        "token_type": "RightArrow",
+        "start": 21,
+        "end": 23
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 24,
+        "end": 29
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 29,
+        "end": 30
+      },
+      {
+        "token_type": {
+          "String": 3
+        },
+        "start": 30,
+        "end": 36
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 36,
+        "end": 37
+      },
+      {
+        "token_type": "Comma",
+        "start": 37,
+        "end": 38
+      },
+      {
+        "token_type": {
+          "SignedInteger": 2
+        },
+        "start": 43,
+        "end": 44
+      },
+      {
+        "token_type": "BitwiseOr",
+        "start": 45,
+        "end": 46
+      },
+      {
+        "token_type": {
+          "SignedInteger": 3
+        },
+        "start": 47,
+        "end": 48
+      },
+      {
+        "token_type": "BitwiseOr",
+        "start": 49,
+        "end": 50
+      },
+      {
+        "token_type": {
+          "SignedInteger": 5
+        },
+        "start": 51,
+        "end": 52
+      },
+      {
+        "token_type": "BitwiseOr",
+        "start": 53,
+        "end": 54
+      },
+      {
+        "token_type": {
+          "SignedInteger": 7
+        },
+        "start": 55,
+        "end": 56
+      },
+      {
+        "token_type": "BitwiseOr",
+        "start": 57,
+        "end": 58
+      },
+      {
+        "token_type": {
+          "SignedInteger": 11
+        },
+        "start": 59,
+        "end": 61
+      },
+      {
+        "token_type": "RightArrow",
+        "start": 62,
+        "end": 64
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 65,
+        "end": 70
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 70,
+        "end": 71
+      },
+      {
+        "token_type": {
+          "String": 4
+        },
+        "start": 71,
+        "end": 88
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 88,
+        "end": 89
+      },
+      {
+        "token_type": "Comma",
+        "start": 89,
+        "end": 90
+      },
+      {
+        "token_type": "Underscore",
+        "start": 95,
+        "end": 96
+      },
+      {
+        "token_type": "RightArrow",
+        "start": 97,
+        "end": 99
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "start": 100,
+        "end": 105
+      },
+      {
+        "token_type": "LeftParentheses",
+        "start": 105,
+        "end": 106
+      },
+      {
+        "token_type": {
+          "String": 5
+        },
+        "start": 106,
+        "end": 120
+      },
+      {
+        "token_type": "RightParentheses",
+        "start": 120,
+        "end": 121
+      },
+      {
+        "token_type": "Comma",
+        "start": 121,
+        "end": 122
+      },
+      {
+        "token_type": "RightBrace",
+        "start": 123,
+        "end": 124
+      }
+    ],
+    "line_map": [
+      14,
+      38,
+      90,
+      122,
+      124
+    ],
+    "line_counter": 5
+  }
+]

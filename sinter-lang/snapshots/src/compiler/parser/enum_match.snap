@@ -1,0 +1,198 @@
+[
+  {
+    "extracted_text": 1,
+    "str": 9,
+    "null": 5,
+    "": 8,
+    "photo": 7,
+    "Photo": 6,
+    "message": 2,
+    "Text": 4,
+    "Message": 3,
+    "caption": 10
+  },
+  {
+    "stmts": [
+      {
+        "Let": {
+          "ident": 1,
+          "mutability": "Immutable",
+          "ty": null,
+          "initializer": {
+            "Match": {
+              "source": {
+                "Path": {
+                  "segments": [
+                    {
+                      "Identifier": 2
+                    }
+                  ]
+                }
+              },
+              "arms": [
+                {
+                  "pattern": {
+                    "Or": {
+                      "patterns": [
+                        {
+                          "Destructure": [
+                            {
+                              "Path": {
+                                "ident": {
+                                  "idents": [
+                                    3,
+                                    4
+                                  ]
+                                },
+                                "generics": []
+                              }
+                            },
+                            [
+                              {
+                                "String": 5
+                              }
+                            ]
+                          ]
+                        },
+                        {
+                          "Destructure": [
+                            {
+                              "Path": {
+                                "ident": {
+                                  "idents": [
+                                    3,
+                                    6
+                                  ]
+                                },
+                                "generics": []
+                              }
+                            },
+                            [
+                              {
+                                "String": 5
+                              },
+                              {
+                                "Path": {
+                                  "segments": [
+                                    {
+                                      "Identifier": 7
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  "body": {
+                    "Expression": {
+                      "expr": {
+                        "String": 8
+                      },
+                      "implicit_return": true
+                    }
+                  }
+                },
+                {
+                  "pattern": {
+                    "Destructure": [
+                      {
+                        "Path": {
+                          "ident": {
+                            "idents": [
+                              3,
+                              4
+                            ]
+                          },
+                          "generics": []
+                        }
+                      },
+                      [
+                        {
+                          "Path": {
+                            "segments": [
+                              {
+                                "Identifier": 9
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ]
+                  },
+                  "body": {
+                    "Expression": {
+                      "expr": {
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 9
+                            }
+                          ]
+                        }
+                      },
+                      "implicit_return": true
+                    }
+                  }
+                },
+                {
+                  "pattern": {
+                    "Destructure": [
+                      {
+                        "Path": {
+                          "ident": {
+                            "idents": [
+                              3,
+                              6
+                            ]
+                          },
+                          "generics": []
+                        }
+                      },
+                      [
+                        {
+                          "Path": {
+                            "segments": [
+                              {
+                                "Identifier": 10
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "Path": {
+                            "segments": [
+                              {
+                                "Identifier": 7
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ]
+                  },
+                  "body": {
+                    "Expression": {
+                      "expr": {
+                        "Path": {
+                          "segments": [
+                            {
+                              "Identifier": 10
+                            }
+                          ]
+                        }
+                      },
+                      "implicit_return": true
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+]

@@ -635,7 +635,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn fns_with_union_types() -> (StringInterner, TokenizedInput) {
+    pub fn returning_error_union() -> (StringInterner, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "returning_error_union.si"]))
     }
 
@@ -671,7 +671,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn match_expression() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "match_expression.si"]))
+    pub fn int_match() -> (StringInterner, TokenizedInput) {
+        tokenize_str(utils::read_file(["short_examples", "int_match.si"]))
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn enum_match() -> (StringInterner, TokenizedInput) {
+        tokenize_str(utils::read_file(["short_examples", "enum_match.si"]))
     }
 }
