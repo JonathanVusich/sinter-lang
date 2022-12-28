@@ -1,9 +1,9 @@
+use anyhow::Result;
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
 use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
-use anyhow::Result;
-use serde::{Deserialize, Serialize};
-use serde::de::DeserializeOwned;
 
 #[cfg(test)]
 pub fn read_file<const N: usize>(paths: [&str; N]) -> String {

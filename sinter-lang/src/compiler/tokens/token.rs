@@ -1,6 +1,6 @@
-use std::fmt::{Display, Formatter};
-use serde::{Serialize, Deserialize};
 use crate::compiler::types::types::InternedStr;
+use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Token {
@@ -166,13 +166,12 @@ impl Display for TokenType {
             TokenType::BitwiseAnd => write!(f, "&"),
             TokenType::BitwiseXor => write!(f, "^"),
             TokenType::BitwiseComplement => write!(f, "~"),
-            TokenType::Underscore => write!(f, "_")
+            TokenType::Underscore => write!(f, "_"),
         }
     }
 }
 
 impl Token {
-
     pub fn new(token_type: TokenType, start: usize, end: usize) -> Self {
         Self {
             token_type,

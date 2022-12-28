@@ -1,4 +1,4 @@
-use crate::compiler::ast::ast::{QualifiedIdent, PathTy, TraitBound};
+use crate::compiler::ast::ast::{PathTy, QualifiedIdent, TraitBound};
 use lasso::Spur;
 use serde::{Deserialize, Serialize};
 

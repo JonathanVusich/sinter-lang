@@ -1,7 +1,6 @@
 use snap::snapshot;
 
 pub fn main() {
-
     #[derive(PartialEq, Debug)]
     struct NotSerializable(usize, usize);
 

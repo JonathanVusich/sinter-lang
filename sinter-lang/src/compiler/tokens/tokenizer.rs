@@ -10,10 +10,10 @@ use anyhow::Result;
 use phf::phf_map;
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
 use crate::compiler::types::types::InternedStr;
+use crate::compiler::StringInterner;
 
 pub fn tokenize_file(string_interner: StringInterner, path: &Path) -> Result<TokenizedInput> {
     let source_file = fs::read_to_string(path)?;
@@ -21,7 +21,10 @@ pub fn tokenize_file(string_interner: StringInterner, path: &Path) -> Result<Tok
     Ok(tokenizer.into())
 }
 
-pub fn tokenize<T: AsRef<str>>(string_interner: StringInterner, input: T) -> Result<TokenizedInput> {
+pub fn tokenize<T: AsRef<str>>(
+    string_interner: StringInterner,
+    input: T,
+) -> Result<TokenizedInput> {
     let source_file = input.as_ref();
     let tokenizer = Tokenizer::new(string_interner, source_file);
     Ok(tokenizer.into())
@@ -69,9 +72,7 @@ struct Tokenizer<'this> {
 
 impl<'this> Tokenizer<'this> {
     pub fn new(string_interner: StringInterner, source: &'this str) -> Self {
-        let chars = source
-            .graphemes(true)
-            .collect::<Vec<&'this str>>();
+        let chars = source.graphemes(true).collect::<Vec<&'this str>>();
 
         Self {
             string_interner,
@@ -178,11 +179,10 @@ impl<'this> Tokenizer<'this> {
         }
 
         let identifier = chars.join("");
-        let token_type = KEYWORDS.get(&identifier).copied()
-            .unwrap_or_else(|| {
-                let interned_str = self.string_interner.get_or_intern(identifier);
-                TokenType::Identifier(interned_str)
-            });
+        let token_type = KEYWORDS.get(&identifier).copied().unwrap_or_else(|| {
+            let interned_str = self.string_interner.get_or_intern(identifier);
+            TokenType::Identifier(interned_str)
+        });
 
         self.create_token(token_type);
     }
@@ -215,10 +215,13 @@ impl<'this> Tokenizer<'this> {
             return;
         }
 
-        let token_type = tokens.join("")
+        let token_type = tokens
+            .join("")
             .parse::<i64>()
             .map(TokenType::SignedInteger)
-            .unwrap_or_else(|_| TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid integer.")));
+            .unwrap_or_else(|_| {
+                TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid integer."))
+            });
         self.create_token(token_type);
     }
 
@@ -315,43 +318,43 @@ fn is_line_break(char: &str) -> bool {
 
 fn is_ident(char: &str) -> bool {
     !matches!(
-            char,
-            "\r"| "\t"
-                | "\r\n"
-                | "\n"
-                | " "
-                | "~"
-                | "`"
-                | "!"
-                | "@"
-                | "#"
-                | "$"
-                | "%"
-                | "^"
-                | "&"
-                | "*"
-                | "("
-                | ")"
-                | "-"
-                | "+"
-                | "="
-                | "["
-                | "]"
-                | "{"
-                | "}"
-                | "\\"
-                | "|"
-                | ";"
-                | ":"
-                | "'"
-                | "\""
-                | "<"
-                | ">"
-                | ","
-                | "."
-                | "?"
-                | "/"
-        )
+        char,
+        "\r" | "\t"
+            | "\r\n"
+            | "\n"
+            | " "
+            | "~"
+            | "`"
+            | "!"
+            | "@"
+            | "#"
+            | "$"
+            | "%"
+            | "^"
+            | "&"
+            | "*"
+            | "("
+            | ")"
+            | "-"
+            | "+"
+            | "="
+            | "["
+            | "]"
+            | "{"
+            | "}"
+            | "\\"
+            | "|"
+            | ";"
+            | ":"
+            | "'"
+            | "\""
+            | "<"
+            | ">"
+            | ","
+            | "."
+            | "?"
+            | "/"
+    )
 }
 
 fn is_delimiter(char: &str) -> bool {
@@ -368,16 +371,19 @@ mod tests {
 
     use snap::snapshot;
 
-    use crate::compiler::StringInterner;
     use crate::compiler::tokens::token::{Token, TokenType};
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
+    use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
     fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner, TokenizedInput) {
         let string_interner = StringInterner::default();
-        (string_interner.clone(), tokenize(string_interner, code).unwrap())
+        (
+            string_interner.clone(),
+            tokenize(string_interner, code).unwrap(),
+        )
     }
 
     #[test]
@@ -468,9 +474,9 @@ mod tests {
     #[snapshot]
     pub fn simple_iterator_trait() -> (StringInterner, TokenizedInput) {
         let code = concat!(
-        "trait Iterator<T> {\n",
-        "     fn next() => T | None;\n",
-        "}"
+            "trait Iterator<T> {\n",
+            "     fn next() => T | None;\n",
+            "}"
         );
 
         tokenize_str(code)
@@ -485,23 +491,17 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn simple_main_stmt() -> (StringInterner, TokenizedInput) {
-        tokenize_str(
-            concat!(
+        tokenize_str(concat!(
             "fn main(arguments: [str]) {\n",
             "    println(arguments.to_string());\n",
             "}"
-            )
-        )
+        ))
     }
 
     #[test]
     #[snapshot]
     pub fn var_declarations() -> (StringInterner, TokenizedInput) {
-        tokenize_str(
-            concat!(
-            "let mut x = None;\n",
-            "let y = 0;"
-            ))
+        tokenize_str(concat!("let mut x = None;\n", "let y = 0;"))
     }
 
     #[test]
@@ -520,11 +520,11 @@ mod tests {
     #[snapshot]
     pub fn bytearray_to_str() -> (StringInterner, TokenizedInput) {
         tokenize_str(concat!(
-        r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
-        "\n",
-        r#"let bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];"#,
-        "\n",
-        r#"let greeting_from_array = str(bytearray); // "Hello world!""#
+            r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
+            "\n",
+            r#"let bytearray: [u8] = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33];"#,
+            "\n",
+            r#"let greeting_from_array = str(bytearray); // "Hello world!""#
         ))
     }
 
@@ -544,13 +544,13 @@ mod tests {
     #[snapshot]
     pub fn scene_graph_node() -> (StringInterner, TokenizedInput) {
         tokenize_str(concat!(
-        "trait Node {\n",
-        "   fn bounds() => Bounds;\n",
-        "   fn draw(Graphics g);\n",
-        "   fn children() => MutableList<Node>;\n",
-        "}\n",
-        "\n",
-        "fn draw_frame(nodes: List<Node>) { }"
+            "trait Node {\n",
+            "   fn bounds() => Bounds;\n",
+            "   fn draw(Graphics g);\n",
+            "   fn children() => MutableList<Node>;\n",
+            "}\n",
+            "\n",
+            "fn draw_frame(nodes: List<Node>) { }"
         ))
     }
 
@@ -564,14 +564,14 @@ mod tests {
     #[snapshot]
     pub fn enum_with_member_funcs() -> (StringInterner, TokenizedInput) {
         let code = concat!(
-        "enum Message {\n",
-        "    Text(message: str),\n",
-        "    Photo(caption: str, photo: SerializedPhoto) {\n",
-        "        fn size() {\n",
-        "            return photo.size();\n",
-        "        }\n",
-        "    },\n",
-        "}"
+            "enum Message {\n",
+            "    Text(message: str),\n",
+            "    Photo(caption: str, photo: SerializedPhoto) {\n",
+            "        fn size() {\n",
+            "            return photo.size();\n",
+            "        }\n",
+            "    },\n",
+            "}"
         );
         tokenize_str(code)
     }
@@ -580,14 +580,14 @@ mod tests {
     #[snapshot]
     pub fn complex_enum() -> (StringInterner, TokenizedInput) {
         let code = concat!(
-        "enum Vector<X: Number + Display, Y: Number + Display> {\n",
-        "    Normalized(x: X, y: Y),\n",
-        "    Absolute(x: X, y: Y) {\n",
-        "        fn to_normalized(self) => Vector {\n",
-        "            return Normalized(self.x, self.y);\n",
-        "        }\n",
-        "    }\n",
-        "}"
+            "enum Vector<X: Number + Display, Y: Number + Display> {\n",
+            "    Normalized(x: X, y: Y),\n",
+            "    Absolute(x: X, y: Y) {\n",
+            "        fn to_normalized(self) => Vector {\n",
+            "            return Normalized(self.x, self.y);\n",
+            "        }\n",
+            "    }\n",
+            "}"
         );
         tokenize_str(code)
     }
@@ -608,8 +608,8 @@ mod tests {
     #[snapshot]
     pub fn multiple_let_stmts() -> (StringInterner, TokenizedInput) {
         let code = concat!(
-        "let a: i64 = 1; // Immediate assignment\n",
-        "let b = 2; // `i64` type is inferred\n"
+            "let a: i64 = 1; // Immediate assignment\n",
+            "let b = 2; // `i64` type is inferred\n"
         );
         tokenize_str(code)
     }
@@ -618,10 +618,10 @@ mod tests {
     #[snapshot]
     pub fn mutable_assignment() -> (StringInterner, TokenizedInput) {
         let code = concat!(
-        "fn mut_var() {\n",
-        "    let mut x = 5; // `i64` type is inferred\n",
-        "    x = x + 1;\n",
-        "}"
+            "fn mut_var() {\n",
+            "    let mut x = 5; // `i64` type is inferred\n",
+            "    x = x + 1;\n",
+            "}"
         );
         tokenize_str(code)
     }
@@ -629,18 +629,17 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn print_fn() -> (StringInterner, TokenizedInput) {
-        let code = concat!(
-        "fn print(text: str) {\n",
-        "    println(text);\n",
-        "}"
-        );
+        let code = concat!("fn print(text: str) {\n", "    println(text);\n", "}");
         tokenize_str(code)
     }
 
     #[test]
     #[snapshot]
     pub fn returning_error_union() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "returning_error_union.si"]))
+        tokenize_str(utils::read_file([
+            "short_examples",
+            "returning_error_union.si",
+        ]))
     }
 
     #[test]

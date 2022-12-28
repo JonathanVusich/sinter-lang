@@ -5,18 +5,15 @@ use proc_macro::{Span, TokenStream};
 use std::path::PathBuf;
 
 use quote::quote;
-use syn::{ItemFn, ReturnType, Type};
 use syn::parse_macro_input;
 use syn::spanned::Spanned;
+use syn::{ItemFn, ReturnType, Type};
 
 #[proc_macro_attribute]
 pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
     let mut resource_path = PathBuf::from("snapshots");
 
-    let mut source_path =
-        Span::call_site()
-            .source_file()
-            .path();
+    let mut source_path = Span::call_site().source_file().path();
 
     source_path.set_extension("");
     resource_path.push(source_path);
@@ -29,7 +26,9 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
     if let ReturnType::Type(_, boxed_type) = return_ty {
         ty = boxed_type;
     } else {
-        return syn::Error::new(parsed_fn.sig.span(), "expected return type").to_compile_error().into();
+        return syn::Error::new(parsed_fn.sig.span(), "expected return type")
+            .to_compile_error()
+            .into();
     }
 
     resource_path.push(name.to_string());
@@ -69,7 +68,7 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
             }
         }
     )
-        .into()
+    .into()
 }
 
 #[proc_macro]
@@ -77,10 +76,7 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn snapshot_folder(_ignored: TokenStream) -> TokenStream {
     let mut resource_path = PathBuf::from("snapshots");
 
-    let mut source_path =
-        Span::call_site()
-            .source_file()
-            .path();
+    let mut source_path = Span::call_site().source_file().path();
 
     source_path.set_extension("");
     resource_path.push(source_path);
@@ -92,5 +88,6 @@ pub fn snapshot_folder(_ignored: TokenStream) -> TokenStream {
         let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         path.push(PathBuf::from(#path_str));
         path
-    }).into()
+    })
+    .into()
 }

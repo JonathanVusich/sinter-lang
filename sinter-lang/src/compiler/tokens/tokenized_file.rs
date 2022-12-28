@@ -1,10 +1,10 @@
 use crate::compiler::tokens::token::Token;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct TokenizedInput {
-    pub (crate) tokens: Vec<Token>,
-    pub (crate) line_map: Vec<usize>,
+    pub(crate) tokens: Vec<Token>,
+    pub(crate) line_map: Vec<usize>,
     line_counter: usize,
 }
 
@@ -15,7 +15,6 @@ pub struct TokenPosition {
 }
 
 impl TokenizedInput {
-
     pub fn new() -> Self {
         Self {
             tokens: Vec::new(),

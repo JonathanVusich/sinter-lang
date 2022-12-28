@@ -38,9 +38,7 @@ pub struct TraitBound {
 
 impl TraitBound {
     pub fn new(bounds: Vec<PathTy>) -> Self {
-        Self {
-            bounds,
-        }
+        Self { bounds }
     }
 }
 
@@ -54,7 +52,7 @@ pub struct PathTy {
 
 impl PathTy {
     pub fn new(ident: QualifiedIdent, generics: Generics) -> Self {
-        Self { ident, generics, }
+        Self { ident, generics }
     }
 }
 
@@ -90,13 +88,9 @@ pub struct GenericParam {
 
 impl GenericParam {
     pub fn new(ident: InternedStr, trait_bound: Option<TraitBound>) -> Self {
-        Self {
-            ident,
-            trait_bound,
-        }
+        Self { ident, trait_bound }
     }
 }
-
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug, Serialize, Deserialize)]
 pub struct GenericCallSite {
@@ -210,11 +204,7 @@ pub struct TraitStmt {
 }
 
 impl TraitStmt {
-    pub fn new(
-        ident: InternedStr,
-        generic_params: GenericParams,
-        functions: Vec<FnStmt>,
-    ) -> Self {
+    pub fn new(ident: InternedStr, generic_params: GenericParams, functions: Vec<FnStmt>) -> Self {
         Self {
             ident,
             generic_params,
@@ -235,7 +225,7 @@ impl TraitImplStmt {
         Self {
             trait_to_impl,
             target_ty,
-            fns
+            fns,
         }
     }
 }
@@ -365,7 +355,12 @@ pub struct LetStmt {
 }
 
 impl LetStmt {
-    pub fn new(ident: InternedStr, mutability: Mutability, ty: Option<Type>, initializer: Option<Expr>) -> Self {
+    pub fn new(
+        ident: InternedStr,
+        mutability: Mutability,
+        ty: Option<Type>,
+        initializer: Option<Expr>,
+    ) -> Self {
         LetStmt {
             ident,
             mutability,
@@ -410,10 +405,7 @@ pub struct Call {
 
 impl Call {
     pub fn new(func: Expr, args: Args) -> Self {
-        Self {
-            func,
-            args,
-        }
+        Self { func, args }
     }
 }
 
@@ -450,10 +442,7 @@ pub struct MatchExpr {
 
 impl MatchExpr {
     pub fn new(source: Expr, arms: Vec<MatchArm>) -> Self {
-        Self {
-            source,
-            arms
-        }
+        Self { source, arms }
     }
 }
 
@@ -465,10 +454,7 @@ pub struct MatchArm {
 
 impl MatchArm {
     pub fn new(pattern: Pattern, body: Stmt) -> Self {
-        Self {
-            pattern,
-            body
-        }
+        Self { pattern, body }
     }
 }
 
@@ -517,7 +503,7 @@ impl IndexExpr {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum ArrayExpr {
     SizedInitializer(Expr, Expr),
-    Initializer(Vec<Expr>)
+    Initializer(Vec<Expr>),
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
@@ -562,17 +548,17 @@ pub enum Pattern {
     String(InternedStr),
     Ty(Type, Option<InternedStr>),
     Destructure(Type, Vec<Expr>),
-    None
+    None,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Range {
-    Default(i64, i64), // 1..3
-    Full, // ..
-    From(i64), // 1..
+    Default(i64, i64),       // 1..3
+    Full,                    // ..
+    From(i64),               // 1..
     FromInclusive(i64, i64), // 1..=3
-    To(i64), // ..3
-    ToInclusive(i64) // ..=3
+    To(i64),                 // ..3
+    ToInclusive(i64),        // ..=3
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -582,9 +568,7 @@ pub struct OrPattern {
 
 impl OrPattern {
     pub fn new(patterns: Vec<Pattern>) -> Self {
-        Self {
-            patterns
-        }
+        Self { patterns }
     }
 }
 
@@ -688,16 +672,14 @@ impl InfixOp {
             InfixOp::Equal | InfixOp::NotEqual => (13, 14),
             InfixOp::Less | InfixOp::Greater | InfixOp::LessEqual | InfixOp::GreaterEqual => {
                 (15, 16)
-            },
-            InfixOp::LeftShift | InfixOp::RightShift | InfixOp::TripleRightShift => {
-                (17, 18)
-            },
+            }
+            InfixOp::LeftShift | InfixOp::RightShift | InfixOp::TripleRightShift => (17, 18),
             InfixOp::Add | InfixOp::Subtract => (19, 20),
             InfixOp::Multiply | InfixOp::Divide | InfixOp::Modulo => (21, 22),
             _ => panic!(),
         }
     }
-    
+
     pub fn token_len(self) -> usize {
         match self {
             InfixOp::LeftShift => 2,
@@ -722,10 +704,7 @@ pub enum Stmt {
     Return(ReturnStmt),
     While(WhileStmt),
     Block(BlockStmt),
-    Expression {
-        expr: Expr,
-        implicit_return: bool
-    },
+    Expression { expr: Expr, implicit_return: bool },
 }
 
 mod tests {}
