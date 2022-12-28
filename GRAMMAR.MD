@@ -2,20 +2,20 @@
 
 `outerStmt => useStmt | classStmt | fnStmt | letStmt | enumStmt | traitStmt | traitImplStmt`
 
-`stmt => forStmt | ifStmt | returnStmt | whileStmt | matchStmt | blockStmt | letStmt | expression`
+`stmt => letStmt | forStmt | whileStmt | blockStmt | returnStmt | ifStmt | expression`
 
 _________________________________
 ### Outer Statement Definitions
 
 `useStmt => "use" qualifiedIdent ";"`
 
-`classStmt => "ref"? "class" ident genericParams? params? ( objectFns | ";" )`
+`classStmt => "ref"? "class" ident genericParams? params? ( fnStmts | ";" )`
 
 `fnStmt => fnHead params fnTail`
 
-`letStmt => "let" "mut"? ident ( "=" expression )? ";"`
+`letStmt => "let" "mut"? ident ( ":" ty )? ( "=" expression )? ";"`
 
-`enumStmt => "enum" ident genericParams? enumBody ( objectFns | ";" )`
+`enumStmt => "enum" ident genericParams? enumMembers ( fnStmts | ";" )`
 
 `traitStmt => "trait" ident genericParams? ( traitBody | ";" )`
 
@@ -78,14 +78,14 @@ _________________________________
 _________________________________
 ### Enum Definitions
 
-`enumBody => "(" enumMember (, enumMember)* ,? ")"`
+`enumMembers => "(" enumMember (, enumMember)* ,? ")"`
 
-`enumMember => ident params? objectFns?`
+`enumMember => ident params? fnStmts?`
 
 _________________________________
 ### Trait Definitions
 
-`traitBody => "{" fnTraitStmt* "}"`
+`=> "{" fnTraitStmt* "}"`
 
 _________________________________
 ### Function Definitions
@@ -94,6 +94,8 @@ _________________________________
 `fnTail => ( "=>" ty )? blockStmt`
 
 `fnTailNoImpl => ( "=>" ty )? ";"`
+
+`fnTraitStmts => "{" fnTraitStmt* "}"` 
 
 `fnTraitStmt => fnSelfStmt | fnSelfNoImplStmt`
 
@@ -133,11 +135,11 @@ _________________________________
 
 `matchBlock => "{" matchArm ( , matchArm )* ,? "}"`
 
-`matchArm => multiPattern "=>" ( blockStmt | expression )`
+`matchArm => orPattern "=>" ( blockStmt | expression )`
 
-`multiPattern => pattern ( "|" pattern )*`
+`orPattern => pattern ( "|" pattern )*`
 
-`pattern => matcher expression?`
+`pattern => matcher`
 
 `matcher => "_" | string | boolean | number | ( ty identifier? ) `
 
@@ -171,7 +173,9 @@ _________________________________
 
 `qualifiedIdent => ident ("::" ident)*`
 
-`objectFns => "{" fnSelfStmt* "}"`
+`fnStmts => "{" fnStmt* "}"`
+
+`fnTraitStmts => `
 
 
 

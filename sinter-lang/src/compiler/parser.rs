@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
+use winapi::um::winnt::TokenType;
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
@@ -119,7 +120,7 @@ impl Parser {
                 TokenType::Let => self.parse_let_stmt(),
                 TokenType::For => self.parse_for_stmt(),
                 TokenType::While => self.parse_while_stmt(),
-                TokenType::LeftBracket => self.parse_block_stmt(),
+                TokenType::LeftBrace => self.parse_block_stmt(),
                 TokenType::Return => self.parse_return_stmt(),
                 TokenType::If => self.parse_if_stmt(),
                 token => self.parse_expression()
@@ -280,14 +281,17 @@ impl Parser {
         self.expect(TokenType::Trait)?;
         let identifier = self.identifier()?;
         let generics = self.generic_params()?;
-        if self.matches(TokenType::Semicolon) {
-            Ok(TraitStmt::new(identifier, generics, Vec::new()))
-        } else {
-            Ok(TraitStmt::new(
-                identifier,
-                generics,
-                self.fn_trait_stmts()?,
-            ))
+        match self.current() {
+            Some(TokenType::Semicolon) => Ok(TraitStmt::new(identifier, generics, Vec::new())),
+            Some(TokenType::LeftBrace) => {
+                Ok(TraitStmt::new(
+                    identifier,
+                    generics,
+                    self.fn_trait_stmts()?,
+                ))
+            },
+            Some(token) => self.unexpected_token(token),
+            None => self.unexpected_end()
         }
     }
 
@@ -301,11 +305,16 @@ impl Parser {
         self.expect(TokenType::For)?;
         let target_ty = self.parse_ty()?;
 
-        if self.matches(TokenType::Semicolon) {
-            self.advance();
-            Ok(TraitImplStmt::new(trait_to_impl, target_ty, Vec::new()))
-        } else {
-            Ok(TraitImplStmt::new(trait_to_impl, target_ty, self.fn_trait_stmts()?))
+        match self.current() {
+            Some(TokenType::Semicolon) => {
+                self.advance();
+                Ok(TraitImplStmt::new(trait_to_impl, target_ty, Vec::new()))
+            }
+            Some(TokenType::LeftBrace) => {
+                Ok(TraitImplStmt::new(trait_to_impl, target_ty, self.fn_trait_stmts()?))
+            }
+            Some(token) => self.unexpected_token(token),
+            None => self.unexpected_end()
         }
     }
 
@@ -480,16 +489,21 @@ impl Parser {
     }
 
     fn enum_member(&mut self) -> Result<EnumMemberStmt> {
-        if let Some(TokenType::Identifier(ident)) = self.current() {
-            self.advance();
-            let params = self.params()?;
-            let member_funcs = self.fn_stmts()?;
-
-            Ok(EnumMemberStmt::new(ident, params, member_funcs))
-        } else {
-            self.expected_token(TokenType::Identifier(
-                self.string_interner.get_or_intern("")
-            ))
+        match self.current() {
+            Some(TokenType::Identifier(ident)) => {
+                self.advance();
+                let params = self.params()?;
+                let fn_stmts = if self.matches(TokenType::LeftBrace) {
+                    self.fn_stmts()?
+                } else {
+                    Vec::new()
+                };
+                Ok(EnumMemberStmt::new(ident, params, fn_stmts))
+            },
+            Some(token) => {
+                self.expected_token(TokenType::Identifier(self.string_interner.get_or_intern("")))
+            },
+            None => self.unexpected_end()
         }
     }
 
@@ -1021,7 +1035,7 @@ impl Parser {
     }
 
     fn parse_pattern(&mut self) -> Result<Pattern> {
-        // TODO: Support range patterns
+        // TODO: Support range patterns and guards
         match self.current() {
             Some(TokenType::String(str)) => {
                 self.advance();
