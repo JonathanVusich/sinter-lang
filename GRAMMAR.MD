@@ -7,9 +7,9 @@
 _________________________________
 ### Outer Statement Definitions
 
-`useStmt => "use" qualifiedIdent`
+`useStmt => "use" qualifiedIdent ";"`
 
-`classStmt => "inline"? "class" ident genericParams? params? ( objectFns | ";" )`
+`classStmt => "ref"? "class" ident genericParams? params? ( objectFns | ";" )`
 
 `fnStmt => fnHead params fnTail`
 
@@ -19,7 +19,7 @@ _________________________________
 
 `traitStmt => "trait" ident genericParams? ( traitBody | ";" )`
 
-`traitImplStmt => "impl" qualifiedIdent genericCallsite? "for" ty ( objectFns | ";" )`
+`traitImplStmt => "impl" pathType "for" ty ( objectFns | ";" )`
 
 `blockStmt => "{" stmt* "}"`
 

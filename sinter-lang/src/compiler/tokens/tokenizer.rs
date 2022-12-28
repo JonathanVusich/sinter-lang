@@ -54,7 +54,7 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
     "trait" => TokenType::Trait,
     "use" => TokenType::Use,
     "None" => TokenType::None,
-    "inline" => TokenType::Inline,
+    "ref" => TokenType::Ref,
     "in" => TokenType::In,
 };
 
@@ -115,7 +115,7 @@ impl<'this> Tokenizer<'this> {
                 "-" => {
                     if let Some(digit) = self.peek() && is_digit(digit) {
                         self.parse_num(char);
-                    } else{
+                    } else {
                         self.create_token(TokenType::Minus)
                     }
                 }
@@ -226,7 +226,7 @@ impl<'this> Tokenizer<'this> {
         let mut tokens = vec![];
         while let Some(char) = self.peek() && char != "\"" {
             self.next();
-            if char == "\n" {
+            if is_line_break(char) {
                 self.tokenized_file.add_line_break(self.current);
             }
             tokens.push(char);
@@ -245,18 +245,17 @@ impl<'this> Tokenizer<'this> {
     fn skip_whitespace(&mut self) {
         while let Some(char) = self.peek() {
             match char {
-                " " | "\r" | "\t" => {
+                " " | "\t" => {
                     // TODO: Properly handle tab spacing for span reprinting
                     self.next();
                 }
-                "\n" | "\r\n" => {
+                "\r" | "\n" | "\r\n" => {
                     self.tokenized_file.add_line_break(self.current);
                     self.next();
                 }
                 "/" => {
                     if let Some("/") = self.peek_next() {
-                        while let Some(char) = self.peek()
-                            && char != "\n" && char != "\r\n" {
+                        while let Some(char) = self.peek() && !is_line_break(char) {
                             self.next();
                         }
                     } else {
@@ -310,10 +309,15 @@ fn is_digit(word: &str) -> bool {
     )
 }
 
+fn is_line_break(char: &str) -> bool {
+    matches!(char, "\r" | "\r\n" | "\n")
+}
+
 fn is_ident(char: &str) -> bool {
     !matches!(
             char,
-            "\r" | "\t"
+            "\r"| "\t"
+                | "\r\n"
                 | "\n"
                 | " "
                 | "~"
@@ -351,7 +355,7 @@ fn is_ident(char: &str) -> bool {
 }
 
 fn is_delimiter(char: &str) -> bool {
-    matches!(char, " " | "\r" | "\t" | "\n" | ";")
+    matches!(char, " " | "\r" | "\t" | "\n" | "\r\n" | ";")
 }
 
 mod tests {
@@ -614,10 +618,10 @@ mod tests {
     #[snapshot]
     pub fn mutable_assignment() -> (StringInterner, TokenizedInput) {
         let code = concat!(
-            "fn mut_var() {\n",
-            "    let mut x = 5; // `i64` type is inferred\n",
-            "    x = x + 1;\n",
-            "}"
+        "fn mut_var() {\n",
+        "    let mut x = 5; // `i64` type is inferred\n",
+        "    x = x + 1;\n",
+        "}"
         );
         tokenize_str(code)
     }

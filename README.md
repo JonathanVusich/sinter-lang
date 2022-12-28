@@ -55,8 +55,8 @@ The `[]` type is a generic array type that can contain both integer and floating
 in addition to user defined types.
 
 ```ignorelang
-inline class Point(x: f64, y: f64);
-class Node;
+class Point(x: f64, y: f64);
+ref class Node;
 
 let i32_array: [i32] = [1, 2, 3];
 let point_array = [Point(1.0, 2.0), Point(1.5, 2.5)];
@@ -158,7 +158,7 @@ pointer in order for the runtime to inspect the objects at runtime. This uses mo
 but can be a valuable tool in cold paths where there are many different types being passed.
 
 ```ignorelang
-class List<T>(array: [T]) {
+ref class List<T>(array: [T]) {
 
     pub fn new(initial_capacity: u64) -> Self {
         Self([T; initial_capacity])
@@ -180,7 +180,7 @@ let unions = List::<str | i64 | f64>::new();
 To define a class, use the `class` keyword.
 
 ```ignorelang
-class Shape;
+ref class Shape;
 ```
 
 Properties of a class are listed in its declaration.
@@ -309,7 +309,7 @@ trait Iterator<T> {
     fn next(self) => T | None;
 }
 
-class MutableList<T>(mut array: [T]) {
+ref class MutableList<T>(mut array: [T]) {
     ...
     
     fn extend<I: Iterator<T>>(mut self, iterator: I) {
@@ -329,9 +329,8 @@ Sinter provides a `match` expression which is very useful for dispatching compli
 
 ```ignorelang
 match number {
-    1 => println!("One!"),
-    2 | 3 | 5 | 7 | 11 => println!("This is a prime"),
-    13..=19 => println!("A teen"),
+    1 => print("One!"),
+    2 | 3 | 5 | 7 | 11 => print("This is a prime"),
     _ => print("Unremarkable"),
 }
 ```
@@ -365,7 +364,7 @@ fn sort<T: Sortable>(list: MutableList<T>) {
     ...
 }
 
-class SortedMap<T: Sortable + Hashable>;
+ref class SortedMap<T: Sortable + Hashable>;
 ```
 
 Trait bounds can also be used to directly describe mixed types. This will incur a performance
@@ -391,7 +390,7 @@ Sinter helps users to write correct concurrent programs by preventing concurrent
 references to types that do not implement the `std::Sync` trait. 
 
 It is entirely possible to misuse the `std::Sync` trait and create deadlocks or other concurrency bugs. 
-This trait is a special methodless trait that allows the compiler to check thread boundary access at compile time, and to prevent **accidental**
+This trait is a special empty trait that allows the compiler to check thread boundary access at compile time, and to prevent **accidental**
 concurrent usage of types that do not implement `std::Sync`.
 
 The primitive types in Sinter all implement `std::Sync` since they are immutable.
@@ -401,7 +400,7 @@ Closures can be sent across thread boundaries if all of their captured variables
 ```ignorelang
 use std::Sync;
 
-class ConcurrentMap<K, V>(...) { ... };
+ref class ConcurrentMap<K, V>(...) { ... };
 
 impl Sync for ConcurrentMap<K, V>;
 ```

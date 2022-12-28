@@ -98,7 +98,7 @@ pub enum TokenType {
     Use,
     None,
 
-    Inline,
+    Ref,
 }
 
 impl Display for TokenType {
@@ -159,7 +159,7 @@ impl Display for TokenType {
             TokenType::Trait => write!(f, "trait"),
             TokenType::Use => write!(f, "use"),
             TokenType::None => write!(f, "None"),
-            TokenType::Inline => write!(f, "inline"),
+            TokenType::Ref => write!(f, "inline"),
             TokenType::Let => write!(f, "let"),
             TokenType::Mut => write!(f, "mut"),
             TokenType::In => write!(f, "in"),

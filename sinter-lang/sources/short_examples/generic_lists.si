@@ -1,4 +1,4 @@
-class List<T>(array: [T], size: u64) {
+ref class List<T>(array: [T], size: u64) {
 
     fn new(initial_capacity: u64) => Self {
         Self([T; initial_capacity], 0)

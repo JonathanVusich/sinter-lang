@@ -227,7 +227,17 @@ impl TraitStmt {
 pub struct TraitImplStmt {
     trait_to_impl: PathTy,
     target_ty: Type,
-    functions: Vec<FnStmt>,
+    fns: Vec<FnStmt>,
+}
+
+impl TraitImplStmt {
+    pub fn new(trait_to_impl: PathTy, target_ty: Type, fns: Vec<FnStmt>) -> Self {
+        Self {
+            trait_to_impl,
+            target_ty,
+            fns
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]

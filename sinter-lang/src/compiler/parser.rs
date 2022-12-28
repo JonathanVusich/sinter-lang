@@ -10,7 +10,7 @@ use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::ast::ast::Expr::Infix;
 use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
-use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, While};
+use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, TraitImpl, While};
 use crate::compiler::parser::ParseError::{ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken};
 use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
@@ -98,7 +98,7 @@ impl Parser {
         if let Some(current) = self.current() {
             match current {
                 TokenType::Use => self.parse_use_stmt(),
-                TokenType::Inline => self.parse_class_stmt(),
+                TokenType::Ref => self.parse_class_stmt(),
                 TokenType::Class => self.parse_class_stmt(),
                 TokenType::Fn => self.parse_fn_stmt(),
                 TokenType::Let => self.parse_let_stmt(),
@@ -143,7 +143,7 @@ impl Parser {
     fn parse_type_definition(&mut self) -> Result<Stmt> {
         if let Some(current) = self.current() {
             match current {
-                TokenType::Inline => self.parse_class_stmt(),
+                TokenType::Ref => self.parse_class_stmt(),
                 TokenType::Class => self.parse_class_stmt(),
                 TokenType::Enum => self.parse_enum_stmt(),
                 TokenType::Trait => self.parse_trait_stmt(),
@@ -159,13 +159,13 @@ impl Parser {
     }
 
     fn class_stmt(&mut self) -> Result<ClassStmt> {
-        let class_type = if self.matches(TokenType::Inline) {
+        let class_type = if self.matches(TokenType::Ref) {
             self.advance();
             self.expect(TokenType::Class)?;
-            ClassType::Inline
+            ClassType::Reference
         } else {
             self.expect(TokenType::Class)?;
-            ClassType::Reference
+            ClassType::Inline
         };
         let name = self.identifier()?;
         let generic_types = self.generic_params()?;
@@ -292,7 +292,7 @@ impl Parser {
     }
 
     fn parse_trait_impl_stmt(&mut self) -> Result<Stmt> {
-        Ok(Stmt::TraitImpl(self.trait_impl_stmt()?))
+        Ok(TraitImpl(self.trait_impl_stmt()?))
     }
 
     fn trait_impl_stmt(&mut self) -> Result<TraitImplStmt> {
@@ -301,7 +301,12 @@ impl Parser {
         self.expect(TokenType::For)?;
         let target_ty = self.parse_ty()?;
 
-        todo!()
+        if self.matches(TokenType::Semicolon) {
+            self.advance();
+            Ok(TraitImplStmt::new(trait_to_impl, target_ty, Vec::new()))
+        } else {
+            Ok(TraitImplStmt::new(trait_to_impl, target_ty, self.fn_trait_stmts()?))
+        }
     }
 
     fn parse_expression(&mut self) -> Result<Stmt> {
@@ -931,7 +936,7 @@ impl Parser {
 
                 let rhs = self.parse_expr(right_bp)?;
 
-                lhs = Expr::Infix(Box::new(InfixExpr::new(lhs, rhs, infix_op)));
+                lhs = Infix(Box::new(InfixExpr::new(lhs, rhs, infix_op)));
                 continue;
             }
 
@@ -1392,7 +1397,7 @@ mod tests {
         match parse_module("use") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedToken(TokenType::Identifier(_), pos)) => {}
+                Some(ExpectedToken(Identifier(_), pos)) => {}
                 _ => {
                     panic!()
                 }
