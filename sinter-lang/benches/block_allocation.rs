@@ -2,8 +2,8 @@ use sinter_lang::class::class_builder::ClassBuilder;
 use sinter_lang::gc::block::BLOCK_SIZE;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use flux_lang::heap::region::Region;
-use flux_lang::pool::internal_string::InternalString;
+use sinter_lang::heap::region::Region;
+use sinter_lang::pool::internal_string::InternalString;
 
 fn small_class_allocation(c: &mut Criterion) {
     let small_class = ClassBuilder::new()

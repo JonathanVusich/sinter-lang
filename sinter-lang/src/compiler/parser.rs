@@ -5,13 +5,12 @@ use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
-use winapi::um::winnt::TokenType;
 
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::ast::Expr::Infix;
-use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
-use crate::compiler::ast::ast::Stmt::{Enum, For, If, Return, TraitImpl, While};
-use crate::compiler::ast::ast::{
+use crate::compiler::ast::Expr::Infix;
+use crate::compiler::ast::Mutability::{Immutable, Mutable};
+use crate::compiler::ast::Stmt::{Enum, For, If, Return, TraitImpl, While};
+use crate::compiler::ast::{
     Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr,
     FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt,
     IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern,
@@ -1371,13 +1370,13 @@ mod tests {
 
     use snap::snapshot;
 
-    use crate::compiler::ast::ast::Mutability::{Immutable, Mutable};
-    use crate::compiler::ast::ast::Stmt::Enum;
-    use crate::compiler::ast::ast::{
+    use crate::compiler::ast::Mutability::{Immutable, Mutable};
+    use crate::compiler::ast::Stmt::Enum;
+    use crate::compiler::ast::{
         Args, BlockStmt, Call, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
         Param, Params, PathExpr, QualifiedIdent, Stmt,
     };
-    use crate::compiler::ast::ast::{Module, UseStmt};
+    use crate::compiler::ast::{Module, UseStmt};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::tokens::token::TokenType;
@@ -1749,8 +1748,8 @@ mod tests {
     #[snapshot]
     pub fn declare_classes_and_vars() -> (StringInterner, Module) {
         let code = concat!(
-            "inline class Point(x: f64, y: f64);\n",
-            "class Node;\n",
+            "class Point(x: f64, y: f64);\n",
+            "ref class Node;\n",
             "let i32_array: [i32] = [1, 2, 3];\n",
             "let point_array = [Point(1.0, 2.0), Point(1.5, 2.5)];\n",
             "let node_array = [Node(), Node()];"

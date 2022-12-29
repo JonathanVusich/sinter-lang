@@ -18,9 +18,9 @@ impl ConstantPool {
     pub fn load_bytes(&self, entry: ConstantPoolEntry) -> &[u8] {
         &self.pool[entry.start()..entry.end()]
     }
-
+    
     pub fn load_str(&self, entry: ConstantPoolEntry) -> &str {
-        std::str::from_utf8(self.load_bytes(entry)).expect("Invalid UTF-8 strings!")
+        std::str::from_utf8(self.load_bytes(entry)).expect("Invalid UTF-8 string!")
     }
 }
 

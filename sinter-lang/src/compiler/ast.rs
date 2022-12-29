@@ -20,6 +20,13 @@ impl Module {
     }
 }
 
+pub trait DeclaredType {
+    fn name(&self) -> InternedStr;
+    fn member_fns(&self) -> &[FnStmt];
+    fn generic_params(&self) -> &GenericParams;
+}
+
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QualifiedIdent {
     idents: Vec<InternedStr>,
@@ -139,11 +146,11 @@ pub enum Mutability {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClassStmt {
-    name: InternedStr,
-    class_type: ClassType,
-    generic_params: GenericParams,
-    members: Params,
-    member_functions: Vec<FnStmt>,
+    pub (crate) name: InternedStr,
+    pub (crate) class_type: ClassType,
+    pub (crate) generic_params: GenericParams,
+    pub (crate) members: Params,
+    pub (crate) member_fns: Vec<FnStmt>,
 }
 
 impl ClassStmt {
@@ -159,8 +166,22 @@ impl ClassStmt {
             class_type,
             generic_params,
             members,
-            member_functions,
+            member_fns: member_functions,
         }
+    }
+}
+
+impl DeclaredType for ClassStmt {
+    fn name(&self) -> InternedStr {
+        self.name
+    }
+
+    fn member_fns(&self) -> &[FnStmt] {
+        self.member_fns.as_slice()    
+    }
+
+    fn generic_params(&self) -> &GenericParams {
+        &self.generic_params   
     }
 }
 
@@ -169,7 +190,7 @@ pub struct EnumStmt {
     name: InternedStr,
     generic_params: GenericParams,
     members: Vec<EnumMemberStmt>,
-    fn_stmts: Vec<FnStmt>,
+    member_fns: Vec<FnStmt>,
 }
 
 impl EnumStmt {
@@ -183,7 +204,7 @@ impl EnumStmt {
             name,
             generic_params,
             members,
-            fn_stmts,
+            member_fns: fn_stmts,
         }
     }
 
@@ -196,11 +217,25 @@ impl EnumStmt {
     }
 }
 
+impl DeclaredType for EnumStmt {
+    fn name(&self) -> InternedStr {
+        self.name
+    }
+
+    fn member_fns(&self) -> &[FnStmt] {
+        self.member_fns.as_slice()
+    }
+
+    fn generic_params(&self) -> &GenericParams {
+        &self.generic_params
+    }
+}
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitStmt {
     ident: InternedStr,
     generic_params: GenericParams,
-    functions: Vec<FnStmt>,
+    member_fns: Vec<FnStmt>,
 }
 
 impl TraitStmt {
@@ -208,8 +243,22 @@ impl TraitStmt {
         Self {
             ident,
             generic_params,
-            functions,
+            member_fns: functions,
         }
+    }
+}
+
+impl DeclaredType for TraitStmt {
+    fn name(&self) -> InternedStr {
+        self.name
+    }
+
+    fn member_fns(&self) -> &[FnStmt] {
+        self.member_fns.as_slice()
+    }
+
+    fn generic_params(&self) -> &GenericParams {
+        &self.generic_params 
     }
 }
 
@@ -232,8 +281,8 @@ impl TraitImplStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FnStmt {
-    sig: FnSig,
-    body: Option<BlockStmt>,
+    pub (crate) sig: FnSig,
+    pub (crate) body: Option<BlockStmt>,
 }
 
 impl FnStmt {
@@ -301,10 +350,10 @@ impl EnumMemberStmt {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct FnSig {
-    name: InternedStr,
-    generic_params: GenericParams,
-    parameters: Params,
-    return_type: Option<Type>,
+    pub (crate) name: InternedStr,
+    pub (crate) generic_params: GenericParams,
+    pub (crate) parameters: Params,
+    pub (crate) return_type: Option<Type>,
 }
 
 impl FnSig {

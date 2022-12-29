@@ -1,22 +1,22 @@
 [
   {
-    "height": 6,
     "Self": 10,
-    "length": 4,
-    "perimeter": 5,
-    "square": 7,
-    "size": 8,
+    "Rectangle": 1,
     "width": 2,
-    "f64": 3,
+    "perimeter": 5,
     "self": 9,
-    "Rectangle": 1
+    "size": 8,
+    "height": 6,
+    "length": 4,
+    "f64": 3,
+    "square": 7
   },
   {
     "stmts": [
       {
         "Class": {
           "name": 1,
-          "class_type": "Reference",
+          "class_type": "Inline",
           "generic_params": {
             "params": []
           },

@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-use flux_lang::pointers::pointer::Pointer;
+use sinter_lang::pointers::pointer::Pointer;
 
 fn dereference(c: &mut Criterion) {
     let value: i32 = 1234567;

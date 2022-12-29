@@ -56,11 +56,11 @@ mod tests {
         tokenized_input.add_line_break(2);
         tokenized_input.add_line_break(5);
 
-        assert_eq!(TokenPosition::new(0, 0), tokenized_input.token_position(0));
-        assert_eq!(TokenPosition::new(0, 1), tokenized_input.token_position(1));
-        assert_eq!(TokenPosition::new(1, 0), tokenized_input.token_position(2));
-        assert_eq!(TokenPosition::new(1, 1), tokenized_input.token_position(3));
-        assert_eq!(TokenPosition::new(1, 2), tokenized_input.token_position(4));
-        assert_eq!(TokenPosition::new(2, 0), tokenized_input.token_position(5));
+        assert_eq!(TokenPosition::new(1, 0), tokenized_input.token_position(0));
+        assert_eq!(TokenPosition::new(1, 1), tokenized_input.token_position(1));
+        assert_eq!(TokenPosition::new(2, 0), tokenized_input.token_position(2));
+        assert_eq!(TokenPosition::new(2, 1), tokenized_input.token_position(3));
+        assert_eq!(TokenPosition::new(2, 2), tokenized_input.token_position(4));
+        assert_eq!(TokenPosition::new(3, 0), tokenized_input.token_position(5));
     }
 }
