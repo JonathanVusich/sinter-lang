@@ -6,30 +6,40 @@
     "tokens": [
       {
         "token_type": "Impl",
-        "start": 0,
-        "end": 4
+        "span": {
+          "start": 0,
+          "end": 4
+        }
       },
       {
         "token_type": "Enum",
-        "start": 5,
-        "end": 9
+        "span": {
+          "start": 5,
+          "end": 9
+        }
       },
       {
         "token_type": {
           "Identifier": 1
         },
-        "start": 12,
-        "end": 18
+        "span": {
+          "start": 12,
+          "end": 18
+        }
       },
       {
         "token_type": "LeftBracket",
-        "start": 21,
-        "end": 22
+        "span": {
+          "start": 21,
+          "end": 22
+        }
       },
       {
         "token_type": "RightBracket",
-        "start": 23,
-        "end": 24
+        "span": {
+          "start": 23,
+          "end": 24
+        }
       }
     ],
     "line_map": [

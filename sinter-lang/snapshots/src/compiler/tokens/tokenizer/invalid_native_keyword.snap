@@ -7,22 +7,28 @@
     "tokens": [
       {
         "token_type": "Native",
-        "start": 0,
-        "end": 6
+        "span": {
+          "start": 0,
+          "end": 6
+        }
       },
       {
         "token_type": {
           "Identifier": 1
         },
-        "start": 7,
-        "end": 14
+        "span": {
+          "start": 7,
+          "end": 14
+        }
       },
       {
         "token_type": {
           "Identifier": 2
         },
-        "start": 15,
-        "end": 22
+        "span": {
+          "start": 15,
+          "end": 22
+        }
       }
     ],
     "line_map": [],

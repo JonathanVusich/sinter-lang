@@ -14,7 +14,7 @@ pub struct TokenSpan {
     pub pos: usize,
 }
 
-#[derive(Eq, PartialEq, Debug, Copy, Clone)]
+#[derive(Eq, PartialEq, Debug, Hash, Serialize, Deserialize, Copy, Clone)]
 pub struct Span {
     pub start: usize,
     pub end: usize,

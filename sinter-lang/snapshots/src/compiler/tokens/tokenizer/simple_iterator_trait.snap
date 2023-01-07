@@ -1,98 +1,130 @@
 [
   {
-    "T": 2,
     "next": 3,
+    "T": 2,
     "Iterator": 1
   },
   {
     "tokens": [
       {
         "token_type": "Trait",
-        "start": 0,
-        "end": 5
+        "span": {
+          "start": 0,
+          "end": 5
+        }
       },
       {
         "token_type": {
           "Identifier": 1
         },
-        "start": 6,
-        "end": 14
+        "span": {
+          "start": 6,
+          "end": 14
+        }
       },
       {
         "token_type": "Less",
-        "start": 14,
-        "end": 15
+        "span": {
+          "start": 14,
+          "end": 15
+        }
       },
       {
         "token_type": {
           "Identifier": 2
         },
-        "start": 15,
-        "end": 16
+        "span": {
+          "start": 15,
+          "end": 16
+        }
       },
       {
         "token_type": "Greater",
-        "start": 16,
-        "end": 17
+        "span": {
+          "start": 16,
+          "end": 17
+        }
       },
       {
         "token_type": "LeftBrace",
-        "start": 18,
-        "end": 19
+        "span": {
+          "start": 18,
+          "end": 19
+        }
       },
       {
         "token_type": "Fn",
-        "start": 25,
-        "end": 27
+        "span": {
+          "start": 25,
+          "end": 27
+        }
       },
       {
         "token_type": {
           "Identifier": 3
         },
-        "start": 28,
-        "end": 32
+        "span": {
+          "start": 28,
+          "end": 32
+        }
       },
       {
         "token_type": "LeftParentheses",
-        "start": 32,
-        "end": 33
+        "span": {
+          "start": 32,
+          "end": 33
+        }
       },
       {
         "token_type": "RightParentheses",
-        "start": 33,
-        "end": 34
+        "span": {
+          "start": 33,
+          "end": 34
+        }
       },
       {
         "token_type": "RightArrow",
-        "start": 35,
-        "end": 37
+        "span": {
+          "start": 35,
+          "end": 37
+        }
       },
       {
         "token_type": {
           "Identifier": 2
         },
-        "start": 38,
-        "end": 39
+        "span": {
+          "start": 38,
+          "end": 39
+        }
       },
       {
         "token_type": "BitwiseOr",
-        "start": 40,
-        "end": 41
+        "span": {
+          "start": 40,
+          "end": 41
+        }
       },
       {
         "token_type": "None",
-        "start": 42,
-        "end": 46
+        "span": {
+          "start": 42,
+          "end": 46
+        }
       },
       {
         "token_type": "Semicolon",
-        "start": 46,
-        "end": 47
+        "span": {
+          "start": 46,
+          "end": 47
+        }
       },
       {
         "token_type": "RightBrace",
-        "start": 48,
-        "end": 49
+        "span": {
+          "start": 48,
+          "end": 49
+        }
       }
     ],
     "line_map": [

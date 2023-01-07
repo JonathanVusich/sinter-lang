@@ -1,15 +1,15 @@
 [
   {
-    "Neptune": 9,
-    "Uranus": 8,
-    "Jupiter": 6,
-    "Planet": 1,
-    "Pluto": 10,
-    "Saturn": 7,
-    "Mars": 5,
     "Earth": 4,
+    "Neptune": 9,
+    "Planet": 1,
+    "Uranus": 8,
+    "Mercury": 2,
+    "Pluto": 10,
     "Venus": 3,
-    "Mercury": 2
+    "Jupiter": 6,
+    "Mars": 5,
+    "Saturn": 7
   },
   {
     "stmts": [
@@ -84,7 +84,7 @@
               "member_functions": []
             }
           ],
-          "fn_stmts": []
+          "member_fns": []
         }
       }
     ]

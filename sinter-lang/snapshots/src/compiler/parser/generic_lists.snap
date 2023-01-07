@@ -1,22 +1,22 @@
 [
   {
-    "u64": 5,
-    "f64": 11,
-    "Self": 17,
-    "trait_bounds": 12,
+    "array": 3,
     "i64": 9,
+    "unions": 15,
+    "initial_capacity": 7,
+    "List": 1,
+    "Serializable": 14,
+    "Self": 17,
+    "Loggable": 13,
+    "u64": 5,
     "new": 6,
+    "f64": 11,
     "size": 4,
+    "trait_bounds": 12,
     "list_of_ints": 8,
     "list_of_lists": 10,
-    "unions": 15,
-    "List": 1,
     "T": 2,
-    "str": 16,
-    "Serializable": 14,
-    "array": 3,
-    "Loggable": 13,
-    "initial_capacity": 7
+    "str": 16
   },
   {
     "stmts": [
@@ -59,7 +59,7 @@
               }
             ]
           },
-          "member_functions": [
+          "member_fns": [
             {
               "sig": {
                 "name": 6,

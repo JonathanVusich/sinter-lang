@@ -180,6 +180,6 @@ impl Token {
     }
 
     pub fn end_pos(&self) -> usize {
-        self.start + self.end
+        self.span.start + self.span.end
     }
 }

@@ -1,16 +1,16 @@
 [
   {
-    "self": 11,
-    "size": 9,
-    "caption": 6,
-    "message": 3,
     "Photo": 5,
-    "Text": 2,
-    "SerializedPhoto": 8,
+    "str": 4,
     "u64": 10,
     "photo": 7,
-    "str": 4,
-    "Message": 1
+    "caption": 6,
+    "size": 9,
+    "self": 11,
+    "Message": 1,
+    "SerializedPhoto": 8,
+    "message": 3,
+    "Text": 2
   },
   {
     "stmts": [
@@ -121,7 +121,7 @@
               ]
             }
           ],
-          "fn_stmts": []
+          "member_fns": []
         }
       }
     ]

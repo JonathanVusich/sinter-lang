@@ -1,18 +1,18 @@
 [
   {
-    "MalformedBytes": 13,
-    "buffer": 8,
-    "write_bytes": 12,
-    "value": 4,
     "bytes": 6,
+    "write_bytes": 12,
+    "buffer": 8,
+    "Serializable": 3,
+    "value": 4,
+    "remaining": 9,
+    "MalformedBytes": 13,
     "WriteError": 5,
+    "write": 1,
     "to_bytes": 7,
     "len": 10,
-    "remaining": 9,
     "BufferOverflow": 11,
-    "write": 1,
-    "T": 2,
-    "Serializable": 3
+    "T": 2
   },
   {
     "stmts": [
@@ -277,7 +277,7 @@
               "member_functions": []
             }
           ],
-          "fn_stmts": []
+          "member_fns": []
         }
       }
     ]

@@ -1,21 +1,21 @@
 [
   {
-    "x": 7,
-    "y": 8,
-    "Y": 5,
     "magnitude": 13,
-    "Vector": 1,
-    "sqrt": 15,
-    "Absolute": 9,
-    "Normalized": 6,
-    "abs": 12,
-    "math": 14,
-    "self": 16,
-    "Display": 4,
-    "normalized": 11,
+    "x": 7,
     "Number": 3,
+    "normalized": 11,
+    "sqrt": 15,
+    "math": 14,
+    "to_normalized": 10,
+    "Y": 5,
+    "Display": 4,
+    "y": 8,
+    "Absolute": 9,
+    "abs": 12,
+    "Vector": 1,
+    "self": 16,
     "X": 2,
-    "to_normalized": 10
+    "Normalized": 6
   },
   {
     "stmts": [
@@ -146,7 +146,7 @@
               "member_functions": []
             }
           ],
-          "fn_stmts": [
+          "member_fns": [
             {
               "sig": {
                 "name": 10,

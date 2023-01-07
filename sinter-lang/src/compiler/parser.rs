@@ -1268,7 +1268,7 @@ impl Parser {
 
     fn current_position(&mut self) -> Option<TokenSpan> {
         if let Some(token) = self.current_token() {
-            Some(self.tokenized_input.token_position(token.start))
+            Some(self.tokenized_input.token_position(token.span.start))
         } else {
             None
         }
@@ -1276,7 +1276,7 @@ impl Parser {
 
     fn next_position(&mut self, delta: usize) -> Option<TokenSpan> {
         self.next(delta)
-            .map(|token| self.tokenized_input.token_position(token.start))
+            .map(|token| self.tokenized_input.token_position(token.span.start))
     }
 
     fn last(&mut self) -> Option<Token> {
@@ -1285,7 +1285,7 @@ impl Parser {
 
     fn last_position(&mut self) -> TokenSpan {
         self.last()
-            .map(|token| self.tokenized_input.token_position(token.end))
+            .map(|token| self.tokenized_input.token_position(token.span.end))
             .unwrap_or(TokenSpan::new(0, 0))
     }
 

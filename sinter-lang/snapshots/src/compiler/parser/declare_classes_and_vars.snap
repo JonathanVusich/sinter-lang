@@ -1,14 +1,14 @@
 [
   {
     "y": 4,
-    "x": 2,
+    "f64": 3,
+    "i32": 7,
+    "Node": 5,
     "node_array": 9,
     "point_array": 8,
     "Point": 1,
-    "f64": 3,
-    "Node": 5,
-    "i32_array": 6,
-    "i32": 7
+    "x": 2,
+    "i32_array": 6
   },
   {
     "stmts": [
@@ -37,7 +37,7 @@
               }
             ]
           },
-          "member_functions": []
+          "member_fns": []
         }
       },
       {
@@ -50,7 +50,7 @@
           "members": {
             "params": []
           },
-          "member_functions": []
+          "member_fns": []
         }
       },
       {

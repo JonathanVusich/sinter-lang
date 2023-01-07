@@ -9,10 +9,11 @@ struct TypeChecker<'a> {
     type_errors: Vec<TypeError<'a>>,
 }
 
-enum TypeError<'a> {
+pub enum TypeError<'a> {
     DuplicateTypeName(&'a dyn DeclaredType, &'a dyn DeclaredType),
     DuplicateFnName(&'a FnStmt, &'a FnStmt),
     DuplicateParamName(&'a Param, &'a Param),
+    DuplicateGenericParam(&'a GenericParam, &'a GenericParam),
 }
 
 
@@ -26,24 +27,24 @@ impl<'a> TypeChecker<'a> {
         }
     }
 
-    fn check(mut self) {
+    fn check(&mut self) {
         for stmt in self.module.stmts() {
             match stmt {
                 Stmt::Class(class_stmt) => {
-                    self.type_name_shadow_check(&class_stmt);
-                    self.unique_generic_params(&class_stmt);
-                    self.unique_class_members(&class_stmt);
-                    self.unique_member_fns(&class_stmt);
+                    self.type_name_shadow_check(class_stmt);
+                    self.unique_generic_params(class_stmt);
+                    self.unique_class_members(class_stmt);
+                    self.unique_member_fns(class_stmt);
                 }
                 Stmt::Enum(enum_stmt) => {
-                    self.type_name_shadow_check(&enum_stmt);
-                    self.unique_generic_params(&enum_stmt);
-                    self.unique_member_fns(&enum_stmt);
+                    self.type_name_shadow_check(enum_stmt);
+                    self.unique_generic_params(enum_stmt);
+                    self.unique_member_fns(enum_stmt);
                 }
                 Stmt::Trait(trait_stmt) => {
-                    self.type_name_shadow_check(&trait_stmt);
-                    self.unique_generic_params(&trait_stmt);
-                    self.unique_member_fns(&trait_stmt);
+                    self.type_name_shadow_check(trait_stmt);
+                    self.unique_generic_params(trait_stmt);
+                    self.unique_member_fns(trait_stmt);
                 }
                 Stmt::Fn(fn_stmt) => {
                     self.fn_name_shadow_check(&fn_stmt);
@@ -63,15 +64,15 @@ impl<'a> TypeChecker<'a> {
         todo!()
     }
 
-    fn type_name_shadow_check(&mut self, named_type: &dyn DeclaredType) {
+    fn type_name_shadow_check(&mut self, named_type: &'a dyn DeclaredType) {
         if let Some(existing_type) = self.named_types.get(&named_type.name()) {
-            self.type_errors.push(TypeError::DuplicateTypeName(existing_type, named_type));
+            self.type_errors.push(TypeError::DuplicateTypeName(*existing_type, named_type));
         } else {
             self.named_types.insert(named_type.name(), named_type);
         }
     }
 
-    fn fn_name_shadow_check(&mut self, fn_stmt: &FnStmt) {
+    fn fn_name_shadow_check(&mut self, fn_stmt: &'a FnStmt) {
         if let Some(existing_fn) = self.named_fns.get(&fn_stmt.sig.name) {
             self.type_errors.push(TypeError::DuplicateFnName(existing_fn, &fn_stmt));
         } else {
@@ -79,11 +80,11 @@ impl<'a> TypeChecker<'a> {
         }
     }
 
-    fn unique_class_members(&mut self, class_stmt: &ClassStmt) {
-        let mut class_members = HashMap::new();
-        for member in class_stmt.members {
+    fn unique_class_members(&mut self, class_stmt: &'a ClassStmt) {
+        let mut class_members = HashMap::<InternedStr, &Param>::new();
+        for member in class_stmt.members() {
             if let Some(existing_member) = class_members.get(&member.name) {
-                self.type_errors.push(TypeError::DuplicateParamName(existing_member, &member));
+                self.type_errors.push(TypeError::DuplicateParamName(existing_member, member));
             } else {
                 class_members.insert(member.name, member);
             }
@@ -98,11 +99,11 @@ impl<'a> TypeChecker<'a> {
         todo!()
     }
 
-    fn unique_generic_params(&mut self, declared_type: &dyn DeclaredType) {
-        let mut declared_params = HashMap::<InternedStr, GenericParam>::new();
+    fn unique_generic_params(&mut self, declared_type: &'a dyn DeclaredType) {
+        let mut declared_params = HashMap::<InternedStr, &GenericParam>::new();
         for param in declared_type.generic_params() {
-            if let Some(existing_param) = declared_params.get(param.ident) {
-                self.type_errors.push(TypeError::DuplicateGenericParam(existing_param, param));
+            if let Some(existing_param) = declared_params.get(&param.ident) {
+                self.type_errors.push(TypeError::DuplicateGenericParam(existing_param, &param));
             } else {
                 declared_params.insert(param.ident, param);
             }
@@ -111,7 +112,20 @@ impl<'a> TypeChecker<'a> {
 }
 
 pub fn type_check(module: &Module) -> Vec<TypeError> {
-    let type_checker = TypeChecker::new(module);
+    let mut type_checker = TypeChecker::new(module);
     type_checker.check();
     type_checker.type_errors
+}
+
+mod tests {
+
+    #[cfg(test)]
+    fn parse_module() -> ! {
+        todo!()
+    }
+
+    #[test]
+    pub fn duplicate_types() {
+
+    }
 }

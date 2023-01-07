@@ -6,25 +6,33 @@
     "tokens": [
       {
         "token_type": "Trait",
-        "start": 0,
-        "end": 5
+        "span": {
+          "start": 0,
+          "end": 5
+        }
       },
       {
         "token_type": {
           "Identifier": 1
         },
-        "start": 6,
-        "end": 18
+        "span": {
+          "start": 6,
+          "end": 18
+        }
       },
       {
         "token_type": "LeftBrace",
-        "start": 19,
-        "end": 20
+        "span": {
+          "start": 19,
+          "end": 20
+        }
       },
       {
         "token_type": "RightBrace",
-        "start": 21,
-        "end": 22
+        "span": {
+          "start": 21,
+          "end": 22
+        }
       }
     ],
     "line_map": [],

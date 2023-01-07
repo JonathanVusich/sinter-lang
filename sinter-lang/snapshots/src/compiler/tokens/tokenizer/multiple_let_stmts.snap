@@ -8,73 +8,97 @@
     "tokens": [
       {
         "token_type": "Let",
-        "start": 0,
-        "end": 3
+        "span": {
+          "start": 0,
+          "end": 3
+        }
       },
       {
         "token_type": {
           "Identifier": 1
         },
-        "start": 4,
-        "end": 5
+        "span": {
+          "start": 4,
+          "end": 5
+        }
       },
       {
         "token_type": "Colon",
-        "start": 5,
-        "end": 6
+        "span": {
+          "start": 5,
+          "end": 6
+        }
       },
       {
         "token_type": {
           "Identifier": 2
         },
-        "start": 7,
-        "end": 10
+        "span": {
+          "start": 7,
+          "end": 10
+        }
       },
       {
         "token_type": "Equal",
-        "start": 11,
-        "end": 12
+        "span": {
+          "start": 11,
+          "end": 12
+        }
       },
       {
         "token_type": {
           "SignedInteger": 1
         },
-        "start": 13,
-        "end": 14
+        "span": {
+          "start": 13,
+          "end": 14
+        }
       },
       {
         "token_type": "Semicolon",
-        "start": 14,
-        "end": 15
+        "span": {
+          "start": 14,
+          "end": 15
+        }
       },
       {
         "token_type": "Let",
-        "start": 40,
-        "end": 43
+        "span": {
+          "start": 40,
+          "end": 43
+        }
       },
       {
         "token_type": {
           "Identifier": 3
         },
-        "start": 44,
-        "end": 45
+        "span": {
+          "start": 44,
+          "end": 45
+        }
       },
       {
         "token_type": "Equal",
-        "start": 46,
-        "end": 47
+        "span": {
+          "start": 46,
+          "end": 47
+        }
       },
       {
         "token_type": {
           "SignedInteger": 2
         },
-        "start": 48,
-        "end": 49
+        "span": {
+          "start": 48,
+          "end": 49
+        }
       },
       {
         "token_type": "Semicolon",
-        "start": 49,
-        "end": 50
+        "span": {
+          "start": 49,
+          "end": 50
+        }
       }
     ],
     "line_map": [

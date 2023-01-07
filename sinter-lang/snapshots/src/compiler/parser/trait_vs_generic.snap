@@ -1,15 +1,15 @@
 [
   {
-    "Loggable": 1,
-    "format_log_message": 2,
-    "message": 7,
-    "str": 3,
-    "self": 10,
-    "log_specialized_message": 4,
     "T": 5,
-    "Serializable": 6,
     "log_trait_message": 9,
-    "println": 8
+    "Loggable": 1,
+    "Serializable": 6,
+    "self": 10,
+    "str": 3,
+    "message": 7,
+    "println": 8,
+    "log_specialized_message": 4,
+    "format_log_message": 2
   },
   {
     "stmts": [
@@ -19,7 +19,7 @@
           "generic_params": {
             "params": []
           },
-          "functions": [
+          "member_fns": [
             {
               "sig": {
                 "name": 2,

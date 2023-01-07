@@ -1,3 +1,4 @@
+use std::ops::{Deref, DerefMut};
 use crate::compiler::parser::ClassType;
 use crate::compiler::types::types::{InternedStr, Type};
 use crate::gc::block::Block;
@@ -24,7 +25,7 @@ impl Module {
 pub trait DeclaredType {
     fn name(&self) -> InternedStr;
     fn member_fns(&self) -> &[FnStmt];
-    fn generic_params(&self) -> &GenericParams;
+    fn generic_params(&self) -> &[GenericParam];
 }
 
 pub trait AstNode {
@@ -71,12 +72,11 @@ impl PathTy {
 #[derive(Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct UseStmt {
     ident: QualifiedIdent,
-    span: Span,
 }
 
 impl UseStmt {
-    pub fn new(ident: QualifiedIdent, span: Span) -> Self {
-        Self { ident, span }
+    pub fn new(ident: QualifiedIdent) -> Self {
+        Self { ident }
     }
 }
 
@@ -90,6 +90,30 @@ pub struct GenericParams {
 impl GenericParams {
     pub const fn new(params: Vec<GenericParam>) -> Self {
         Self { params }
+    }
+}
+
+impl IntoIterator for GenericParams {
+    type Item = GenericParam;
+    type IntoIter = <Vec<GenericParam> as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.params.into_iter()
+    }
+}
+
+impl Deref for GenericParams {
+    type Target = [GenericParam];
+
+    fn deref(&self) -> &Self::Target {
+        &self.params.as_slice()
+    }
+}
+
+impl DerefMut for GenericParams {
+
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.params
     }
 }
 
@@ -129,10 +153,24 @@ impl Params {
 
 impl IntoIterator for Params {
     type Item = Param;
-    type IntoIter = Vec<Param>;
+    type IntoIter = <Vec<Param> as IntoIterator>::IntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.params
+        self.params.into_iter()
+    }
+}
+
+impl Deref for Params {
+    type Target = [Param];
+
+    fn deref(&self) -> &Self::Target {
+        &self.params
+    }
+}
+
+impl DerefMut for Params {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.params
     }
 }
 
@@ -184,6 +222,10 @@ impl ClassStmt {
             member_fns: member_functions,
         }
     }
+
+    pub fn members(&self) -> &[Param] {
+        &self.members
+    }
 }
 
 impl DeclaredType for ClassStmt {
@@ -195,7 +237,7 @@ impl DeclaredType for ClassStmt {
         self.member_fns.as_slice()    
     }
 
-    fn generic_params(&self) -> &GenericParams {
+    fn generic_params(&self) -> &[GenericParam] {
         &self.generic_params   
     }
 }
@@ -241,7 +283,7 @@ impl DeclaredType for EnumStmt {
         self.member_fns.as_slice()
     }
 
-    fn generic_params(&self) -> &GenericParams {
+    fn generic_params(&self) -> &[GenericParam] {
         &self.generic_params
     }
 }
@@ -265,14 +307,14 @@ impl TraitStmt {
 
 impl DeclaredType for TraitStmt {
     fn name(&self) -> InternedStr {
-        self.name
+        self.ident
     }
 
     fn member_fns(&self) -> &[FnStmt] {
         self.member_fns.as_slice()
     }
 
-    fn generic_params(&self) -> &GenericParams {
+    fn generic_params(&self) -> &[GenericParam] {
         &self.generic_params 
     }
 }

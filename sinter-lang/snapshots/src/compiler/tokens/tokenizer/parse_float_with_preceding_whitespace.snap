@@ -6,8 +6,10 @@
         "token_type": {
           "Float": 123.45
         },
-        "start": 1,
-        "end": 7
+        "span": {
+          "start": 1,
+          "end": 7
+        }
       }
     ],
     "line_map": [],

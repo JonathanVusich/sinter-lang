@@ -1,244 +1,324 @@
 [
   {
-    "draw_frame": 9,
-    "Graphics": 5,
-    "children": 7,
-    "draw": 4,
-    "nodes": 10,
     "List": 11,
-    "bounds": 2,
+    "Node": 1,
     "MutableList": 8,
-    "g": 6,
     "Bounds": 3,
-    "Node": 1
+    "nodes": 10,
+    "children": 7,
+    "bounds": 2,
+    "draw_frame": 9,
+    "draw": 4,
+    "Graphics": 5,
+    "g": 6
   },
   {
     "tokens": [
       {
         "token_type": "Trait",
-        "start": 0,
-        "end": 5
+        "span": {
+          "start": 0,
+          "end": 5
+        }
       },
       {
         "token_type": {
           "Identifier": 1
         },
-        "start": 6,
-        "end": 10
+        "span": {
+          "start": 6,
+          "end": 10
+        }
       },
       {
         "token_type": "LeftBrace",
-        "start": 11,
-        "end": 12
+        "span": {
+          "start": 11,
+          "end": 12
+        }
       },
       {
         "token_type": "Fn",
-        "start": 16,
-        "end": 18
+        "span": {
+          "start": 16,
+          "end": 18
+        }
       },
       {
         "token_type": {
           "Identifier": 2
         },
-        "start": 19,
-        "end": 25
+        "span": {
+          "start": 19,
+          "end": 25
+        }
       },
       {
         "token_type": "LeftParentheses",
-        "start": 25,
-        "end": 26
+        "span": {
+          "start": 25,
+          "end": 26
+        }
       },
       {
         "token_type": "RightParentheses",
-        "start": 26,
-        "end": 27
+        "span": {
+          "start": 26,
+          "end": 27
+        }
       },
       {
         "token_type": "RightArrow",
-        "start": 28,
-        "end": 30
+        "span": {
+          "start": 28,
+          "end": 30
+        }
       },
       {
         "token_type": {
           "Identifier": 3
         },
-        "start": 31,
-        "end": 37
+        "span": {
+          "start": 31,
+          "end": 37
+        }
       },
       {
         "token_type": "Semicolon",
-        "start": 37,
-        "end": 38
+        "span": {
+          "start": 37,
+          "end": 38
+        }
       },
       {
         "token_type": "Fn",
-        "start": 42,
-        "end": 44
+        "span": {
+          "start": 42,
+          "end": 44
+        }
       },
       {
         "token_type": {
           "Identifier": 4
         },
-        "start": 45,
-        "end": 49
+        "span": {
+          "start": 45,
+          "end": 49
+        }
       },
       {
         "token_type": "LeftParentheses",
-        "start": 49,
-        "end": 50
+        "span": {
+          "start": 49,
+          "end": 50
+        }
       },
       {
         "token_type": {
           "Identifier": 5
         },
-        "start": 50,
-        "end": 58
+        "span": {
+          "start": 50,
+          "end": 58
+        }
       },
       {
         "token_type": {
           "Identifier": 6
         },
-        "start": 59,
-        "end": 60
+        "span": {
+          "start": 59,
+          "end": 60
+        }
       },
       {
         "token_type": "RightParentheses",
-        "start": 60,
-        "end": 61
+        "span": {
+          "start": 60,
+          "end": 61
+        }
       },
       {
         "token_type": "Semicolon",
-        "start": 61,
-        "end": 62
+        "span": {
+          "start": 61,
+          "end": 62
+        }
       },
       {
         "token_type": "Fn",
-        "start": 66,
-        "end": 68
+        "span": {
+          "start": 66,
+          "end": 68
+        }
       },
       {
         "token_type": {
           "Identifier": 7
         },
-        "start": 69,
-        "end": 77
+        "span": {
+          "start": 69,
+          "end": 77
+        }
       },
       {
         "token_type": "LeftParentheses",
-        "start": 77,
-        "end": 78
+        "span": {
+          "start": 77,
+          "end": 78
+        }
       },
       {
         "token_type": "RightParentheses",
-        "start": 78,
-        "end": 79
+        "span": {
+          "start": 78,
+          "end": 79
+        }
       },
       {
         "token_type": "RightArrow",
-        "start": 80,
-        "end": 82
+        "span": {
+          "start": 80,
+          "end": 82
+        }
       },
       {
         "token_type": {
           "Identifier": 8
         },
-        "start": 83,
-        "end": 94
+        "span": {
+          "start": 83,
+          "end": 94
+        }
       },
       {
         "token_type": "Less",
-        "start": 94,
-        "end": 95
+        "span": {
+          "start": 94,
+          "end": 95
+        }
       },
       {
         "token_type": {
           "Identifier": 1
         },
-        "start": 95,
-        "end": 99
+        "span": {
+          "start": 95,
+          "end": 99
+        }
       },
       {
         "token_type": "Greater",
-        "start": 99,
-        "end": 100
+        "span": {
+          "start": 99,
+          "end": 100
+        }
       },
       {
         "token_type": "Semicolon",
-        "start": 100,
-        "end": 101
+        "span": {
+          "start": 100,
+          "end": 101
+        }
       },
       {
         "token_type": "RightBrace",
-        "start": 102,
-        "end": 103
+        "span": {
+          "start": 102,
+          "end": 103
+        }
       },
       {
         "token_type": "Fn",
-        "start": 105,
-        "end": 107
+        "span": {
+          "start": 105,
+          "end": 107
+        }
       },
       {
         "token_type": {
           "Identifier": 9
         },
-        "start": 108,
-        "end": 118
+        "span": {
+          "start": 108,
+          "end": 118
+        }
       },
       {
         "token_type": "LeftParentheses",
-        "start": 118,
-        "end": 119
+        "span": {
+          "start": 118,
+          "end": 119
+        }
       },
       {
         "token_type": {
           "Identifier": 10
         },
-        "start": 119,
-        "end": 124
+        "span": {
+          "start": 119,
+          "end": 124
+        }
       },
       {
         "token_type": "Colon",
-        "start": 124,
-        "end": 125
+        "span": {
+          "start": 124,
+          "end": 125
+        }
       },
       {
         "token_type": {
           "Identifier": 11
         },
-        "start": 126,
-        "end": 130
+        "span": {
+          "start": 126,
+          "end": 130
+        }
       },
       {
         "token_type": "Less",
-        "start": 130,
-        "end": 131
+        "span": {
+          "start": 130,
+          "end": 131
+        }
       },
       {
         "token_type": {
           "Identifier": 1
         },
-        "start": 131,
-        "end": 135
+        "span": {
+          "start": 131,
+          "end": 135
+        }
       },
       {
         "token_type": "Greater",
-        "start": 135,
-        "end": 136
+        "span": {
+          "start": 135,
+          "end": 136
+        }
       },
       {
         "token_type": "RightParentheses",
-        "start": 136,
-        "end": 137
+        "span": {
+          "start": 136,
+          "end": 137
+        }
       },
       {
         "token_type": "LeftBrace",
-        "start": 138,
-        "end": 139
+        "span": {
+          "start": 138,
+          "end": 139
+        }
       },
       {
         "token_type": "RightBrace",
-        "start": 140,
-        "end": 141
+        "span": {
+          "start": 140,
+          "end": 141
+        }
       }
     ],
     "line_map": [

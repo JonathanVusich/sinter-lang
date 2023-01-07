@@ -1,15 +1,15 @@
 [
   {
-    "Self": 10,
+    "square": 7,
+    "f64": 3,
     "Rectangle": 1,
     "width": 2,
+    "Self": 10,
     "perimeter": 5,
-    "self": 9,
-    "size": 8,
     "height": 6,
-    "length": 4,
-    "f64": 3,
-    "square": 7
+    "size": 8,
+    "self": 9,
+    "length": 4
   },
   {
     "stmts": [
@@ -38,7 +38,7 @@
               }
             ]
           },
-          "member_functions": [
+          "member_fns": [
             {
               "sig": {
                 "name": 5,
