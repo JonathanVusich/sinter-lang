@@ -1,12 +1,12 @@
 use crate::compiler::types::types::InternedStr;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+use crate::compiler::tokens::tokenized_file::Span;
 
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Token {
     pub token_type: TokenType,
-    pub start: usize,
-    pub end: usize,
+    pub span: Span,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
@@ -175,8 +175,7 @@ impl Token {
     pub fn new(token_type: TokenType, start: usize, end: usize) -> Self {
         Self {
             token_type,
-            start,
-            end,
+            span: Span::new(start, end),
         }
     }
 

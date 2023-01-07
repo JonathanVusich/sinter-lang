@@ -21,7 +21,7 @@ use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
 };
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
+use crate::compiler::tokens::tokenized_file::{TokenSpan, TokenizedInput};
 use crate::compiler::types::types::BasicType::{
     Str, F32, F64, I16, I32, I64, I8, U16, U32, U64, U8,
 };
@@ -44,10 +44,10 @@ struct Parser {
 
 #[derive(Debug)]
 enum ParseError {
-    UnexpectedEof(TokenPosition),
-    ExpectedToken(TokenType, TokenPosition),
-    ExpectedTokens(TokenTypes, TokenPosition),
-    UnexpectedToken(TokenType, TokenPosition),
+    UnexpectedEof(TokenSpan),
+    ExpectedToken(TokenType, TokenSpan),
+    ExpectedTokens(TokenTypes, TokenSpan),
+    UnexpectedToken(TokenType, TokenSpan),
 }
 
 #[derive(Debug)]
@@ -1266,7 +1266,7 @@ impl Parser {
         self.token_types.get(self.pos + delta).copied()
     }
 
-    fn current_position(&mut self) -> Option<TokenPosition> {
+    fn current_position(&mut self) -> Option<TokenSpan> {
         if let Some(token) = self.current_token() {
             Some(self.tokenized_input.token_position(token.start))
         } else {
@@ -1274,7 +1274,7 @@ impl Parser {
         }
     }
 
-    fn next_position(&mut self, delta: usize) -> Option<TokenPosition> {
+    fn next_position(&mut self, delta: usize) -> Option<TokenSpan> {
         self.next(delta)
             .map(|token| self.tokenized_input.token_position(token.start))
     }
@@ -1283,10 +1283,10 @@ impl Parser {
         self.tokenized_input.tokens.last().copied()
     }
 
-    fn last_position(&mut self) -> TokenPosition {
+    fn last_position(&mut self) -> TokenSpan {
         self.last()
             .map(|token| self.tokenized_input.token_position(token.end))
-            .unwrap_or(TokenPosition::new(0, 0))
+            .unwrap_or(TokenSpan::new(0, 0))
     }
 
     fn advance(&mut self) {
@@ -1381,7 +1381,7 @@ mod tests {
     use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::Identifier;
-    use crate::compiler::tokens::tokenized_file::{TokenPosition, TokenizedInput};
+    use crate::compiler::tokens::tokenized_file::{TokenSpan, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::BasicType;
     use crate::compiler::types::types::BasicType::{

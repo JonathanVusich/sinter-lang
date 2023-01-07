@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::path::Path;
+use anyhow::Result;
 use crate::compiler::ast::Stmt;
 use crate::compiler::parser::parse;
 use crate::compiler::StringInterner;
@@ -11,16 +12,16 @@ struct Compiler {
 }
 
 struct Application {
-    entry_point: Option<Path>,
+    entry_point: Box<Path>,
 }
 
 struct CompiledApplication {
 
 }
 
-fn compile_file(application: Application) -> Result<CompiledApplication> {
+fn compile(application: Application) -> Result<CompiledApplication> {
     let mut string_interner = StringInterner::default();
-    let tokens = tokenize_file(string_interner.clone(), &path)?;
+    let tokens = tokenize_file(string_interner.clone(), &application.entry_point)?;
     let module = parse(string_interner.clone(), tokens)?;
     
     let type_report = type_check(&module);
@@ -37,6 +38,6 @@ fn compile_file(application: Application) -> Result<CompiledApplication> {
     }
 
 
-    let file = File::open(path)?
+    // let file = File::open(path)?;
     todo!()
 }

@@ -4,6 +4,7 @@ use crate::gc::block::Block;
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, Prefix};
+use crate::compiler::tokens::tokenized_file::Span;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
@@ -24,6 +25,10 @@ pub trait DeclaredType {
     fn name(&self) -> InternedStr;
     fn member_fns(&self) -> &[FnStmt];
     fn generic_params(&self) -> &GenericParams;
+}
+
+pub trait AstNode {
+    fn span(&self) -> Span;
 }
 
 
@@ -66,11 +71,12 @@ impl PathTy {
 #[derive(Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct UseStmt {
     ident: QualifiedIdent,
+    span: Span,
 }
 
 impl UseStmt {
-    pub fn new(ident: QualifiedIdent) -> Self {
-        Self { ident }
+    pub fn new(ident: QualifiedIdent, span: Span) -> Self {
+        Self { ident, span }
     }
 }
 
@@ -89,8 +95,8 @@ impl GenericParams {
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
 pub struct GenericParam {
-    ident: InternedStr,
-    trait_bound: Option<TraitBound>,
+    pub (crate) ident: InternedStr,
+    pub (crate) trait_bound: Option<TraitBound>,
 }
 
 impl GenericParam {
@@ -118,6 +124,15 @@ pub struct Params {
 impl Params {
     pub const fn new(params: Vec<Param>) -> Self {
         Self { params }
+    }
+}
+
+impl IntoIterator for Params {
+    type Item = Param;
+    type IntoIter = Vec<Param>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.params
     }
 }
 
@@ -374,9 +389,9 @@ impl FnSig {
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Param {
-    name: InternedStr,
-    ty: Type,
-    mutability: Mutability,
+    pub (crate) name: InternedStr,
+    pub (crate) ty: Type,
+    pub (crate) mutability: Mutability,
 }
 
 impl Param {

@@ -1,23 +1,20 @@
 use std::collections::{HashMap, HashSet};
-use crate::compiler::ast::{ClassStmt, EnumStmt, FnStmt, GenericParam, GenericParams, Module, DeclaredType, Params, Stmt};
+use crate::compiler::ast::{ClassStmt, EnumStmt, FnStmt, GenericParam, GenericParams, Module, DeclaredType, Params, Stmt, Param};
 use crate::compiler::types::types::InternedStr;
 
 struct TypeChecker<'a> {
     module: &'a Module,
     named_types: HashMap<InternedStr, &'a dyn DeclaredType>,
     named_fns: HashMap<InternedStr, &'a FnStmt>,
-    report: TypeReport<'a>,
+    type_errors: Vec<TypeError<'a>>,
 }
 
-struct TypeShadow<'a> {
-    first: &'a dyn DeclaredType,
-    second: &'a dyn DeclaredType,
+enum TypeError<'a> {
+    DuplicateTypeName(&'a dyn DeclaredType, &'a dyn DeclaredType),
+    DuplicateFnName(&'a FnStmt, &'a FnStmt),
+    DuplicateParamName(&'a Param, &'a Param),
 }
 
-struct FnShadow<'a> {
-    first: &'a FnStmt,
-    second: &'a FnStmt,
-}
 
 impl<'a> TypeChecker<'a> {
     fn new(module: &'a Module) -> Self {
@@ -25,11 +22,11 @@ impl<'a> TypeChecker<'a> {
             module,
             named_types: HashMap::default(),
             named_fns: HashMap::default(),
-            report: TypeReport::default(),
+            type_errors: Vec::new(),
         }
     }
 
-    fn check(mut self) -> TypeReport<'a> {
+    fn check(mut self) {
         for stmt in self.module.stmts() {
             match stmt {
                 Stmt::Class(class_stmt) => {
@@ -68,7 +65,7 @@ impl<'a> TypeChecker<'a> {
 
     fn type_name_shadow_check(&mut self, named_type: &dyn DeclaredType) {
         if let Some(existing_type) = self.named_types.get(&named_type.name()) {
-            self.report.add_type_shadow(TypeShadow { first: existing_type, second: named_type });
+            self.type_errors.push(TypeError::DuplicateTypeName(existing_type, named_type));
         } else {
             self.named_types.insert(named_type.name(), named_type);
         }
@@ -76,14 +73,21 @@ impl<'a> TypeChecker<'a> {
 
     fn fn_name_shadow_check(&mut self, fn_stmt: &FnStmt) {
         if let Some(existing_fn) = self.named_fns.get(&fn_stmt.sig.name) {
-            self.report.add_fn_shadow(FnShadow { first: existing_fn, second: &fn_stmt });
+            self.type_errors.push(TypeError::DuplicateFnName(existing_fn, &fn_stmt));
         } else {
             self.named_fns.insert(fn_stmt.sig.name, &fn_stmt);
         }
     }
 
     fn unique_class_members(&mut self, class_stmt: &ClassStmt) {
-        todo!()
+        let mut class_members = HashMap::new();
+        for member in class_stmt.members {
+            if let Some(existing_member) = class_members.get(&member.name) {
+                self.type_errors.push(TypeError::DuplicateParamName(existing_member, &member));
+            } else {
+                class_members.insert(member.name, member);
+            }
+        }
     }
 
     fn unique_fn_params(&mut self, fn_stmt: &FnStmt) {
@@ -95,35 +99,19 @@ impl<'a> TypeChecker<'a> {
     }
 
     fn unique_generic_params(&mut self, declared_type: &dyn DeclaredType) {
-        todo!()
-    }
-}
-
-#[derive(Default)]
-struct TypeReport<'a> {
-    type_shadows: Vec<TypeShadow<'a>>,
-    fn_shadows: Vec<FnShadow<'a>>
-}
-
-impl<'a> TypeReport<'a> {
-    fn new() -> Self {
-        Self {
-            type_shadows: Vec::new(),
-            fn_shadows: Vec::new(),
+        let mut declared_params = HashMap::<InternedStr, GenericParam>::new();
+        for param in declared_type.generic_params() {
+            if let Some(existing_param) = declared_params.get(param.ident) {
+                self.type_errors.push(TypeError::DuplicateGenericParam(existing_param, param));
+            } else {
+                declared_params.insert(param.ident, param);
+            }
         }
     }
-
-    fn add_type_shadow(&mut self, type_shadow: TypeShadow) {
-        self.type_shadows.push(type_shadow);
-    }
-
-    fn add_fn_shadow(&mut self, fn_shadow: FnShadow) {
-        self.fn_shadows.push(fn_shadow);
-    }
 }
 
-
-pub fn type_check(module: &Module) -> TypeReport {
+pub fn type_check(module: &Module) -> Vec<TypeError> {
     let type_checker = TypeChecker::new(module);
-    type_checker.check()
+    type_checker.check();
+    type_checker.type_errors
 }
