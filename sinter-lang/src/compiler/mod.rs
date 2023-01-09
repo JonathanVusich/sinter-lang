@@ -10,6 +10,7 @@ pub mod types;
 pub mod type_checker;
 pub mod compiler;
 pub mod compiled_module;
+mod pool;
 
 type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Arc<ThreadedRodeo>;
