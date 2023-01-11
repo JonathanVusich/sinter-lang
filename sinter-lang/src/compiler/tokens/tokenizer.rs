@@ -9,24 +9,25 @@ use std::path::Path;
 use anyhow::Result;
 use phf::phf_map;
 use unicode_segmentation::UnicodeSegmentation;
+use crate::compiler::compiler::CompilerCtxt;
 
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
 use crate::compiler::types::types::InternedStr;
 use crate::compiler::StringInterner;
 
-pub fn tokenize_file(string_interner: StringInterner, path: &Path) -> Result<TokenizedInput> {
+pub fn tokenize_file(ctxt: &CompilerCtxt, path: &Path) -> Result<TokenizedInput> {
     let source_file = fs::read_to_string(path)?;
-    let tokenizer = Tokenizer::new(string_interner, &source_file);
+    let tokenizer = Tokenizer::new(ctxt, &source_file);
     Ok(tokenizer.into())
 }
 
 pub fn tokenize<T: AsRef<str>>(
-    string_interner: StringInterner,
+    ctxt: &CompilerCtxt,
     input: T,
 ) -> Result<TokenizedInput> {
     let source_file = input.as_ref();
-    let tokenizer = Tokenizer::new(string_interner, source_file);
+    let tokenizer = Tokenizer::new(&ctxt, source_file);
     Ok(tokenizer.into())
 }
 
@@ -71,11 +72,11 @@ struct Tokenizer<'this> {
 }
 
 impl<'this> Tokenizer<'this> {
-    pub fn new(string_interner: StringInterner, source: &'this str) -> Self {
+    pub fn new(ctxt: &CompilerCtxt, source: &'this str) -> Self {
         let chars = source.graphemes(true).collect::<Vec<&'this str>>();
 
         Self {
-            string_interner,
+            string_interner: ctxt.string_interner(),
             chars,
             tokenized_file: TokenizedInput::new(),
             start: 0,
@@ -370,6 +371,7 @@ mod tests {
     use serde::de::Unexpected::Str;
 
     use snap::snapshot;
+    use crate::compiler::compiler::CompilerCtxt;
 
     use crate::compiler::tokens::token::{Token, TokenType};
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
@@ -379,10 +381,10 @@ mod tests {
 
     #[cfg(test)]
     fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner, TokenizedInput) {
-        let string_interner = StringInterner::default();
+        let ctxt = CompilerCtxt::default();
         (
-            string_interner.clone(),
-            tokenize(string_interner, code).unwrap(),
+            ctxt.string_interner(),
+            tokenize(&ctxt, code).unwrap(),
         )
     }
 

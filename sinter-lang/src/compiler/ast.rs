@@ -5,6 +5,7 @@ use crate::gc::block::Block;
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, Prefix};
+use crate::compiler::interner::Key;
 use crate::compiler::tokens::tokenized_file::Span;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -55,7 +56,7 @@ impl TraitBound {
     }
 }
 
-pub type Generics = Vec<Type>;
+pub type Generics = Vec<Key>;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct PathTy {
@@ -131,11 +132,11 @@ impl GenericParam {
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug, Serialize, Deserialize)]
 pub struct GenericCallSite {
-    generics: Vec<Type>,
+    generics: Vec<Key>,
 }
 
 impl GenericCallSite {
-    pub fn new(generics: Vec<Type>) -> Self {
+    pub fn new(generics: Vec<Key>) -> Self {
         Self { generics }
     }
 }
@@ -322,12 +323,12 @@ impl DeclaredType for TraitStmt {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitImplStmt {
     trait_to_impl: PathTy,
-    target_ty: Type,
+    target_ty: Key,
     fns: Vec<FnStmt>,
 }
 
 impl TraitImplStmt {
-    pub fn new(trait_to_impl: PathTy, target_ty: Type, fns: Vec<FnStmt>) -> Self {
+    pub fn new(trait_to_impl: PathTy, target_ty: Key, fns: Vec<FnStmt>) -> Self {
         Self {
             trait_to_impl,
             target_ty,
@@ -410,7 +411,7 @@ pub struct FnSig {
     pub (crate) name: InternedStr,
     pub (crate) generic_params: GenericParams,
     pub (crate) parameters: Params,
-    pub (crate) return_type: Option<Type>,
+    pub (crate) return_type: Option<Key>,
 }
 
 impl FnSig {
@@ -418,7 +419,7 @@ impl FnSig {
         name: InternedStr,
         generic_params: GenericParams,
         parameters: Params,
-        return_type: Option<Type>,
+        return_type: Option<Key>,
     ) -> Self {
         Self {
             name,
@@ -432,12 +433,12 @@ impl FnSig {
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Param {
     pub (crate) name: InternedStr,
-    pub (crate) ty: Type,
+    pub (crate) ty: Key,
     pub (crate) mutability: Mutability,
 }
 
 impl Param {
-    pub fn new(name: InternedStr, ty: Type, mutability: Mutability) -> Self {
+    pub fn new(name: InternedStr, ty: Key, mutability: Mutability) -> Self {
         Self {
             name,
             ty,
@@ -456,7 +457,7 @@ pub struct ArgumentDecl {
 pub struct LetStmt {
     ident: InternedStr,
     mutability: Mutability,
-    ty: Option<Type>,
+    ty: Option<Key>,
     initializer: Option<Expr>,
 }
 
@@ -464,7 +465,7 @@ impl LetStmt {
     pub fn new(
         ident: InternedStr,
         mutability: Mutability,
-        ty: Option<Type>,
+        ty: Option<Key>,
         initializer: Option<Expr>,
     ) -> Self {
         LetStmt {
@@ -615,7 +616,7 @@ pub enum ArrayExpr {
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum PathSegment {
     Identifier(InternedStr),
-    Generic(Vec<Type>),
+    Generic(Vec<Key>),
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -652,8 +653,8 @@ pub enum Pattern {
     Integer(i64),
     Float(f64),
     String(InternedStr),
-    Ty(Type, Option<InternedStr>),
-    Destructure(Type, Vec<Expr>),
+    Ty(Key, Option<InternedStr>),
+    Destructure(Key, Vec<Expr>),
     None,
 }
 
