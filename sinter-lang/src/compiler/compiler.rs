@@ -23,7 +23,6 @@ struct CompiledApplication {
 }
 
 #[derive(PartialEq, Eq, Default, Debug, Serialize, Deserialize)]
-#[serde(bound(deserialize = "'ctxt: 'de"))]
 pub (crate) struct CompilerCtxt<'ctxt> {
     string_interner: StringInterner,
     ty_interner: TyInterner<'ctxt>,

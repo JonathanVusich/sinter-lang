@@ -25,6 +25,7 @@ cfg-if = "1.0.0"
 phf = { version = "0.11.0", features = ["macros"] }
 dashmap = "5.4.0"
 typed-arena = "2.0.1"
+bumpalo-herd = "0.1.2"
 
 snap = { path = "../snap" }
 

@@ -12,6 +12,7 @@
 #![feature(hash_set_entry)]
 #![feature(option_result_contains)]
 #![feature(let_chains)]
+#![feature(strict_provenance_atomic_ptr)]
 
 extern crate core;
 

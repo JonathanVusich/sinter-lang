@@ -10,11 +10,11 @@ use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::SeqCst;
 use std::sync::Mutex;
 use std::vec::IntoIter;
+use bumpalo_herd::Herd;
 use dashmap::{DashMap, DashSet};
 use serde::{de, Deserialize, Deserializer, ser, Serialize, Serializer};
 use serde::ser::Error as SerializeError;
 use serde::de::Error as DeserializeError;
-use typed_arena::Arena;
 
 const DEFAULT_BUCKET_CAPACITY: usize = 512;
 
@@ -36,7 +36,7 @@ pub struct Interner<'interned, T: Eq + Hash, S: Clone + BuildHasher> {
     interner: DashMap<&'interned T, Key, S>,
     resolver: DashMap<Key, &'interned T, S>,
     counter: AtomicUsize,
-    arena: Mutex<Buckets<'interned, T>>,
+    arena: Arena,
 }
 
 impl<'interned, T, S> Interner<'interned, T, S>
