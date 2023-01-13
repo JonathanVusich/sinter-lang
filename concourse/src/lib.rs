@@ -1,9 +1,12 @@
 #![feature(strict_provenance_atomic_ptr)]
 
-use std::hint;
-use std::sync::atomic::{AtomicBool, AtomicUsize};
+mod sync;
+
+use std::{hint, ptr};
+use std::mem::forget;
 use std::sync::atomic::Ordering::{Acquire, SeqCst};
-use std::sync::{Mutex, RwLock};
+use crate::sync::{Mutex, RwLock};
+use crate::sync::atomic::{AtomicUsize, AtomicBool};
 
 const DEFAULT_CAPACITY: usize = 512;
 
@@ -25,7 +28,8 @@ impl<T> Concourse<T> {
 
     pub fn alloc(&self, val: T) -> &T {
         let buffer = self.buffer.read().unwrap();
-        match buffer.alloc() {
+        let ptr = buffer.alloc();
+        match ptr {
             Some(dest) => {
                 self.store(val, dest)
             },
@@ -49,7 +53,7 @@ impl<T> Concourse<T> {
     #[inline(always)]
     fn store(&self, val: T, dest: *mut T) -> &T {
         unsafe {
-            dest.write(val);
+            ptr::write(dest, val);
             &mut *dest
         }
     }
@@ -57,7 +61,7 @@ impl<T> Concourse<T> {
 
 impl<T> Default for Concourse<T> {
     fn default() -> Self {
-        Concourse::new()
+        Concourse::<T>::new()
     }
 }
 
@@ -69,9 +73,11 @@ struct Buffer<T> {
 
 impl<T> Buffer<T> {
     fn with_capacity(capacity: usize) -> Self {
-        let buffer = Vec::<T>::with_capacity(capacity).as_mut_ptr();
+        let mut buffer = Vec::<T>::with_capacity(capacity);
+        let ptr = buffer.as_mut_ptr();
+        forget(buffer);
         Self {
-            buffer,
+            buffer: ptr,
             counter: AtomicUsize::new(0),
             capacity,
         }
@@ -88,11 +94,20 @@ impl<T> Buffer<T> {
     }
 }
 
+impl<T> Drop for Buffer<T> {
+    fn drop(&mut self) {
+        let vector = unsafe { Vec::from_raw_parts(self.buffer, self.capacity, self.capacity) };
+        drop(vector)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
     use super::*;
 
+    #[cfg(not(loom))]
     #[test]
     fn allocate_single() {
         let concourse = Concourse::new();
@@ -100,6 +115,7 @@ mod tests {
         assert_eq!(123, *reference);
     }
 
+    #[cfg(not(loom))]
     #[test]
     fn sanity_check() {
         let concourse = Concourse::new();
@@ -107,5 +123,30 @@ mod tests {
             let reference = concourse.alloc(i);
             assert_eq!(i, *reference);
         }
+    }
+
+    #[test]
+    fn concurrent_writes() {
+        loom::model(|| {
+            let concourse = Arc::new(Concourse::<usize>::new());
+            let allocator_1 = concourse.clone();
+            let allocator_2 = concourse.clone();
+            let allocator_3 = concourse.clone();
+
+            loom::thread::spawn(move || {
+                let reference = allocator_1.alloc(128);
+                assert_eq!(128, *reference);
+            });
+
+            loom::thread::spawn(move || {
+                let reference = allocator_2.alloc(256);
+                assert_eq!(256, *reference);
+            });
+
+            loom::thread::spawn(move || {
+                let reference = allocator_3.alloc(512);
+                assert_eq!(512, *reference);
+            });
+        });
     }
 }
