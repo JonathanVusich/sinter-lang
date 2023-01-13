@@ -5,7 +5,7 @@ mod sync;
 use std::{hint, ptr};
 use std::marker::PhantomData;
 use std::mem::forget;
-use std::sync::atomic::Ordering::{Acquire, SeqCst};
+use std::sync::atomic::Ordering::{Acquire, SeqCst, Release};
 use crate::sync::{Mutex, RwLock};
 use crate::sync::atomic::{AtomicUsize, AtomicBool};
 
@@ -48,12 +48,13 @@ impl<'c, T> Concourse<'c, T> {
                 self.store(val, dest)
             },
             None => {
+                drop(buffer);
                 if let Ok(false) = self.full.compare_exchange(false, true, SeqCst, SeqCst) {
-                    drop(buffer);
                     let mut buffer = self.buffer.write().unwrap();
                     let mut new_buffer = Buffer::with_capacity(DEFAULT_CAPACITY);
                     std::mem::swap(&mut *buffer, &mut new_buffer);
                     self.buffers.lock().unwrap().push(new_buffer);
+                    self.full.store(false, Release);
                 } else {
                     while self.full.load(Acquire) {
                         hint::spin_loop();
@@ -170,5 +171,22 @@ mod tests {
                 assert_eq!(512, *reference);
             });
         });
+    }
+
+    #[test]
+    pub fn multithreaded_writes() {
+        let concourse = Arc::new(Concourse::<i128>::new());
+
+        let mut join_handles = Vec::new();
+        for _ in 0..8 {
+            let conc_ref = concourse.clone();
+            let thread = std::thread::spawn(move || {
+                for i in 0..10_000 {
+                    conc_ref.alloc(i);
+                }
+            });
+            join_handles.push(thread);
+        }
+        join_handles.into_iter().for_each(|handle| handle.join().unwrap());
     }
 }

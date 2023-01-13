@@ -5,27 +5,27 @@ use criterion::{criterion_group, criterion_main, Criterion};
 
 fn contended_writes(c: &mut Criterion) {
     struct Point {
-        x: i128,
-        y: i128,
+        x: u64,
+        y: u64,
     }
 
     impl Point {
-        pub fn new(x: i128, y: i128) -> Self {
+        pub fn new(x: u64, y: u64) -> Self {
             Self {
                 x, y
             }
         }
     }
 
-    c.bench_function("Contended writes", move |b| {
-        b.iter_custom(|_| {
+    c.bench_function("Contended writes", |b| {
+        b.iter_custom(|iters| {
             let concourse = Arc::new(Concourse::<Point>::new());
 
             let mut join_handles = Vec::new();
             for _ in 0..8 {
                 let conc_ref = concourse.clone();
                 let thread = std::thread::spawn(move || {
-                    for i in 0..1000 {
+                    for i in 0..iters {
                         conc_ref.alloc(Point::new(i, i));
                     }
                 });
