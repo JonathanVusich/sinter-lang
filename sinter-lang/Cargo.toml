@@ -28,6 +28,7 @@ typed-arena = "2.0.1"
 bumpalo-herd = "0.1.2"
 
 snap = { path = "../snap" }
+concourse = { path = "../concourse" }
 
 
 [dev-dependencies]

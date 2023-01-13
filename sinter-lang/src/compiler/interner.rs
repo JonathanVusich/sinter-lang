@@ -15,6 +15,7 @@ use dashmap::{DashMap, DashSet};
 use serde::{de, Deserialize, Deserializer, ser, Serialize, Serializer};
 use serde::ser::Error as SerializeError;
 use serde::de::Error as DeserializeError;
+use concourse::Concourse;
 
 const DEFAULT_BUCKET_CAPACITY: usize = 512;
 
@@ -36,7 +37,7 @@ pub struct Interner<'interned, T: Eq + Hash, S: Clone + BuildHasher> {
     interner: DashMap<&'interned T, Key, S>,
     resolver: DashMap<Key, &'interned T, S>,
     counter: AtomicUsize,
-    arena: Arena,
+    arena: Concourse<'interned, T>,
 }
 
 impl<'interned, T, S> Interner<'interned, T, S>
@@ -48,19 +49,18 @@ impl<'interned, T, S> Interner<'interned, T, S>
             interner: DashMap::with_capacity_and_hasher(DEFAULT_BUCKET_CAPACITY, S::default()),
             resolver: DashMap::with_capacity_and_hasher(DEFAULT_BUCKET_CAPACITY, S::default()),
             counter: AtomicUsize::new(1),
-            arena: Mutex::new(Buckets::new(bucket_capacity)),
+            arena: Concourse::new(),
         }
     }
 
-    pub fn intern(&self, item: T) -> Key {
+    pub fn intern(&'interned self, item: T) -> Key {
         if let Some(key) = self.interner.get(&item) {
             *key.value()
         } else {
-            let arena = self.arena.lock().unwrap();
             let index = self.counter.fetch_add(1, SeqCst);
             // This should be safe because the buckets are never reallocated.
             // The reference should be stable for the lifetime of the interner.
-            let val_ref = arena.insert(item);
+            let val_ref: &'interned T = self.arena.alloc(item);
             let key = unsafe {
                 Key::new(NonZeroUsize::new_unchecked(index))
             };
@@ -107,11 +107,7 @@ impl<T, H> Serialize for Interner<'_, T, H>
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer {
         // Serialize all of self as a `Vec<K>`
-        if let Ok(buckets) = self.arena.lock() {
-            buckets.flatten().serialize(serializer)
-        } else {
-            Err(SerializeError::custom("Serialization failure"))
-        }
+        self.arena.to_vec().serialize(serializer)
     }
 }
 
@@ -129,10 +125,10 @@ impl<'de, T, S> Deserialize<'de> for Interner<'de, T, S>
         let hasher = S::default();
         let interner = DashMap::with_capacity_and_hasher(deserialized_values.len(), hasher.clone());
         let resolver = DashMap::with_capacity_and_hasher(deserialized_values.len(), hasher);
-        let buckets = Buckets::default();
+        let buckets = Concourse::<T>::default();
         for (index, item) in deserialized_values.into_iter().enumerate() {
             let key = Key::new(NonZeroUsize::new(index + 1).unwrap());
-            let val = buckets.insert(item);
+            let val = buckets.alloc(item);
             interner.insert(val, key);
             resolver.insert(key, val);
         }
@@ -140,7 +136,7 @@ impl<'de, T, S> Deserialize<'de> for Interner<'de, T, S>
             interner,
             resolver,
             counter,
-            arena: Mutex::new(buckets)
+            arena: buckets
         })
     }
 }

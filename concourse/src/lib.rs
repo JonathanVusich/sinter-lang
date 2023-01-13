@@ -3,6 +3,7 @@
 mod sync;
 
 use std::{hint, ptr};
+use std::marker::PhantomData;
 use std::mem::forget;
 use std::sync::atomic::Ordering::{Acquire, SeqCst};
 use crate::sync::{Mutex, RwLock};
@@ -10,23 +11,36 @@ use crate::sync::atomic::{AtomicUsize, AtomicBool};
 
 const DEFAULT_CAPACITY: usize = 512;
 
-pub struct Concourse<T> {
+#[derive(Debug)]
+pub struct Concourse<'c, T> {
     buffer: RwLock<Buffer<T>>,
     buffers: Mutex<Vec<Buffer<T>>>,
     full: AtomicBool,
+    marker: PhantomData<&'c T>,
 }
 
-impl<T> Concourse<T> {
+impl<'c, T> Concourse<'c, T> {
 
     pub fn new() -> Self {
         Self {
             buffer: RwLock::new(Buffer::with_capacity(DEFAULT_CAPACITY)),
             buffers: Mutex::new(Vec::new()),
             full: AtomicBool::new(false),
+            marker: PhantomData::default(),
         }
     }
 
-    pub fn alloc(&self, val: T) -> &T {
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            buffer: RwLock::new(Buffer::with_capacity(capacity)),
+            buffers: Mutex::new(Vec::new()),
+            full: AtomicBool::new(false),
+            marker: PhantomData::default(),
+        }
+
+    }
+
+    pub fn alloc(&'c self, val: T) -> &'c T {
         let buffer = self.buffer.read().unwrap();
         let ptr = buffer.alloc();
         match ptr {
@@ -50,6 +64,10 @@ impl<T> Concourse<T> {
         }
     }
 
+    pub fn to_vec(&self) -> Vec<T> {
+        todo!()
+    }
+
     #[inline(always)]
     fn store(&self, val: T, dest: *mut T) -> &T {
         unsafe {
@@ -59,12 +77,13 @@ impl<T> Concourse<T> {
     }
 }
 
-impl<T> Default for Concourse<T> {
+impl<'c, T> Default for Concourse<'c, T> {
     fn default() -> Self {
         Concourse::<T>::new()
     }
 }
 
+#[derive(Debug)]
 struct Buffer<T> {
     buffer: *mut T,
     counter: AtomicUsize,
