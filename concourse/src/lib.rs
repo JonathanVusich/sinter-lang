@@ -83,6 +83,9 @@ impl<'c, T> Default for Concourse<'c, T> {
     }
 }
 
+unsafe impl<'c, T> Send for Concourse<'c, T> { }
+unsafe impl<'c, T> Sync for Concourse<'c, T> { }
+
 #[derive(Debug)]
 struct Buffer<T> {
     buffer: *mut T,
