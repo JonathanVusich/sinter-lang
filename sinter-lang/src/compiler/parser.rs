@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt::Alignment::Right;
 use std::fmt::{Display, Formatter};
+use std::ops::Deref;
 use std::sync::Arc;
 
 use anyhow::{anyhow, Result};
@@ -37,9 +38,9 @@ pub fn parse(ctxt: &CompilerCtxt, input: TokenizedInput) -> Result<Module> {
     parser.parse()
 }
 
-struct Parser<'a> {
-    string_interner: StringInterner<'a>,
-    ty_interner: TyInterner<'a>,
+struct Parser {
+    string_interner: StringInterner,
+    ty_interner: TyInterner,
     tokenized_input: TokenizedInput,
     token_types: Vec<TokenType>,
     pos: usize,
@@ -80,8 +81,8 @@ pub enum ClassType {
     Inline,
 }
 
-impl<'a> Parser<'a> {
-    fn new(ctxt: &'a CompilerCtxt,
+impl Parser {
+    fn new(ctxt: &CompilerCtxt,
            tokenized_input: TokenizedInput) -> Self {
         let token_types = tokenized_input
             .tokens
@@ -242,7 +243,7 @@ impl<'a> Parser<'a> {
             _ => {
                 return self.expected_tokens(vec![
                     TokenType::Mut,
-                    TokenType::Identifier(self.string_interner.intern("")),
+                    TokenType::Identifier(self.string_interner.intern("".to_owned())),
                 ]);
             }
         };
@@ -414,7 +415,7 @@ impl<'a> Parser<'a> {
             Ok(ident)
         } else {
             self.expected_token(TokenType::Identifier(
-                self.string_interner.intern(""),
+                self.string_interner.intern("".to_owned()),
             ))
         }
     }
@@ -436,14 +437,14 @@ impl<'a> Parser<'a> {
                 }
             } else {
                 return self.expected_token(TokenType::Identifier(
-                    self.string_interner.intern(""),
+                    self.string_interner.intern("".to_owned()),
                 ));
             }
         }
 
         if idents.is_empty() {
             self.expected_token(TokenType::Identifier(
-                self.string_interner.intern(""),
+                self.string_interner.intern("".to_owned()),
             ))
         } else {
             Ok(QualifiedIdent::new(idents))
@@ -525,7 +526,7 @@ impl<'a> Parser<'a> {
                 Ok(EnumMemberStmt::new(ident, params, fn_stmts))
             }
             Some(token) => self.expected_token(TokenType::Identifier(
-                self.string_interner.intern(""),
+                self.string_interner.intern("".to_owned()),
             )),
             None => self.unexpected_end(),
         }
@@ -559,7 +560,7 @@ impl<'a> Parser<'a> {
         let ty: Key;
         if self.matches(TokenType::SelfLowercase) {
             self.advance();
-            ident = self.string_interner.intern("self");
+            ident = self.string_interner.intern("self".to_owned());
             ty = self.ty_interner.intern(QSelf);
         } else {
             ident = self.identifier()?;
@@ -577,7 +578,7 @@ impl<'a> Parser<'a> {
         } else {
             self.advance();
             Ok(Param::new(
-                self.string_interner.intern("self"),
+                self.string_interner.intern("self".to_owned()),
                 self.ty_interner.intern(QSelf),
                 mutability,
             ))
@@ -646,8 +647,8 @@ impl<'a> Parser<'a> {
             Some(TokenType::Identifier(ident)) => {
                 // These built in types are officially encoded as strings to avoid them being
                 // tokenized as keywords.
-                let ident = self.string_interner.resolve(&ident).copied().unwrap();
-                match ident {
+                let ident = self.string_interner.resolve(&ident).unwrap();
+                match ident.deref() {
                     "u8" => {
                         self.advance();
                         Ok(self.ty_interner.intern(Basic(U8)))
@@ -835,7 +836,7 @@ impl<'a> Parser<'a> {
                     Some(token) => {
                         return self.expected_tokens(vec![
                             TokenType::Less,
-                            TokenType::Identifier(self.string_interner.intern("")),
+                            TokenType::Identifier(self.string_interner.intern("".to_owned())),
                         ])
                     }
                     None => return self.unexpected_end(),
@@ -866,7 +867,7 @@ impl<'a> Parser<'a> {
             let expr = match current {
                 TokenType::SelfLowercase => {
                     self.advance();
-                    let ident = self.string_interner.intern("self");
+                    let ident = self.string_interner.intern("self".to_owned());
                     Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
                 }
                 TokenType::True => {
@@ -892,7 +893,7 @@ impl<'a> Parser<'a> {
                 TokenType::Identifier(ident) => Expr::Path(self.parse_path_expr()?),
                 TokenType::SelfCapitalized => {
                     self.advance();
-                    let ident = self.string_interner.intern("Self");
+                    let ident = self.string_interner.intern("Self".to_owned());
                     Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
                 }
                 TokenType::None => {
@@ -1158,7 +1159,7 @@ impl<'a> Parser<'a> {
 
     fn parse_multiple_with_delimiter<'b, T>(
         &mut self,
-        parse_rule: fn(&mut Parser<'a>) -> Result<T>,
+        parse_rule: fn(&mut Parser) -> Result<T>,
         delimiter: TokenType,
     ) -> Result<Vec<T>> {
         let mut items = Vec::new();
@@ -1175,7 +1176,7 @@ impl<'a> Parser<'a> {
 
     fn parse_multiple_with_scope<T>(
         &mut self,
-        parse_rule: fn(&mut Parser<'a>) -> Result<T>,
+        parse_rule: fn(&mut Parser) -> Result<T>,
         scope_start: TokenType,
         scope_end: TokenType,
     ) -> Result<Vec<T>> {
@@ -1201,7 +1202,7 @@ impl<'a> Parser<'a> {
 
     fn parse_multiple_with_scope_delimiter<T, const N: usize>(
         &mut self,
-        parse_rule: fn(&mut Parser<'a>) -> Result<T>,
+        parse_rule: fn(&mut Parser) -> Result<T>,
         delimiter: TokenType,
         scope_start: TokenType,
         scope_end: TokenType,
@@ -1400,25 +1401,24 @@ mod tests {
     use crate::util::utils;
 
     #[cfg(test)]
-    fn create_parser<'ctxt>(ctxt: &'ctxt CompilerCtxt<'ctxt>, code: &str) -> Parser<'ctxt> {
+    fn create_parser(ctxt: &CompilerCtxt, code: &str) -> Parser {
         let tokens = tokenize(&ctxt, code).unwrap();
         Parser::new(ctxt, tokens)
     }
 
     #[cfg(test)]
-    fn parse_module<'ctxt, T: AsRef<str>>(code: T) -> Result<(CompilerCtxt<'ctxt>, Module)> {
-        let ctxt = CompilerCtxt::default();
-        let mut parser = create_parser(&ctxt, code.as_ref());
+    fn parse_module<T: AsRef<str>>(code: T, ctxt: &CompilerCtxt) -> Result<Module> {
+        let mut parser = create_parser(ctxt, code.as_ref());
         let module = parser.parse()?;
 
-        Ok((ctxt, module))
+        Ok(module)
     }
 
     #[cfg(test)]
-    fn parse_code<'ctxt, T, I: AsRef<str>>(
+    fn parse_code<T, I: AsRef<str>>(
         code: I,
-        ctxt: &'ctxt CompilerCtxt<'ctxt>,
-        parser_func: fn(&mut Parser<'ctxt>) -> Result<T>,
+        ctxt: &CompilerCtxt,
+        parser_func: fn(&mut Parser) -> Result<T>,
     ) -> Result<T> {
         let mut parser = create_parser(ctxt, code.as_ref());
         let parsed_val = parser_func(&mut parser)?;
@@ -1427,9 +1427,11 @@ mod tests {
 
     #[cfg(test)]
     macro_rules! parse {
-        ($code:expr) => {
-            parse_module($code).unwrap()
-        };
+        ($code:expr) => {{
+            let ctxt = CompilerCtxt::default();
+            let module = parse_module($code, &ctxt).unwrap();
+            (ctxt, module)
+        }};
     }
 
     #[cfg(test)]
@@ -1461,8 +1463,9 @@ mod tests {
 
     #[test]
     pub fn invalid_use_stmts() {
-        match parse_module("use std::vector::") {
-            Ok((string_interner, module)) => {
+        let ctxt = CompilerCtxt::default();
+        match parse_module("use std::vector::", &ctxt) {
+            Ok(module) => {
                 panic!();
             }
             Err(error) => match error.downcast_ref::<ParseError>() {
@@ -1473,7 +1476,7 @@ mod tests {
             },
         }
 
-        match parse_module("use std::vector::Vector") {
+        match parse_module("use std::vector::Vector", &ctxt) {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedToken(TokenType::Semicolon, _)) => {}
@@ -1481,7 +1484,7 @@ mod tests {
             },
         }
 
-        match parse_module("use;") {
+        match parse_module("use;", &ctxt) {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedToken(Identifier(_), pos)) => {}
@@ -1489,7 +1492,7 @@ mod tests {
             },
         }
 
-        match parse_module("use") {
+        match parse_module("use", &ctxt) {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedToken(Identifier(_), pos)) => {}
@@ -1502,7 +1505,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn closure_return_closure() -> (StringInterner<'static>, Type) {
+    pub fn closure_return_closure() -> (StringInterner, Type) {
         parse_ty!("() => (() => None)")
     }
 
@@ -1514,152 +1517,152 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn closure_returns_trait_bound_or_none() -> (StringInterner<'static>, Type) {
+    pub fn closure_returns_trait_bound_or_none() -> (StringInterner, Type) {
         parse_ty!("() => [first::party::package::Send<K, V> + third::party::package::Sync<T> + std::Copy + std::Clone] | None")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_type() -> (StringInterner<'static>, Type) {
+    pub fn generic_type() -> (StringInterner, Type) {
         parse_ty!("List<List<i64>>")
     }
 
     #[test]
     #[snapshot]
-    pub fn single_value() -> (CompilerCtxt<'static>, Expr) {
+    pub fn single_value() -> (CompilerCtxt, Expr) {
         parse_expr!("1")
     }
 
     #[test]
     #[snapshot]
-    pub fn add_and_multiply() -> (CompilerCtxt<'static>, Expr) {
+    pub fn add_and_multiply() -> (CompilerCtxt, Expr) {
         parse_expr!("1 + 2 * 3")
     }
 
     #[test]
     #[snapshot]
-    pub fn add_and_multiply_idents() -> (CompilerCtxt<'static>, Expr) {
+    pub fn add_and_multiply_idents() -> (CompilerCtxt, Expr) {
         parse_expr!("a + b * c * d + e")
     }
 
     #[test]
     #[snapshot]
-    pub fn function_composition() -> (CompilerCtxt<'static>, Expr) {
+    pub fn function_composition() -> (CompilerCtxt, Expr) {
         parse_expr!("f(g(h()))")
     }
 
     #[test]
     #[snapshot]
-    pub fn complex_function_composition() -> (CompilerCtxt<'static>, Expr) {
+    pub fn complex_function_composition() -> (CompilerCtxt, Expr) {
         parse_expr!("1 + 2 + f(g(h())) * 3 * 4")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_infix() -> (CompilerCtxt<'static>, Expr) {
+    pub fn double_infix() -> (CompilerCtxt, Expr) {
         parse_expr!("--1 * 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_infix_call() -> (CompilerCtxt<'static>, Expr) {
+    pub fn double_infix_call() -> (CompilerCtxt, Expr) {
         parse_expr!("--f(g)")
     }
 
     #[test]
     #[snapshot]
-    pub fn parenthesized_expr() -> (CompilerCtxt<'static>, Expr) {
+    pub fn parenthesized_expr() -> (CompilerCtxt, Expr) {
         parse_expr!("(((0)))")
     }
 
     #[test]
     #[snapshot]
-    pub fn closure_expression() -> (CompilerCtxt<'static>, Expr) {
+    pub fn closure_expression() -> (CompilerCtxt, Expr) {
         parse_expr!("(x, y) => x + y")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_index_expression() -> (CompilerCtxt<'static>, Expr) {
+    pub fn double_index_expression() -> (CompilerCtxt, Expr) {
         parse_expr!("x[0][1]")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_negate_and_multiply() -> (CompilerCtxt<'static>, Expr) {
+    pub fn double_negate_and_multiply() -> (CompilerCtxt, Expr) {
         parse_expr!("--1 * 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn comparison() -> (CompilerCtxt<'static>, Expr) {
+    pub fn comparison() -> (CompilerCtxt, Expr) {
         parse_expr!("1 < 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn parenthesized_comparison() -> (CompilerCtxt<'static>, Expr) {
+    pub fn parenthesized_comparison() -> (CompilerCtxt, Expr) {
         parse_expr!("(1 + 2 * 4) < (2 - 1)")
     }
 
     #[test]
     #[snapshot]
-    pub fn complex_conditional() -> (CompilerCtxt<'static>, Expr) {
+    pub fn complex_conditional() -> (CompilerCtxt, Expr) {
         parse_expr!("year % 4 == 0 && year % 100 != 0 || year % 400 == 0")
     }
 
     #[test]
     #[snapshot]
-    pub fn bit_operations() -> (CompilerCtxt<'static>, Expr) {
+    pub fn bit_operations() -> (CompilerCtxt, Expr) {
         parse_expr!("x + x * x / x - --x + 3 >> 1 | 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn single_path_expr() -> (StringInterner<'static>, PathExpr) {
+    pub fn single_path_expr() -> (StringInterner, PathExpr) {
         parse_path!("std")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_path_expr() -> (StringInterner<'static>, PathExpr) {
+    pub fn simple_path_expr() -> (StringInterner, PathExpr) {
         parse_path!("std::Clone")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_path_expr() -> (StringInterner<'static>, PathExpr) {
+    pub fn generic_path_expr() -> (StringInterner, PathExpr) {
         parse_path!("std::HashMap::<T>::new")
     }
 
     #[test]
     #[snapshot]
-    pub fn nested_generic_path() -> (StringInterner<'static>, PathExpr) {
+    pub fn nested_generic_path() -> (StringInterner, PathExpr) {
         parse_path!("List::<List<f64>>::new")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_trait_bound_path() -> (StringInterner<'static>, PathExpr) {
+    pub fn generic_trait_bound_path() -> (StringInterner, PathExpr) {
         parse_path!("List::<Loggable + Serializable>::new")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_union_path() -> (StringInterner<'static>, PathExpr) {
+    pub fn generic_union_path() -> (StringInterner, PathExpr) {
         parse_path!("List::<str | i64 | f64>::new")
     }
     macro_rules! simple_type {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]
             pub fn $fn_name() {
-                let (ctxt, module) =
-                    parse_module(concat!("let x: ", $code, ";")).unwrap();
+                let ctxt = CompilerCtxt::default();
+                let module = parse_module(concat!("let x: ", $code, ";"), &ctxt).unwrap();
                 let ty = Some(ctxt.ty_interner().intern($typ));
 
                 assert_eq!(
                     vec![Stmt::Let(LetStmt::new(
-                        ctxt.string_interner().intern("x"),
+                        ctxt.string_interner().intern("x".to_owned()),
                         Mutability::Immutable,
                         ty,
                         None
@@ -1701,7 +1704,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn use_statements() -> (CompilerCtxt<'static>, Module) {
+    pub fn use_statements() -> (CompilerCtxt, Module) {
         let code = concat!(
             "use std::vector;",
             "use std::array;",
@@ -1713,7 +1716,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn basic_enum() -> (CompilerCtxt<'static>, Module) {
+    pub fn basic_enum() -> (CompilerCtxt, Module) {
         let code = concat!(
             "enum Planet(\n",
             "    Mercury,\n",
@@ -1733,13 +1736,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn vector_enum() -> (CompilerCtxt<'static>, Module) {
+    pub fn vector_enum() -> (CompilerCtxt, Module) {
         parse!(utils::read_file(["short_examples", "vector_enum.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn main_fn() -> (CompilerCtxt<'static>, Module) {
+    pub fn main_fn() -> (CompilerCtxt, Module) {
         let code = concat!("fn main() {\n", "    print(\"Hello world!\");\n", "}");
 
         parse!(code)
@@ -1747,7 +1750,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn main_fn_with_args() -> (CompilerCtxt<'static>, Module) {
+    pub fn main_fn_with_args() -> (CompilerCtxt, Module) {
         let code = concat!(
             "fn main(args: [str]) {\n",
             "    print(args.to_str());\n",
@@ -1759,7 +1762,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn declare_classes_and_vars() -> (CompilerCtxt<'static>, Module) {
+    pub fn declare_classes_and_vars() -> (CompilerCtxt, Module) {
         let code = concat!(
             "class Point(x: f64, y: f64);\n",
             "ref class Node;\n",
@@ -1773,7 +1776,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn simple_add_func() -> (CompilerCtxt<'static>, Module) {
+    pub fn simple_add_func() -> (CompilerCtxt, Module) {
         let code = concat!("fn sum(a: i64, b: i64) => i64 {\n", "    a + b\n", "}");
 
         parse!(code)
@@ -1781,7 +1784,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn var_declarations() -> (CompilerCtxt<'static>, Module) {
+    pub fn var_declarations() -> (CompilerCtxt, Module) {
         let code = concat!(
             "let a: i64 = 1; // Immediate assignment\n",
             "let b = 2; // `i64` type is inferred\n"
@@ -1791,7 +1794,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn mutable_assignment() -> (CompilerCtxt<'static>, Module) {
+    pub fn mutable_assignment() -> (CompilerCtxt, Module) {
         let code = concat!(
             "fn mut_var() {\n",
             "    let mut x = 5; // `i64` type is inferred\n",
@@ -1803,14 +1806,14 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn print_fn() -> (CompilerCtxt<'static>, Module) {
+    pub fn print_fn() -> (CompilerCtxt, Module) {
         let code = concat!("fn print(text: str) {\n", "    println(text);\n", "}");
         parse!(code)
     }
 
     #[test]
     #[snapshot]
-    pub fn returning_error_union() -> (CompilerCtxt<'static>, Module) {
+    pub fn returning_error_union() -> (CompilerCtxt, Module) {
         parse!(utils::read_file([
             "short_examples",
             "returning_error_union.si"
@@ -1819,37 +1822,37 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn trait_vs_generic() -> (CompilerCtxt<'static>, Module) {
+    pub fn trait_vs_generic() -> (CompilerCtxt, Module) {
         parse!(utils::read_file(["short_examples", "trait_vs_generic.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_lists() -> (CompilerCtxt<'static>, Module) {
+    pub fn generic_lists() -> (CompilerCtxt, Module) {
         parse!(utils::read_file(["short_examples", "generic_lists.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn rectangle_class() -> (CompilerCtxt<'static>, Module) {
+    pub fn rectangle_class() -> (CompilerCtxt, Module) {
         parse!(utils::read_file(["short_examples", "rectangle_class.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_message() -> (CompilerCtxt<'static>, Module) {
+    pub fn enum_message() -> (CompilerCtxt, Module) {
         parse!(utils::read_file(["short_examples", "enum_message.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn int_match() -> (CompilerCtxt<'static>, Expr) {
+    pub fn int_match() -> (CompilerCtxt, Expr) {
         parse_expr!(utils::read_file(["short_examples", "int_match.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_match() -> (CompilerCtxt<'static>, Module) {
+    pub fn enum_match() -> (CompilerCtxt, Module) {
         parse!(utils::read_file(["short_examples", "enum_match.si"]))
     }
 }

@@ -24,19 +24,23 @@ struct CompiledApplication {
 }
 
 #[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
-pub (crate) struct CompilerCtxt<'ctxt> {
-    string_interner: StringInterner<'ctxt>,
-    ty_interner: TyInterner<'ctxt>,
+pub (crate) struct CompilerCtxt {
+    string_interner: StringInterner,
+    ty_interner: TyInterner,
 }
 
-impl<'ctxt> CompilerCtxt<'ctxt> {
+impl CompilerCtxt {
 
-    pub (crate) fn string_interner(&self) -> StringInterner<'ctxt> {
-        self.string_interner.clone()
+    pub (crate) fn string_interner(&self) -> &StringInterner {
+        &self.string_interner
     }
 
-    pub (crate) fn ty_interner(&self) -> TyInterner {
-        self.ty_interner.clone()
+    pub (crate) fn ty_interner(&self) -> &TyInterner {
+        &self.ty_interner
+    }
+
+    pub (crate) fn into_inner(self) -> (StringInterner, TyInterner) {
+        (self.string_interner, self.ty_interner)
     }
 }
 

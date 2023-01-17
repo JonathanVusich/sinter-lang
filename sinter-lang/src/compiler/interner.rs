@@ -1,9 +1,10 @@
 use std::cell::RefCell;
-use std::collections::hash_map::RandomState;
+use std::collections::hash_map::{Entry, RandomState};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Formatter, Pointer};
 use std::hash::{BuildHasher, Hash, Hasher};
 use std::marker::PhantomData;
+use std::mem;
 use std::num::NonZeroUsize;
 use std::ops::Deref;
 use std::sync::atomic::AtomicUsize;
@@ -30,38 +31,49 @@ impl Key {
     }
 }
 
-pub struct Interner<'interned, T> {
-    interner: HashMap<&'interned T, Key>,
-    resolver: HashMap<Key, &'interned T>,
+pub struct Interner<T: 'static> {
+    interner: HashMap<&'static T, Key>,
+    resolver: HashMap<Key, &'static T>,
+    counter: NonZeroUsize,
     arena: Arena<T>,
 }
 
-impl<'interned, T> Interner<'interned, T>
+impl<T> Interner<T>
     where T: PartialEq + Eq + Hash + Debug {
 
     pub fn new(bucket_capacity: usize) -> Self {
         Self {
             interner: HashMap::default(),
             resolver: HashMap::default(),
+            counter: NonZeroUsize::new(1).unwrap(),
             arena: Arena::new(),
         }
     }
 
-    pub fn intern(&self, item: T) -> Key {
-        let possible_val = self.interner.get(&item).copied();
-        if let Some(val) = possible_val {
-            return val;
-        } else {
-            todo!()
+    pub fn intern(&mut self, item: T) -> Key {
+        let entry = self.interner.entry(&item);
+        match entry {
+            Entry::Occupied(entry) => *entry.get(),
+            Entry::Vacant(entry) => {
+                let key = Key::new(self.counter);
+                entry.insert(key);
+                self.counter = self.counter.checked_add(1).unwrap();
+                key
+            }
         }
     }
 
-    pub fn resolve(&self, item: &Key) -> Option<&'interned T> {
+    pub fn resolve(&self, item: &Key) -> Option<&T> {
         self.resolver.get(&item).copied()
+    }
+
+    unsafe fn alloc(&mut self, item: T) -> &'static T {
+        let interned_ref = self.arena.alloc(item);
+        interned_ref
     }
 }
 
-impl<T> PartialEq<Self> for Interner<'_, T>
+impl<T> PartialEq<Self> for Interner<T>
     where T: PartialEq + Eq + Hash + Debug {
 
     fn eq(&self, other: &Self) -> bool {
@@ -69,23 +81,23 @@ impl<T> PartialEq<Self> for Interner<'_, T>
     }
 }
 
-impl<T: Debug> Debug for Interner<'_, T> {
+impl<T: Debug> Debug for Interner<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         todo!()
     }
 }
 
-impl<T> Eq for Interner<'_, T>
+impl<T> Eq for Interner<T>
     where T: PartialEq + Eq + Hash + Debug {}
 
-impl<T> Default for Interner<'_, T>
+impl<T> Default for Interner<T>
     where T: PartialEq + Eq + Hash + Debug {
     fn default() -> Self {
         Self::new(DEFAULT_CAPACITY)
     }
 }
 
-impl<T> Serialize for Interner<'_, T>
+impl<T> Serialize for Interner<T>
     where T: PartialEq + Eq + Hash + Debug + Serialize {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer {
@@ -94,32 +106,18 @@ impl<T> Serialize for Interner<'_, T>
     }
 }
 
-impl<'de, 'interned, T> Deserialize<'de> for Interner<'interned, T>
-    where
-        T: PartialEq + Eq + Hash + Debug + Deserialize<'de> + Clone,
-        'de: 'interned
+impl<'de, T> Deserialize<'de> for Interner<T>
+    where T: PartialEq + Eq + Hash + Debug + Deserialize<'de> + Clone
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+        where D: Deserializer<'de>,
     {
         let deserialized_values: Vec<T> = Vec::deserialize(deserializer)?;
-        let counter = AtomicUsize::new(deserialized_values.len() + 1);
-        let mut interner = HashMap::<&T, Key>::default();
-        let mut resolver = HashMap::<Key, &T>::default();
-        let arena = Arena::new();
-        for (index, item) in deserialized_values.into_iter().enumerate() {
-            let key = Key::new(NonZeroUsize::new(index + 1).unwrap());
-            let val = arena.alloc(item);
-            interner.insert(val, key);
-            resolver.insert(key, val);
+        let mut interner = Self::new(DEFAULT_CAPACITY);
+        for item in deserialized_values.into_iter() {
+            interner.intern(item);
         }
-        todo!();
-        Ok(Self {
-            interner,
-            resolver,
-            arena,
-        })
+        Ok(interner)
     }
 }
 
@@ -131,7 +129,7 @@ mod tests {
 
     #[test]
     pub fn sanity_check() {
-        let interner = Interner::default();
+        let mut interner = Interner::default();
         let key = interner.intern(123i128);
 
         assert_eq!(Key::new(NonZeroUsize::new(1).unwrap()), key);
@@ -142,7 +140,7 @@ mod tests {
 
     #[test]
     pub fn stable_references() {
-        let interner = Interner::<usize>::new(8);
+        let mut interner = Interner::<usize>::new(8);
         let keys = (0..128).into_iter().map(|num| interner.intern(num)).collect::<Vec<Key>>();
         for (index, key) in keys.iter().enumerate() {
             assert_eq!(index, *interner.resolve(key).unwrap())

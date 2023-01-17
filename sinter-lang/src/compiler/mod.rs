@@ -17,5 +17,5 @@ pub mod compiled_module;
 mod interner;
 
 type SeedableHasher = BuildHasherDefault<FxHasher>;
-pub type StringInterner<'a> = Rc<Interner<'a, &'a str>>;
-pub type TyInterner<'a> = Rc<Interner<'a, Type>>;
+pub type StringInterner = Interner<String>;
+pub type TyInterner = Interner<Type>;
