@@ -242,7 +242,7 @@ impl<'a> Parser<'a> {
             _ => {
                 return self.expected_tokens(vec![
                     TokenType::Mut,
-                    TokenType::Identifier(self.string_interner.get_or_intern("")),
+                    TokenType::Identifier(self.string_interner.intern("")),
                 ]);
             }
         };
@@ -414,7 +414,7 @@ impl<'a> Parser<'a> {
             Ok(ident)
         } else {
             self.expected_token(TokenType::Identifier(
-                self.string_interner.get_or_intern(""),
+                self.string_interner.intern(""),
             ))
         }
     }
@@ -436,14 +436,14 @@ impl<'a> Parser<'a> {
                 }
             } else {
                 return self.expected_token(TokenType::Identifier(
-                    self.string_interner.get_or_intern(""),
+                    self.string_interner.intern(""),
                 ));
             }
         }
 
         if idents.is_empty() {
             self.expected_token(TokenType::Identifier(
-                self.string_interner.get_or_intern(""),
+                self.string_interner.intern(""),
             ))
         } else {
             Ok(QualifiedIdent::new(idents))
@@ -525,7 +525,7 @@ impl<'a> Parser<'a> {
                 Ok(EnumMemberStmt::new(ident, params, fn_stmts))
             }
             Some(token) => self.expected_token(TokenType::Identifier(
-                self.string_interner.get_or_intern(""),
+                self.string_interner.intern(""),
             )),
             None => self.unexpected_end(),
         }
@@ -559,7 +559,7 @@ impl<'a> Parser<'a> {
         let ty: Key;
         if self.matches(TokenType::SelfLowercase) {
             self.advance();
-            ident = self.string_interner.get_or_intern("self");
+            ident = self.string_interner.intern("self");
             ty = self.ty_interner.intern(QSelf);
         } else {
             ident = self.identifier()?;
@@ -577,7 +577,7 @@ impl<'a> Parser<'a> {
         } else {
             self.advance();
             Ok(Param::new(
-                self.string_interner.get_or_intern("self"),
+                self.string_interner.intern("self"),
                 self.ty_interner.intern(QSelf),
                 mutability,
             ))
@@ -646,7 +646,7 @@ impl<'a> Parser<'a> {
             Some(TokenType::Identifier(ident)) => {
                 // These built in types are officially encoded as strings to avoid them being
                 // tokenized as keywords.
-                let ident = self.string_interner.resolve(&ident);
+                let ident = self.string_interner.resolve(&ident).copied().unwrap();
                 match ident {
                     "u8" => {
                         self.advance();
@@ -835,7 +835,7 @@ impl<'a> Parser<'a> {
                     Some(token) => {
                         return self.expected_tokens(vec![
                             TokenType::Less,
-                            TokenType::Identifier(self.string_interner.get_or_intern("")),
+                            TokenType::Identifier(self.string_interner.intern("")),
                         ])
                     }
                     None => return self.unexpected_end(),
@@ -866,7 +866,7 @@ impl<'a> Parser<'a> {
             let expr = match current {
                 TokenType::SelfLowercase => {
                     self.advance();
-                    let ident = self.string_interner.get_or_intern("self");
+                    let ident = self.string_interner.intern("self");
                     Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
                 }
                 TokenType::True => {
@@ -892,7 +892,7 @@ impl<'a> Parser<'a> {
                 TokenType::Identifier(ident) => Expr::Path(self.parse_path_expr()?),
                 TokenType::SelfCapitalized => {
                     self.advance();
-                    let ident = self.string_interner.get_or_intern("Self");
+                    let ident = self.string_interner.intern("Self");
                     Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
                 }
                 TokenType::None => {
@@ -1646,7 +1646,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn generic_union_path() -> (StringInterner, PathExpr) {
+    pub fn generic_union_path() -> (StringInterner<'static>, PathExpr) {
         parse_path!("List::<str | i64 | f64>::new")
     }
     macro_rules! simple_type {
@@ -1659,7 +1659,7 @@ mod tests {
 
                 assert_eq!(
                     vec![Stmt::Let(LetStmt::new(
-                        ctxt.string_interner().get("x").unwrap(),
+                        ctxt.string_interner().intern("x"),
                         Mutability::Immutable,
                         ty,
                         None

@@ -3,7 +3,7 @@ use lasso::Spur;
 use serde::{Deserialize, Serialize};
 use crate::compiler::interner::Key;
 
-pub type InternedStr = Spur;
+pub type InternedStr = Key;
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
 pub enum Type {

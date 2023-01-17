@@ -64,7 +64,7 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
 
 #[derive(Debug)]
 struct Tokenizer<'this> {
-    string_interner: StringInterner,
+    string_interner: StringInterner<'this>,
     chars: Vec<&'this str>,
     tokenized_file: TokenizedInput,
     start: usize,
@@ -181,7 +181,7 @@ impl<'this> Tokenizer<'this> {
 
         let identifier = chars.join("");
         let token_type = KEYWORDS.get(&identifier).copied().unwrap_or_else(|| {
-            let interned_str = self.string_interner.get_or_intern(identifier);
+            let interned_str = self.string_interner.intern(&identifier);
             TokenType::Identifier(interned_str)
         });
 
@@ -210,7 +210,7 @@ impl<'this> Tokenizer<'this> {
             let token_type: TokenType = tokens.join("")
                 .parse::<f64>()
                 .map(TokenType::Float)
-                .unwrap_or_else(|_| TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid float.")));
+                .unwrap_or_else(|_| TokenType::Unrecognized(self.string_interner.intern("Invalid float.")));
 
             self.create_token(token_type);
             return;
@@ -221,7 +221,7 @@ impl<'this> Tokenizer<'this> {
             .parse::<i64>()
             .map(TokenType::SignedInteger)
             .unwrap_or_else(|_| {
-                TokenType::Unrecognized(self.string_interner.get_or_intern("Invalid integer."))
+                TokenType::Unrecognized(self.string_interner.intern("Invalid integer."))
             });
         self.create_token(token_type);
     }
@@ -238,7 +238,7 @@ impl<'this> Tokenizer<'this> {
 
         if let Some(char) = self.next() && char == "\"" {
             let string = tokens.join("");
-            let interned_str = self.string_interner.get_or_intern(string);
+            let interned_str = self.string_interner.intern(&string);
 
             self.create_token(TokenType::String(interned_str))
         } else {
@@ -295,7 +295,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn create_unrecognized_token(&mut self, error_message: &'static str) {
-        let interned_error = self.string_interner.get_or_intern(error_message);
+        let interned_error = self.string_interner.intern(error_message);
         self.create_token(TokenType::Unrecognized(interned_error));
     }
 
@@ -380,7 +380,7 @@ mod tests {
     use crate::util::utils;
 
     #[cfg(test)]
-    fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner, TokenizedInput) {
+    fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner<'static>, TokenizedInput) {
         let ctxt = CompilerCtxt::default();
         (
             ctxt.string_interner(),
@@ -390,91 +390,91 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn simple_class() -> (StringInterner, TokenizedInput) {
+    pub fn simple_class() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("pub class Random {}")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_enum() -> (StringInterner, TokenizedInput) {
+    pub fn simple_enum() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("impl enum \n Reader \n [ ]")
     }
 
     #[test]
     #[snapshot]
-    pub fn invalid_native_keyword() -> (StringInterner, TokenizedInput) {
+    pub fn invalid_native_keyword() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("native nativer enative")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_statement() -> (StringInterner, TokenizedInput) {
+    pub fn simple_statement() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("use std::vector::Vector")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_float_base_case() -> (StringInterner, TokenizedInput) {
+    pub fn parse_float_base_case() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("123.45")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_float_with_preceding_whitespace() -> (StringInterner, TokenizedInput) {
+    pub fn parse_float_with_preceding_whitespace() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(" 123.45")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_positive_int() -> (StringInterner, TokenizedInput) {
+    pub fn parse_positive_int() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("123")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_negative_int() -> (StringInterner, TokenizedInput) {
+    pub fn parse_negative_int() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("-123")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_int_with_dot_after() -> (StringInterner, TokenizedInput) {
+    pub fn parse_int_with_dot_after() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("123.")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_expression() -> (StringInterner, TokenizedInput) {
+    pub fn simple_expression() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("x = 123 >> 2 | 89 * 21 & 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn complex_function_composition() -> (StringInterner, TokenizedInput) {
+    pub fn complex_function_composition() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("1 + 2 + f(g(h())) * 3 * 4")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_infix() -> (StringInterner, TokenizedInput) {
+    pub fn double_infix() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("--1 * 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_infix_call() -> (StringInterner, TokenizedInput) {
+    pub fn double_infix_call() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("--f(g)")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_trait() -> (StringInterner, TokenizedInput) {
+    pub fn simple_trait() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("trait Serializable { }")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_iterator_trait() -> (StringInterner, TokenizedInput) {
+    pub fn simple_iterator_trait() -> (StringInterner<'static>, TokenizedInput) {
         let code = concat!(
             "trait Iterator<T> {\n",
             "     fn next() => T | None;\n",
@@ -486,13 +486,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn generic_point_class() -> (StringInterner, TokenizedInput) {
+    pub fn generic_point_class() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("class Point<T, U>(x: T, y: U);")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_main_stmt() -> (StringInterner, TokenizedInput) {
+    pub fn simple_main_stmt() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(concat!(
             "fn main(arguments: [str]) {\n",
             "    println(arguments.to_string());\n",
@@ -502,25 +502,25 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn var_declarations() -> (StringInterner, TokenizedInput) {
+    pub fn var_declarations() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(concat!("let mut x = None;\n", "let y = 0;"))
     }
 
     #[test]
     #[snapshot]
-    pub fn uppercase_self() -> (StringInterner, TokenizedInput) {
+    pub fn uppercase_self() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("Self::lower_hir")
     }
 
     #[test]
     #[snapshot]
-    pub fn parameter_parsing() -> (StringInterner, TokenizedInput) {
+    pub fn parameter_parsing() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("fn mutate(mut self) => None;")
     }
 
     #[test]
     #[snapshot]
-    pub fn bytearray_to_str() -> (StringInterner, TokenizedInput) {
+    pub fn bytearray_to_str() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(concat!(
             r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
             "\n",
@@ -532,19 +532,19 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn empty_string() -> (StringInterner, TokenizedInput) {
+    pub fn empty_string() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("")
     }
 
     #[test]
     #[snapshot]
-    pub fn small_a_string() -> (StringInterner, TokenizedInput) {
+    pub fn small_a_string() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("a")
     }
 
     #[test]
     #[snapshot]
-    pub fn scene_graph_node() -> (StringInterner, TokenizedInput) {
+    pub fn scene_graph_node() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(concat!(
             "trait Node {\n",
             "   fn bounds() => Bounds;\n",
@@ -558,13 +558,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn empty_class_with_traits() -> (StringInterner, TokenizedInput) {
+    pub fn empty_class_with_traits() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("class SortedMap<T: Sortable + Hashable>;")
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_with_member_funcs() -> (StringInterner, TokenizedInput) {
+    pub fn enum_with_member_funcs() -> (StringInterner<'static>, TokenizedInput) {
         let code = concat!(
             "enum Message {\n",
             "    Text(message: str),\n",
@@ -580,7 +580,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn complex_enum() -> (StringInterner, TokenizedInput) {
+    pub fn complex_enum() -> (StringInterner<'static>, TokenizedInput) {
         let code = concat!(
             "enum Vector<X: Number + Display, Y: Number + Display> {\n",
             "    Normalized(x: X, y: Y),\n",
@@ -596,19 +596,19 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn for_loop() -> (StringInterner, TokenizedInput) {
+    pub fn for_loop() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("for x in 0..100 { }")
     }
 
     #[test]
     #[snapshot]
-    pub fn let_stmt_none() -> (StringInterner, TokenizedInput) {
+    pub fn let_stmt_none() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str("let x: None;")
     }
 
     #[test]
     #[snapshot]
-    pub fn multiple_let_stmts() -> (StringInterner, TokenizedInput) {
+    pub fn multiple_let_stmts() -> (StringInterner<'static>, TokenizedInput) {
         let code = concat!(
             "let a: i64 = 1; // Immediate assignment\n",
             "let b = 2; // `i64` type is inferred\n"
@@ -618,7 +618,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn mutable_assignment() -> (StringInterner, TokenizedInput) {
+    pub fn mutable_assignment() -> (StringInterner<'static>, TokenizedInput) {
         let code = concat!(
             "fn mut_var() {\n",
             "    let mut x = 5; // `i64` type is inferred\n",
@@ -630,14 +630,14 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn print_fn() -> (StringInterner, TokenizedInput) {
+    pub fn print_fn() -> (StringInterner<'static>, TokenizedInput) {
         let code = concat!("fn print(text: str) {\n", "    println(text);\n", "}");
         tokenize_str(code)
     }
 
     #[test]
     #[snapshot]
-    pub fn returning_error_union() -> (StringInterner, TokenizedInput) {
+    pub fn returning_error_union() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(utils::read_file([
             "short_examples",
             "returning_error_union.si",
@@ -646,43 +646,43 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn vector_enum() -> (StringInterner, TokenizedInput) {
+    pub fn vector_enum() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "vector_enum.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn trait_vs_generic() -> (StringInterner, TokenizedInput) {
+    pub fn trait_vs_generic() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "trait_vs_generic.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_lists() -> (StringInterner, TokenizedInput) {
+    pub fn generic_lists() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "generic_lists.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn rectangle_class() -> (StringInterner, TokenizedInput) {
+    pub fn rectangle_class() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "rectangle_class.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_message() -> (StringInterner, TokenizedInput) {
+    pub fn enum_message() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "enum_message.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn int_match() -> (StringInterner, TokenizedInput) {
+    pub fn int_match() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "int_match.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_match() -> (StringInterner, TokenizedInput) {
+    pub fn enum_match() -> (StringInterner<'static>, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "enum_match.si"]))
     }
 }
