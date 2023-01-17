@@ -24,11 +24,10 @@ serde = { version = "1.0.140", features = ["derive", "rc"] }
 cfg-if = "1.0.0"
 phf = { version = "0.11.0", features = ["macros"] }
 dashmap = "5.4.0"
-typed-arena = "2.0.1"
-bumpalo-herd = "0.1.2"
+thread_local = "1.1.4"
+typed-arena = "2.0.2"
 
 snap = { path = "../snap" }
-concourse = { path = "../concourse" }
 
 
 [dev-dependencies]

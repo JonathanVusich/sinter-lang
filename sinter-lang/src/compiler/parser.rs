@@ -38,7 +38,7 @@ pub fn parse(ctxt: &CompilerCtxt, input: TokenizedInput) -> Result<Module> {
 }
 
 struct Parser<'a> {
-    string_interner: StringInterner,
+    string_interner: StringInterner<'a>,
     ty_interner: TyInterner<'a>,
     tokenized_input: TokenizedInput,
     token_types: Vec<TokenType>,
@@ -1417,12 +1417,12 @@ mod tests {
     #[cfg(test)]
     fn parse_code<'ctxt, T, I: AsRef<str>>(
         code: I,
+        ctxt: &'ctxt CompilerCtxt<'ctxt>,
         parser_func: fn(&mut Parser<'ctxt>) -> Result<T>,
-    ) -> Result<(CompilerCtxt<'ctxt>, T)> {
-        let ctxt = CompilerCtxt::default();
-        let mut parser = create_parser(&ctxt, code.as_ref());
+    ) -> Result<T> {
+        let mut parser = create_parser(ctxt, code.as_ref());
         let parsed_val = parser_func(&mut parser)?;
-        Ok((ctxt, parsed_val))
+        Ok(parsed_val)
     }
 
     #[cfg(test)]
@@ -1435,15 +1435,17 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse_ty {
         ($code:expr) => {{
-            let (ctxt, key) = parse_code($code, Parser::parse_ty).unwrap();
-            (ctxt.string_interner(), *ctxt.ty_interner().resolve(&key).unwrap())
+            let ctxt = CompilerCtxt::default();
+            let key = parse_code($code, &ctxt, Parser::parse_ty).unwrap();
+            (ctxt.string_interner(), ctxt.ty_interner().resolve(&key).unwrap().clone())
         }};
     }
 
     #[cfg(test)]
     macro_rules! parse_path {
         ($code:expr) => {{
-            let (ctxt, path) = parse_code($code, Parser::parse_path_expr).unwrap();
+            let ctxt = CompilerCtxt::default();
+            let path = parse_code($code, &ctxt, Parser::parse_path_expr).unwrap();
             (ctxt.string_interner(), path)
         }};
     }
@@ -1451,7 +1453,8 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse_expr {
         ($code:expr) => {{
-            let (ctxt, expr) = parse_code($code, Parser::expr).unwrap();
+            let ctxt = CompilerCtxt::default();
+            let expr = parse_code($code, &ctxt, Parser::expr).unwrap();
             (ctxt, expr)
         }};
     }
@@ -1499,7 +1502,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn closure_return_closure() -> (StringInterner, Type) {
+    pub fn closure_return_closure() -> (StringInterner<'static>, Type) {
         parse_ty!("() => (() => None)")
     }
 
@@ -1511,13 +1514,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn closure_returns_trait_bound_or_none() -> (StringInterner, Type) {
+    pub fn closure_returns_trait_bound_or_none() -> (StringInterner<'static>, Type) {
         parse_ty!("() => [first::party::package::Send<K, V> + third::party::package::Sync<T> + std::Copy + std::Clone] | None")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_type() -> (StringInterner, Type) {
+    pub fn generic_type() -> (StringInterner<'static>, Type) {
         parse_ty!("List<List<i64>>")
     }
 
@@ -1613,31 +1616,31 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn single_path_expr() -> (StringInterner, PathExpr) {
+    pub fn single_path_expr() -> (StringInterner<'static>, PathExpr) {
         parse_path!("std")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_path_expr() -> (StringInterner, PathExpr) {
+    pub fn simple_path_expr() -> (StringInterner<'static>, PathExpr) {
         parse_path!("std::Clone")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_path_expr() -> (StringInterner, PathExpr) {
+    pub fn generic_path_expr() -> (StringInterner<'static>, PathExpr) {
         parse_path!("std::HashMap::<T>::new")
     }
 
     #[test]
     #[snapshot]
-    pub fn nested_generic_path() -> (StringInterner, PathExpr) {
+    pub fn nested_generic_path() -> (StringInterner<'static>, PathExpr) {
         parse_path!("List::<List<f64>>::new")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_trait_bound_path() -> (StringInterner, PathExpr) {
+    pub fn generic_trait_bound_path() -> (StringInterner<'static>, PathExpr) {
         parse_path!("List::<Loggable + Serializable>::new")
     }
 

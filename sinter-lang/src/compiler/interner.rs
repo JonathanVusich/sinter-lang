@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::collections::hash_map::RandomState;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Formatter, Pointer};
 use std::hash::{BuildHasher, Hash, Hasher};
 use std::marker::PhantomData;
@@ -10,14 +10,13 @@ use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering::SeqCst;
 use std::sync::Mutex;
 use std::vec::IntoIter;
-use bumpalo_herd::Herd;
 use dashmap::{DashMap, DashSet};
 use serde::{de, Deserialize, Deserializer, ser, Serialize, Serializer};
 use serde::ser::Error as SerializeError;
 use serde::de::Error as DeserializeError;
-use concourse::Concourse;
+use typed_arena::Arena;
 
-const DEFAULT_BUCKET_CAPACITY: usize = 512;
+const DEFAULT_CAPACITY: usize = 512;
 
 #[derive(Debug, Eq, PartialEq, Hash, Ord, PartialOrd, Copy, Clone, Serialize, Deserialize)]
 #[repr(transparent)]
@@ -31,90 +30,74 @@ impl Key {
     }
 }
 
-
-#[derive(Debug)]
-pub struct Interner<'interned, T: Eq + Hash, S: Clone + BuildHasher> {
-    interner: DashMap<&'interned T, Key, S>,
-    resolver: DashMap<Key, &'interned T, S>,
-    counter: AtomicUsize,
-    arena: Concourse<'interned, T>,
+pub struct Interner<'interned, T> {
+    interner: HashMap<&'interned T, Key>,
+    resolver: HashMap<Key, &'interned T>,
+    arena: Arena<T>,
 }
 
-impl<'interned, T, S> Interner<'interned, T, S>
-    where T: Sized + PartialEq + Eq + Hash + Debug + Clone,
-          S: Clone + BuildHasher + Default {
+impl<'interned, T> Interner<'interned, T>
+    where T: PartialEq + Eq + Hash + Debug {
 
     pub fn new(bucket_capacity: usize) -> Self {
         Self {
-            interner: DashMap::with_capacity_and_hasher(DEFAULT_BUCKET_CAPACITY, S::default()),
-            resolver: DashMap::with_capacity_and_hasher(DEFAULT_BUCKET_CAPACITY, S::default()),
-            counter: AtomicUsize::new(1),
-            arena: Concourse::new(),
+            interner: HashMap::default(),
+            resolver: HashMap::default(),
+            arena: Arena::new(),
         }
     }
 
-    pub fn intern(&'interned self, item: T) -> Key {
-        if let Some(key) = self.interner.get(&item) {
-            *key.value()
+    pub fn intern(&self, item: T) -> Key {
+        let possible_val = self.interner.get(&item).copied();
+        if let Some(val) = possible_val {
+            return val;
         } else {
-            let index = self.counter.fetch_add(1, SeqCst);
-            // This should be safe because the buckets are never reallocated.
-            // The reference should be stable for the lifetime of the interner.
-            let val_ref: &'interned T = self.arena.alloc(item);
-            let key = unsafe {
-                Key::new(NonZeroUsize::new_unchecked(index))
-            };
-            self.interner.insert(val_ref, key);
-            self.resolver.insert(key, val_ref);
-            key
+            todo!()
         }
     }
 
-    pub fn resolve(&self, key: &Key) -> Option<&'interned T> {
-        self.resolver.get(key).map(|entry| *entry.value())
+    pub fn resolve(&self, item: &Key) -> Option<&'interned T> {
+        self.resolver.get(&item).copied()
     }
 }
 
-impl<'interned, T> Default for Interner<'interned, T, RandomState>
-    where T: Sized + PartialEq + Eq + Hash + Debug + Clone {
-    fn default() -> Self {
-        Interner::new(DEFAULT_BUCKET_CAPACITY)
-    }
-}
-
-impl<T, S> PartialEq<Self> for Interner<'_, T, S>
-    where T: Sized + PartialEq + Eq + Hash + Debug,
-          S: Clone + BuildHasher {
+impl<T> PartialEq<Self> for Interner<'_, T>
+    where T: PartialEq + Eq + Hash + Debug {
 
     fn eq(&self, other: &Self) -> bool {
-        self.resolver.len() == other.resolver.len()
-            && self.resolver.iter().all(|left| {
-            other.resolver
-                .get(left.key())
-                .map(|s| s.value() == left.value())
-                == Some(true)
-        })
+        self.interner.eq(&other.interner)
     }
 }
 
-impl<T, S> Eq for Interner<'_, T, S>
-    where T: Sized + PartialEq + Eq + Hash + Debug,
-          S: Clone + BuildHasher {}
+impl<T: Debug> Debug for Interner<'_, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
 
-impl<T, H> Serialize for Interner<'_, T, H>
-    where T: Sized + PartialEq + Eq + Hash + Debug + Serialize + Clone,
-          H: Clone + BuildHasher {
+impl<T> Eq for Interner<'_, T>
+    where T: PartialEq + Eq + Hash + Debug {}
+
+impl<T> Default for Interner<'_, T>
+    where T: PartialEq + Eq + Hash + Debug {
+    fn default() -> Self {
+        Self::new(DEFAULT_CAPACITY)
+    }
+}
+
+impl<T> Serialize for Interner<'_, T>
+    where T: PartialEq + Eq + Hash + Debug + Serialize {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer {
         // Serialize all of self as a `Vec<K>`
-        self.arena.to_vec().serialize(serializer)
+        todo!()
     }
 }
 
-impl<'de, T, S> Deserialize<'de> for Interner<'de, T, S>
+impl<'de, 'interned, T> Deserialize<'de> for Interner<'interned, T>
     where
-        T: Sized + PartialEq + Eq + Hash + Debug + Deserialize<'de> + Clone,
-        S: BuildHasher + Clone + Default,
+        T: PartialEq + Eq + Hash + Debug + Deserialize<'de> + Clone,
+        'de: 'interned
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
@@ -122,91 +105,21 @@ impl<'de, T, S> Deserialize<'de> for Interner<'de, T, S>
     {
         let deserialized_values: Vec<T> = Vec::deserialize(deserializer)?;
         let counter = AtomicUsize::new(deserialized_values.len() + 1);
-        let hasher = S::default();
-        let interner = DashMap::with_capacity_and_hasher(deserialized_values.len(), hasher.clone());
-        let resolver = DashMap::with_capacity_and_hasher(deserialized_values.len(), hasher);
-        let buckets = Concourse::<T>::default();
+        let mut interner = HashMap::<&T, Key>::default();
+        let mut resolver = HashMap::<Key, &T>::default();
+        let arena = Arena::new();
         for (index, item) in deserialized_values.into_iter().enumerate() {
             let key = Key::new(NonZeroUsize::new(index + 1).unwrap());
-            let val = buckets.alloc(item);
+            let val = arena.alloc(item);
             interner.insert(val, key);
             resolver.insert(key, val);
         }
+        todo!();
         Ok(Self {
             interner,
             resolver,
-            counter,
-            arena: buckets
+            arena,
         })
-    }
-}
-
-#[derive(Debug)]
-struct Buckets<'a, T> {
-    buckets: RefCell<Vec<Bucket<'a, T>>>,
-    bucket_capacity: usize,
-}
-
-impl<'a, T> Buckets<'a, T> where T: Clone {
-    pub fn new(bucket_capacity: usize) -> Self {
-        Self {
-            buckets: RefCell::new(Vec::new()),
-            bucket_capacity,
-        }
-    }
-
-    pub fn insert(&self, item: T) -> &'a T {
-        let mut buckets = self.buckets.borrow_mut();
-        let has_space = buckets.last().map(|item| !item.full()).unwrap_or(false);
-        if !has_space {
-            buckets.push(Bucket::new(self.bucket_capacity));
-        }
-        buckets.last_mut().map(|bucket| bucket.push(item)).unwrap()
-    }
-
-    fn flatten(&self) -> Vec<T> {
-        self.buckets.borrow().iter().flat_map(|bucket| bucket.buffer.clone()).collect()
-    }
-}
-
-impl<'a, T> Default for Buckets<'a, T> where T: Clone {
-    fn default() -> Self {
-        Buckets::new(512)
-    }
-}
-
-#[derive(Debug, Clone)]
-#[repr(transparent)]
-struct Bucket<'a, T> {
-    buffer: Vec<T>,
-    marker: PhantomData<&'a T>,
-}
-
-impl<'a, T> Bucket<'a, T> {
-
-    fn new(capacity: usize) -> Self {
-        Self {
-            buffer: Vec::with_capacity(capacity),
-            marker: PhantomData::default(),
-        }
-    }
-
-    fn full(&self) -> bool {
-        self.buffer.capacity() <= self.buffer.len()
-    }
-
-    fn push(&mut self, item: T) -> &'a T {
-        debug_assert!(!self.full());
-        self.buffer.push(item);
-        unsafe {
-            std::mem::transmute(self.buffer.last().unwrap())
-        }
-    }
-}
-
-impl<'a, T> Default for Bucket<'a, T> {
-    fn default() -> Self {
-        Bucket::new(512)
     }
 }
 
@@ -229,7 +142,7 @@ mod tests {
 
     #[test]
     pub fn stable_references() {
-        let interner = Interner::<usize, RandomState>::new(8);
+        let interner = Interner::<usize>::new(8);
         let keys = (0..128).into_iter().map(|num| interner.intern(num)).collect::<Vec<Key>>();
         for (index, key) in keys.iter().enumerate() {
             assert_eq!(index, *interner.resolve(key).unwrap())

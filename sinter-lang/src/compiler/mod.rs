@@ -1,7 +1,8 @@
 use std::collections::hash_map::RandomState;
-use lasso::{Spur, ThreadedRodeo};
+use lasso::{Rodeo, Spur, ThreadedRodeo};
 use rustc_hash::FxHasher;
 use std::hash::{BuildHasher, BuildHasherDefault};
+use std::rc::Rc;
 use std::sync::Arc;
 use crate::compiler::interner::Interner;
 use crate::compiler::types::types::Type;
@@ -16,5 +17,5 @@ pub mod compiled_module;
 mod interner;
 
 type SeedableHasher = BuildHasherDefault<FxHasher>;
-pub type StringInterner = Arc<ThreadedRodeo>;
-pub type TyInterner<'a> = Arc<Interner<'a, Type, RandomState>>;
+pub type StringInterner<'a> = Rc<Interner<'a, str>>;
+pub type TyInterner<'a> = Rc<Interner<'a, Type>>;

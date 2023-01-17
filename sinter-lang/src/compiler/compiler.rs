@@ -1,7 +1,8 @@
 use std::fs::File;
 use std::path::Path;
 use anyhow::Result;
-use serde::{Serialize, Deserialize};
+use serde::{Serialize, Deserialize, Deserializer};
+use serde::de::DeserializeOwned;
 use crate::compiler::ast::Stmt;
 use crate::compiler::interner::Interner;
 use crate::compiler::parser::parse;
@@ -22,18 +23,15 @@ struct CompiledApplication {
 
 }
 
-#[derive(PartialEq, Eq, Default, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub (crate) struct CompilerCtxt<'ctxt> {
-    string_interner: StringInterner,
+    string_interner: StringInterner<'ctxt>,
     ty_interner: TyInterner<'ctxt>,
 }
 
-unsafe impl Send for CompilerCtxt<'_> {}
-unsafe impl Sync for CompilerCtxt<'_> {}
-
 impl<'ctxt> CompilerCtxt<'ctxt> {
 
-    pub (crate) fn string_interner(&self) -> StringInterner {
+    pub (crate) fn string_interner(&self) -> StringInterner<'ctxt> {
         self.string_interner.clone()
     }
 
@@ -41,6 +39,8 @@ impl<'ctxt> CompilerCtxt<'ctxt> {
         self.ty_interner.clone()
     }
 }
+
+
 
 fn compile(application: Application) -> Result<CompiledApplication> {
     let ctxt = CompilerCtxt::default();
