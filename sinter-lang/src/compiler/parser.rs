@@ -33,14 +33,13 @@ use crate::compiler::{StringInterner, TyInterner};
 use crate::compiler::compiler::CompilerCtxt;
 use crate::gc::block::Block;
 
-pub fn parse(ctxt: &CompilerCtxt, input: TokenizedInput) -> Result<Module> {
+pub fn parse(ctxt: CompilerCtxt, input: TokenizedInput) -> Result<(CompilerCtxt, Module)> {
     let mut parser = Parser::new(ctxt, input);
     parser.parse()
 }
 
 struct Parser {
-    string_interner: StringInterner,
-    ty_interner: TyInterner,
+    compiler_ctxt: CompilerCtxt,
     tokenized_input: TokenizedInput,
     token_types: Vec<TokenType>,
     pos: usize,
@@ -82,7 +81,7 @@ pub enum ClassType {
 }
 
 impl Parser {
-    fn new(ctxt: &CompilerCtxt,
+    fn new(ctxt: CompilerCtxt,
            tokenized_input: TokenizedInput) -> Self {
         let token_types = tokenized_input
             .tokens
@@ -90,17 +89,16 @@ impl Parser {
             .map(|f| f.token_type)
             .collect();
         Self {
-            string_interner: ctxt.string_interner(),
-            ty_interner: ctxt.ty_interner(),
+            compiler_ctxt: ctxt,
             tokenized_input,
             token_types,
             pos: 0,
         }
     }
 
-    fn parse(mut self) -> Result<Module> {
+    fn parse(mut self) -> Result<(CompilerCtxt, Module)> {
         let stmts = self.parse_outer_stmts()?;
-        Ok(Module::new(stmts))
+        Ok((self.compiler_ctxt, Module::new(stmts)))
     }
 
     fn parse_outer_stmts(&mut self) -> Result<Vec<Stmt>> {
@@ -243,7 +241,7 @@ impl Parser {
             _ => {
                 return self.expected_tokens(vec![
                     TokenType::Mut,
-                    TokenType::Identifier(self.string_interner.intern("".to_owned())),
+                    TokenType::Identifier(self.intern_str("")),
                 ]);
             }
         };
@@ -415,7 +413,7 @@ impl Parser {
             Ok(ident)
         } else {
             self.expected_token(TokenType::Identifier(
-                self.string_interner.intern("".to_owned()),
+                self.intern_str(""),
             ))
         }
     }
@@ -437,14 +435,14 @@ impl Parser {
                 }
             } else {
                 return self.expected_token(TokenType::Identifier(
-                    self.string_interner.intern("".to_owned()),
+                    self.intern_str(""),
                 ));
             }
         }
 
         if idents.is_empty() {
             self.expected_token(TokenType::Identifier(
-                self.string_interner.intern("".to_owned()),
+                self.intern_str(""),
             ))
         } else {
             Ok(QualifiedIdent::new(idents))
@@ -526,7 +524,7 @@ impl Parser {
                 Ok(EnumMemberStmt::new(ident, params, fn_stmts))
             }
             Some(token) => self.expected_token(TokenType::Identifier(
-                self.string_interner.intern("".to_owned()),
+                self.intern_str(""),
             )),
             None => self.unexpected_end(),
         }
@@ -560,8 +558,8 @@ impl Parser {
         let ty: Key;
         if self.matches(TokenType::SelfLowercase) {
             self.advance();
-            ident = self.string_interner.intern("self".to_owned());
-            ty = self.ty_interner.intern(QSelf);
+            ident = self.intern_str("self");
+            ty = self.intern_ty(QSelf);
         } else {
             ident = self.identifier()?;
             self.expect(TokenType::Colon)?;
@@ -578,8 +576,8 @@ impl Parser {
         } else {
             self.advance();
             Ok(Param::new(
-                self.string_interner.intern("self".to_owned()),
-                self.ty_interner.intern(QSelf),
+                self.intern_str("self"),
+                self.intern_ty(QSelf),
                 mutability,
             ))
         }
@@ -630,7 +628,7 @@ impl Parser {
             self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
         if tys.len() > 1 {
             let ty = Union(tys);
-            Ok(self.ty_interner.intern(ty))
+            Ok(self.intern_ty(ty))
         } else {
             Ok(tys.remove(0))
         }
@@ -642,65 +640,65 @@ impl Parser {
             Some(TokenType::LeftBracket) => self.parse_array_ty(),
             Some(TokenType::None) => {
                 self.advance();
-                Ok(self.ty_interner.intern(Basic(BasicType::None)))
+                Ok(self.intern_ty(Basic(BasicType::None)))
             }
             Some(TokenType::Identifier(ident)) => {
                 // These built in types are officially encoded as strings to avoid them being
                 // tokenized as keywords.
-                let ident = self.string_interner.resolve(&ident).unwrap();
-                match ident.deref() {
+                let ident = self.resolve_str(ident);
+                match ident {
                     "u8" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(U8)))
+                        Ok(self.intern_ty(Basic(U8)))
                     }
                     "u16" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(U16)))
+                        Ok(self.intern_ty(Basic(U16)))
                     }
                     "u32" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(U32)))
+                        Ok(self.intern_ty(Basic(U32)))
                     }
                     "u64" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(U64)))
+                        Ok(self.intern_ty(Basic(U64)))
                     }
                     "i8" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(I8)))
+                        Ok(self.intern_ty(Basic(I8)))
                     }
                     "i16" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(I16)))
+                        Ok(self.intern_ty(Basic(I16)))
                     }
                     "i32" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(I32)))
+                        Ok(self.intern_ty(Basic(I32)))
                     }
                     "i64" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(I64)))
+                        Ok(self.intern_ty(Basic(I64)))
                     }
                     "f32" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(F32)))
+                        Ok(self.intern_ty(Basic(F32)))
                     }
                     "f64" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(F64)))
+                        Ok(self.intern_ty(Basic(F64)))
                     }
                     "str" => {
                         self.advance();
-                        Ok(self.ty_interner.intern(Basic(Str)))
+                        Ok(self.intern_ty(Basic(Str)))
                     }
                     other => self.parse_qualified_ty(),
                 }
             }
             Some(TokenType::SelfCapitalized) => {
                 self.advance();
-                Ok(self.ty_interner.intern(QSelf))
+                Ok(self.intern_ty(QSelf))
             }
-            Some(token) => Ok(self.ty_interner.intern(Infer)),
+            Some(token) => Ok(self.intern_ty(Infer)),
             None => self.unexpected_end(),
         }
     }
@@ -724,7 +722,7 @@ impl Parser {
                 }
                 _ => self.parse_ty()?,
             };
-            Ok(self.ty_interner.intern(Closure(tys, return_ty)))
+            Ok(self.intern_ty(Closure(tys, return_ty)))
         } else {
             self.unexpected_end()
         }
@@ -734,7 +732,7 @@ impl Parser {
         self.expect(TokenType::LeftBracket)?;
         let ty = Type::Array(self.parse_ty()?);
         self.expect(TokenType::RightBracket)?;
-        Ok(self.ty_interner.intern(ty))
+        Ok(self.intern_ty(ty))
     }
 
     fn parse_qualified_ty(&mut self) -> Result<Key> {
@@ -745,9 +743,9 @@ impl Parser {
             let mut paths =
                 self.parse_multiple_with_delimiter(Self::parse_path_ty, TokenType::Plus)?;
             paths.insert(0, path);
-            Ok(self.ty_interner.intern(Type::TraitBound(TraitBound::new(paths))))
+            Ok(self.intern_ty(Type::TraitBound(TraitBound::new(paths))))
         } else {
-            Ok(self.ty_interner.intern(Path(path)))
+            Ok(self.intern_ty(Path(path)))
         }
     }
 
@@ -836,7 +834,7 @@ impl Parser {
                     Some(token) => {
                         return self.expected_tokens(vec![
                             TokenType::Less,
-                            TokenType::Identifier(self.string_interner.intern("".to_owned())),
+                            TokenType::Identifier(self.intern_str("")),
                         ])
                     }
                     None => return self.unexpected_end(),
@@ -867,7 +865,7 @@ impl Parser {
             let expr = match current {
                 TokenType::SelfLowercase => {
                     self.advance();
-                    let ident = self.string_interner.intern("self".to_owned());
+                    let ident = self.intern_str("self");
                     Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
                 }
                 TokenType::True => {
@@ -893,7 +891,7 @@ impl Parser {
                 TokenType::Identifier(ident) => Expr::Path(self.parse_path_expr()?),
                 TokenType::SelfCapitalized => {
                     self.advance();
-                    let ident = self.string_interner.intern("Self".to_owned());
+                    let ident = self.intern_str("Self");
                     Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
                 }
                 TokenType::None => {
@@ -1237,6 +1235,18 @@ impl Parser {
         }
         Ok(items)
     }
+    
+    fn intern_str(&mut self, str: &str) -> Key {
+        self.compiler_ctxt.intern_str(str)
+    }
+
+    fn resolve_str(&mut self, key: Key) -> &str {
+        self.compiler_ctxt.resolve_str(key)
+    }
+    
+    fn intern_ty(&mut self, ty: Type) -> Key {
+        self.compiler_ctxt.intern_ty(ty)
+    }
 
     fn expected_token<T>(&mut self, token_type: TokenType) -> Result<T> {
         let token_position = self.current_position().unwrap_or(self.last_position());
@@ -1401,28 +1411,26 @@ mod tests {
     use crate::util::utils;
 
     #[cfg(test)]
-    fn create_parser(ctxt: &CompilerCtxt, code: &str) -> Parser {
-        let tokens = tokenize(&ctxt, code).unwrap();
+    fn create_parser(code: &str) -> Parser {
+        let ctxt = CompilerCtxt::default();
+        let (ctxt, tokens) = tokenize(code).unwrap();
         Parser::new(ctxt, tokens)
     }
 
     #[cfg(test)]
-    fn parse_module<T: AsRef<str>>(code: T, ctxt: &CompilerCtxt) -> Result<Module> {
-        let mut parser = create_parser(ctxt, code.as_ref());
-        let module = parser.parse()?;
-
-        Ok(module)
+    fn parse_module<T: AsRef<str>>(code: T) -> Result<(CompilerCtxt, Module)> {
+        let mut parser = create_parser(code.as_ref());
+        Ok(parser.parse()?)
     }
 
     #[cfg(test)]
     fn parse_code<T, I: AsRef<str>>(
         code: I,
-        ctxt: &CompilerCtxt,
         parser_func: fn(&mut Parser) -> Result<T>,
-    ) -> Result<T> {
-        let mut parser = create_parser(ctxt, code.as_ref());
+    ) -> Result<(CompilerCtxt, T)> {
+        let mut parser = create_parser(code.as_ref());
         let parsed_val = parser_func(&mut parser)?;
-        Ok(parsed_val)
+        Ok((parser.compiler_ctxt, parsed_val))
     }
 
     #[cfg(test)]
@@ -1437,9 +1445,8 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse_ty {
         ($code:expr) => {{
-            let ctxt = CompilerCtxt::default();
-            let key = parse_code($code, &ctxt, Parser::parse_ty).unwrap();
-            (ctxt.string_interner(), ctxt.ty_interner().resolve(&key).unwrap().clone())
+            let key = parse_code($code, Parser::parse_ty).unwrap();
+            (ctxt.string_interner, ctxt.ty_interner().resolve(&key).unwrap().clone())
         }};
     }
 
@@ -1455,16 +1462,13 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse_expr {
         ($code:expr) => {{
-            let ctxt = CompilerCtxt::default();
-            let expr = parse_code($code, &ctxt, Parser::expr).unwrap();
-            (ctxt, expr)
+            parse_code($code, Parser::expr).unwrap()
         }};
     }
 
     #[test]
     pub fn invalid_use_stmts() {
-        let ctxt = CompilerCtxt::default();
-        match parse_module("use std::vector::", &ctxt) {
+        match parse_module("use std::vector::") {
             Ok(module) => {
                 panic!();
             }
@@ -1476,7 +1480,7 @@ mod tests {
             },
         }
 
-        match parse_module("use std::vector::Vector", &ctxt) {
+        match parse_module("use std::vector::Vector") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedToken(TokenType::Semicolon, _)) => {}
@@ -1484,7 +1488,7 @@ mod tests {
             },
         }
 
-        match parse_module("use;", &ctxt) {
+        match parse_module("use;") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedToken(Identifier(_), pos)) => {}
@@ -1492,7 +1496,7 @@ mod tests {
             },
         }
 
-        match parse_module("use", &ctxt) {
+        match parse_module("use") {
             Ok(_) => panic!(),
             Err(error) => match error.downcast_ref::<ParseError>() {
                 Some(ExpectedToken(Identifier(_), pos)) => {}
@@ -1662,7 +1666,7 @@ mod tests {
 
                 assert_eq!(
                     vec![Stmt::Let(LetStmt::new(
-                        ctxt.string_interner().intern("x".to_owned()),
+                        ctxt.string_interner().intern("x"),
                         Mutability::Immutable,
                         ty,
                         None

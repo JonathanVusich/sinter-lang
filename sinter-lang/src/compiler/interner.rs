@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::hash_map::{Entry, RandomState};
+use std::collections::hash_map::{Entry, RandomState, RawEntryMut};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Formatter, Pointer};
 use std::hash::{BuildHasher, Hash, Hasher};
@@ -31,43 +31,67 @@ impl Key {
     }
 }
 
-pub struct Interner<T: 'static> {
-    interner: HashMap<&'static T, Key>,
-    resolver: HashMap<Key, &'static T>,
-    counter: NonZeroUsize,
+impl Into<usize> for Key {
+    fn into(self) -> usize {
+        self.val.get()
+    }
+}
+
+pub struct Interner<T: 'static, H = RandomState> {
+    interner: HashMap<Key, (), ()>,
+    hasher: H,
+    values: Vec<&'static T>,
     arena: Arena<T>,
 }
 
-impl<T> Interner<T>
-    where T: PartialEq + Eq + Hash + Debug {
+impl<T, H> Interner<T, H>
+    where T: PartialEq + Eq + Hash + Debug,
+          H: BuildHasher + Default {
 
-    pub fn new(bucket_capacity: usize) -> Self {
+    pub fn new() -> Self {
         Self {
-            interner: HashMap::default(),
-            resolver: HashMap::default(),
-            counter: NonZeroUsize::new(1).unwrap(),
-            arena: Arena::new(),
+            interner: HashMap::with_capacity_and_hasher(64, ()),
+            hasher: H::default(),
+            values: Vec::default(),
+            arena: Arena::default(),
         }
     }
 
     pub fn intern(&mut self, item: T) -> Key {
-        let entry = self.interner.entry(&item);
-        match entry {
-            Entry::Occupied(entry) => *entry.get(),
-            Entry::Vacant(entry) => {
-                let key = Key::new(self.counter);
-                entry.insert(key);
-                self.counter = self.counter.checked_add(1).unwrap();
-                key
+        // Compute hash of item
+        let mut hasher = self.hasher.build_hasher();
+        item.hash(&mut hasher);
+        let hash = hasher.finish();
+
+        let entry = self.interner.raw_entry_mut().from_hash(hash, |key| {
+            let val = *key.into();
+            let interned = self.values.get(val).unwrap();
+            &item == interned
+        });
+
+
+
+        let key = match entry {
+            RawEntryMut::Occupied(entry) => *entry.key(),
+            RawEntryMut::Vacant(entry) => {
+                let key = Key::new(NonZeroUsize::new(self.arena.len()).unwrap());
+                entry.insert_with_hasher(hash, key, (), |key| {
+                    let key_val = self.values.get(key.into()).unwrap();
+
+                    let mut state = self.hasher.build_hasher();
+                    key_val.hash(&mut state);
+
+                    state.finish()
+                });
             }
-        }
+        };
     }
 
     pub fn resolve(&self, item: &Key) -> Option<&T> {
         self.resolver.get(&item).copied()
     }
 
-    unsafe fn alloc(&mut self, item: T) -> &'static T {
+    unsafe fn alloc(&self, item: T) -> &'static T {
         let interned_ref = self.arena.alloc(item);
         interned_ref
     }

@@ -10,25 +10,25 @@ use anyhow::Result;
 use phf::phf_map;
 use unicode_segmentation::UnicodeSegmentation;
 use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::interner::{Interner, Key};
 
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
 use crate::compiler::types::types::InternedStr;
 use crate::compiler::StringInterner;
 
-pub fn tokenize_file(ctxt: &CompilerCtxt, path: &Path) -> Result<TokenizedInput> {
+pub fn tokenize_file(path: &Path) -> Result<(CompilerCtxt, TokenizedInput)> {
     let source_file = fs::read_to_string(path)?;
-    let tokenizer = Tokenizer::new(ctxt, &source_file);
-    Ok(tokenizer.into())
+    let tokenizer = Tokenizer::new(&source_file);
+    tokenizer.tokenize()
 }
 
 pub fn tokenize<T: AsRef<str>>(
-    ctxt: &CompilerCtxt,
     input: T,
-) -> Result<TokenizedInput> {
+) -> Result<(CompilerCtxt, TokenizedInput)> {
     let source_file = input.as_ref();
-    let tokenizer = Tokenizer::new(&ctxt, source_file);
-    Ok(tokenizer.into())
+    let tokenizer = Tokenizer::new(source_file);
+    tokenizer.tokenize()
 }
 
 static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
@@ -64,7 +64,7 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
 
 #[derive(Debug)]
 struct Tokenizer<'this> {
-    string_interner: StringInterner,
+    compiler_ctxt: CompilerCtxt,
     chars: Vec<&'this str>,
     tokenized_file: TokenizedInput,
     start: usize,
@@ -72,11 +72,11 @@ struct Tokenizer<'this> {
 }
 
 impl<'this> Tokenizer<'this> {
-    pub fn new(ctxt: &CompilerCtxt, source: &'this str) -> Self {
+    pub fn new(source: &'this str) -> Self {
         let chars = source.graphemes(true).collect::<Vec<&'this str>>();
 
         Self {
-            string_interner: ctxt.string_interner(),
+            compiler_ctxt: CompilerCtxt::default(),
             chars,
             tokenized_file: TokenizedInput::new(),
             start: 0,
@@ -84,13 +84,12 @@ impl<'this> Tokenizer<'this> {
         }
     }
 
-    pub fn into(mut self) -> TokenizedInput {
+    pub fn tokenize(mut self) -> Result<(CompilerCtxt, TokenizedInput)> {
         while self.current <= self.chars.len() {
             self.skip_whitespace();
             self.scan_token();
         }
-
-        self.tokenized_file
+        Ok((self.compiler_ctxt, self.tokenized_file))
     }
 
     fn scan_token(&mut self) {
@@ -181,7 +180,7 @@ impl<'this> Tokenizer<'this> {
 
         let identifier = chars.join("");
         let token_type = KEYWORDS.get(&identifier).copied().unwrap_or_else(|| {
-            let interned_str = self.string_interner.intern(identifier);
+            let interned_str = self.intern(identifier);
             TokenType::Identifier(interned_str)
         });
 
@@ -210,7 +209,7 @@ impl<'this> Tokenizer<'this> {
             let token_type: TokenType = tokens.join("")
                 .parse::<f64>()
                 .map(TokenType::Float)
-                .unwrap_or_else(|_| TokenType::Unrecognized(self.string_interner.intern("Invalid float.".to_owned())));
+                .unwrap_or_else(|_| TokenType::Unrecognized(self.intern("Invalid float.".to_owned())));
 
             self.create_token(token_type);
             return;
@@ -221,7 +220,7 @@ impl<'this> Tokenizer<'this> {
             .parse::<i64>()
             .map(TokenType::SignedInteger)
             .unwrap_or_else(|_| {
-                TokenType::Unrecognized(self.string_interner.intern("Invalid integer.".to_owned()))
+                TokenType::Unrecognized(self.intern("Invalid integer.".to_owned()))
             });
         self.create_token(token_type);
     }
@@ -295,7 +294,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn create_unrecognized_token(&mut self, error_message: &'static str) {
-        let interned_error = self.string_interner.intern(error_message.to_owned());
+        let interned_error = self.intern(error_message.to_owned());
         self.create_token(TokenType::Unrecognized(interned_error));
     }
 
@@ -303,6 +302,10 @@ impl<'this> Tokenizer<'this> {
         let token = Token::new(token_type, self.start, self.current);
         self.start = self.current;
         self.tokenized_file.tokens.push(token);
+    }
+
+    fn intern(&mut self, str: String) -> InternedStr {
+        self.compiler_ctxt.string_interner.intern(str)
     }
 }
 
