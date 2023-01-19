@@ -125,7 +125,7 @@ impl<T> Serialize for Interner<T>
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer {
         // Serialize all of self as a `Vec<K>`
-        todo!()
+        self.values.serialize(serializer)
     }
 }
 
@@ -148,6 +148,7 @@ impl<'de, T> Deserialize<'de> for Interner<T>
 mod tests {
     use std::collections::hash_map::RandomState;
     use std::num::NonZeroUsize;
+    use snap::snapshot;
 
     use crate::compiler::interner::{Interner, Key};
 
@@ -169,5 +170,15 @@ mod tests {
         for (index, key) in keys.iter().enumerate() {
             assert_eq!(index, *interner.resolve(key).unwrap())
         }
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn snapshot_serialization() -> Interner<usize> {
+        let mut interner = Interner::default();
+        for i in 0..10 {
+            interner.intern(i);
+        }
+        interner
     }
 }
