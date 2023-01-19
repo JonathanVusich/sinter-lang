@@ -180,7 +180,7 @@ impl<'this> Tokenizer<'this> {
 
         let identifier = chars.join("");
         let token_type = KEYWORDS.get(&identifier).copied().unwrap_or_else(|| {
-            let interned_str = self.intern(identifier);
+            let interned_str = self.intern(&identifier);
             TokenType::Identifier(interned_str)
         });
 
@@ -209,7 +209,7 @@ impl<'this> Tokenizer<'this> {
             let token_type: TokenType = tokens.join("")
                 .parse::<f64>()
                 .map(TokenType::Float)
-                .unwrap_or_else(|_| TokenType::Unrecognized(self.intern("Invalid float.".to_owned())));
+                .unwrap_or_else(|_| TokenType::Unrecognized(self.intern("Invalid float.")));
 
             self.create_token(token_type);
             return;
@@ -220,7 +220,7 @@ impl<'this> Tokenizer<'this> {
             .parse::<i64>()
             .map(TokenType::SignedInteger)
             .unwrap_or_else(|_| {
-                TokenType::Unrecognized(self.intern("Invalid integer.".to_owned()))
+                TokenType::Unrecognized(self.intern("Invalid integer."))
             });
         self.create_token(token_type);
     }
@@ -237,7 +237,7 @@ impl<'this> Tokenizer<'this> {
 
         if let Some(char) = self.next() && char == "\"" {
             let string = tokens.join("");
-            let interned_str = self.string_interner.intern(string);
+            let interned_str = self.intern(&string);
 
             self.create_token(TokenType::String(interned_str))
         } else {
@@ -294,7 +294,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn create_unrecognized_token(&mut self, error_message: &'static str) {
-        let interned_error = self.intern(error_message.to_owned());
+        let interned_error = self.intern(error_message);
         self.create_token(TokenType::Unrecognized(interned_error));
     }
 
@@ -304,8 +304,8 @@ impl<'this> Tokenizer<'this> {
         self.tokenized_file.tokens.push(token);
     }
 
-    fn intern(&mut self, str: String) -> InternedStr {
-        self.compiler_ctxt.string_interner.intern(str)
+    fn intern(&mut self, str: &str) -> InternedStr {
+        self.compiler_ctxt.intern_str(str)
     }
 }
 
@@ -384,11 +384,8 @@ mod tests {
 
     #[cfg(test)]
     fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner, TokenizedInput) {
-        let ctxt = CompilerCtxt::default();
-        (
-            ctxt.string_interner(),
-            tokenize(&ctxt, code).unwrap(),
-        )
+        let (ctxt, tokens) = tokenize(code).unwrap();
+        (StringInterner::from(ctxt), tokens)
     }
 
     #[test]

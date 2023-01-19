@@ -9,6 +9,7 @@ use crate::compiler::ast::Stmt;
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::parse;
 use crate::compiler::{StringInterner, TyInterner};
+use crate::compiler::ast::Expr::String;
 use crate::compiler::tokens::tokenizer::tokenize_file;
 use crate::compiler::type_checker::type_check;
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
@@ -26,27 +27,25 @@ struct CompiledApplication {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub (crate) struct CompilerCtxt {
+pub struct CompilerCtxt {
     string_interner: StringInterner,
     ty_interner: TyInterner,
 }
 
 impl CompilerCtxt {
     pub (crate) fn intern_str(&mut self, str: &str) -> InternedStr {
-        let spur = self.string_interner.get_or_intern(str);
-        Key::new(spur.into_inner())
+        self.string_interner.get_or_intern(str)
     }
 
-    pub (crate) fn resolve_str(&self, key: Key) -> &'static str {
-        let spur = LargeSpur::try_from_usize(*key.into()).unwrap();
-        self.string_interner.resolve(&spur)
+    pub (crate) fn resolve_str(&self, str: InternedStr) -> &str {
+        self.string_interner.resolve(&str)
     }
 
     pub (crate) fn intern_ty(&mut self, ty: Type) -> InternedTy {
         self.ty_interner.intern(ty)
     }
 
-    pub (crate) fn resolve_ty(&self, key: &Key) -> &Type {
+    pub (crate) fn resolve_ty(&self, key: &InternedTy) -> &Type {
         self.ty_interner.resolve(key).unwrap()
     }
 }
@@ -54,9 +53,27 @@ impl CompilerCtxt {
 impl Default for CompilerCtxt {
     fn default() -> Self {
         Self {
-            string_interner: Rodeo::<LargeSpur>::new(),
+            string_interner: StringInterner::default(),
             ty_interner: TyInterner::default(),
         }
+    }
+}
+
+impl From<CompilerCtxt> for TyInterner {
+    fn from(value: CompilerCtxt) -> Self {
+        value.ty_interner
+    }
+}
+
+impl From<CompilerCtxt> for StringInterner {
+    fn from(value: CompilerCtxt) -> Self {
+        value.string_interner
+    }
+}
+
+impl From<CompilerCtxt> for (StringInterner, TyInterner) {
+    fn from(value: CompilerCtxt) -> Self {
+        (value.string_interner, value.ty_interner)
     }
 }
 

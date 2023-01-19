@@ -28,13 +28,13 @@ use crate::compiler::types::types::BasicType::{
     Str, F32, F64, I16, I32, I64, I8, U16, U32, U64, U8,
 };
 use crate::compiler::types::types::Type::{Basic, Closure, Infer, Path, QSelf, Union};
-use crate::compiler::types::types::{BasicType, InternedStr, Type};
+use crate::compiler::types::types::{BasicType, InternedStr, InternedTy, Type};
 use crate::compiler::{StringInterner, TyInterner};
 use crate::compiler::compiler::CompilerCtxt;
 use crate::gc::block::Block;
 
 pub fn parse(ctxt: CompilerCtxt, input: TokenizedInput) -> Result<(CompilerCtxt, Module)> {
-    let mut parser = Parser::new(ctxt, input);
+    let parser = Parser::new(ctxt, input);
     parser.parse()
 }
 
@@ -239,9 +239,10 @@ impl Parser {
             }
             Some(TokenType::Identifier(_)) => Immutable,
             _ => {
+                let ident = self.intern_str("");
                 return self.expected_tokens(vec![
                     TokenType::Mut,
-                    TokenType::Identifier(self.intern_str("")),
+                    TokenType::Identifier(ident),
                 ]);
             }
         };
@@ -412,8 +413,9 @@ impl Parser {
             self.advance();
             Ok(ident)
         } else {
+            let ident = self.intern_str("");
             self.expected_token(TokenType::Identifier(
-                self.intern_str(""),
+                ident
             ))
         }
     }
@@ -434,15 +436,17 @@ impl Parser {
                     break;
                 }
             } else {
+                let ident = self.intern_str("");
                 return self.expected_token(TokenType::Identifier(
-                    self.intern_str(""),
+                    ident
                 ));
             }
         }
 
         if idents.is_empty() {
+            let ident = self.intern_str("");
             self.expected_token(TokenType::Identifier(
-                self.intern_str(""),
+                ident
             ))
         } else {
             Ok(QualifiedIdent::new(idents))
@@ -523,9 +527,12 @@ impl Parser {
                 };
                 Ok(EnumMemberStmt::new(ident, params, fn_stmts))
             }
-            Some(token) => self.expected_token(TokenType::Identifier(
-                self.intern_str(""),
-            )),
+            Some(token) => {
+                let ident = self.intern_str("");
+                self.expected_token(TokenType::Identifier(
+                    ident
+                ))
+            },
             None => self.unexpected_end(),
         }
     }
@@ -832,9 +839,10 @@ impl Parser {
                         self.advance();
                     }
                     Some(token) => {
+                        let ident = self.intern_str("");
                         return self.expected_tokens(vec![
                             TokenType::Less,
-                            TokenType::Identifier(self.intern_str("")),
+                            TokenType::Identifier(ident),
                         ])
                     }
                     None => return self.unexpected_end(),
@@ -1236,15 +1244,15 @@ impl Parser {
         Ok(items)
     }
     
-    fn intern_str(&mut self, str: &str) -> Key {
+    fn intern_str(&mut self, str: &str) -> InternedStr {
         self.compiler_ctxt.intern_str(str)
     }
 
-    fn resolve_str(&mut self, key: Key) -> &str {
+    fn resolve_str(&mut self, key: InternedStr) -> &str {
         self.compiler_ctxt.resolve_str(key)
     }
     
-    fn intern_ty(&mut self, ty: Type) -> Key {
+    fn intern_ty(&mut self, ty: Type) -> InternedTy {
         self.compiler_ctxt.intern_ty(ty)
     }
 
@@ -1412,14 +1420,13 @@ mod tests {
 
     #[cfg(test)]
     fn create_parser(code: &str) -> Parser {
-        let ctxt = CompilerCtxt::default();
         let (ctxt, tokens) = tokenize(code).unwrap();
         Parser::new(ctxt, tokens)
     }
 
     #[cfg(test)]
     fn parse_module<T: AsRef<str>>(code: T) -> Result<(CompilerCtxt, Module)> {
-        let mut parser = create_parser(code.as_ref());
+        let parser = create_parser(code.as_ref());
         Ok(parser.parse()?)
     }
 
@@ -1436,26 +1443,24 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse {
         ($code:expr) => {{
-            let ctxt = CompilerCtxt::default();
-            let module = parse_module($code, &ctxt).unwrap();
-            (ctxt, module)
+            parse_module($code).unwrap()
         }};
     }
 
     #[cfg(test)]
     macro_rules! parse_ty {
         ($code:expr) => {{
-            let key = parse_code($code, Parser::parse_ty).unwrap();
-            (ctxt.string_interner, ctxt.ty_interner().resolve(&key).unwrap().clone())
+            let (ctxt, key) = parse_code($code, Parser::parse_ty).unwrap();
+            let ty = ctxt.resolve_ty(&key).clone();
+            (StringInterner::from(ctxt), ty)
         }};
     }
 
     #[cfg(test)]
     macro_rules! parse_path {
         ($code:expr) => {{
-            let ctxt = CompilerCtxt::default();
-            let path = parse_code($code, &ctxt, Parser::parse_path_expr).unwrap();
-            (ctxt.string_interner(), path)
+            let (ctxt, path) = parse_code($code, Parser::parse_path_expr).unwrap();
+            (StringInterner::from(ctxt), path)
         }};
     }
 
@@ -1660,13 +1665,12 @@ mod tests {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]
             pub fn $fn_name() {
-                let ctxt = CompilerCtxt::default();
-                let module = parse_module(concat!("let x: ", $code, ";"), &ctxt).unwrap();
-                let ty = Some(ctxt.ty_interner().intern($typ));
+                let (mut ctxt, module) = parse_module(concat!("let x: ", $code, ";")).unwrap();
+                let ty = Some(ctxt.intern_ty($typ));
 
                 assert_eq!(
                     vec![Stmt::Let(LetStmt::new(
-                        ctxt.string_interner().intern("x"),
+                        ctxt.intern_str("x"),
                         Mutability::Immutable,
                         ty,
                         None

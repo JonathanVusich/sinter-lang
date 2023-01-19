@@ -26,6 +26,7 @@ phf = { version = "0.11.0", features = ["macros"] }
 dashmap = "5.4.0"
 thread_local = "1.1.4"
 typed-arena = "2.0.2"
+hashbrown = "0.13.2"
 
 snap = { path = "../snap" }
 
