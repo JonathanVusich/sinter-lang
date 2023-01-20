@@ -1451,7 +1451,7 @@ mod tests {
     macro_rules! parse_ty {
         ($code:expr) => {{
             let (ctxt, key) = parse_code($code, Parser::parse_ty).unwrap();
-            let ty = ctxt.resolve_ty(&key).clone();
+            let ty = ctxt.resolve_ty(key).clone();
             (StringInterner::from(ctxt), ty)
         }};
     }

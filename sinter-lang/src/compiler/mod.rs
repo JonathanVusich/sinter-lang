@@ -16,6 +16,6 @@ pub mod compiler;
 pub mod compiled_module;
 mod interner;
 
-type SeedableHasher = BuildHasherDefault<FxHasher>;
+pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;
 pub type TyInterner = Interner<Type>;

@@ -27,8 +27,8 @@ pub struct Key {
 }
 
 impl Key {
-    pub fn new(index: usize) -> Self {
-        let val = NonZeroUsize::new(index + 1).unwrap();
+    pub unsafe fn new(index: usize) -> Self {
+        let val = NonZeroUsize::new_unchecked(index + 1);
         Self { val }
     }
 }
@@ -57,6 +57,14 @@ impl<T, H> Interner<T, H>
         }
     }
 
+    pub fn with_hasher(hasher: H) -> Self {
+        Self {
+            interner: HashMap::default(),
+            hasher,
+            values: Vec::default(),
+        }
+    }
+
     pub fn intern(&mut self, item: T) -> Key {
         // Compute hash of item
         let mut hasher = self.hasher.build_hasher();
@@ -72,7 +80,7 @@ impl<T, H> Interner<T, H>
         let key = match entry {
             RawEntryMut::Occupied(entry) => *entry.into_key(),
             RawEntryMut::Vacant(entry) => {
-                let key = Key::new(self.values.len());
+                let key = unsafe { Key::new(self.values.len()) };
 
                 self.values.push(item);
 
@@ -90,9 +98,8 @@ impl<T, H> Interner<T, H>
         key
     }
 
-    pub fn resolve(&self, item: &Key) -> Option<&T> {
-        let index: usize = (*item).into();
-        self.values.get(index)
+    pub fn resolve(&self, item: Key) -> Option<&T> {
+        self.values.get(usize::from(item))
     }
 }
 
@@ -113,7 +120,7 @@ impl<T: Debug> Debug for Interner<T> {
 impl<T> Eq for Interner<T>
     where T: PartialEq + Eq + Hash + Debug {}
 
-impl<T> Default for Interner<T>
+impl<T> Default for Interner<T, RandomState>
     where T: PartialEq + Eq + Hash + Debug {
     fn default() -> Self {
         Self::new()
@@ -147,28 +154,34 @@ impl<'de, T> Deserialize<'de> for Interner<T>
 
 mod tests {
     use std::collections::hash_map::RandomState;
+    use std::hash::{BuildHasherDefault, Hasher};
     use std::num::NonZeroUsize;
+    use rustc_hash::FxHasher;
+
     use snap::snapshot;
 
     use crate::compiler::interner::{Interner, Key};
+    use crate::compiler::SeedableHasher;
 
     #[test]
     pub fn sanity_check() {
         let mut interner = Interner::default();
         let key = interner.intern(123i128);
 
-        assert_eq!(Key::new(0), key);
+        let expected_key= unsafe { Key::new(0) };
 
-        let ptr = interner.resolve(&key).unwrap();
+        assert_eq!(expected_key, key);
+
+        let ptr = interner.resolve(key).unwrap();
         assert_eq!(123, *ptr);
     }
 
     #[test]
     pub fn stable_references() {
-        let mut interner = Interner::<usize>::new();
+        let mut interner = Interner::default();
         let keys = (0..128).into_iter().map(|num| interner.intern(num)).collect::<Vec<Key>>();
         for (index, key) in keys.iter().enumerate() {
-            assert_eq!(index, *interner.resolve(key).unwrap())
+            assert_eq!(index, *interner.resolve(*key).unwrap())
         }
     }
 
@@ -180,5 +193,32 @@ mod tests {
             interner.intern(i);
         }
         interner
+    }
+
+    #[test]
+    pub fn same_hash() {
+        struct SameHash { };
+        impl Hasher for SameHash {
+            fn finish(&self) -> u64 {
+                0
+            }
+
+            fn write(&mut self, bytes: &[u8]) {
+            }
+        }
+        impl Default for SameHash {
+            fn default() -> Self {
+                SameHash {}
+            }
+        }
+
+
+        let mut interner = Interner::<usize, BuildHasherDefault<SameHash>>::new();
+        let first_key = interner.intern(128);
+        let second_key = interner.intern(256);
+        assert_ne!(first_key, second_key);
+
+        assert_eq!(128, *interner.resolve(first_key).unwrap());
+        assert_eq!(256, *interner.resolve(second_key).unwrap());
     }
 }

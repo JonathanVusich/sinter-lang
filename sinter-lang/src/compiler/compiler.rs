@@ -45,7 +45,7 @@ impl CompilerCtxt {
         self.ty_interner.intern(ty)
     }
 
-    pub (crate) fn resolve_ty(&self, key: &InternedTy) -> &Type {
+    pub (crate) fn resolve_ty(&self, key: InternedTy) -> &Type {
         self.ty_interner.resolve(key).unwrap()
     }
 }
