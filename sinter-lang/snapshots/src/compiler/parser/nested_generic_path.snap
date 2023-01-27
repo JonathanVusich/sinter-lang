@@ -1,9 +1,9 @@
 [
-  {
-    "List": 1,
-    "new": 3,
-    "f64": 2
-  },
+  [
+    "List",
+    "f64",
+    "new"
+  ],
   {
     "segments": [
       {
@@ -12,18 +12,7 @@
       {
         "Generic": [
           {
-            "Path": {
-              "ident": {
-                "idents": [
-                  1
-                ]
-              },
-              "generics": [
-                {
-                  "Basic": "F64"
-                }
-              ]
-            }
+            "val": 2
           }
         ]
       },

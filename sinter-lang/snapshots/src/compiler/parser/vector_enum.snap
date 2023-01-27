@@ -1,21 +1,86 @@
 [
   {
-    "magnitude": 13,
-    "x": 7,
-    "Number": 3,
-    "normalized": 11,
-    "sqrt": 15,
-    "math": 14,
-    "to_normalized": 10,
-    "Y": 5,
-    "Display": 4,
-    "y": 8,
-    "Absolute": 9,
-    "abs": 12,
-    "Vector": 1,
-    "self": 16,
-    "X": 2,
-    "Normalized": 6
+    "string_interner": [
+      "Vector",
+      "X",
+      "Number",
+      "Display",
+      "Y",
+      "Normalized",
+      "x",
+      "y",
+      "Absolute",
+      "to_normalized",
+      "normalized",
+      "abs",
+      "magnitude",
+      "math",
+      "sqrt",
+      "self"
+    ],
+    "ty_interner": [
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                2
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                5
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      "QSelf",
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                1
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                6
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                9
+              ]
+            },
+            "generics": []
+          }
+        }
+      }
+    ]
   },
   {
     "stmts": [
@@ -80,28 +145,14 @@
                   {
                     "name": 7,
                     "ty": {
-                      "Path": {
-                        "ident": {
-                          "idents": [
-                            2
-                          ]
-                        },
-                        "generics": []
-                      }
+                      "val": 1
                     },
                     "mutability": "Immutable"
                   },
                   {
                     "name": 8,
                     "ty": {
-                      "Path": {
-                        "ident": {
-                          "idents": [
-                            5
-                          ]
-                        },
-                        "generics": []
-                      }
+                      "val": 2
                     },
                     "mutability": "Immutable"
                   }
@@ -116,28 +167,14 @@
                   {
                     "name": 7,
                     "ty": {
-                      "Path": {
-                        "ident": {
-                          "idents": [
-                            2
-                          ]
-                        },
-                        "generics": []
-                      }
+                      "val": 1
                     },
                     "mutability": "Immutable"
                   },
                   {
                     "name": 8,
                     "ty": {
-                      "Path": {
-                        "ident": {
-                          "idents": [
-                            5
-                          ]
-                        },
-                        "generics": []
-                      }
+                      "val": 2
                     },
                     "mutability": "Immutable"
                   }
@@ -157,20 +194,15 @@
                   "params": [
                     {
                       "name": 16,
-                      "ty": "QSelf",
+                      "ty": {
+                        "val": 3
+                      },
                       "mutability": "Immutable"
                     }
                   ]
                 },
                 "return_type": {
-                  "Path": {
-                    "ident": {
-                      "idents": [
-                        1
-                      ]
-                    },
-                    "generics": []
-                  }
+                  "val": 4
                 }
               },
               "body": {
@@ -193,14 +225,7 @@
                               "pattern": {
                                 "Ty": [
                                   {
-                                    "Path": {
-                                      "ident": {
-                                        "idents": [
-                                          6
-                                        ]
-                                      },
-                                      "generics": []
-                                    }
+                                    "val": 5
                                   },
                                   11
                                 ]
@@ -224,14 +249,7 @@
                               "pattern": {
                                 "Ty": [
                                   {
-                                    "Path": {
-                                      "ident": {
-                                        "idents": [
-                                          9
-                                        ]
-                                      },
-                                      "generics": []
-                                    }
+                                    "val": 6
                                   },
                                   12
                                 ]

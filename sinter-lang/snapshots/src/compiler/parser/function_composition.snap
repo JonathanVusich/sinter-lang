@@ -1,8 +1,11 @@
 [
   {
-    "h": 3,
-    "f": 1,
-    "g": 2
+    "string_interner": [
+      "f",
+      "g",
+      "h"
+    ],
+    "ty_interner": []
   },
   {
     "Call": {
@@ -14,9 +17,6 @@
             }
           ]
         }
-      },
-      "generic_tys": {
-        "generics": []
       },
       "args": {
         "args": [
@@ -31,9 +31,6 @@
                   ]
                 }
               },
-              "generic_tys": {
-                "generics": []
-              },
               "args": {
                 "args": [
                   {
@@ -46,9 +43,6 @@
                             }
                           ]
                         }
-                      },
-                      "generic_tys": {
-                        "generics": []
                       },
                       "args": {
                         "args": []

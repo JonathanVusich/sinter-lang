@@ -1,9 +1,9 @@
 [
-  {
-    "vector": 2,
-    "std": 1,
-    "Vector": 3
-  },
+  [
+    "std",
+    "vector",
+    "Vector"
+  ],
   {
     "tokens": [
       {

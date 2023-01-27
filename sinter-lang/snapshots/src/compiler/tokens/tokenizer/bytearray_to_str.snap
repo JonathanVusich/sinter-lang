@@ -1,12 +1,12 @@
 [
-  {
-    "bytearray": 3,
-    "greeting": 1,
-    "greeting_from_array": 5,
-    "str": 6,
-    "u8": 4,
-    "Hello world!": 2
-  },
+  [
+    "greeting",
+    "Hello world!",
+    "bytearray",
+    "u8",
+    "greeting_from_array",
+    "str"
+  ],
   {
     "tokens": [
       {

@@ -1,8 +1,8 @@
 [
-  {
-    "nativer": 1,
-    "enative": 2
-  },
+  [
+    "nativer",
+    "enative"
+  ],
   {
     "tokens": [
       {

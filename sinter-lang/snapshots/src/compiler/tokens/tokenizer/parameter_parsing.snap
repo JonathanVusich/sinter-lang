@@ -1,7 +1,7 @@
 [
-  {
-    "mutate": 1
-  },
+  [
+    "mutate"
+  ],
   {
     "tokens": [
       {

@@ -1,15 +1,45 @@
 [
   {
-    "extracted_text": 1,
-    "str": 9,
-    "null": 5,
-    "": 8,
-    "photo": 7,
-    "Photo": 6,
-    "message": 2,
-    "Text": 4,
-    "Message": 3,
-    "caption": 10
+    "string_interner": [
+      "extracted_text",
+      "message",
+      "Message",
+      "Text",
+      "null",
+      "Photo",
+      "photo",
+      "",
+      "str",
+      "caption"
+    ],
+    "ty_interner": [
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                3,
+                4
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                3,
+                6
+              ]
+            },
+            "generics": []
+          }
+        }
+      }
+    ]
   },
   {
     "stmts": [
@@ -37,15 +67,7 @@
                         {
                           "Destructure": [
                             {
-                              "Path": {
-                                "ident": {
-                                  "idents": [
-                                    3,
-                                    4
-                                  ]
-                                },
-                                "generics": []
-                              }
+                              "val": 1
                             },
                             [
                               {
@@ -57,15 +79,7 @@
                         {
                           "Destructure": [
                             {
-                              "Path": {
-                                "ident": {
-                                  "idents": [
-                                    3,
-                                    6
-                                  ]
-                                },
-                                "generics": []
-                              }
+                              "val": 2
                             },
                             [
                               {
@@ -99,15 +113,7 @@
                   "pattern": {
                     "Destructure": [
                       {
-                        "Path": {
-                          "ident": {
-                            "idents": [
-                              3,
-                              4
-                            ]
-                          },
-                          "generics": []
-                        }
+                        "val": 1
                       },
                       [
                         {
@@ -141,15 +147,7 @@
                   "pattern": {
                     "Destructure": [
                       {
-                        "Path": {
-                          "ident": {
-                            "idents": [
-                              3,
-                              6
-                            ]
-                          },
-                          "generics": []
-                        }
+                        "val": 2
                       },
                       [
                         {

@@ -1,9 +1,14 @@
 [
   {
-    "sum": 1,
-    "a": 2,
-    "i64": 3,
-    "b": 4
+    "string_interner": [
+      "sum",
+      "a",
+      "i64",
+      "b"
+    ],
+    "ty_interner": [
+      "I64"
+    ]
   },
   {
     "stmts": [
@@ -19,21 +24,21 @@
                 {
                   "name": 2,
                   "ty": {
-                    "Basic": "I64"
+                    "val": 1
                   },
                   "mutability": "Immutable"
                 },
                 {
                   "name": 4,
                   "ty": {
-                    "Basic": "I64"
+                    "val": 1
                   },
                   "mutability": "Immutable"
                 }
               ]
             },
             "return_type": {
-              "Basic": "I64"
+              "val": 1
             }
           },
           "body": {

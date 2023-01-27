@@ -1,107 +1,23 @@
 [
-  {
-    "T": 9,
-    "party": 2,
-    "package": 3,
-    "Copy": 11,
-    "Send": 4,
-    "third": 7,
-    "V": 6,
-    "std": 10,
-    "Clone": 12,
-    "K": 5,
-    "first": 1,
-    "Sync": 8
-  },
+  [
+    "first",
+    "party",
+    "package",
+    "Send",
+    "K",
+    "V",
+    "third",
+    "Sync",
+    "T",
+    "std",
+    "Copy",
+    "Clone"
+  ],
   {
     "Closure": [
       [],
       {
-        "Union": [
-          {
-            "Array": {
-              "TraitBound": {
-                "bounds": [
-                  {
-                    "ident": {
-                      "idents": [
-                        1,
-                        2,
-                        3,
-                        4
-                      ]
-                    },
-                    "generics": [
-                      {
-                        "Path": {
-                          "ident": {
-                            "idents": [
-                              5
-                            ]
-                          },
-                          "generics": []
-                        }
-                      },
-                      {
-                        "Path": {
-                          "ident": {
-                            "idents": [
-                              6
-                            ]
-                          },
-                          "generics": []
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "ident": {
-                      "idents": [
-                        7,
-                        2,
-                        3,
-                        8
-                      ]
-                    },
-                    "generics": [
-                      {
-                        "Path": {
-                          "ident": {
-                            "idents": [
-                              9
-                            ]
-                          },
-                          "generics": []
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "ident": {
-                      "idents": [
-                        10,
-                        11
-                      ]
-                    },
-                    "generics": []
-                  },
-                  {
-                    "ident": {
-                      "idents": [
-                        10,
-                        12
-                      ]
-                    },
-                    "generics": []
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "Basic": "None"
-          }
-        ]
+        "val": 7
       }
     ]
   }

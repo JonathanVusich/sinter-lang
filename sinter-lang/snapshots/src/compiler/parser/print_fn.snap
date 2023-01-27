@@ -1,9 +1,14 @@
 [
   {
-    "str": 3,
-    "println": 4,
-    "print": 1,
-    "text": 2
+    "string_interner": [
+      "print",
+      "text",
+      "str",
+      "println"
+    ],
+    "ty_interner": [
+      "Str"
+    ]
   },
   {
     "stmts": [
@@ -19,7 +24,7 @@
                 {
                   "name": 2,
                   "ty": {
-                    "Basic": "Str"
+                    "val": 1
                   },
                   "mutability": "Immutable"
                 }

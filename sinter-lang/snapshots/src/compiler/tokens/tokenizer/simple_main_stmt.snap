@@ -1,11 +1,11 @@
 [
-  {
-    "main": 1,
-    "str": 3,
-    "println": 4,
-    "arguments": 2,
-    "to_string": 5
-  },
+  [
+    "main",
+    "arguments",
+    "str",
+    "println",
+    "to_string"
+  ],
   {
     "tokens": [
       {

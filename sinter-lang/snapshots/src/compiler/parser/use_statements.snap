@@ -1,10 +1,13 @@
 [
   {
-    "map": 4,
-    "array": 3,
-    "vector": 2,
-    "HashMap": 5,
-    "std": 1
+    "string_interner": [
+      "std",
+      "vector",
+      "array",
+      "map",
+      "HashMap"
+    ],
+    "ty_interner": []
   },
   {
     "stmts": [

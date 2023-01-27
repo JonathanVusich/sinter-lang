@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     pub fn same_hash() {
-        struct SameHash { };
+        struct SameHash { }
         impl Hasher for SameHash {
             fn finish(&self) -> u64 {
                 0

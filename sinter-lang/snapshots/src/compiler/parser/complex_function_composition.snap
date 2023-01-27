@@ -1,8 +1,11 @@
 [
   {
-    "h": 3,
-    "g": 2,
-    "f": 1
+    "string_interner": [
+      "f",
+      "g",
+      "h"
+    ],
+    "ty_interner": []
   },
   {
     "Infix": {
@@ -35,9 +38,6 @@
                       ]
                     }
                   },
-                  "generic_tys": {
-                    "generics": []
-                  },
                   "args": {
                     "args": [
                       {
@@ -51,9 +51,6 @@
                               ]
                             }
                           },
-                          "generic_tys": {
-                            "generics": []
-                          },
                           "args": {
                             "args": [
                               {
@@ -66,9 +63,6 @@
                                         }
                                       ]
                                     }
-                                  },
-                                  "generic_tys": {
-                                    "generics": []
                                   },
                                   "args": {
                                     "args": []

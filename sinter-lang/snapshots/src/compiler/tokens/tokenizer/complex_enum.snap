@@ -1,16 +1,16 @@
 [
-  {
-    "Absolute": 9,
-    "to_normalized": 10,
-    "Display": 4,
-    "X": 2,
-    "y": 8,
-    "Vector": 1,
-    "Y": 5,
-    "x": 7,
-    "Normalized": 6,
-    "Number": 3
-  },
+  [
+    "Vector",
+    "X",
+    "Number",
+    "Display",
+    "Y",
+    "Normalized",
+    "x",
+    "y",
+    "Absolute",
+    "to_normalized"
+  ],
   {
     "tokens": [
       {

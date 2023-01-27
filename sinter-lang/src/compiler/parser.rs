@@ -24,11 +24,8 @@ use crate::compiler::parser::ParseError::{
 };
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{TokenSpan, TokenizedInput};
-use crate::compiler::types::types::BasicType::{
-    Str, F32, F64, I16, I32, I64, I8, U16, U32, U64, U8,
-};
-use crate::compiler::types::types::Type::{Basic, Closure, Infer, Path, QSelf, Union};
-use crate::compiler::types::types::{BasicType, InternedStr, InternedTy, Type};
+use crate::compiler::types::types::Type::{Closure, F32, F64, I16, I32, I64, I8, Infer, Path, QSelf, Str, U16, U32, U64, U8, Union};
+use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 use crate::compiler::{StringInterner, TyInterner};
 use crate::compiler::compiler::CompilerCtxt;
 use crate::gc::block::Block;
@@ -634,7 +631,7 @@ impl Parser {
         let mut tys =
             self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
         if tys.len() > 1 {
-            let ty = Union(tys);
+            let ty = Union { tys };
             Ok(self.intern_ty(ty))
         } else {
             Ok(tys.remove(0))
@@ -647,7 +644,7 @@ impl Parser {
             Some(TokenType::LeftBracket) => self.parse_array_ty(),
             Some(TokenType::None) => {
                 self.advance();
-                Ok(self.intern_ty(Basic(BasicType::None)))
+                Ok(self.intern_ty(Type::None))
             }
             Some(TokenType::Identifier(ident)) => {
                 // These built in types are officially encoded as strings to avoid them being
@@ -656,47 +653,47 @@ impl Parser {
                 match ident {
                     "u8" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(U8)))
+                        Ok(self.intern_ty(U8))
                     }
                     "u16" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(U16)))
+                        Ok(self.intern_ty(U16))
                     }
                     "u32" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(U32)))
+                        Ok(self.intern_ty(U32))
                     }
                     "u64" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(U64)))
+                        Ok(self.intern_ty(U64))
                     }
                     "i8" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(I8)))
+                        Ok(self.intern_ty(I8))
                     }
                     "i16" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(I16)))
+                        Ok(self.intern_ty(I16))
                     }
                     "i32" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(I32)))
+                        Ok(self.intern_ty(I32))
                     }
                     "i64" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(I64)))
+                        Ok(self.intern_ty(I64))
                     }
                     "f32" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(F32)))
+                        Ok(self.intern_ty(F32))
                     }
                     "f64" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(F64)))
+                        Ok(self.intern_ty(F64))
                     }
                     "str" => {
                         self.advance();
-                        Ok(self.intern_ty(Basic(Str)))
+                        Ok(self.intern_ty(Str))
                     }
                     other => self.parse_qualified_ty(),
                 }
@@ -711,7 +708,7 @@ impl Parser {
     }
 
     fn parse_closure_ty(&mut self) -> Result<Key> {
-        let tys = self.parse_multiple_with_scope_delimiter::<Key, 1>(
+        let params = self.parse_multiple_with_scope_delimiter::<Key, 1>(
             Self::parse_ty,
             TokenType::Comma,
             TokenType::LeftParentheses,
@@ -720,7 +717,7 @@ impl Parser {
         self.expect(TokenType::RightArrow)?;
 
         if let Some(current) = self.current() {
-            let return_ty = match current {
+            let ret_ty = match current {
                 TokenType::LeftParentheses => {
                     self.expect(TokenType::LeftParentheses)?;
                     let closure_ty = self.parse_closure_ty()?;
@@ -729,7 +726,7 @@ impl Parser {
                 }
                 _ => self.parse_ty()?,
             };
-            Ok(self.intern_ty(Closure(tys, return_ty)))
+            Ok(self.intern_ty(Closure { params, ret_ty }))
         } else {
             self.unexpected_end()
         }
@@ -737,7 +734,7 @@ impl Parser {
 
     fn parse_array_ty(&mut self) -> Result<Key> {
         self.expect(TokenType::LeftBracket)?;
-        let ty = Type::Array(self.parse_ty()?);
+        let ty = Type::Array { ty: self.parse_ty()? };
         self.expect(TokenType::RightBracket)?;
         Ok(self.intern_ty(ty))
     }
@@ -750,9 +747,9 @@ impl Parser {
             let mut paths =
                 self.parse_multiple_with_delimiter(Self::parse_path_ty, TokenType::Plus)?;
             paths.insert(0, path);
-            Ok(self.intern_ty(Type::TraitBound(TraitBound::new(paths))))
+            Ok(self.intern_ty(Type::TraitBound { trait_bound: TraitBound::new(paths) }))
         } else {
-            Ok(self.intern_ty(Path(path)))
+            Ok(self.intern_ty(Path { path }))
         }
     }
 
@@ -1408,12 +1405,8 @@ mod tests {
     use crate::compiler::tokens::token::TokenType::Identifier;
     use crate::compiler::tokens::tokenized_file::{TokenSpan, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
-    use crate::compiler::types::types::BasicType;
-    use crate::compiler::types::types::BasicType::{
-        Str, F32, F64, I16, I32, I64, I8, U16, U32, U64, U8,
-    };
     use crate::compiler::types::types::Type;
-    use crate::compiler::types::types::Type::{Array, Basic, Closure, TraitBound};
+    use crate::compiler::types::types::Type::{Array, Closure, TraitBound};
     use crate::compiler::{StringInterner, TyInterner};
     use crate::compiler::compiler::CompilerCtxt;
     use crate::util::utils;
@@ -1681,18 +1674,18 @@ mod tests {
         };
     }
 
-    simple_type!(Basic(Str), str_type, "str");
-    simple_type!(Basic(U8), u8_type, "u8");
-    simple_type!(Basic(U16), u16_type, "u16");
-    simple_type!(Basic(U32), u32_type, "u32");
-    simple_type!(Basic(U64), u64_type, "u64");
-    simple_type!(Basic(I8), i8_type, "i8");
-    simple_type!(Basic(I16), i16_type, "i16");
-    simple_type!(Basic(I32), i32_type, "i32");
-    simple_type!(Basic(I64), i64_type, "i64");
-    simple_type!(Basic(F32), f32_type, "f32");
-    simple_type!(Basic(F64), f64_type, "f64");
-    simple_type!(Basic(BasicType::None), none_type, "None");
+    simple_type!(Type::Str, str_type, "str");
+    simple_type!(Type::U8, u8_type, "u8");
+    simple_type!(Type::U16, u16_type, "u16");
+    simple_type!(Type::U32, u32_type, "u32");
+    simple_type!(Type::U64, u64_type, "u64");
+    simple_type!(Type::I8, i8_type, "i8");
+    simple_type!(Type::I16, i16_type, "i16");
+    simple_type!(Type::I32, i32_type, "i32");
+    simple_type!(Type::I64, i64_type, "i64");
+    simple_type!(Type::F32, f32_type, "f32");
+    simple_type!(Type::F64, f64_type, "f64");
+    simple_type!(Type::None, none_type, "None");
     // simple_type!(Array(Box::new(Basic(U8))), u8_array_type, "[u8]");
     // simple_type!(Array(Box::new(Basic(U16))), u16_array_type, "[u16]");
     // simple_type!(Array(Box::new(Basic(U32))), u32_array_type, "[u32]");

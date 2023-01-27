@@ -1,16 +1,35 @@
 [
   {
-    "Photo": 5,
-    "str": 4,
-    "u64": 10,
-    "photo": 7,
-    "caption": 6,
-    "size": 9,
-    "self": 11,
-    "Message": 1,
-    "SerializedPhoto": 8,
-    "message": 3,
-    "Text": 2
+    "string_interner": [
+      "Message",
+      "Text",
+      "message",
+      "str",
+      "Photo",
+      "caption",
+      "photo",
+      "SerializedPhoto",
+      "size",
+      "u64",
+      "self"
+    ],
+    "ty_interner": [
+      "Str",
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                8
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      "QSelf",
+      "U64"
+    ]
   },
   {
     "stmts": [
@@ -28,7 +47,7 @@
                   {
                     "name": 3,
                     "ty": {
-                      "Basic": "Str"
+                      "val": 1
                     },
                     "mutability": "Immutable"
                   }
@@ -43,21 +62,14 @@
                   {
                     "name": 6,
                     "ty": {
-                      "Basic": "Str"
+                      "val": 1
                     },
                     "mutability": "Immutable"
                   },
                   {
                     "name": 7,
                     "ty": {
-                      "Path": {
-                        "ident": {
-                          "idents": [
-                            8
-                          ]
-                        },
-                        "generics": []
-                      }
+                      "val": 2
                     },
                     "mutability": "Immutable"
                   }
@@ -74,13 +86,15 @@
                       "params": [
                         {
                           "name": 11,
-                          "ty": "QSelf",
+                          "ty": {
+                            "val": 3
+                          },
                           "mutability": "Immutable"
                         }
                       ]
                     },
                     "return_type": {
-                      "Basic": "U64"
+                      "val": 4
                     }
                   },
                   "body": {

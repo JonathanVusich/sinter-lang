@@ -1,15 +1,15 @@
 [
-  {
-    "Loggable": 1,
-    "format_log_message": 2,
-    "message": 7,
-    "str": 3,
-    "Serializable": 6,
-    "println": 8,
-    "T": 5,
-    "log_trait_message": 9,
-    "log_specialized_message": 4
-  },
+  [
+    "Loggable",
+    "format_log_message",
+    "str",
+    "log_specialized_message",
+    "T",
+    "Serializable",
+    "message",
+    "println",
+    "log_trait_message"
+  ],
   {
     "tokens": [
       {

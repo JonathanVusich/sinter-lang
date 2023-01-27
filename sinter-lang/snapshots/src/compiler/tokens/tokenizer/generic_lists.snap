@@ -1,22 +1,22 @@
 [
-  {
-    "list_of_ints": 8,
-    "new": 6,
-    "T": 2,
-    "Loggable": 13,
-    "initial_capacity": 7,
-    "str": 16,
-    "size": 4,
-    "f64": 11,
-    "trait_bounds": 12,
-    "Serializable": 14,
-    "List": 1,
-    "u64": 5,
-    "array": 3,
-    "unions": 15,
-    "list_of_lists": 10,
-    "i64": 9
-  },
+  [
+    "List",
+    "T",
+    "array",
+    "size",
+    "u64",
+    "new",
+    "initial_capacity",
+    "list_of_ints",
+    "i64",
+    "list_of_lists",
+    "f64",
+    "trait_bounds",
+    "Loggable",
+    "Serializable",
+    "unions",
+    "str"
+  ],
   {
     "tokens": [
       {

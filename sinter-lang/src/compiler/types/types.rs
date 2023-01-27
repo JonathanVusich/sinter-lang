@@ -8,18 +8,24 @@ pub type InternedTy = Key;
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
 pub enum Type {
-    Array(Key),
-    Path(PathTy),
-    Union(Vec<Key>),
-    TraitBound(TraitBound),
-    Closure(Vec<Key>, Key),
+    Array {
+        ty: Key
+    },
+    Path {
+        path: PathTy,
+    },
+    Union {
+        tys: Vec<Key>,
+    },
+    TraitBound {
+        trait_bound: TraitBound,
+    },
+    Closure {
+        params: Vec<Key>,
+        ret_ty: Key
+    },
     Infer,
     QSelf,
-    Basic(BasicType),
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
-pub enum BasicType {
     U8,
     U16,
     U32,
@@ -31,5 +37,5 @@ pub enum BasicType {
     F32,
     F64,
     Str,
-    None,
+    None
 }

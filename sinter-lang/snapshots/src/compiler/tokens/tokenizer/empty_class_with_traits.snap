@@ -1,10 +1,10 @@
 [
-  {
-    "T": 2,
-    "Sortable": 3,
-    "SortedMap": 1,
-    "Hashable": 4
-  },
+  [
+    "SortedMap",
+    "T",
+    "Sortable",
+    "Hashable"
+  ],
   {
     "tokens": [
       {

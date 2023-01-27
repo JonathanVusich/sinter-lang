@@ -1,31 +1,22 @@
 [
-  {
-    "i64": 2,
-    "List": 1
-  },
+  [
+    "List",
+    "i64"
+  ],
   {
     "Path": {
-      "ident": {
-        "idents": [
-          1
-        ]
-      },
-      "generics": [
-        {
-          "Path": {
-            "ident": {
-              "idents": [
-                1
-              ]
-            },
-            "generics": [
-              {
-                "Basic": "I64"
-              }
-            ]
+      "path": {
+        "ident": {
+          "idents": [
+            1
+          ]
+        },
+        "generics": [
+          {
+            "val": 2
           }
-        }
-      ]
+        ]
+      }
     }
   }
 ]

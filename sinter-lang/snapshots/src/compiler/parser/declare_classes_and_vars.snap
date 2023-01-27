@@ -1,14 +1,27 @@
 [
   {
-    "y": 4,
-    "f64": 3,
-    "i32": 7,
-    "Node": 5,
-    "node_array": 9,
-    "point_array": 8,
-    "Point": 1,
-    "x": 2,
-    "i32_array": 6
+    "string_interner": [
+      "Point",
+      "x",
+      "f64",
+      "y",
+      "Node",
+      "i32_array",
+      "i32",
+      "point_array",
+      "node_array"
+    ],
+    "ty_interner": [
+      "F64",
+      "I32",
+      {
+        "Array": {
+          "ty": {
+            "val": 2
+          }
+        }
+      }
+    ]
   },
   {
     "stmts": [
@@ -24,14 +37,14 @@
               {
                 "name": 2,
                 "ty": {
-                  "Basic": "F64"
+                  "val": 1
                 },
                 "mutability": "Immutable"
               },
               {
                 "name": 4,
                 "ty": {
-                  "Basic": "F64"
+                  "val": 1
                 },
                 "mutability": "Immutable"
               }
@@ -58,9 +71,7 @@
           "ident": 6,
           "mutability": "Immutable",
           "ty": {
-            "Array": {
-              "Basic": "I32"
-            }
+            "val": 3
           },
           "initializer": {
             "Array": {

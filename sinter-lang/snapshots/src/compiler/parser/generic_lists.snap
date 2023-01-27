@@ -1,22 +1,105 @@
 [
   {
-    "array": 3,
-    "i64": 9,
-    "unions": 15,
-    "initial_capacity": 7,
-    "List": 1,
-    "Serializable": 14,
-    "Self": 17,
-    "Loggable": 13,
-    "u64": 5,
-    "new": 6,
-    "f64": 11,
-    "size": 4,
-    "trait_bounds": 12,
-    "list_of_ints": 8,
-    "list_of_lists": 10,
-    "T": 2,
-    "str": 16
+    "string_interner": [
+      "List",
+      "T",
+      "array",
+      "size",
+      "u64",
+      "new",
+      "initial_capacity",
+      "list_of_ints",
+      "i64",
+      "list_of_lists",
+      "f64",
+      "trait_bounds",
+      "Loggable",
+      "Serializable",
+      "unions",
+      "str",
+      "Self"
+    ],
+    "ty_interner": [
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                2
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      {
+        "Array": {
+          "ty": {
+            "val": 1
+          }
+        }
+      },
+      "U64",
+      "QSelf",
+      "I64",
+      "F64",
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                1
+              ]
+            },
+            "generics": [
+              {
+                "val": 6
+              }
+            ]
+          }
+        }
+      },
+      {
+        "TraitBound": {
+          "trait_bound": {
+            "bounds": [
+              {
+                "ident": {
+                  "idents": [
+                    13
+                  ]
+                },
+                "generics": []
+              },
+              {
+                "ident": {
+                  "idents": [
+                    14
+                  ]
+                },
+                "generics": []
+              }
+            ]
+          }
+        }
+      },
+      "Str",
+      {
+        "Union": {
+          "tys": [
+            {
+              "val": 9
+            },
+            {
+              "val": 5
+            },
+            {
+              "val": 6
+            }
+          ]
+        }
+      }
+    ]
   },
   {
     "stmts": [
@@ -37,23 +120,14 @@
               {
                 "name": 3,
                 "ty": {
-                  "Array": {
-                    "Path": {
-                      "ident": {
-                        "idents": [
-                          2
-                        ]
-                      },
-                      "generics": []
-                    }
-                  }
+                  "val": 2
                 },
                 "mutability": "Immutable"
               },
               {
                 "name": 4,
                 "ty": {
-                  "Basic": "U64"
+                  "val": 3
                 },
                 "mutability": "Immutable"
               }
@@ -71,13 +145,15 @@
                     {
                       "name": 7,
                       "ty": {
-                        "Basic": "U64"
+                        "val": 3
                       },
                       "mutability": "Immutable"
                     }
                   ]
                 },
-                "return_type": "QSelf"
+                "return_type": {
+                  "val": 4
+                }
               },
               "body": {
                 "stmts": [
@@ -152,7 +228,7 @@
                     {
                       "Generic": [
                         {
-                          "Basic": "I64"
+                          "val": 5
                         }
                       ]
                     },
@@ -185,18 +261,7 @@
                     {
                       "Generic": [
                         {
-                          "Path": {
-                            "ident": {
-                              "idents": [
-                                1
-                              ]
-                            },
-                            "generics": [
-                              {
-                                "Basic": "F64"
-                              }
-                            ]
-                          }
+                          "val": 7
                         }
                       ]
                     },
@@ -229,26 +294,7 @@
                     {
                       "Generic": [
                         {
-                          "TraitBound": {
-                            "bounds": [
-                              {
-                                "ident": {
-                                  "idents": [
-                                    13
-                                  ]
-                                },
-                                "generics": []
-                              },
-                              {
-                                "ident": {
-                                  "idents": [
-                                    14
-                                  ]
-                                },
-                                "generics": []
-                              }
-                            ]
-                          }
+                          "val": 8
                         }
                       ]
                     },
@@ -281,17 +327,7 @@
                     {
                       "Generic": [
                         {
-                          "Union": [
-                            {
-                              "Basic": "Str"
-                            },
-                            {
-                              "Basic": "I64"
-                            },
-                            {
-                              "Basic": "F64"
-                            }
-                          ]
+                          "val": 10
                         }
                       ]
                     },

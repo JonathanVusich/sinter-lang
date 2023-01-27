@@ -1,15 +1,57 @@
 [
   {
-    "T": 5,
-    "log_trait_message": 9,
-    "Loggable": 1,
-    "Serializable": 6,
-    "self": 10,
-    "str": 3,
-    "message": 7,
-    "println": 8,
-    "log_specialized_message": 4,
-    "format_log_message": 2
+    "string_interner": [
+      "Loggable",
+      "format_log_message",
+      "str",
+      "log_specialized_message",
+      "T",
+      "Serializable",
+      "message",
+      "println",
+      "log_trait_message",
+      "self"
+    ],
+    "ty_interner": [
+      "QSelf",
+      "Str",
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                5
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      {
+        "TraitBound": {
+          "trait_bound": {
+            "bounds": [
+              {
+                "ident": {
+                  "idents": [
+                    1
+                  ]
+                },
+                "generics": []
+              },
+              {
+                "ident": {
+                  "idents": [
+                    6
+                  ]
+                },
+                "generics": []
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   {
     "stmts": [
@@ -30,13 +72,15 @@
                   "params": [
                     {
                       "name": 10,
-                      "ty": "QSelf",
+                      "ty": {
+                        "val": 1
+                      },
                       "mutability": "Immutable"
                     }
                   ]
                 },
                 "return_type": {
-                  "Basic": "Str"
+                  "val": 2
                 }
               },
               "body": null
@@ -80,14 +124,7 @@
                 {
                   "name": 7,
                   "ty": {
-                    "Path": {
-                      "ident": {
-                        "idents": [
-                          5
-                        ]
-                      },
-                      "generics": []
-                    }
+                    "val": 3
                   },
                   "mutability": "Immutable"
                 }
@@ -156,26 +193,7 @@
                 {
                   "name": 7,
                   "ty": {
-                    "TraitBound": {
-                      "bounds": [
-                        {
-                          "ident": {
-                            "idents": [
-                              1
-                            ]
-                          },
-                          "generics": []
-                        },
-                        {
-                          "ident": {
-                            "idents": [
-                              6
-                            ]
-                          },
-                          "generics": []
-                        }
-                      ]
-                    }
+                    "val": 4
                   },
                   "mutability": "Immutable"
                 }

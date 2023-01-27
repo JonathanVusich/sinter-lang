@@ -1,10 +1,10 @@
 [
-  {
-    "T": 3,
-    "new": 4,
-    "std": 1,
-    "HashMap": 2
-  },
+  [
+    "std",
+    "HashMap",
+    "T",
+    "new"
+  ],
   {
     "segments": [
       {
@@ -16,14 +16,7 @@
       {
         "Generic": [
           {
-            "Path": {
-              "ident": {
-                "idents": [
-                  3
-                ]
-              },
-              "generics": []
-            }
+            "val": 1
           }
         ]
       },

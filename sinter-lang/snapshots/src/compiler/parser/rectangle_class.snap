@@ -1,15 +1,21 @@
 [
   {
-    "square": 7,
-    "f64": 3,
-    "Rectangle": 1,
-    "width": 2,
-    "Self": 10,
-    "perimeter": 5,
-    "height": 6,
-    "size": 8,
-    "self": 9,
-    "length": 4
+    "string_interner": [
+      "Rectangle",
+      "width",
+      "f64",
+      "length",
+      "perimeter",
+      "height",
+      "square",
+      "size",
+      "self",
+      "Self"
+    ],
+    "ty_interner": [
+      "F64",
+      "QSelf"
+    ]
   },
   {
     "stmts": [
@@ -25,14 +31,14 @@
               {
                 "name": 2,
                 "ty": {
-                  "Basic": "F64"
+                  "val": 1
                 },
                 "mutability": "Immutable"
               },
               {
                 "name": 4,
                 "ty": {
-                  "Basic": "F64"
+                  "val": 1
                 },
                 "mutability": "Immutable"
               }
@@ -49,13 +55,15 @@
                   "params": [
                     {
                       "name": 9,
-                      "ty": "QSelf",
+                      "ty": {
+                        "val": 2
+                      },
                       "mutability": "Immutable"
                     }
                   ]
                 },
                 "return_type": {
-                  "Basic": "F64"
+                  "val": 1
                 }
               },
               "body": {
@@ -127,13 +135,15 @@
                     {
                       "name": 8,
                       "ty": {
-                        "Basic": "F64"
+                        "val": 1
                       },
                       "mutability": "Immutable"
                     }
                   ]
                 },
-                "return_type": "QSelf"
+                "return_type": {
+                  "val": 2
+                }
               },
               "body": {
                 "stmts": [

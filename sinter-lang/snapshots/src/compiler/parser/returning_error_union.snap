@@ -1,18 +1,59 @@
 [
   {
-    "bytes": 6,
-    "write_bytes": 12,
-    "buffer": 8,
-    "Serializable": 3,
-    "value": 4,
-    "remaining": 9,
-    "MalformedBytes": 13,
-    "WriteError": 5,
-    "write": 1,
-    "to_bytes": 7,
-    "len": 10,
-    "BufferOverflow": 11,
-    "T": 2
+    "string_interner": [
+      "write",
+      "T",
+      "Serializable",
+      "value",
+      "WriteError",
+      "bytes",
+      "to_bytes",
+      "buffer",
+      "remaining",
+      "len",
+      "BufferOverflow",
+      "write_bytes",
+      "MalformedBytes"
+    ],
+    "ty_interner": [
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                2
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      "None",
+      {
+        "Path": {
+          "path": {
+            "ident": {
+              "idents": [
+                5
+              ]
+            },
+            "generics": []
+          }
+        }
+      },
+      {
+        "Union": {
+          "tys": [
+            {
+              "val": 2
+            },
+            {
+              "val": 3
+            }
+          ]
+        }
+      }
+    ]
   },
   {
     "stmts": [
@@ -44,35 +85,14 @@
                 {
                   "name": 4,
                   "ty": {
-                    "Path": {
-                      "ident": {
-                        "idents": [
-                          2
-                        ]
-                      },
-                      "generics": []
-                    }
+                    "val": 1
                   },
                   "mutability": "Immutable"
                 }
               ]
             },
             "return_type": {
-              "Union": [
-                {
-                  "Basic": "None"
-                },
-                {
-                  "Path": {
-                    "ident": {
-                      "idents": [
-                        5
-                      ]
-                    },
-                    "generics": []
-                  }
-                }
-              ]
+              "val": 4
             }
           },
           "body": {

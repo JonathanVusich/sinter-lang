@@ -1,6 +1,9 @@
 [
   {
-    "year": 1
+    "string_interner": [
+      "year"
+    ],
+    "ty_interner": []
   },
   {
     "Infix": {

@@ -1,16 +1,16 @@
 [
-  {
-    "Text": 4,
-    "null": 5,
-    "photo": 7,
-    "Photo": 6,
-    "message": 2,
-    "str": 9,
-    "Message": 3,
-    "extracted_text": 1,
-    "": 8,
-    "caption": 10
-  },
+  [
+    "extracted_text",
+    "message",
+    "Message",
+    "Text",
+    "null",
+    "Photo",
+    "photo",
+    "",
+    "str",
+    "caption"
+  ],
   {
     "tokens": [
       {

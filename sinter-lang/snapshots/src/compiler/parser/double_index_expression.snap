@@ -1,6 +1,9 @@
 [
   {
-    "x": 1
+    "string_interner": [
+      "x"
+    ],
+    "ty_interner": []
   },
   {
     "Index": {

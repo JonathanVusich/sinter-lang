@@ -1,15 +1,18 @@
 [
   {
-    "Earth": 4,
-    "Neptune": 9,
-    "Planet": 1,
-    "Uranus": 8,
-    "Mercury": 2,
-    "Pluto": 10,
-    "Venus": 3,
-    "Jupiter": 6,
-    "Mars": 5,
-    "Saturn": 7
+    "string_interner": [
+      "Planet",
+      "Mercury",
+      "Venus",
+      "Earth",
+      "Mars",
+      "Jupiter",
+      "Saturn",
+      "Uranus",
+      "Neptune",
+      "Pluto"
+    ],
+    "ty_interner": []
   },
   {
     "stmts": [

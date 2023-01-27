@@ -1,21 +1,21 @@
 [
-  {
-    "sqrt": 15,
-    "Number": 3,
-    "magnitude": 13,
-    "X": 2,
-    "math": 14,
-    "Display": 4,
-    "Vector": 1,
-    "to_normalized": 10,
-    "Normalized": 6,
-    "normalized": 11,
-    "Absolute": 9,
-    "y": 8,
-    "x": 7,
-    "abs": 12,
-    "Y": 5
-  },
+  [
+    "Vector",
+    "X",
+    "Number",
+    "Display",
+    "Y",
+    "Normalized",
+    "x",
+    "y",
+    "Absolute",
+    "to_normalized",
+    "normalized",
+    "abs",
+    "magnitude",
+    "math",
+    "sqrt"
+  ],
   {
     "tokens": [
       {

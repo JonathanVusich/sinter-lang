@@ -1,19 +1,19 @@
 [
-  {
-    "write_bytes": 12,
-    "Serializable": 3,
-    "remaining": 9,
-    "len": 10,
-    "to_bytes": 7,
-    "T": 2,
-    "write": 1,
-    "WriteError": 5,
-    "buffer": 8,
-    "value": 4,
-    "BufferOverflow": 11,
-    "MalformedBytes": 13,
-    "bytes": 6
-  },
+  [
+    "write",
+    "T",
+    "Serializable",
+    "value",
+    "WriteError",
+    "bytes",
+    "to_bytes",
+    "buffer",
+    "remaining",
+    "len",
+    "BufferOverflow",
+    "write_bytes",
+    "MalformedBytes"
+  ],
   {
     "tokens": [
       {

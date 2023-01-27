@@ -1,5 +1,8 @@
 [
-  {},
+  {
+    "string_interner": [],
+    "ty_interner": []
+  },
   {
     "Integer": 1
   }

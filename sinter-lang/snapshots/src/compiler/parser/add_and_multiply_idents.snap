@@ -1,10 +1,13 @@
 [
   {
-    "c": 3,
-    "a": 1,
-    "b": 2,
-    "e": 5,
-    "d": 4
+    "string_interner": [
+      "a",
+      "b",
+      "c",
+      "d",
+      "e"
+    ],
+    "ty_interner": []
   },
   {
     "Infix": {

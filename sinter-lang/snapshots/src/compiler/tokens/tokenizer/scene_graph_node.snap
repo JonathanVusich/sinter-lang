@@ -1,17 +1,17 @@
 [
-  {
-    "List": 11,
-    "Node": 1,
-    "MutableList": 8,
-    "Bounds": 3,
-    "nodes": 10,
-    "children": 7,
-    "bounds": 2,
-    "draw_frame": 9,
-    "draw": 4,
-    "Graphics": 5,
-    "g": 6
-  },
+  [
+    "Node",
+    "bounds",
+    "Bounds",
+    "draw",
+    "Graphics",
+    "g",
+    "children",
+    "MutableList",
+    "draw_frame",
+    "nodes",
+    "List"
+  ],
   {
     "tokens": [
       {

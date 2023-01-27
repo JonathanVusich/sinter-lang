@@ -1,7 +1,10 @@
 [
   {
-    "g": 2,
-    "f": 1
+    "string_interner": [
+      "f",
+      "g"
+    ],
+    "ty_interner": []
   },
   {
     "Unary": {
@@ -19,9 +22,6 @@
                     }
                   ]
                 }
-              },
-              "generic_tys": {
-                "generics": []
               },
               "args": {
                 "args": [

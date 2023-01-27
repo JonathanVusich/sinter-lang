@@ -1,8 +1,11 @@
 [
   {
-    "print": 2,
-    "main": 1,
-    "Hello world!": 3
+    "string_interner": [
+      "main",
+      "print",
+      "Hello world!"
+    ],
+    "ty_interner": []
   },
   {
     "stmts": [

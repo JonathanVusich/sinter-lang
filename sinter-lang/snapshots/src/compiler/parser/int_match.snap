@@ -1,10 +1,13 @@
 [
   {
-    "Unremarkable": 5,
-    "One!": 3,
-    "This is a prime": 4,
-    "print": 2,
-    "number": 1
+    "string_interner": [
+      "number",
+      "print",
+      "One!",
+      "This is a prime",
+      "Unremarkable"
+    ],
+    "ty_interner": []
   },
   {
     "Match": {

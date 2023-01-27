@@ -1,11 +1,11 @@
 [
-  {
-    "Unremarkable": 5,
-    "number": 1,
-    "One!": 3,
-    "print": 2,
-    "This is a prime": 4
-  },
+  [
+    "number",
+    "print",
+    "One!",
+    "This is a prime",
+    "Unremarkable"
+  ],
   {
     "tokens": [
       {

@@ -1,7 +1,10 @@
 [
   {
-    "x": 2,
-    "mut_var": 1
+    "string_interner": [
+      "mut_var",
+      "x"
+    ],
+    "ty_interner": []
   },
   {
     "stmts": [

@@ -1,7 +1,10 @@
 [
   {
-    "y": 2,
-    "x": 1
+    "string_interner": [
+      "x",
+      "y"
+    ],
+    "ty_interner": []
   },
   {
     "Closure": {

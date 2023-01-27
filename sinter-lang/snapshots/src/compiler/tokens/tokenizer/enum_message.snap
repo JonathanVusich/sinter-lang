@@ -1,16 +1,16 @@
 [
-  {
-    "message": 3,
-    "photo": 7,
-    "SerializedPhoto": 8,
-    "u64": 10,
-    "str": 4,
-    "Message": 1,
-    "Text": 2,
-    "size": 9,
-    "Photo": 5,
-    "caption": 6
-  },
+  [
+    "Message",
+    "Text",
+    "message",
+    "str",
+    "Photo",
+    "caption",
+    "photo",
+    "SerializedPhoto",
+    "size",
+    "u64"
+  ],
   {
     "tokens": [
       {

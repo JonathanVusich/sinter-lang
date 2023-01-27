@@ -1,8 +1,8 @@
 [
-  {
-    "std": 1,
-    "Clone": 2
-  },
+  [
+    "std",
+    "Clone"
+  ],
   {
     "segments": [
       {

@@ -1,14 +1,14 @@
 [
-  {
-    "length": 4,
-    "perimeter": 5,
-    "width": 2,
-    "square": 7,
-    "f64": 3,
-    "size": 8,
-    "Rectangle": 1,
-    "height": 6
-  },
+  [
+    "Rectangle",
+    "width",
+    "f64",
+    "length",
+    "perimeter",
+    "height",
+    "square",
+    "size"
+  ],
   {
     "tokens": [
       {
