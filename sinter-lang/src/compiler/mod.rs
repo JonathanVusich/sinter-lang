@@ -15,6 +15,9 @@ pub mod type_checker;
 pub mod compiler;
 pub mod compiled_module;
 mod interner;
+pub mod resolver;
+pub mod ty_checker;
+pub mod codegen;
 
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;

@@ -1,17 +1,22 @@
+use std::collections::VecDeque;
 use std::fs::File;
+use std::mem::discriminant;
 use std::num::NonZeroUsize;
 use std::path::Path;
 use anyhow::Result;
 use lasso::{Key as K, LargeSpur, Rodeo};
 use serde::{Serialize, Deserialize, Deserializer};
 use serde::de::DeserializeOwned;
-use crate::compiler::ast::Stmt;
+use crate::compiler::ast::{Stmt, UseStmt};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::parse;
 use crate::compiler::{StringInterner, TyInterner};
 use crate::compiler::ast::Expr::String;
+use crate::compiler::ast::Stmt::Use;
+use crate::compiler::codegen::code_generator::emit_code;
+use crate::compiler::resolver::resolve;
 use crate::compiler::tokens::tokenizer::tokenize_file;
-use crate::compiler::type_checker::type_check;
+use crate::compiler::ty_checker::ty_check;
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 
 struct Compiler {
@@ -80,20 +85,9 @@ impl From<CompilerCtxt> for (StringInterner, TyInterner) {
 fn compile(application: Application) -> Result<CompiledApplication> {
     let (compiler_ctxt, tokens) = tokenize_file(&application.entry_point)?;
     let (compiler_ctxt, module) = parse(compiler_ctxt, tokens)?;
-    let type_report = type_check(&module);
 
-    for stmt in module.stmts() {
-        match stmt {
-            Stmt::Let(let_stmt) => {
-
-            }
-            _ => {
-
-            }
-        }
-    }
-
-
-    // let file = File::open(path)?;
-    todo!()
+    let (compiler_ctxt, resolved_module) = resolve(compiler_ctxt, module)?;
+    let (compiler_ctxt, tychecked_module) = ty_check(compiler_ctxt, resolved_module)?;
+    
+    emit_code(compiler_ctxt, tychecked_module)
 }
