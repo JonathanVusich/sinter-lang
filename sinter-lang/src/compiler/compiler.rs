@@ -27,7 +27,7 @@ struct Application {
     entry_point: Box<Path>,
 }
 
-struct CompiledApplication {
+pub struct CompiledApplication {
 
 }
 
@@ -86,8 +86,9 @@ fn compile(application: Application) -> Result<CompiledApplication> {
     let (compiler_ctxt, tokens) = tokenize_file(&application.entry_point)?;
     let (compiler_ctxt, module) = parse(compiler_ctxt, tokens)?;
 
+    // Ensure that all names and variable uses are correct
     let (compiler_ctxt, resolved_module) = resolve(compiler_ctxt, module)?;
     let (compiler_ctxt, tychecked_module) = ty_check(compiler_ctxt, resolved_module)?;
-    
+
     emit_code(compiler_ctxt, tychecked_module)
 }

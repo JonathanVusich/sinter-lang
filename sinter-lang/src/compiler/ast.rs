@@ -455,10 +455,10 @@ pub struct ArgumentDecl {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct LetStmt {
-    ident: InternedStr,
-    mutability: Mutability,
-    ty: Option<Key>,
-    initializer: Option<Expr>,
+    pub ident: InternedStr,
+    pub mutability: Mutability,
+    pub ty: Option<Key>,
+    pub initializer: Option<Expr>,
 }
 
 impl LetStmt {
@@ -696,7 +696,7 @@ impl WhileStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct BlockStmt {
-    stmts: Vec<Stmt>,
+    pub stmts: Vec<Stmt>,
 }
 
 impl BlockStmt {
