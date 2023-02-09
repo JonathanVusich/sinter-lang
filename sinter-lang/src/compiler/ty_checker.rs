@@ -1,5 +1,4 @@
 use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::resolver::ResolvedModule;
 use anyhow::Result;
 
 pub struct TyCheckedModule {

@@ -1,10 +1,10 @@
 use std::collections::HashSet;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use crate::compiler::ast::{BlockStmt, ClassStmt, DeclaredType, FnStmt, GenericParam, GenericParams, IntoStr, LetStmt, Module, Param, Stmt};
+use crate::compiler::ast::{BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Field, FnStmt, GenericParam, GenericParams, LetStmt, Module, Param, Stmt};
 use crate::compiler::compiler::CompilerCtxt;
 use anyhow::Result;
-use crate::compiler::resolver::ResolutionError::{DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateVarDecl};
+use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateVarDecl};
 use crate::compiler::types::types::InternedStr;
 
 #[derive(Debug)]
@@ -13,6 +13,8 @@ pub enum ResolutionError {
     DuplicateTyDecl(InternedStr),
     DuplicateGenericParam(InternedStr),
     DuplicateParam(InternedStr),
+    DuplicateFieldName(InternedStr),
+    DuplicateEnumMember(InternedStr),
     DuplicateFnName(InternedStr),
 }
 
@@ -46,7 +48,7 @@ fn check_stmt(environment: &mut ModuleEnv, stmt: &Stmt) -> Result<()> {
     match stmt {
         Stmt::Let(let_stmt) => check_let_stmt(environment, let_stmt),
         Stmt::Class(class_stmt) => check_class_stmt(environment, class_stmt),
-        Stmt::Enum(_) => {}
+        Stmt::Enum(enum_stmt) => check_enum_stmt(environment, enum_stmt),
         Stmt::Trait(_) => {}
         Stmt::TraitImpl(_) => {}
         Stmt::Fn(_) => {}
@@ -58,11 +60,10 @@ fn check_stmt(environment: &mut ModuleEnv, stmt: &Stmt) -> Result<()> {
         Stmt::Expression { .. } => {}
         _ => {}
     }
-    Ok(())
 }
 
 fn check_let_stmt(module_env: &mut ModuleEnv, let_stmt: &LetStmt) -> Result<()> {
-    if !module_env.add_var_name(let_stmt.ident) {
+    if !module_env.add_var(let_stmt.ident) {
         return Err(DuplicateVarDecl(let_stmt.ident).into());
     }
     Ok(())
@@ -75,25 +76,40 @@ fn check_class_stmt(module_env: &mut ModuleEnv, class_stmt: &ClassStmt) -> Resul
     }
 
     check_generic_params(module_env, &class_stmt.generic_params)?;
-    check_params(module_env, &class_stmt.members)?;
+    check_fields(module_env, &class_stmt.fields)?;
     check_fns(module_env, &class_stmt.member_fns)?;
 
     module_env.end_scope();
+    module_env.clear_class_fields();
+    Ok(())
+}
+
+fn check_enum_stmt(module_env: &mut ModuleEnv, enum_stmt: &EnumStmt) -> Result<()> {
+    module_env.begin_scope();
+    if !module_env.add_ty_name(enum_stmt.name) {
+        return Err(DuplicateTyDecl(enum_stmt.name).into());
+    }
+
+    check_generic_params(module_env, &enum_stmt.generic_params)?;
+    check_enum_members(module_env, &enum_stmt.members)?;
+    check_fns(module_env, &enum_stmt.member_fns)?;
+
+    module_env.end_scope();
+    module_env.clear_class_fields();
     Ok(())
 }
 
 fn check_fns(module_env: &mut ModuleEnv, fns: &[FnStmt]) -> Result<()> {
-    let mut used_names = HashSet::new();
     for fn_stmt in fns {
-        // Check to ensure names are unique
-        if used_names.contains(&fn_stmt.sig.ident) {
+        if !module_env.add_fn(fn_stmt.sig.ident) {
             return Err(DuplicateFnName(fn_stmt.sig.ident).into());
-        } else {
-            used_names.insert(fn_stmt.sig.ident);
         }
 
-        check_params(&fn_stmt.sig.params)?;
-        check_generic_params(&fn_stmt.sig.generic_params, )?;
+        module_env.begin_scope();
+
+
+        check_params(module_env, &fn_stmt.sig.params)?;
+        check_generic_params(module_env, &fn_stmt.sig.generic_params, )?;
         if let Some(block_stmt) = &fn_stmt.body {
             check_block_stmt(module_env, &block_stmt)?;
         }
@@ -101,14 +117,37 @@ fn check_fns(module_env: &mut ModuleEnv, fns: &[FnStmt]) -> Result<()> {
     Ok(())
 }
 
-fn check_params(module_env: &mut ModuleEnv, params: &[Param]) -> Result<()> {
+fn check_fields(module_env: &mut ModuleEnv, params: &[Field]) -> Result<()> {
     for param in params {
-        if used_params.contains(&param.ident) {
-            return Err(DuplicateParam(param.ident).into());
-        } else {
-            used_params.insert(&param.ident);
+        if !module_env.add_field(param.ident) {
+            return Err(DuplicateFieldName(param.ident).into());
         }
     }
+    Ok(())
+}
+
+fn check_params(module_env: &mut ModuleEnv, params: &[Param]) -> Result<()> {
+    for param in params {
+        if !module_env.add_var(param.ident) {
+            return Err(DuplicateParam(param.ident).into());
+        }
+    }
+    Ok(())
+}
+
+fn check_enum_members(module_env: &mut ModuleEnv, members: &[EnumMemberStmt]) -> Result<()> {
+    for member in members {
+        if !module_env.add_enum_member(member.name) {
+            return Err(DuplicateEnumMember(member.name).into());
+        }
+        check_fields(module_env, &member.fields)?;
+
+        check_fns(module_env, &member.member_fns)?;
+
+        module_env.clear_class_fields();
+    }
+
+    module_env.clear_enum_members();
     Ok(())
 }
 
@@ -125,6 +164,9 @@ struct ModuleEnv {
     type_names: HashSet<InternedStr>,
     var_scopes: Vec<HashSet<InternedStr>>,
     generic_scopes: Vec<HashSet<InternedStr>>,
+    class_fields: HashSet<InternedStr>,
+    fns: HashSet<InternedStr>,
+    enum_members: HashSet<InternedStr>,
 }
 
 impl ModuleEnv {
@@ -133,6 +175,9 @@ impl ModuleEnv {
             type_names: HashSet::default(),
             var_scopes: vec![HashSet::default()],
             generic_scopes: vec![HashSet::default()],
+            class_fields: HashSet::default(),
+            fns: HashSet::default(),
+            enum_members: HashSet::default(),
         }
     }
 
@@ -144,7 +189,7 @@ impl ModuleEnv {
         return true;
     }
 
-    fn add_var_name(&mut self, name: InternedStr) -> bool {
+    fn add_var(&mut self, name: InternedStr) -> bool {
         for scope in self.var_scopes.iter().rev() {
             if scope.contains(&name) {
                 return false;
@@ -165,6 +210,30 @@ impl ModuleEnv {
         return true;
     }
 
+    fn add_field(&mut self, field: InternedStr) -> bool {
+        if self.class_fields.contains(&field) {
+            return false;
+        }
+        self.class_fields.insert(field);
+        true
+    }
+
+    fn add_fn(&mut self, function: InternedStr) -> bool {
+        if self.fns.contains(&function) {
+            return false;
+        }
+        self.fns.insert(function);
+        true
+    }
+
+    fn add_enum_member(&mut self, member: InternedStr) -> bool {
+        if self.class_fields.contains(&member) {
+            return false;
+        }
+        self.class_fields.insert(member);
+        true
+    }
+
     fn begin_scope(&mut self) {
         self.var_scopes.push(HashSet::new());
         self.generic_scopes.push(HashSet::new());
@@ -177,6 +246,19 @@ impl ModuleEnv {
         self.var_scopes.pop();
         self.generic_scopes.pop();
     }
+
+    fn clear_class_fields(&mut self) {
+        self.class_fields.clear();
+    }
+
+    fn clear_fns(&mut self) {
+        self.fns.clear();
+    }
+
+    fn clear_enum_members(&mut self) {
+        self.enum_members.clear();
+    }
+
 }
 
 struct ClassEnv {
@@ -196,7 +278,7 @@ mod tests {
         let mut environment = ModuleEnv::new();
 
         assert!(!environment.var_name_exists(string));
-        environment.add_var_name(string);
+        environment.add_var(string);
         assert!(environment.var_name_exists(string));
 
         environment.begin_scope();
@@ -205,7 +287,7 @@ mod tests {
         let second_string = InternedStr::try_from_usize(1).unwrap();
 
         assert!(!environment.var_name_exists(second_string));
-        environment.add_var_name(second_string);
+        environment.add_var(second_string);
         assert!(environment.var_name_exists(second_string));
 
         environment.end_scope();

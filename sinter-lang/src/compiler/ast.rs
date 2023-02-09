@@ -175,6 +175,40 @@ impl DerefMut for Params {
     }
 }
 
+#[derive(PartialEq, Eq, Debug, Default, Clone, Serialize, Deserialize)]
+pub struct Fields {
+    params: Vec<Field>,
+}
+
+impl Fields {
+    pub const fn new(params: Vec<Field>) -> Self {
+        Self { params }
+    }
+}
+
+impl IntoIterator for Fields {
+    type Item = Field;
+    type IntoIter = <Vec<Field> as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.params.into_iter()
+    }
+}
+
+impl Deref for Fields {
+    type Target = [Field];
+
+    fn deref(&self) -> &Self::Target {
+        &self.params
+    }
+}
+
+impl DerefMut for Fields {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.params
+    }
+}
+
 pub const EMPTY_ARGS: Args = Args::new(Vec::new());
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -203,7 +237,7 @@ pub struct ClassStmt {
     pub (crate) name: InternedStr,
     pub (crate) class_type: ClassType,
     pub (crate) generic_params: GenericParams,
-    pub (crate) members: Params,
+    pub (crate) fields: Fields ,
     pub (crate) member_fns: Vec<FnStmt>,
 }
 
@@ -212,20 +246,16 @@ impl ClassStmt {
         name: InternedStr,
         class_type: ClassType,
         generic_params: GenericParams,
-        members: Params,
+        fields: Fields,
         member_functions: Vec<FnStmt>,
     ) -> Self {
         Self {
             name,
             class_type,
             generic_params,
-            members,
+            fields,
             member_fns: member_functions,
         }
-    }
-
-    pub fn members(&self) -> &[Param] {
-        &self.members
     }
 }
 
@@ -245,10 +275,10 @@ impl DeclaredType for ClassStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumStmt {
-    name: InternedStr,
-    generic_params: GenericParams,
-    members: Vec<EnumMemberStmt>,
-    member_fns: Vec<FnStmt>,
+    pub name: InternedStr,
+    pub generic_params: GenericParams,
+    pub members: Vec<EnumMemberStmt>,
+    pub member_fns: Vec<FnStmt>,
 }
 
 impl EnumStmt {
@@ -391,17 +421,17 @@ impl IfStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumMemberStmt {
-    name: InternedStr,
-    parameters: Params,
-    member_functions: Vec<FnStmt>,
+    pub name: InternedStr,
+    pub fields: Fields,
+    pub member_fns: Vec<FnStmt>,
 }
 
 impl EnumMemberStmt {
-    pub fn new(name: InternedStr, parameters: Params, member_functions: Vec<FnStmt>) -> Self {
+    pub fn new(name: InternedStr, parameters: Fields, member_functions: Vec<FnStmt>) -> Self {
         Self {
             name,
-            parameters,
-            member_functions,
+            fields: parameters,
+            member_fns: member_functions,
         }
     }
 }
@@ -438,6 +468,23 @@ pub struct Param {
 }
 
 impl Param {
+    pub fn new(name: InternedStr, ty: Key, mutability: Mutability) -> Self {
+        Self {
+            ident: name,
+            ty,
+            mutability,
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct Field {
+    pub (crate) ident: InternedStr,
+    pub (crate) ty: Key,
+    pub (crate) mutability: Mutability,
+}
+
+impl Field {
     pub fn new(name: InternedStr, ty: Key, mutability: Mutability) -> Self {
         Self {
             ident: name,
