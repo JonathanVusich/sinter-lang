@@ -408,9 +408,9 @@ impl EnumMemberStmt {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct FnSig {
-    pub (crate) name: InternedStr,
+    pub (crate) ident: InternedStr,
     pub (crate) generic_params: GenericParams,
-    pub (crate) parameters: Params,
+    pub (crate) params: Params,
     pub (crate) return_type: Option<Key>,
 }
 
@@ -422,9 +422,9 @@ impl FnSig {
         return_type: Option<Key>,
     ) -> Self {
         Self {
-            name,
+            ident: name,
             generic_params,
-            parameters,
+            params: parameters,
             return_type,
         }
     }
@@ -432,7 +432,7 @@ impl FnSig {
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Param {
-    pub (crate) name: InternedStr,
+    pub (crate) ident: InternedStr,
     pub (crate) ty: Key,
     pub (crate) mutability: Mutability,
 }
@@ -440,7 +440,7 @@ pub struct Param {
 impl Param {
     pub fn new(name: InternedStr, ty: Key, mutability: Mutability) -> Self {
         Self {
-            name,
+            ident: name,
             ty,
             mutability,
         }

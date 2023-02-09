@@ -14,7 +14,7 @@ use crate::compiler::{StringInterner, TyInterner};
 use crate::compiler::ast::Expr::String;
 use crate::compiler::ast::Stmt::Use;
 use crate::compiler::codegen::code_generator::emit_code;
-use crate::compiler::resolver::resolve;
+use crate::compiler::resolver::check_names;
 use crate::compiler::tokens::tokenizer::tokenize_file;
 use crate::compiler::ty_checker::ty_check;
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
@@ -87,7 +87,7 @@ fn compile(application: Application) -> Result<CompiledApplication> {
     let (compiler_ctxt, module) = parse(compiler_ctxt, tokens)?;
 
     // Ensure that all names and variable uses are correct
-    let (compiler_ctxt, resolved_module) = resolve(compiler_ctxt, module)?;
+    let (compiler_ctxt, resolved_module) = check_names(compiler_ctxt, module)?;
     let (compiler_ctxt, tychecked_module) = ty_check(compiler_ctxt, resolved_module)?;
 
     emit_code(compiler_ctxt, tychecked_module)

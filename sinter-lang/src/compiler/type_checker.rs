@@ -73,20 +73,20 @@ impl<'a> TypeChecker<'a> {
     }
 
     fn fn_name_shadow_check(&mut self, fn_stmt: &'a FnStmt) {
-        if let Some(existing_fn) = self.named_fns.get(&fn_stmt.sig.name) {
+        if let Some(existing_fn) = self.named_fns.get(&fn_stmt.sig.ident) {
             self.type_errors.push(TypeError::DuplicateFnName(existing_fn, &fn_stmt));
         } else {
-            self.named_fns.insert(fn_stmt.sig.name, &fn_stmt);
+            self.named_fns.insert(fn_stmt.sig.ident, &fn_stmt);
         }
     }
 
     fn unique_class_members(&mut self, class_stmt: &'a ClassStmt) {
         let mut class_members = HashMap::<InternedStr, &Param>::new();
         for member in class_stmt.members() {
-            if let Some(existing_member) = class_members.get(&member.name) {
+            if let Some(existing_member) = class_members.get(&member.ident) {
                 self.type_errors.push(TypeError::DuplicateParamName(existing_member, member));
             } else {
-                class_members.insert(member.name, member);
+                class_members.insert(member.ident, member);
             }
         }
     }
