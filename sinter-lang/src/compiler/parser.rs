@@ -10,14 +10,8 @@ use serde::{Deserialize, Serialize};
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Expr::Infix;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
-use crate::compiler::ast::Stmt::{Enum, For, If, Return, TraitImpl, While};
-use crate::compiler::ast::{
-    Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr,
-    FieldExpr, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt,
-    IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern,
-    Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range,
-    ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
-};
+use crate::compiler::ast::Stmt::{For, If, Return, While};
+use crate::compiler::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, OuterStmt, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
@@ -27,6 +21,7 @@ use crate::compiler::tokens::tokenized_file::{TokenSpan, TokenizedInput};
 use crate::compiler::types::types::Type::{Closure, F32, F64, I16, I32, I64, I8, Infer, Path, QSelf, Str, U16, U32, U64, U8, Union};
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 use crate::compiler::{StringInterner, TyInterner};
+use crate::compiler::ast::OuterStmt::{Class, Enum, Fn, Trait, TraitImpl, Use};
 use crate::compiler::compiler::CompilerCtxt;
 use crate::gc::block::Block;
 
@@ -98,7 +93,7 @@ impl Parser {
         Ok((self.compiler_ctxt, Module::new(stmts)))
     }
 
-    fn parse_outer_stmts(&mut self) -> Result<Vec<Stmt>> {
+    fn parse_outer_stmts(&mut self) -> Result<Vec<OuterStmt>> {
         let mut stmts = Vec::new();
         while self.pos < self.token_types.len() {
             stmts.push(self.parse_outer_stmt()?);
@@ -106,14 +101,14 @@ impl Parser {
         Ok(stmts)
     }
 
-    fn parse_outer_stmt(&mut self) -> Result<Stmt> {
+    fn parse_outer_stmt(&mut self) -> Result<OuterStmt> {
         if let Some(current) = self.current() {
             match current {
                 TokenType::Use => self.parse_use_stmt(),
                 TokenType::Ref => self.parse_class_stmt(),
                 TokenType::Class => self.parse_class_stmt(),
                 TokenType::Fn => self.parse_fn_stmt(),
-                TokenType::Let => self.parse_let_stmt(),
+                TokenType::Let => self.parse_outer_let_stmt(),
                 TokenType::Enum => self.parse_enum_stmt(),
                 TokenType::Trait => self.parse_trait_stmt(),
                 TokenType::Impl => self.parse_trait_impl_stmt(),
@@ -141,8 +136,8 @@ impl Parser {
         }
     }
 
-    fn parse_use_stmt(&mut self) -> Result<Stmt> {
-        Ok(Stmt::Use(self.use_stmt()?))
+    fn parse_use_stmt(&mut self) -> Result<OuterStmt> {
+        Ok(Use(self.use_stmt()?))
     }
 
     fn use_stmt(&mut self) -> Result<UseStmt> {
@@ -152,7 +147,7 @@ impl Parser {
         Ok(UseStmt::new(identifier))
     }
 
-    fn parse_type_definition(&mut self) -> Result<Stmt> {
+    fn parse_type_definition(&mut self) -> Result<OuterStmt> {
         if let Some(current) = self.current() {
             match current {
                 TokenType::Ref => self.parse_class_stmt(),
@@ -166,8 +161,8 @@ impl Parser {
         }
     }
 
-    fn parse_class_stmt(&mut self) -> Result<Stmt> {
-        Ok(Stmt::Class(self.class_stmt()?))
+    fn parse_class_stmt(&mut self) -> Result<OuterStmt> {
+        Ok(Class(self.class_stmt()?))
     }
 
     fn class_stmt(&mut self) -> Result<ClassStmt> {
@@ -181,7 +176,7 @@ impl Parser {
         };
         let name = self.identifier()?;
         let generic_types = self.generic_params()?;
-        let members = self.params()?;
+        let fields = self.fields()?;
         let member_functions = if self.matches(TokenType::LeftBrace) {
             self.fn_stmts()?
         } else if self.matches(TokenType::Semicolon) {
@@ -191,13 +186,13 @@ impl Parser {
             return self.expected_tokens(vec![TokenType::LeftBrace, TokenType::Semicolon]);
         };
 
-        let class_stmt = ClassStmt::new(name, class_type, generic_types, members, member_functions);
+        let class_stmt = ClassStmt::new(name, class_type, generic_types, fields, member_functions);
 
         Ok(class_stmt)
     }
 
-    fn parse_fn_stmt(&mut self) -> Result<Stmt> {
-        Ok(Stmt::Fn(self.fn_stmt()?))
+    fn parse_fn_stmt(&mut self) -> Result<OuterStmt> {
+        Ok(Fn(self.fn_stmt()?))
     }
 
     fn fn_stmt(&mut self) -> Result<FnStmt> {
@@ -221,6 +216,10 @@ impl Parser {
             Some(token) => self.unexpected_token(token),
             None => self.unexpected_end(),
         }
+    }
+
+    fn parse_outer_let_stmt(&mut self) -> Result<OuterStmt> {
+        Ok(OuterStmt::Let(self.let_stmt()?))
     }
 
     fn parse_let_stmt(&mut self) -> Result<Stmt> {
@@ -260,7 +259,7 @@ impl Parser {
         Ok(let_stmt)
     }
 
-    fn parse_enum_stmt(&mut self) -> Result<Stmt> {
+    fn parse_enum_stmt(&mut self) -> Result<OuterStmt> {
         Ok(Enum(self.enum_stmt()?))
     }
 
@@ -282,8 +281,8 @@ impl Parser {
         Ok(enum_stmt)
     }
 
-    fn parse_trait_stmt(&mut self) -> Result<Stmt> {
-        Ok(Stmt::Trait(self.trait_stmt()?))
+    fn parse_trait_stmt(&mut self) -> Result<OuterStmt> {
+        Ok(Trait(self.trait_stmt()?))
     }
 
     fn trait_stmt(&mut self) -> Result<TraitStmt> {
@@ -300,7 +299,7 @@ impl Parser {
         }
     }
 
-    fn parse_trait_impl_stmt(&mut self) -> Result<Stmt> {
+    fn parse_trait_impl_stmt(&mut self) -> Result<OuterStmt> {
         Ok(TraitImpl(self.trait_impl_stmt()?))
     }
 
@@ -516,13 +515,13 @@ impl Parser {
         match self.current() {
             Some(TokenType::Identifier(ident)) => {
                 self.advance();
-                let params = self.params()?;
+                let fields = self.fields()?;
                 let fn_stmts = if self.matches(TokenType::LeftBrace) {
                     self.fn_stmts()?
                 } else {
                     Vec::new()
                 };
-                Ok(EnumMemberStmt::new(ident, params, fn_stmts))
+                Ok(EnumMemberStmt::new(ident, fields, fn_stmts))
             }
             Some(token) => {
                 let ident = self.intern_str("");
@@ -532,6 +531,16 @@ impl Parser {
             },
             None => self.unexpected_end(),
         }
+    }
+
+    fn fields(&mut self) -> Result<Fields> {
+        let fields = self.parse_multiple_with_scope_delimiter::<Field, 1>(
+            Self::field,
+            TokenType::Comma,
+            TokenType::LeftParentheses,
+            TokenType::RightParentheses,
+        )?;
+        Ok(Fields::new(fields))
     }
 
     fn params(&mut self) -> Result<Params> {
@@ -556,7 +565,17 @@ impl Parser {
         Ok(Params::new(params))
     }
 
+    fn field(&mut self) -> Result<Field> {
+        let (mutability, ident, ty) = self.mut_ident_ty()?;
+        Ok(Field::new(ident, ty, mutability))
+    }
+
     fn param(&mut self) -> Result<Param> {
+        let (mutability, ident, ty) = self.mut_ident_ty()?;
+        Ok(Param::new(ident, ty, mutability))
+    }
+
+    fn mut_ident_ty(&mut self) -> Result<(Mutability, InternedStr, Key)> {
         let mutability = self.mutability();
         let ident;
         let ty: Key;
@@ -569,8 +588,7 @@ impl Parser {
             self.expect(TokenType::Colon)?;
             ty = self.parse_ty()?;
         }
-
-        Ok(Param::new(ident, ty, mutability))
+        Ok((mutability, ident, ty))
     }
 
     fn self_param(&mut self) -> Result<Param> {
@@ -1393,12 +1411,11 @@ mod tests {
     use snap::snapshot;
 
     use crate::compiler::ast::Mutability::{Immutable, Mutable};
-    use crate::compiler::ast::Stmt::Enum;
     use crate::compiler::ast::{
         Args, BlockStmt, Call, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
         Param, Params, PathExpr, QualifiedIdent, Stmt,
     };
-    use crate::compiler::ast::{Module, UseStmt};
+    use crate::compiler::ast::{Module, UseStmt, OuterStmt};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{ParseError, Parser};
     use crate::compiler::tokens::token::TokenType;
@@ -1662,7 +1679,7 @@ mod tests {
                 let ty = Some(ctxt.intern_ty($typ));
 
                 assert_eq!(
-                    vec![Stmt::Let(LetStmt::new(
+                    vec![OuterStmt::Let(LetStmt::new(
                         ctxt.intern_str("x"),
                         Mutability::Immutable,
                         ty,

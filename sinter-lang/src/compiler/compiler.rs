@@ -12,7 +12,7 @@ use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::parse;
 use crate::compiler::{StringInterner, TyInterner};
 use crate::compiler::ast::Expr::String;
-use crate::compiler::ast::Stmt::Use;
+use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::codegen::code_generator::emit_code;
 use crate::compiler::resolver::check_names;
 use crate::compiler::tokens::tokenizer::tokenize_file;

@@ -10,15 +10,15 @@ use crate::compiler::tokens::tokenized_file::Span;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
-    stmts: Vec<Stmt>,
+    stmts: Vec<OuterStmt>,
 }
 
 impl Module {
-    pub fn new(stmts: Vec<Stmt>) -> Self {
+    pub fn new(stmts: Vec<OuterStmt>) -> Self {
         Self { stmts }
     }
 
-    pub fn stmts(&self) -> &[Stmt] {
+    pub fn stmts(&self) -> &[OuterStmt] {
         &self.stmts
     }
 }
@@ -321,9 +321,9 @@ impl DeclaredType for EnumStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitStmt {
-    ident: InternedStr,
-    generic_params: GenericParams,
-    member_fns: Vec<FnStmt>,
+    pub ident: InternedStr,
+    pub generic_params: GenericParams,
+    pub member_fns: Vec<FnStmt>,
 }
 
 impl TraitStmt {
@@ -844,8 +844,9 @@ impl InfixOp {
     }
 }
 
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub enum Stmt {
+pub enum OuterStmt {
     Use(UseStmt),
     Let(LetStmt),
     Class(ClassStmt),
@@ -853,6 +854,11 @@ pub enum Stmt {
     Trait(TraitStmt),
     TraitImpl(TraitImplStmt),
     Fn(FnStmt),
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum Stmt {
+    Let(LetStmt),
     For(ForStmt),
     If(IfStmt),
     Return(ReturnStmt),

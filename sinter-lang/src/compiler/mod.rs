@@ -11,7 +11,6 @@ pub mod parser;
 pub mod ast;
 pub mod tokens;
 pub mod types;
-pub mod type_checker;
 pub mod compiler;
 pub mod compiled_module;
 mod interner;
