@@ -41,7 +41,15 @@ pub struct QualifiedIdent {
 
 impl QualifiedIdent {
     pub fn new(idents: Vec<InternedStr>) -> Self {
+        if idents.len() < 1 {
+            panic!("QualifiedIdent must have at least one identifier!")
+        }
         Self { idents }
+    }
+
+    pub fn last(&self) -> InternedStr {
+        // It is safe to unwrap here since a QualifiedIdent should always have one element.
+        self.idents.last().copied().unwrap()
     }
 }
 
@@ -72,7 +80,7 @@ impl PathTy {
 
 #[derive(Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct UseStmt {
-    ident: QualifiedIdent,
+    pub ident: QualifiedIdent,
 }
 
 impl UseStmt {
@@ -321,7 +329,7 @@ impl DeclaredType for EnumStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitStmt {
-    pub ident: InternedStr,
+    pub name: InternedStr,
     pub generic_params: GenericParams,
     pub member_fns: Vec<FnStmt>,
 }
@@ -329,7 +337,7 @@ pub struct TraitStmt {
 impl TraitStmt {
     pub fn new(ident: InternedStr, generic_params: GenericParams, functions: Vec<FnStmt>) -> Self {
         Self {
-            ident,
+            name: ident,
             generic_params,
             member_fns: functions,
         }
@@ -338,7 +346,7 @@ impl TraitStmt {
 
 impl DeclaredType for TraitStmt {
     fn name(&self) -> InternedStr {
-        self.ident
+        self.name
     }
 
     fn member_fns(&self) -> &[FnStmt] {
@@ -352,9 +360,9 @@ impl DeclaredType for TraitStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitImplStmt {
-    trait_to_impl: PathTy,
-    target_ty: Key,
-    fns: Vec<FnStmt>,
+    pub trait_to_impl: PathTy,
+    pub target_ty: Key,
+    pub member_fns: Vec<FnStmt>,
 }
 
 impl TraitImplStmt {
@@ -362,7 +370,7 @@ impl TraitImplStmt {
         Self {
             trait_to_impl,
             target_ty,
-            fns,
+            member_fns: fns,
         }
     }
 }
@@ -438,7 +446,7 @@ impl EnumMemberStmt {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct FnSig {
-    pub (crate) ident: InternedStr,
+    pub (crate) name: InternedStr,
     pub (crate) generic_params: GenericParams,
     pub (crate) params: Params,
     pub (crate) return_type: Option<Key>,
@@ -452,7 +460,7 @@ impl FnSig {
         return_type: Option<Key>,
     ) -> Self {
         Self {
-            ident: name,
+            name: name,
             generic_params,
             params: parameters,
             return_type,

@@ -4,7 +4,8 @@ use std::fmt::{Display, Formatter};
 
 use anyhow::Result;
 
-use crate::compiler::ast::{BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Field, FnStmt, GenericParam, GenericParams, LetStmt, Module, OuterStmt, Param, Stmt, TraitStmt};
+use crate::compiler::ast::{BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt};
+use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateVarDecl};
 use crate::compiler::types::types::InternedStr;
@@ -54,12 +55,22 @@ fn check_outer_stmt(module_env: &mut ModuleEnv, stmt: &OuterStmt) -> Result<()> 
         OuterStmt::Trait(trait_stmt) => check_trait_stmt(module_env, trait_stmt),
         OuterStmt::TraitImpl(trait_impl_stmt) => check_trait_impl_stmt(module_env, trait_impl_stmt),
         OuterStmt::Fn(fn_stmt) => check_fn_stmt(module_env, fn_stmt),
-        _ => {}
+        // TODO: Implement use stmt resolution
+        // We have already scanned all use statements, no further action necessary
+        Use(_) => Ok(())
     }
 }
 
 fn check_stmt(module_env: &mut ModuleEnv, stmt: &Stmt) -> Result<()> {
-    todo!()
+    match stmt {
+        Stmt::Let(let_stmt) => check_let_stmt(module_env, &let_stmt),
+        Stmt::For(for_stmt) => check_for_stmt(module_env, &for_stmt),
+        Stmt::If(if_stmt) => check_if_stmt(module_env, &if_stmt),
+        Stmt::Return(return_stmt) => check_return_stmt(module_env, &return_stmt),
+        Stmt::While(while_stmt) => check_while_stmt(module_env, &while_stmt),
+        Stmt::Block(block_stmt) => check_block_stmt(module_env, &block_stmt),
+        Stmt::Expression { expr, implicit_return } => check_expr(module_env, &expr, *implicit_return),
+    }
 }
 
 fn check_let_stmt(module_env: &mut ModuleEnv, let_stmt: &LetStmt) -> Result<()> {
@@ -67,6 +78,26 @@ fn check_let_stmt(module_env: &mut ModuleEnv, let_stmt: &LetStmt) -> Result<()> 
         return Err(DuplicateVarDecl(let_stmt.ident).into());
     }
     Ok(())
+}
+
+fn check_for_stmt(module_env: &mut ModuleEnv, for_stmt: &ForStmt) -> Result<()> {
+    todo!()
+}
+
+fn check_if_stmt(module_env: &mut ModuleEnv, if_stmt: &IfStmt) -> Result<()> {
+    todo!()
+}
+
+fn check_return_stmt(module_env: &mut ModuleEnv, return_stmt: &ReturnStmt) -> Result<()> {
+    todo!()
+}
+
+fn check_while_stmt(module_env: &mut ModuleEnv, while_stmt: &WhileStmt) -> Result<()> {
+    todo!()
+}
+
+fn check_expr(module_env: &mut ModuleEnv, expr: &Expr, implicit_return: bool) -> Result<()> {
+    todo!()
 }
 
 fn check_class_stmt(module_env: &mut ModuleEnv, class_stmt: &ClassStmt) -> Result<()> {
@@ -114,10 +145,40 @@ fn check_trait_stmt(module_env: &mut ModuleEnv, trait_stmt: &TraitStmt) -> Resul
     Ok(())
 }
 
+fn check_trait_impl_stmt(module_env: &mut ModuleEnv, trait_impl_stmt: &TraitImplStmt) -> Result<()> {
+    module_env.begin_scope();
+
+    // TODO: Ensure trait and type are in scope
+    check_member_fns(module_env, &trait_impl_stmt.member_fns)?;
+
+    module_env.end_scope();
+    module_env.clear_member_fns();
+
+    Ok(())
+}
+
+fn check_fn_stmt(module_env: &mut ModuleEnv, fn_stmt: &FnStmt) -> Result<()> {
+    if module_env.add_fn_name(fn_stmt.sig.name) {
+        return Err(DuplicateFnName(fn_stmt.sig.name).into());
+    }
+
+    module_env.begin_scope();
+
+    check_generic_params(module_env, &fn_stmt.sig.generic_params)?;
+    check_params(module_env, &fn_stmt.sig.params)?;
+
+    if let Some(block_stmt) = &fn_stmt.body {
+        check_block_stmt(module_env, block_stmt)?;
+    }
+
+    module_env.end_scope();
+    Ok(())
+}
+
 fn check_member_fns(module_env: &mut ModuleEnv, fns: &[FnStmt]) -> Result<()> {
     for fn_stmt in fns {
-        if !module_env.add_member_fn(fn_stmt.sig.ident) {
-            return Err(DuplicateFnName(fn_stmt.sig.ident).into());
+        if !module_env.add_member_fn(fn_stmt.sig.name) {
+            return Err(DuplicateFnName(fn_stmt.sig.name).into());
         }
 
         module_env.begin_scope();
@@ -177,6 +238,7 @@ fn check_generic_params(module_env: &mut ModuleEnv, generic_params: &[GenericPar
 
 struct ModuleEnv {
     type_names: HashSet<InternedStr>,
+    fn_names: HashSet<InternedStr>,
     var_scopes: Vec<HashSet<InternedStr>>,
     generic_scopes: Vec<HashSet<InternedStr>>,
     class_fields: HashSet<InternedStr>,
@@ -188,6 +250,7 @@ impl ModuleEnv {
     fn new() -> Self {
         Self {
             type_names: HashSet::default(),
+            fn_names: HashSet::default(),
             var_scopes: vec![HashSet::default()],
             generic_scopes: vec![HashSet::default()],
             class_fields: HashSet::default(),
@@ -201,8 +264,17 @@ impl ModuleEnv {
             return false;
         }
         self.type_names.insert(name);
-        return true;
+        true
     }
+
+    fn add_fn_name(&mut self, name: InternedStr) -> bool {
+        if self.fn_names.contains(&name) {
+            return false;
+        }
+        self.fn_names.insert(name);
+        true
+    }
+
 
     fn add_var(&mut self, name: InternedStr) -> bool {
         for scope in self.var_scopes.iter().rev() {
