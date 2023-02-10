@@ -461,7 +461,7 @@ impl FnSig {
         return_type: Option<Key>,
     ) -> Self {
         Self {
-            name: name,
+            name,
             generic_params,
             params: parameters,
             return_type,
@@ -541,7 +541,7 @@ pub enum VarInitializer {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Expr {
-    Array(ArrayExpr),
+    Array(Box<ArrayExpr>),
     Call(Box<Call>),
     Infix(Box<InfixExpr>),
     Unary(Box<UnaryExpr>),

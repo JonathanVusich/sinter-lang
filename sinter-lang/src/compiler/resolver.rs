@@ -10,6 +10,18 @@ use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateVarDecl};
 use crate::compiler::types::types::InternedStr;
 
+pub fn check_names(ctxt: CompilerCtxt, module: Module) -> Result<(CompilerCtxt, Module)> {
+    let resolver = Resolver::new(ctxt, module);
+    resolver.resolve()
+}
+
+
+struct Resolver {
+    module_env: ModuleEnv,
+    ctxt: CompilerCtxt,
+    module: Module,
+}
+
 #[derive(Debug)]
 pub enum ResolutionError {
     DuplicateVarDecl(InternedStr),
@@ -29,265 +41,279 @@ impl Display for ResolutionError {
 
 impl Error for ResolutionError {}
 
-pub fn check_names(ctxt: CompilerCtxt, module: Module) -> Result<(CompilerCtxt, Module)> {
-    let mut module_env = ModuleEnv::new();
 
-    for stmt in module.stmts() {
-        check_outer_stmt(&mut module_env, stmt)?;
-    }
-    todo!()
-}
+impl Resolver {
 
-fn check_block_stmt(module_env: &mut ModuleEnv, block_stmt: &BlockStmt) -> Result<()> {
-    module_env.begin_scope();
-    for stmt in &block_stmt.stmts {
-        check_stmt(module_env, stmt)?;
-    }
-    module_env.end_scope();
-    Ok(())
-}
-
-fn check_outer_stmt(module_env: &mut ModuleEnv, stmt: &OuterStmt) -> Result<()> {
-    match stmt {
-        OuterStmt::Let(let_stmt) => check_let_stmt(module_env, let_stmt),
-        OuterStmt::Class(class_stmt) => check_class_stmt(module_env, class_stmt),
-        OuterStmt::Enum(enum_stmt) => check_enum_stmt(module_env, enum_stmt),
-        OuterStmt::Trait(trait_stmt) => check_trait_stmt(module_env, trait_stmt),
-        OuterStmt::TraitImpl(trait_impl_stmt) => check_trait_impl_stmt(module_env, trait_impl_stmt),
-        OuterStmt::Fn(fn_stmt) => check_fn_stmt(module_env, fn_stmt),
-        // TODO: Implement use stmt resolution
-        // We have already scanned all use statements, no further action necessary
-        Use(_) => Ok(())
-    }
-}
-
-fn check_stmt(module_env: &mut ModuleEnv, stmt: &Stmt) -> Result<()> {
-    match stmt {
-        Stmt::Let(let_stmt) => check_let_stmt(module_env, &let_stmt),
-        Stmt::For(for_stmt) => check_for_stmt(module_env, &for_stmt),
-        Stmt::If(if_stmt) => check_if_stmt(module_env, &if_stmt),
-        Stmt::Return(return_stmt) => check_return_stmt(module_env, &return_stmt),
-        Stmt::While(while_stmt) => check_while_stmt(module_env, &while_stmt),
-        Stmt::Block(block_stmt) => check_block_stmt(module_env, &block_stmt),
-        Stmt::Expression { expr, implicit_return } => check_expr(module_env, &expr),
-    }
-}
-
-fn check_let_stmt(module_env: &mut ModuleEnv, let_stmt: &LetStmt) -> Result<()> {
-    if !module_env.add_var(let_stmt.ident) {
-        return Err(DuplicateVarDecl(let_stmt.ident).into());
-    }
-    if let Some(expr) = &let_stmt.initializer {
-        check_expr(module_env, expr)?;
+    fn new(ctxt: CompilerCtxt, module: Module) -> Self {
+        Self {
+            module_env: ModuleEnv::new(),
+            ctxt,
+            module,
+        }
     }
 
-    Ok(())
-}
-
-fn check_for_stmt(module_env: &mut ModuleEnv, for_stmt: &ForStmt) -> Result<()> {
-    module_env.begin_scope();
-
-    // Add for loop identifier
-    if !module_env.add_var(for_stmt.ident) {
-        return Err(DuplicateVarDecl(for_stmt.ident).into());
+    fn resolve(mut self) -> Result<(CompilerCtxt, Module)> {
+        for stmt in self.module.stmts() {
+            self.check_outer_stmt(stmt)?;
+        }
+        Ok((self.ctxt, self.module))
     }
-    check_expr(module_env, &for_stmt.range)?;
-    check_block_stmt(module_env, &for_stmt.body)?;
 
-    module_env.end_scope();
-    Ok(())
-}
-
-fn check_if_stmt(module_env: &mut ModuleEnv, if_stmt: &IfStmt) -> Result<()> {
-    check_expr(module_env, &if_stmt.condition)?;
-    check_block_stmt(module_env, &if_stmt.if_true)?;
-
-    if let Some(block_stmt) = &if_stmt.if_false {
-        check_block_stmt(module_env, block_stmt)?;
+    fn check_block_stmt(&mut self, block_stmt: &BlockStmt) -> Result<()> {
+        self.module_env.begin_scope();
+        for stmt in &block_stmt.stmts {
+            self.check_stmt(stmt)?;
+        }
+        self.module_env.end_scope();
+        Ok(())
     }
-    Ok(())
-}
 
-fn check_return_stmt(module_env: &mut ModuleEnv, return_stmt: &ReturnStmt) -> Result<()> {
-    if let Some(return_val) = &return_stmt.value {
-        check_expr(module_env, return_val)?;
+    fn check_outer_stmt(&mut self, stmt: &OuterStmt) -> Result<()> {
+        match stmt {
+            OuterStmt::Let(let_stmt) => self.check_let_stmt(let_stmt),
+            OuterStmt::Class(class_stmt) => self.check_class_stmt(class_stmt),
+            OuterStmt::Enum(enum_stmt) => self.check_enum_stmt(enum_stmt),
+            OuterStmt::Trait(trait_stmt) => self.check_trait_stmt(trait_stmt),
+            OuterStmt::TraitImpl(trait_impl_stmt) => self.check_trait_impl_stmt(trait_impl_stmt),
+            OuterStmt::Fn(fn_stmt) => self.check_fn_stmt(fn_stmt),
+            // TODO: Implement use stmt resolution
+            // We have already scanned all use statements, no further action necessary
+            Use(_) => Ok(())
+        }
     }
-    Ok(())
-}
 
-fn check_while_stmt(module_env: &mut ModuleEnv, while_stmt: &WhileStmt) -> Result<()> {
-    check_expr(module_env, &while_stmt.condition)?;
-    check_block_stmt(module_env, &while_stmt.block_stmt)?;
-    Ok(())
-}
+    fn check_stmt(&mut self, stmt: &Stmt) -> Result<()> {
+        match stmt {
+            Stmt::Let(let_stmt) => self.check_let_stmt(&let_stmt),
+            Stmt::For(for_stmt) => self.check_for_stmt(&for_stmt),
+            Stmt::If(if_stmt) => self.check_if_stmt(&if_stmt),
+            Stmt::Return(return_stmt) => self.check_return_stmt(&return_stmt),
+            Stmt::While(while_stmt) => self.check_while_stmt(&while_stmt),
+            Stmt::Block(block_stmt) => self.check_block_stmt(&block_stmt),
+            Stmt::Expression { expr, implicit_return } => self.check_expr(&expr),
+        }
+    }
 
-fn check_expr(module_env: &mut ModuleEnv, expr: &Expr) -> Result<()> {
-    match expr {
-        Expr::Array(array_expr) => {
-            match array_expr {
-                ArrayExpr::SizedInitializer(initializer, size) => {
+    fn check_let_stmt(&mut self, let_stmt: &LetStmt) -> Result<()> {
+        if !self.module_env.add_var(let_stmt.ident) {
+            return Err(DuplicateVarDecl(let_stmt.ident).into());
+        }
+        if let Some(expr) = &let_stmt.initializer {
+            self.check_expr(expr)?;
+        }
 
-                }
-                ArrayExpr::Initializer(initializers) => {
-                    
+        Ok(())
+    }
+
+    fn check_for_stmt(&mut self, for_stmt: &ForStmt) -> Result<()> {
+        self.module_env.begin_scope();
+
+        // Add for loop identifier
+        if !self.module_env.add_var(for_stmt.ident) {
+            return Err(DuplicateVarDecl(for_stmt.ident).into());
+        }
+        self.check_expr(&for_stmt.range)?;
+        self.check_block_stmt(&for_stmt.body)?;
+
+        self.module_env.end_scope();
+        Ok(())
+    }
+
+    fn check_if_stmt(&mut self, if_stmt: &IfStmt) -> Result<()> {
+        self.check_expr(&if_stmt.condition)?;
+        self.check_block_stmt(&if_stmt.if_true)?;
+
+        if let Some(block_stmt) = &if_stmt.if_false {
+            self.check_block_stmt(block_stmt)?;
+        }
+        Ok(())
+    }
+
+    fn check_return_stmt(&mut self, return_stmt: &ReturnStmt) -> Result<()> {
+        if let Some(return_val) = &return_stmt.value {
+            self.check_expr(return_val)?;
+        }
+        Ok(())
+    }
+
+    fn check_while_stmt(&mut self, while_stmt: &WhileStmt) -> Result<()> {
+        self.check_expr(&while_stmt.condition)?;
+        self.check_block_stmt(&while_stmt.block_stmt)?;
+        Ok(())
+    }
+
+    fn check_expr(&mut self, expr: &Expr) -> Result<()> {
+        match expr {
+            Expr::Array(array_expr) => {
+                match &**array_expr {
+                    ArrayExpr::SizedInitializer(initializer, size) => {
+                        self.check_expr(initializer)?;
+                        self.check_expr(size)?;
+                        Ok(())
+                    }
+                    ArrayExpr::Initializer(initializers) => {
+
+                    }
                 }
             }
+            Expr::Call(_) => {}
+            Expr::Infix(_) => {}
+            Expr::Unary(_) => {}
+            Expr::None => {}
+            Expr::Boolean(_) => {}
+            Expr::Integer(_) => {}
+            Expr::Float(_) => {}
+            Expr::String(_) => {}
+            Expr::Match(_) => {}
+            Expr::Closure(_) => {}
+            Expr::Assign(_) => {}
+            Expr::Field(_) => {}
+            Expr::Index(_) => {}
+            Expr::Path(_) => {}
+            Expr::Break => {}
+            Expr::Continue => {}
         }
-        Expr::Call(_) => {}
-        Expr::Infix(_) => {}
-        Expr::Unary(_) => {}
-        Expr::None => {}
-        Expr::Boolean(_) => {}
-        Expr::Integer(_) => {}
-        Expr::Float(_) => {}
-        Expr::String(_) => {}
-        Expr::Match(_) => {}
-        Expr::Closure(_) => {}
-        Expr::Assign(_) => {}
-        Expr::Field(_) => {}
-        Expr::Index(_) => {}
-        Expr::Path(_) => {}
-        Expr::Break => {}
-        Expr::Continue => {}
-    }
-    todo!()
-}
-
-fn check_class_stmt(module_env: &mut ModuleEnv, class_stmt: &ClassStmt) -> Result<()> {
-    module_env.begin_scope();
-    if !module_env.add_ty_name(class_stmt.name) {
-        return Err(DuplicateTyDecl(class_stmt.name).into());
+        todo!()
     }
 
-    check_generic_params(module_env, &class_stmt.generic_params)?;
-    check_fields(module_env, &class_stmt.fields)?;
-    check_member_fns(module_env, &class_stmt.member_fns)?;
+    fn check_class_stmt(&mut self, class_stmt: &ClassStmt) -> Result<()> {
+        self.module_env.begin_scope();
+        if !self.module_env.add_ty_name(class_stmt.name) {
+            return Err(DuplicateTyDecl(class_stmt.name).into());
+        }
 
-    module_env.end_scope();
-    module_env.clear_class_fields();
-    Ok(())
-}
+        self.check_generic_params(&class_stmt.generic_params)?;
+        self.check_fields(&class_stmt.fields)?;
+        self.check_member_fns(&class_stmt.member_fns)?;
 
-fn check_enum_stmt(module_env: &mut ModuleEnv, enum_stmt: &EnumStmt) -> Result<()> {
-    module_env.begin_scope();
-    if !module_env.add_ty_name(enum_stmt.name) {
-        return Err(DuplicateTyDecl(enum_stmt.name).into());
+        self.module_env.end_scope();
+        self.module_env.clear_class_fields();
+        Ok(())
     }
 
-    check_generic_params(module_env, &enum_stmt.generic_params)?;
-    check_enum_members(module_env, &enum_stmt.members)?;
-    check_member_fns(module_env, &enum_stmt.member_fns)?;
+    fn check_enum_stmt(&mut self, enum_stmt: &EnumStmt) -> Result<()> {
+        self.module_env.begin_scope();
+        if !self.module_env.add_ty_name(enum_stmt.name) {
+            return Err(DuplicateTyDecl(enum_stmt.name).into());
+        }
 
-    module_env.end_scope();
-    module_env.clear_class_fields();
-    Ok(())
-}
+        self.check_generic_params(&enum_stmt.generic_params)?;
+        self.check_enum_members(&enum_stmt.members)?;
+        self.check_member_fns(&enum_stmt.member_fns)?;
 
-fn check_trait_stmt(module_env: &mut ModuleEnv, trait_stmt: &TraitStmt) -> Result<()> {
-    module_env.begin_scope();
-    if !module_env.add_ty_name(trait_stmt.name) {
-        return Err(DuplicateTyDecl(trait_stmt.name).into());
+        self.module_env.end_scope();
+        self.module_env.clear_class_fields();
+        Ok(())
     }
 
-    check_generic_params(module_env, &trait_stmt.generic_params)?;
-    check_member_fns(module_env, &trait_stmt.member_fns)?;
+    fn check_trait_stmt(&mut self, trait_stmt: &TraitStmt) -> Result<()> {
+        self.module_env.begin_scope();
+        if !self.module_env.add_ty_name(trait_stmt.name) {
+            return Err(DuplicateTyDecl(trait_stmt.name).into());
+        }
 
-    module_env.end_scope();
-    module_env.clear_member_fns();
+        self.check_generic_params(&trait_stmt.generic_params)?;
+        self.check_member_fns(&trait_stmt.member_fns)?;
 
-    Ok(())
-}
+        self.module_env.end_scope();
+        self.module_env.clear_member_fns();
 
-fn check_trait_impl_stmt(module_env: &mut ModuleEnv, trait_impl_stmt: &TraitImplStmt) -> Result<()> {
-    module_env.begin_scope();
-
-    // TODO: Ensure trait and type are in scope
-    check_member_fns(module_env, &trait_impl_stmt.member_fns)?;
-
-    module_env.end_scope();
-    module_env.clear_member_fns();
-
-    Ok(())
-}
-
-fn check_fn_stmt(module_env: &mut ModuleEnv, fn_stmt: &FnStmt) -> Result<()> {
-    if module_env.add_fn_name(fn_stmt.sig.name) {
-        return Err(DuplicateFnName(fn_stmt.sig.name).into());
+        Ok(())
     }
 
-    module_env.begin_scope();
+    fn check_trait_impl_stmt(&mut self, trait_impl_stmt: &TraitImplStmt) -> Result<()> {
+        self.module_env.begin_scope();
 
-    check_generic_params(module_env, &fn_stmt.sig.generic_params)?;
-    check_params(module_env, &fn_stmt.sig.params)?;
+        // TODO: Ensure trait and type are in scope
+        self.check_member_fns(&trait_impl_stmt.member_fns)?;
 
-    if let Some(block_stmt) = &fn_stmt.body {
-        check_block_stmt(module_env, block_stmt)?;
+        self.module_env.end_scope();
+        self.module_env.clear_member_fns();
+
+        Ok(())
     }
 
-    module_env.end_scope();
-    Ok(())
-}
-
-fn check_member_fns(module_env: &mut ModuleEnv, fns: &[FnStmt]) -> Result<()> {
-    for fn_stmt in fns {
-        if !module_env.add_member_fn(fn_stmt.sig.name) {
+    fn check_fn_stmt(&mut self, fn_stmt: &FnStmt) -> Result<()> {
+        if self.module_env.add_fn_name(fn_stmt.sig.name) {
             return Err(DuplicateFnName(fn_stmt.sig.name).into());
         }
 
-        module_env.begin_scope();
+        self.module_env.begin_scope();
 
+        self.check_generic_params(&fn_stmt.sig.generic_params)?;
+        self.check_params(&fn_stmt.sig.params)?;
 
-        check_params(module_env, &fn_stmt.sig.params)?;
-        check_generic_params(module_env, &fn_stmt.sig.generic_params, )?;
         if let Some(block_stmt) = &fn_stmt.body {
-            check_block_stmt(module_env, &block_stmt)?;
+            self.check_block_stmt(block_stmt)?;
         }
-    }
-    Ok(())
-}
 
-fn check_fields(module_env: &mut ModuleEnv, params: &[Field]) -> Result<()> {
-    for param in params {
-        if !module_env.add_field(param.ident) {
-            return Err(DuplicateFieldName(param.ident).into());
-        }
-    }
-    Ok(())
-}
-
-fn check_params(module_env: &mut ModuleEnv, params: &[Param]) -> Result<()> {
-    for param in params {
-        if !module_env.add_var(param.ident) {
-            return Err(DuplicateParam(param.ident).into());
-        }
-    }
-    Ok(())
-}
-
-fn check_enum_members(module_env: &mut ModuleEnv, members: &[EnumMemberStmt]) -> Result<()> {
-    for member in members {
-        if !module_env.add_enum_member(member.name) {
-            return Err(DuplicateEnumMember(member.name).into());
-        }
-        check_fields(module_env, &member.fields)?;
-
-        check_member_fns(module_env, &member.member_fns)?;
-
-        module_env.clear_class_fields();
+        self.module_env.end_scope();
+        Ok(())
     }
 
-    module_env.clear_enum_members();
-    Ok(())
+    fn check_member_fns(&mut self, fns: &[FnStmt]) -> Result<()> {
+        for fn_stmt in fns {
+            if !self.module_env.add_member_fn(fn_stmt.sig.name) {
+                return Err(DuplicateFnName(fn_stmt.sig.name).into());
+            }
+
+            self.module_env.begin_scope();
+
+
+            self.check_params(&fn_stmt.sig.params)?;
+            self.check_generic_params(&fn_stmt.sig.generic_params, )?;
+            if let Some(block_stmt) = &fn_stmt.body {
+                self.check_block_stmt(&block_stmt)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn check_fields(&mut self, params: &[Field]) -> Result<()> {
+        for param in params {
+            if !self.module_env.add_field(param.ident) {
+                return Err(DuplicateFieldName(param.ident).into());
+            }
+        }
+        Ok(())
+    }
+
+    fn check_params(&mut self, params: &[Param]) -> Result<()> {
+        for param in params {
+            if !self.module_env.add_var(param.ident) {
+                return Err(DuplicateParam(param.ident).into());
+            }
+        }
+        Ok(())
+    }
+
+    fn check_enum_members(&mut self, members: &[EnumMemberStmt]) -> Result<()> {
+        for member in members {
+            if !self.module_env.add_enum_member(member.name) {
+                return Err(DuplicateEnumMember(member.name).into());
+            }
+            self.check_fields(&member.fields)?;
+
+            self.check_member_fns(&member.member_fns)?;
+
+            self.module_env.clear_class_fields();
+        }
+
+        self.module_env.clear_enum_members();
+        Ok(())
+    }
+
+    fn check_generic_params(&mut self, generic_params: &[GenericParam]) -> Result<()> {
+        for param in generic_params {
+            if !self.module_env.add_generic(param.ident) {
+                return Err(DuplicateGenericParam(param.ident).into());
+            }
+        }
+        Ok(())
+    }
 }
 
-fn check_generic_params(module_env: &mut ModuleEnv, generic_params: &[GenericParam]) -> Result<()> {
-    for param in generic_params {
-        if !module_env.add_generic(param.ident) {
-            return Err(DuplicateGenericParam(param.ident).into());
-        }
-    }
-    Ok(())
-}
+
 
 struct ModuleEnv {
     type_names: HashSet<InternedStr>,
