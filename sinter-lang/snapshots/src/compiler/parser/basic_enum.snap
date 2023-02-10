@@ -25,66 +25,66 @@
           "members": [
             {
               "name": 2,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 3,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 4,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 5,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 6,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 7,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 8,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 9,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 10,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             }
           ],
           "member_fns": []

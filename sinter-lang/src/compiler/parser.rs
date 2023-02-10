@@ -804,7 +804,7 @@ impl Parser {
 
         let range_expr = self.expr()?;
         let body = self.block_stmt()?;
-        Ok(For(ForStmt::new(range_expr, body)))
+        Ok(For(ForStmt::new(identifier, range_expr, body)))
     }
 
     fn parse_break_expr(&mut self) -> Result<Expr> {

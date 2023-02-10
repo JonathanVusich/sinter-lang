@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 
 use anyhow::Result;
 
-use crate::compiler::ast::{BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt};
+use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt};
 use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateVarDecl};
@@ -69,7 +69,7 @@ fn check_stmt(module_env: &mut ModuleEnv, stmt: &Stmt) -> Result<()> {
         Stmt::Return(return_stmt) => check_return_stmt(module_env, &return_stmt),
         Stmt::While(while_stmt) => check_while_stmt(module_env, &while_stmt),
         Stmt::Block(block_stmt) => check_block_stmt(module_env, &block_stmt),
-        Stmt::Expression { expr, implicit_return } => check_expr(module_env, &expr, *implicit_return),
+        Stmt::Expression { expr, implicit_return } => check_expr(module_env, &expr),
     }
 }
 
@@ -77,26 +77,79 @@ fn check_let_stmt(module_env: &mut ModuleEnv, let_stmt: &LetStmt) -> Result<()> 
     if !module_env.add_var(let_stmt.ident) {
         return Err(DuplicateVarDecl(let_stmt.ident).into());
     }
+    if let Some(expr) = &let_stmt.initializer {
+        check_expr(module_env, expr)?;
+    }
+
     Ok(())
 }
 
 fn check_for_stmt(module_env: &mut ModuleEnv, for_stmt: &ForStmt) -> Result<()> {
-    todo!()
+    module_env.begin_scope();
+
+    // Add for loop identifier
+    if !module_env.add_var(for_stmt.ident) {
+        return Err(DuplicateVarDecl(for_stmt.ident).into());
+    }
+    check_expr(module_env, &for_stmt.range)?;
+    check_block_stmt(module_env, &for_stmt.body)?;
+
+    module_env.end_scope();
+    Ok(())
 }
 
 fn check_if_stmt(module_env: &mut ModuleEnv, if_stmt: &IfStmt) -> Result<()> {
-    todo!()
+    check_expr(module_env, &if_stmt.condition)?;
+    check_block_stmt(module_env, &if_stmt.if_true)?;
+
+    if let Some(block_stmt) = &if_stmt.if_false {
+        check_block_stmt(module_env, block_stmt)?;
+    }
+    Ok(())
 }
 
 fn check_return_stmt(module_env: &mut ModuleEnv, return_stmt: &ReturnStmt) -> Result<()> {
-    todo!()
+    if let Some(return_val) = &return_stmt.value {
+        check_expr(module_env, return_val)?;
+    }
+    Ok(())
 }
 
 fn check_while_stmt(module_env: &mut ModuleEnv, while_stmt: &WhileStmt) -> Result<()> {
-    todo!()
+    check_expr(module_env, &while_stmt.condition)?;
+    check_block_stmt(module_env, &while_stmt.block_stmt)?;
+    Ok(())
 }
 
-fn check_expr(module_env: &mut ModuleEnv, expr: &Expr, implicit_return: bool) -> Result<()> {
+fn check_expr(module_env: &mut ModuleEnv, expr: &Expr) -> Result<()> {
+    match expr {
+        Expr::Array(array_expr) => {
+            match array_expr {
+                ArrayExpr::SizedInitializer(initializer, size) => {
+
+                }
+                ArrayExpr::Initializer(initializers) => {
+                    
+                }
+            }
+        }
+        Expr::Call(_) => {}
+        Expr::Infix(_) => {}
+        Expr::Unary(_) => {}
+        Expr::None => {}
+        Expr::Boolean(_) => {}
+        Expr::Integer(_) => {}
+        Expr::Float(_) => {}
+        Expr::String(_) => {}
+        Expr::Match(_) => {}
+        Expr::Closure(_) => {}
+        Expr::Assign(_) => {}
+        Expr::Field(_) => {}
+        Expr::Index(_) => {}
+        Expr::Path(_) => {}
+        Expr::Break => {}
+        Expr::Continue => {}
+    }
     todo!()
 }
 
@@ -274,7 +327,6 @@ impl ModuleEnv {
         self.fn_names.insert(name);
         true
     }
-
 
     fn add_var(&mut self, name: InternedStr) -> bool {
         for scope in self.var_scopes.iter().rev() {

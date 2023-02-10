@@ -389,19 +389,20 @@ impl FnStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ForStmt {
-    range: Expr,
-    body: BlockStmt,
+    pub ident: InternedStr,
+    pub range: Expr,
+    pub body: BlockStmt,
 }
 
 impl ForStmt {
-    pub fn new(range: Expr, body: BlockStmt) -> Self {
-        Self { range, body }
+    pub fn new(ident: InternedStr, range: Expr, body: BlockStmt) -> Self {
+        Self { ident, range, body }
     }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ReturnStmt {
-    value: Option<Expr>,
+    pub value: Option<Expr>,
 }
 
 impl ReturnStmt {
@@ -412,9 +413,9 @@ impl ReturnStmt {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IfStmt {
-    condition: Expr,
-    if_true: BlockStmt,
-    if_false: Option<BlockStmt>,
+    pub condition: Expr,
+    pub if_true: BlockStmt,
+    pub if_false: Option<BlockStmt>,
 }
 
 impl IfStmt {
@@ -540,7 +541,7 @@ pub enum VarInitializer {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Expr {
-    Array(Box<ArrayExpr>),
+    Array(ArrayExpr),
     Call(Box<Call>),
     Infix(Box<InfixExpr>),
     Unary(Box<UnaryExpr>),
@@ -736,8 +737,8 @@ impl OrPattern {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct WhileStmt {
-    condition: Expr,
-    block_stmt: BlockStmt,
+    pub condition: Expr,
+    pub block_stmt: BlockStmt,
 }
 
 impl WhileStmt {

@@ -140,17 +140,17 @@
           "members": [
             {
               "name": 6,
-              "parameters": {
+              "fields": {
                 "params": [
                   {
-                    "name": 7,
+                    "ident": 7,
                     "ty": {
                       "val": 1
                     },
                     "mutability": "Immutable"
                   },
                   {
-                    "name": 8,
+                    "ident": 8,
                     "ty": {
                       "val": 2
                     },
@@ -158,21 +158,21 @@
                   }
                 ]
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 9,
-              "parameters": {
+              "fields": {
                 "params": [
                   {
-                    "name": 7,
+                    "ident": 7,
                     "ty": {
                       "val": 1
                     },
                     "mutability": "Immutable"
                   },
                   {
-                    "name": 8,
+                    "ident": 8,
                     "ty": {
                       "val": 2
                     },
@@ -180,7 +180,7 @@
                   }
                 ]
               },
-              "member_functions": []
+              "member_fns": []
             }
           ],
           "member_fns": [
@@ -190,10 +190,10 @@
                 "generic_params": {
                   "params": []
                 },
-                "parameters": {
+                "params": {
                   "params": [
                     {
-                      "name": 16,
+                      "ident": 16,
                       "ty": {
                         "val": 3
                       },

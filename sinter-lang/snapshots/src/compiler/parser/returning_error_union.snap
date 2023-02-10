@@ -80,10 +80,10 @@
                 }
               ]
             },
-            "parameters": {
+            "params": {
               "params": [
                 {
-                  "name": 4,
+                  "ident": 4,
                   "ty": {
                     "val": 1
                   },
@@ -284,17 +284,17 @@
           "members": [
             {
               "name": 11,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 13,
-              "parameters": {
+              "fields": {
                 "params": []
               },
-              "member_functions": []
+              "member_fns": []
             }
           ],
           "member_fns": []

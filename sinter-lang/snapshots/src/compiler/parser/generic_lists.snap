@@ -115,17 +115,17 @@
               }
             ]
           },
-          "members": {
+          "fields": {
             "params": [
               {
-                "name": 3,
+                "ident": 3,
                 "ty": {
                   "val": 2
                 },
                 "mutability": "Immutable"
               },
               {
-                "name": 4,
+                "ident": 4,
                 "ty": {
                   "val": 3
                 },
@@ -140,10 +140,10 @@
                 "generic_params": {
                   "params": []
                 },
-                "parameters": {
+                "params": {
                   "params": [
                     {
-                      "name": 7,
+                      "ident": 7,
                       "ty": {
                         "val": 3
                       },

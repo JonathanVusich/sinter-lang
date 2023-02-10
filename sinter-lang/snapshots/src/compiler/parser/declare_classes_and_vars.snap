@@ -32,17 +32,17 @@
           "generic_params": {
             "params": []
           },
-          "members": {
+          "fields": {
             "params": [
               {
-                "name": 2,
+                "ident": 2,
                 "ty": {
                   "val": 1
                 },
                 "mutability": "Immutable"
               },
               {
-                "name": 4,
+                "ident": 4,
                 "ty": {
                   "val": 1
                 },
@@ -60,7 +60,7 @@
           "generic_params": {
             "params": []
           },
-          "members": {
+          "fields": {
             "params": []
           },
           "member_fns": []

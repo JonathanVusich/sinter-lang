@@ -57,7 +57,7 @@
     "stmts": [
       {
         "Trait": {
-          "ident": 1,
+          "name": 1,
           "generic_params": {
             "params": []
           },
@@ -68,10 +68,10 @@
                 "generic_params": {
                   "params": []
                 },
-                "parameters": {
+                "params": {
                   "params": [
                     {
-                      "name": 10,
+                      "ident": 10,
                       "ty": {
                         "val": 1
                       },
@@ -119,10 +119,10 @@
                 }
               ]
             },
-            "parameters": {
+            "params": {
               "params": [
                 {
-                  "name": 7,
+                  "ident": 7,
                   "ty": {
                     "val": 3
                   },
@@ -188,10 +188,10 @@
             "generic_params": {
               "params": []
             },
-            "parameters": {
+            "params": {
               "params": [
                 {
-                  "name": 7,
+                  "ident": 7,
                   "ty": {
                     "val": 4
                   },

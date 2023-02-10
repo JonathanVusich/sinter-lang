@@ -26,17 +26,17 @@
           "generic_params": {
             "params": []
           },
-          "members": {
+          "fields": {
             "params": [
               {
-                "name": 2,
+                "ident": 2,
                 "ty": {
                   "val": 1
                 },
                 "mutability": "Immutable"
               },
               {
-                "name": 4,
+                "ident": 4,
                 "ty": {
                   "val": 1
                 },
@@ -51,10 +51,10 @@
                 "generic_params": {
                   "params": []
                 },
-                "parameters": {
+                "params": {
                   "params": [
                     {
-                      "name": 9,
+                      "ident": 9,
                       "ty": {
                         "val": 2
                       },
@@ -130,10 +130,10 @@
                 "generic_params": {
                   "params": []
                 },
-                "parameters": {
+                "params": {
                   "params": [
                     {
-                      "name": 8,
+                      "ident": 8,
                       "ty": {
                         "val": 1
                       },

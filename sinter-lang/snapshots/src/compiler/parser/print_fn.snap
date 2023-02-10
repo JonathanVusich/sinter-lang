@@ -19,10 +19,10 @@
             "generic_params": {
               "params": []
             },
-            "parameters": {
+            "params": {
               "params": [
                 {
-                  "name": 2,
+                  "ident": 2,
                   "ty": {
                     "val": 1
                   },

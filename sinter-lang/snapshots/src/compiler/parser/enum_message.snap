@@ -42,10 +42,10 @@
           "members": [
             {
               "name": 2,
-              "parameters": {
+              "fields": {
                 "params": [
                   {
-                    "name": 3,
+                    "ident": 3,
                     "ty": {
                       "val": 1
                     },
@@ -53,21 +53,21 @@
                   }
                 ]
               },
-              "member_functions": []
+              "member_fns": []
             },
             {
               "name": 5,
-              "parameters": {
+              "fields": {
                 "params": [
                   {
-                    "name": 6,
+                    "ident": 6,
                     "ty": {
                       "val": 1
                     },
                     "mutability": "Immutable"
                   },
                   {
-                    "name": 7,
+                    "ident": 7,
                     "ty": {
                       "val": 2
                     },
@@ -75,17 +75,17 @@
                   }
                 ]
               },
-              "member_functions": [
+              "member_fns": [
                 {
                   "sig": {
                     "name": 9,
                     "generic_params": {
                       "params": []
                     },
-                    "parameters": {
+                    "params": {
                       "params": [
                         {
-                          "name": 11,
+                          "ident": 11,
                           "ty": {
                             "val": 3
                           },
