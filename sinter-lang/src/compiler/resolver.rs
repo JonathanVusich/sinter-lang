@@ -4,9 +4,10 @@ use std::fmt::{Display, Formatter};
 
 use anyhow::Result;
 
-use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt};
+use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, Pattern, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt};
 use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::interner::Key;
 use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateVarDecl};
 use crate::compiler::types::types::InternedStr;
 
@@ -143,37 +144,56 @@ impl Resolver {
     }
 
     fn check_expr(&mut self, expr: &Expr) -> Result<()> {
+        self.module_env.begin_scope();
         match expr {
             Expr::Array(array_expr) => {
                 match &**array_expr {
                     ArrayExpr::SizedInitializer(initializer, size) => {
                         self.check_expr(initializer)?;
-                        self.check_expr(size)?;
-                        Ok(())
+                        self.check_expr(size)?
                     }
                     ArrayExpr::Initializer(initializers) => {
-
+                        for initializer in initializers {
+                            self.check_expr(initializer)?;
+                        }
+                        Ok(())
                     }
                 }
             }
-            Expr::Call(_) => {}
-            Expr::Infix(_) => {}
-            Expr::Unary(_) => {}
-            Expr::None => {}
-            Expr::Boolean(_) => {}
-            Expr::Integer(_) => {}
-            Expr::Float(_) => {}
-            Expr::String(_) => {}
-            Expr::Match(_) => {}
-            Expr::Closure(_) => {}
+            Expr::Call(call) => {
+                self.check_expr(&call.func)?;
+                for arg in &call.args {
+                    self.check_expr(arg)?;
+                }
+                Ok(())
+            }
+            Expr::Infix(infix) => {
+                self.check_expr(&infix.lhs)?;
+                self.check_expr(&infix.rhs)?
+            }
+            Expr::Unary(unary) => {
+                self.check_expr(&unary.expr)?
+            }
+            Expr::Match(match_expr) => {
+                self.check_expr(&match_expr.source)?;
+                for arm in &match_expr.arms {
+                    self.check_pattern(&arm.pattern)?;
+                    self.check_stmt(&arm.body)?
+                }
+            }
+            Expr::Closure(closure) => {
+                self.check_params(&closure.params)
+            }
             Expr::Assign(_) => {}
             Expr::Field(_) => {}
             Expr::Index(_) => {}
             Expr::Path(_) => {}
-            Expr::Break => {}
-            Expr::Continue => {}
+            Expr::None | Expr::Boolean(_) | Expr::Integer(_) | Expr::Float(_) | Expr::String(_) | Expr::Break | Expr::Continue => {
+                Ok(())
+            }
         }
-        todo!()
+        self.module_env.end_scope();
+        Ok(())
     }
 
     fn check_class_stmt(&mut self, class_stmt: &ClassStmt) -> Result<()> {
@@ -310,6 +330,37 @@ impl Resolver {
             }
         }
         Ok(())
+    }
+
+    fn check_pattern(&mut self, pattern: &Pattern) -> Result<()> {
+        match pattern {
+            Pattern::Wildcard | Pattern::Boolean(_) | Pattern::Integer(_) | Pattern::String(_) => Ok(()),
+            Pattern::Or(or_pattern) => {
+                for pattern in or_pattern {
+                    self.check_pattern(pattern)?;
+                }
+                Ok(())
+            }
+            Pattern::Ty(ty, optional_name) => {
+                // Check ty
+                self.check_ty(ty)?;
+                if let Some(name) = optional_name && !self.module_env.add_var(*name) {
+                    return Err(DuplicateVarDecl(*name).into());
+                }
+                Ok(())
+            }
+            Pattern::Destructure(ty, exprs) => {
+                self.check_ty(ty)?;
+                for expr in exprs {
+                    self.check_expr(expr)?;
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn check_ty(&mut self, ty: &Key) -> Result<()> {
+        todo!()
     }
 }
 

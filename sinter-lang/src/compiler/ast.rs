@@ -562,8 +562,8 @@ pub enum Expr {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Call {
-    func: Expr,
-    args: Args,
+    pub func: Expr,
+    pub args: Args,
 }
 
 impl Call {
@@ -574,9 +574,9 @@ impl Call {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct InfixExpr {
-    operator: InfixOp,
-    lhs: Expr,
-    rhs: Expr,
+    pub operator: InfixOp,
+    pub lhs: Expr,
+    pub rhs: Expr,
 }
 
 impl InfixExpr {
@@ -587,8 +587,8 @@ impl InfixExpr {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct UnaryExpr {
-    operator: UnaryOp,
-    expr: Expr,
+    pub operator: UnaryOp,
+    pub expr: Expr,
 }
 
 impl UnaryExpr {
@@ -599,8 +599,8 @@ impl UnaryExpr {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct MatchExpr {
-    source: Expr,
-    arms: Vec<MatchArm>,
+    pub source: Expr,
+    pub arms: Vec<MatchArm>,
 }
 
 impl MatchExpr {
@@ -611,8 +611,8 @@ impl MatchExpr {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct MatchArm {
-    pattern: Pattern,
-    body: Stmt,
+    pub pattern: Pattern,
+    pub body: Stmt,
 }
 
 impl MatchArm {
@@ -623,8 +623,8 @@ impl MatchArm {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClosureExpr {
-    params: Vec<InternedStr>,
-    stmt: Stmt,
+    pub params: Vec<InternedStr>,
+    pub stmt: Stmt,
 }
 
 impl ClosureExpr {
@@ -703,15 +703,13 @@ impl RangeExpr {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Pattern {
-    Wildcard,
-    Or(OrPattern),
-    Boolean(bool),
-    Integer(i64),
-    Float(f64),
-    String(InternedStr),
-    Ty(Key, Option<InternedStr>),
-    Destructure(Key, Vec<Expr>),
-    None,
+    Wildcard,                     // _
+    Or(OrPattern),                // pat | pat
+    Boolean(bool),                // true/false
+    Integer(i64),                 // 100
+    String(InternedStr),          // "true"
+    Ty(Key, Option<InternedStr>), // Logical logical => { }
+    Destructure(Key, Vec<Expr>),  // Logical(1, true, 100) => { }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
