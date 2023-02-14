@@ -9,20 +9,20 @@ pub type InternedTy = Key;
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
 pub enum Type {
     Array {
-        ty: Key
+        ty: InternedTy
     },
     Path {
         path: PathTy,
     },
     Union {
-        tys: Vec<Key>,
+        tys: Vec<InternedTy>,
     },
     TraitBound {
         trait_bound: TraitBound,
     },
     Closure {
-        params: Vec<Key>,
-        ret_ty: Key
+        params: Vec<InternedTy>,
+        ret_ty: InternedTy
     },
     Infer,
     QSelf,

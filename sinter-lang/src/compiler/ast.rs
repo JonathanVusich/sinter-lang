@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 use crate::compiler::parser::ClassType;
-use crate::compiler::types::types::{InternedStr, Type};
+use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 use crate::gc::block::Block;
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
@@ -64,12 +64,12 @@ impl TraitBound {
     }
 }
 
-pub type Generics = Vec<Key>;
+pub type Generics = Vec<InternedTy>;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct PathTy {
-    ident: QualifiedIdent,
-    generics: Generics,
+    pub ident: QualifiedIdent,
+    pub generics: Generics,
 }
 
 impl PathTy {
@@ -78,7 +78,7 @@ impl PathTy {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct UseStmt {
     pub ident: QualifiedIdent,
 }
@@ -91,7 +91,7 @@ impl UseStmt {
 
 const EMPTY_GENERIC_DECL: GenericParams = GenericParams::new(Vec::new());
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct GenericParams {
     params: Vec<GenericParam>,
 }
@@ -183,7 +183,7 @@ impl DerefMut for Params {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct Fields {
     params: Vec<Field>,
 }
@@ -219,7 +219,7 @@ impl DerefMut for Fields {
 
 pub const EMPTY_ARGS: Args = Args::new(Vec::new());
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Args {
     args: Vec<Expr>,
 }
@@ -234,13 +234,36 @@ impl Args {
     }
 }
 
+impl IntoIterator for Args {
+    type Item = Expr;
+    type IntoIter = <Vec<Expr> as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.args.into_iter()
+    }
+}
+
+impl Deref for Args {
+    type Target = [Expr];
+
+    fn deref(&self) -> &Self::Target {
+        &self.args
+    }
+}
+
+impl DerefMut for Args {
+
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.args
+    }
+}
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Mutability {
     Mutable,
     Immutable,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClassStmt {
     pub (crate) name: InternedStr,
     pub (crate) class_type: ClassType,
@@ -281,7 +304,7 @@ impl DeclaredType for ClassStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumStmt {
     pub name: InternedStr,
     pub generic_params: GenericParams,
@@ -327,7 +350,7 @@ impl DeclaredType for EnumStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitStmt {
     pub name: InternedStr,
     pub generic_params: GenericParams,
@@ -358,7 +381,7 @@ impl DeclaredType for TraitStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitImplStmt {
     pub trait_to_impl: PathTy,
     pub target_ty: Key,
@@ -375,7 +398,7 @@ impl TraitImplStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct FnStmt {
     pub (crate) sig: FnSig,
     pub (crate) body: Option<BlockStmt>,
@@ -387,7 +410,7 @@ impl FnStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ForStmt {
     pub ident: InternedStr,
     pub range: Expr,
@@ -400,7 +423,7 @@ impl ForStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ReturnStmt {
     pub value: Option<Expr>,
 }
@@ -411,7 +434,7 @@ impl ReturnStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct IfStmt {
     pub condition: Expr,
     pub if_true: BlockStmt,
@@ -428,7 +451,7 @@ impl IfStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumMemberStmt {
     pub name: InternedStr,
     pub fields: Fields,
@@ -445,7 +468,7 @@ impl EnumMemberStmt {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct FnSig {
     pub (crate) name: InternedStr,
     pub (crate) generic_params: GenericParams,
@@ -509,7 +532,7 @@ pub struct ArgumentDecl {
     ty: Type,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct LetStmt {
     pub ident: InternedStr,
     pub mutability: Mutability,
@@ -539,7 +562,7 @@ pub enum VarInitializer {
     Statement(Stmt),
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Expr {
     Array(Box<ArrayExpr>),
     Call(Box<Call>),
@@ -560,7 +583,7 @@ pub enum Expr {
     Continue,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Call {
     pub func: Expr,
     pub args: Args,
@@ -572,7 +595,7 @@ impl Call {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct InfixExpr {
     pub operator: InfixOp,
     pub lhs: Expr,
@@ -585,7 +608,7 @@ impl InfixExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct UnaryExpr {
     pub operator: UnaryOp,
     pub expr: Expr,
@@ -597,7 +620,7 @@ impl UnaryExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct MatchExpr {
     pub source: Expr,
     pub arms: Vec<MatchArm>,
@@ -609,7 +632,7 @@ impl MatchExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct MatchArm {
     pub pattern: Pattern,
     pub body: Stmt,
@@ -621,7 +644,7 @@ impl MatchArm {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClosureExpr {
     pub params: Vec<InternedStr>,
     pub stmt: Stmt,
@@ -633,16 +656,16 @@ impl ClosureExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct AssignExpr {
-    lhs: Expr,
-    rhs: Expr,
+    pub lhs: Expr,
+    pub rhs: Expr,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct FieldExpr {
-    lhs: Expr,
-    ident: InternedStr,
+    pub lhs: Expr,
+    pub ident: InternedStr,
 }
 
 impl FieldExpr {
@@ -651,10 +674,10 @@ impl FieldExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct IndexExpr {
-    expr: Expr,
-    key: Expr,
+    pub expr: Expr,
+    pub key: Expr,
 }
 
 impl IndexExpr {
@@ -663,7 +686,7 @@ impl IndexExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum ArrayExpr {
     SizedInitializer(Expr, Expr),
     Initializer(Vec<Expr>),
@@ -675,9 +698,9 @@ pub enum PathSegment {
     Generic(Vec<Key>),
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PathExpr {
-    segments: Vec<PathSegment>,
+    pub segments: Vec<PathSegment>,
 }
 
 impl PathExpr {
@@ -701,15 +724,15 @@ impl RangeExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Pattern {
     Wildcard,                     // _
     Or(OrPattern),                // pat | pat
     Boolean(bool),                // true/false
     Integer(i64),                 // 100
     String(InternedStr),          // "true"
-    Ty(Key, Option<InternedStr>), // Logical logical => { }
-    Destructure(Key, Vec<Expr>),  // Logical(1, true, 100) => { }
+    Ty(InternedTy, Option<InternedStr>), // Logical logical => { }
+    Destructure(InternedTy, Vec<Expr>),  // Logical(1, true, 100) => { }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -722,9 +745,9 @@ pub enum Range {
     ToInclusive(i64),        // ..=3
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct OrPattern {
-    patterns: Vec<Pattern>,
+    pub patterns: Vec<Pattern>,
 }
 
 impl OrPattern {
@@ -733,7 +756,7 @@ impl OrPattern {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct WhileStmt {
     pub condition: Expr,
     pub block_stmt: BlockStmt,
@@ -748,7 +771,7 @@ impl WhileStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct BlockStmt {
     pub stmts: Vec<Stmt>,
 }
@@ -852,7 +875,7 @@ impl InfixOp {
 }
 
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum OuterStmt {
     Use(UseStmt),
     Let(LetStmt),
@@ -863,7 +886,7 @@ pub enum OuterStmt {
     Fn(FnStmt),
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Stmt {
     Let(LetStmt),
     For(ForStmt),

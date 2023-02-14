@@ -1,26 +1,30 @@
 use std::collections::HashSet;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::{mem, vec};
 
 use anyhow::Result;
 
-use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, Pattern, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt};
+use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, PathSegment, Pattern, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt};
 use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::interner::Key;
-use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateVarDecl};
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateUseStmt, DuplicateVarDecl};
+use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 
 pub fn check_names(ctxt: CompilerCtxt, module: Module) -> Result<(CompilerCtxt, Module)> {
-    let resolver = Resolver::new(ctxt, module);
-    resolver.resolve()
+    let resolver = Resolver::new(ctxt);
+    resolver.resolve(module)
+}
+
+struct ResolvedModule {
+    stmts: Vec<OuterStmt>,
 }
 
 
 struct Resolver {
     module_env: ModuleEnv,
     ctxt: CompilerCtxt,
-    module: Module,
 }
 
 #[derive(Debug)]
@@ -32,11 +36,12 @@ pub enum ResolutionError {
     DuplicateFieldName(InternedStr),
     DuplicateEnumMember(InternedStr),
     DuplicateFnName(InternedStr),
+    DuplicateUseStmt(QualifiedIdent),
 }
 
 impl Display for ResolutionError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        write!(f, "Resolution error!")
     }
 }
 
@@ -45,19 +50,25 @@ impl Error for ResolutionError {}
 
 impl Resolver {
 
-    fn new(ctxt: CompilerCtxt, module: Module) -> Self {
+    fn new(ctxt: CompilerCtxt) -> Self {
         Self {
             module_env: ModuleEnv::new(),
             ctxt,
-            module,
         }
     }
 
-    fn resolve(mut self) -> Result<(CompilerCtxt, Module)> {
-        for stmt in self.module.stmts() {
+    fn resolve(mut self, module: Module) -> Result<(CompilerCtxt, Module)> {
+        for stmt in module.stmts() {
+            if let Use(use_stmt) = stmt {
+                if !self.module_env.add_use(use_stmt.ident.clone()) {
+                    return Err(DuplicateUseStmt(use_stmt.ident.clone()).into());
+                }
+            }
+        }
+        for stmt in module.stmts() {
             self.check_outer_stmt(stmt)?;
         }
-        Ok((self.ctxt, self.module))
+        Ok((self.ctxt, module))
     }
 
     fn check_block_stmt(&mut self, block_stmt: &BlockStmt) -> Result<()> {
@@ -77,7 +88,6 @@ impl Resolver {
             OuterStmt::Trait(trait_stmt) => self.check_trait_stmt(trait_stmt),
             OuterStmt::TraitImpl(trait_impl_stmt) => self.check_trait_impl_stmt(trait_impl_stmt),
             OuterStmt::Fn(fn_stmt) => self.check_fn_stmt(fn_stmt),
-            // TODO: Implement use stmt resolution
             // We have already scanned all use statements, no further action necessary
             Use(_) => Ok(())
         }
@@ -85,13 +95,13 @@ impl Resolver {
 
     fn check_stmt(&mut self, stmt: &Stmt) -> Result<()> {
         match stmt {
-            Stmt::Let(let_stmt) => self.check_let_stmt(&let_stmt),
-            Stmt::For(for_stmt) => self.check_for_stmt(&for_stmt),
-            Stmt::If(if_stmt) => self.check_if_stmt(&if_stmt),
-            Stmt::Return(return_stmt) => self.check_return_stmt(&return_stmt),
-            Stmt::While(while_stmt) => self.check_while_stmt(&while_stmt),
-            Stmt::Block(block_stmt) => self.check_block_stmt(&block_stmt),
-            Stmt::Expression { expr, implicit_return } => self.check_expr(&expr),
+            Stmt::Let(let_stmt) => self.check_let_stmt(let_stmt),
+            Stmt::For(for_stmt) => self.check_for_stmt(for_stmt),
+            Stmt::If(if_stmt) => self.check_if_stmt(if_stmt),
+            Stmt::Return(return_stmt) => self.check_return_stmt(return_stmt),
+            Stmt::While(while_stmt) => self.check_while_stmt(while_stmt),
+            Stmt::Block(block_stmt) => self.check_block_stmt(block_stmt),
+            Stmt::Expression { expr, implicit_return } => self.check_expr(expr),
         }
     }
 
@@ -150,47 +160,58 @@ impl Resolver {
                 match &**array_expr {
                     ArrayExpr::SizedInitializer(initializer, size) => {
                         self.check_expr(initializer)?;
-                        self.check_expr(size)?
+                        self.check_expr(size)?;
                     }
                     ArrayExpr::Initializer(initializers) => {
                         for initializer in initializers {
                             self.check_expr(initializer)?;
                         }
-                        Ok(())
                     }
                 }
             }
             Expr::Call(call) => {
                 self.check_expr(&call.func)?;
-                for arg in &call.args {
+                for arg in &*call.args {
                     self.check_expr(arg)?;
                 }
-                Ok(())
             }
             Expr::Infix(infix) => {
                 self.check_expr(&infix.lhs)?;
-                self.check_expr(&infix.rhs)?
+                self.check_expr(&infix.rhs)?;
             }
             Expr::Unary(unary) => {
-                self.check_expr(&unary.expr)?
+                self.check_expr(&unary.expr)?;
             }
             Expr::Match(match_expr) => {
                 self.check_expr(&match_expr.source)?;
                 for arm in &match_expr.arms {
                     self.check_pattern(&arm.pattern)?;
-                    self.check_stmt(&arm.body)?
+                    self.check_stmt(&arm.body)?;
                 }
             }
             Expr::Closure(closure) => {
-                self.check_params(&closure.params)
+                for param in &closure.params {
+                    if !self.module_env.add_var(*param) {
+                        return Err(DuplicateVarDecl(*param).into());
+                    }
+                }
+                self.check_stmt(&closure.stmt)?;
             }
-            Expr::Assign(_) => {}
-            Expr::Field(_) => {}
-            Expr::Index(_) => {}
-            Expr::Path(_) => {}
-            Expr::None | Expr::Boolean(_) | Expr::Integer(_) | Expr::Float(_) | Expr::String(_) | Expr::Break | Expr::Continue => {
-                Ok(())
+            Expr::Assign(assign) => {
+                self.check_expr(&assign.lhs)?;
+                self.check_expr(&assign.rhs)?;
             }
+            Expr::Field(field) => {
+                self.check_expr(&field.lhs)?;
+            }
+            Expr::Index(index) => {
+                self.check_expr(&index.expr)?;
+                self.check_expr(&index.key)?;
+            }
+            Expr::Path(path) => {
+                self.check_path(path)?;
+            }
+            Expr::None | Expr::Boolean(_) | Expr::Integer(_) | Expr::Float(_) | Expr::String(_) | Expr::Break | Expr::Continue => { }
         }
         self.module_env.end_scope();
         Ok(())
@@ -283,7 +304,7 @@ impl Resolver {
             self.check_params(&fn_stmt.sig.params)?;
             self.check_generic_params(&fn_stmt.sig.generic_params, )?;
             if let Some(block_stmt) = &fn_stmt.body {
-                self.check_block_stmt(&block_stmt)?;
+                self.check_block_stmt(block_stmt)?;
             }
         }
         Ok(())
@@ -336,21 +357,21 @@ impl Resolver {
         match pattern {
             Pattern::Wildcard | Pattern::Boolean(_) | Pattern::Integer(_) | Pattern::String(_) => Ok(()),
             Pattern::Or(or_pattern) => {
-                for pattern in or_pattern {
+                for pattern in &or_pattern.patterns {
                     self.check_pattern(pattern)?;
                 }
                 Ok(())
             }
             Pattern::Ty(ty, optional_name) => {
                 // Check ty
-                self.check_ty(ty)?;
+                self.check_ty(*ty)?;
                 if let Some(name) = optional_name && !self.module_env.add_var(*name) {
                     return Err(DuplicateVarDecl(*name).into());
                 }
                 Ok(())
             }
             Pattern::Destructure(ty, exprs) => {
-                self.check_ty(ty)?;
+                self.check_ty(*ty)?;
                 for expr in exprs {
                     self.check_expr(expr)?;
                 }
@@ -359,7 +380,36 @@ impl Resolver {
         }
     }
 
-    fn check_ty(&mut self, ty: &Key) -> Result<()> {
+    fn check_ty(&mut self, ty: InternedTy) -> Result<()> {
+        let interned_ty = self.ctxt.resolve_ty(ty);
+        match interned_ty {
+            Type::Array { ty } => {
+                self.check_ty(*ty)?;
+            }
+            Type::Path { path } => {
+                self.check_qualified_path(&path.ident)?;
+                for generic in &path.generics {
+                    self.check_ty(*generic)?;
+                }
+            }
+
+            Type::Union { tys } => {
+                for ty in tys {
+                    self.check_ty(*ty)?;
+                }
+            }
+            Type::TraitBound { trait_bound } => {}
+            Type::Closure { params, ret_ty } => {}
+            Type::Infer | Type::QSelf | Type::U8 | Type::U16 | Type::U32 | Type::U64 | Type::I8 | Type::I16 | Type::I32 | Type::I64 | Type::F32 | Type::F64 | Type::Str | Type::None => {}
+        }
+        Ok(())
+    }
+
+    fn check_path(&mut self, path: &PathExpr) -> Result<()> {
+        todo!()
+    }
+
+    fn check_qualified_path(&mut self, path: &QualifiedIdent) -> Result<()> {
         todo!()
     }
 }
@@ -367,6 +417,7 @@ impl Resolver {
 
 
 struct ModuleEnv {
+    uses: HashSet<InternedStr>,
     type_names: HashSet<InternedStr>,
     fn_names: HashSet<InternedStr>,
     var_scopes: Vec<HashSet<InternedStr>>,
@@ -379,6 +430,7 @@ struct ModuleEnv {
 impl ModuleEnv {
     fn new() -> Self {
         Self {
+            uses: HashSet::default(),
             type_names: HashSet::default(),
             fn_names: HashSet::default(),
             var_scopes: vec![HashSet::default()],
@@ -387,6 +439,14 @@ impl ModuleEnv {
             member_fns: HashSet::default(),
             enum_members: HashSet::default(),
         }
+    }
+
+    fn add_use(&mut self, name: QualifiedIdent) -> bool {
+        if self.uses.contains(&name.last()) {
+            return false;
+        }
+        self.uses.insert(name.last());
+        true
     }
 
     fn add_ty_name(&mut self, name: InternedStr) -> bool {
@@ -413,7 +473,7 @@ impl ModuleEnv {
         }
 
         self.var_scopes.last_mut().unwrap().insert(name);
-        return true;
+        true
     }
 
     fn add_generic(&mut self, name: InternedStr) -> bool {
@@ -423,7 +483,7 @@ impl ModuleEnv {
             }
         }
         self.generic_scopes.last_mut().unwrap().insert(name);
-        return true;
+        true
     }
 
     fn add_field(&mut self, field: InternedStr) -> bool {
@@ -474,12 +534,6 @@ impl ModuleEnv {
     fn clear_enum_members(&mut self) {
         self.enum_members.clear();
     }
-
-}
-
-struct ClassEnv {
-    generic_params: HashSet<InternedStr>,
-    function_names: HashSet<InternedStr>,
 
 }
 

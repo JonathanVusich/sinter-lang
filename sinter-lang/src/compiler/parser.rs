@@ -66,7 +66,7 @@ impl Display for TokenTypes {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum ClassType {
     Reference,
     Inline,
@@ -1127,10 +1127,6 @@ impl Parser {
             Some(TokenType::SignedInteger(integer)) => {
                 self.advance();
                 Ok(Pattern::Integer(integer))
-            }
-            Some(TokenType::Float(float)) => {
-                self.advance();
-                Ok(Pattern::Float(float))
             }
             Some(TokenType::True) => {
                 self.advance();
