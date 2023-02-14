@@ -47,8 +47,13 @@ impl QualifiedIdent {
         Self { idents }
     }
 
+    pub fn first(&self) -> InternedStr {
+        // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
+        self.idents.first().copied().unwrap()
+    }
+
     pub fn last(&self) -> InternedStr {
-        // It is safe to unwrap here since a QualifiedIdent should always have one element.
+        // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
         self.idents.last().copied().unwrap()
     }
 }
@@ -695,7 +700,7 @@ pub enum ArrayExpr {
 #[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum PathSegment {
     Identifier(InternedStr),
-    Generic(Vec<Key>),
+    Generic(Vec<InternedTy>),
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -706,6 +711,39 @@ pub struct PathExpr {
 impl PathExpr {
     pub fn new(segments: Vec<PathSegment>) -> Self {
         Self { segments }
+    }
+
+    pub fn prefix(&self, module: &QualifiedIdent) -> Self {
+        // Verify that this is an appropriate module to prefix
+        assert_eq!(module.last(), self.first());
+        let mut segments = Vec::with_capacity(module.idents.len() - 1 + self.segments.len());
+        for ident in &module.idents {
+            segments.push(PathSegment::Identifier(*ident));
+        }
+        segments.pop();
+        for segment in &self.segments {
+            segments.push(segment.clone());
+        }
+        Self {
+            segments,
+        }
+    }
+
+    pub fn first(&self) -> InternedStr {
+        match self.segments.first().cloned() {
+            Some(PathSegment::Identifier(str)) => str,
+            _ => panic!("Path expression must start with an identifier!")
+        }
+    }
+
+    pub fn qualified_path(&self) -> QualifiedIdent {
+        let mut idents = Vec::new();
+        for segment in &self.segments {
+            if let PathSegment::Identifier(ident) = segment {
+                idents.push(*ident);
+            }
+        }
+        QualifiedIdent::new(idents)
     }
 }
 

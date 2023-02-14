@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::{mem, vec};
@@ -60,7 +60,7 @@ impl Resolver {
     fn resolve(mut self, module: Module) -> Result<(CompilerCtxt, Module)> {
         for stmt in module.stmts() {
             if let Use(use_stmt) = stmt {
-                if !self.module_env.add_use(use_stmt.ident.clone()) {
+                if !self.module_env.add_module_use(use_stmt.ident.clone()) {
                     return Err(DuplicateUseStmt(use_stmt.ident.clone()).into());
                 }
             }
@@ -381,10 +381,10 @@ impl Resolver {
     }
 
     fn check_ty(&mut self, ty: InternedTy) -> Result<()> {
-        let interned_ty = self.ctxt.resolve_ty(ty);
+        let interned_ty = self.ctxt.resolve_ty(ty).clone();
         match interned_ty {
             Type::Array { ty } => {
-                self.check_ty(*ty)?;
+                self.check_ty(ty)?;
             }
             Type::Path { path } => {
                 self.check_qualified_path(&path.ident)?;
@@ -395,7 +395,7 @@ impl Resolver {
 
             Type::Union { tys } => {
                 for ty in tys {
-                    self.check_ty(*ty)?;
+                    self.check_ty(ty)?;
                 }
             }
             Type::TraitBound { trait_bound } => {}
@@ -406,6 +406,10 @@ impl Resolver {
     }
 
     fn check_path(&mut self, path: &PathExpr) -> Result<()> {
+        let qualified_ident = path.qualified_path();
+        if !self.module_env.add_module_use(qualified_ident) {
+
+        }
         todo!()
     }
 
@@ -417,7 +421,7 @@ impl Resolver {
 
 
 struct ModuleEnv {
-    uses: HashSet<InternedStr>,
+    used_modules: HashMap<InternedStr, QualifiedIdent>,
     type_names: HashSet<InternedStr>,
     fn_names: HashSet<InternedStr>,
     var_scopes: Vec<HashSet<InternedStr>>,
@@ -430,7 +434,7 @@ struct ModuleEnv {
 impl ModuleEnv {
     fn new() -> Self {
         Self {
-            uses: HashSet::default(),
+            used_modules: HashMap::default(),
             type_names: HashSet::default(),
             fn_names: HashSet::default(),
             var_scopes: vec![HashSet::default()],
@@ -441,12 +445,20 @@ impl ModuleEnv {
         }
     }
 
-    fn add_use(&mut self, name: QualifiedIdent) -> bool {
-        if self.uses.contains(&name.last()) {
+    fn add_module_use(&mut self, module_use: QualifiedIdent) -> bool {
+        if self.used_modules.contains_key(&module_use.last()) {
             return false;
         }
-        self.uses.insert(name.last());
+        self.used_modules.insert(module_use.last(), module_use);
         true
+    }
+
+    fn resolve_module(&mut self, name: PathExpr) -> PathExpr {
+        if let Some(module) = self.used_modules.get(&name.first()) {
+            name.prefix(module)
+        } else {
+            name
+        }
     }
 
     fn add_ty_name(&mut self, name: InternedStr) -> bool {
