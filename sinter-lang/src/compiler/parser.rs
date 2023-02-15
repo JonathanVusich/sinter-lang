@@ -11,7 +11,7 @@ use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Expr::Infix;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
-use crate::compiler::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, OuterStmt, Param, Params, PathExpr, PathSegment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, OuterStmt, Param, Params, PathExpr, Segment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
@@ -645,7 +645,7 @@ impl Parser {
         }
     }
 
-    fn parse_ty(&mut self) -> Result<Key> {
+    fn parse_ty(&mut self) -> Result<InternedTy> {
         let mut tys =
             self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
         if tys.len() > 1 {
@@ -831,7 +831,7 @@ impl Parser {
     fn parse_path_expr(&mut self) -> Result<PathExpr> {
         let mut path_segments = Vec::new();
         let first_ident = self.identifier()?;
-        path_segments.push(PathSegment::Identifier(first_ident));
+        path_segments.push(Segment::new(first_ident, None));
 
         loop {
             if self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
@@ -844,13 +844,13 @@ impl Parser {
                             TokenType::Less,
                             TokenType::Greater,
                         )?;
-                        path_segments.push(PathSegment::Generic(generic_paths));
+                        path_segments.last_mut().unwrap().generics = Some(generic_paths);
                         if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
                             return self.expected_token(TokenType::Colon);
                         }
                     }
                     Some(TokenType::Identifier(ident)) => {
-                        path_segments.push(PathSegment::Identifier(ident));
+                        path_segments.push(Segment::new(ident, None));
                         self.advance();
                     }
                     Some(token) => {
@@ -889,7 +889,7 @@ impl Parser {
                 TokenType::SelfLowercase => {
                     self.advance();
                     let ident = self.intern_str("self");
-                    Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
+                    Expr::Path(PathExpr::new(vec![Segment::new(ident, None)]))
                 }
                 TokenType::True => {
                     self.advance();
@@ -915,7 +915,7 @@ impl Parser {
                 TokenType::SelfCapitalized => {
                     self.advance();
                     let ident = self.intern_str("Self");
-                    Expr::Path(PathExpr::new(vec![PathSegment::Identifier(ident)]))
+                    Expr::Path(PathExpr::new(vec![Segment::new(ident, None)]))
                 }
                 TokenType::None => {
                     self.advance();

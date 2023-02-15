@@ -165,7 +165,8 @@
                             "Path": {
                               "segments": [
                                 {
-                                  "Identifier": 17
+                                  "ident": 17,
+                                  "generics": null
                                 }
                               ]
                             }
@@ -179,7 +180,8 @@
                                       "Path": {
                                         "segments": [
                                           {
-                                            "Identifier": 2
+                                            "ident": 2,
+                                            "generics": null
                                           }
                                         ]
                                       }
@@ -188,7 +190,8 @@
                                       "Path": {
                                         "segments": [
                                           {
-                                            "Identifier": 7
+                                            "ident": 7,
+                                            "generics": null
                                           }
                                         ]
                                       }
@@ -223,17 +226,16 @@
                 "Path": {
                   "segments": [
                     {
-                      "Identifier": 1
-                    },
-                    {
-                      "Generic": [
+                      "ident": 1,
+                      "generics": [
                         {
                           "val": 5
                         }
                       ]
                     },
                     {
-                      "Identifier": 6
+                      "ident": 6,
+                      "generics": null
                     }
                   ]
                 }
@@ -256,17 +258,16 @@
                 "Path": {
                   "segments": [
                     {
-                      "Identifier": 1
-                    },
-                    {
-                      "Generic": [
+                      "ident": 1,
+                      "generics": [
                         {
                           "val": 7
                         }
                       ]
                     },
                     {
-                      "Identifier": 6
+                      "ident": 6,
+                      "generics": null
                     }
                   ]
                 }
@@ -289,17 +290,16 @@
                 "Path": {
                   "segments": [
                     {
-                      "Identifier": 1
-                    },
-                    {
-                      "Generic": [
+                      "ident": 1,
+                      "generics": [
                         {
                           "val": 8
                         }
                       ]
                     },
                     {
-                      "Identifier": 6
+                      "ident": 6,
+                      "generics": null
                     }
                   ]
                 }
@@ -322,17 +322,16 @@
                 "Path": {
                   "segments": [
                     {
-                      "Identifier": 1
-                    },
-                    {
-                      "Generic": [
+                      "ident": 1,
+                      "generics": [
                         {
                           "val": 10
                         }
                       ]
                     },
                     {
-                      "Identifier": 6
+                      "ident": 6,
+                      "generics": null
                     }
                   ]
                 }

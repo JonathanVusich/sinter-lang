@@ -82,7 +82,8 @@
                                     "Path": {
                                       "segments": [
                                         {
-                                          "Identifier": 9
+                                          "ident": 9,
+                                          "generics": null
                                         }
                                       ]
                                     }
@@ -104,7 +105,8 @@
                                     "Path": {
                                       "segments": [
                                         {
-                                          "Identifier": 9
+                                          "ident": 9,
+                                          "generics": null
                                         }
                                       ]
                                     }
@@ -155,7 +157,8 @@
                             "Path": {
                               "segments": [
                                 {
-                                  "Identifier": 10
+                                  "ident": 10,
+                                  "generics": null
                                 }
                               ]
                             }
@@ -166,7 +169,8 @@
                                 "Path": {
                                   "segments": [
                                     {
-                                      "Identifier": 8
+                                      "ident": 8,
+                                      "generics": null
                                     }
                                   ]
                                 }
@@ -175,7 +179,8 @@
                                 "Path": {
                                   "segments": [
                                     {
-                                      "Identifier": 8
+                                      "ident": 8,
+                                      "generics": null
                                     }
                                   ]
                                 }

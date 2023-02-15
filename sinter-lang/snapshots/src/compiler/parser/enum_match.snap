@@ -54,7 +54,8 @@
                 "Path": {
                   "segments": [
                     {
-                      "Identifier": 2
+                      "ident": 2,
+                      "generics": null
                     }
                   ]
                 }
@@ -89,7 +90,8 @@
                                 "Path": {
                                   "segments": [
                                     {
-                                      "Identifier": 7
+                                      "ident": 7,
+                                      "generics": null
                                     }
                                   ]
                                 }
@@ -120,7 +122,8 @@
                           "Path": {
                             "segments": [
                               {
-                                "Identifier": 9
+                                "ident": 9,
+                                "generics": null
                               }
                             ]
                           }
@@ -134,7 +137,8 @@
                         "Path": {
                           "segments": [
                             {
-                              "Identifier": 9
+                              "ident": 9,
+                              "generics": null
                             }
                           ]
                         }
@@ -154,7 +158,8 @@
                           "Path": {
                             "segments": [
                               {
-                                "Identifier": 10
+                                "ident": 10,
+                                "generics": null
                               }
                             ]
                           }
@@ -163,7 +168,8 @@
                           "Path": {
                             "segments": [
                               {
-                                "Identifier": 7
+                                "ident": 7,
+                                "generics": null
                               }
                             ]
                           }
@@ -177,7 +183,8 @@
                         "Path": {
                           "segments": [
                             {
-                              "Identifier": 10
+                              "ident": 10,
+                              "generics": null
                             }
                           ]
                         }

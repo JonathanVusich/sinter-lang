@@ -42,7 +42,8 @@
                         "Path": {
                           "segments": [
                             {
-                              "Identifier": 4
+                              "ident": 4,
+                              "generics": null
                             }
                           ]
                         }
@@ -53,7 +54,8 @@
                             "Path": {
                               "segments": [
                                 {
-                                  "Identifier": 2
+                                  "ident": 2,
+                                  "generics": null
                                 }
                               ]
                             }

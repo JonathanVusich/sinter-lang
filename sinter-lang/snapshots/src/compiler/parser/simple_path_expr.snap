@@ -6,10 +6,12 @@
   {
     "segments": [
       {
-        "Identifier": 1
+        "ident": 1,
+        "generics": null
       },
       {
-        "Identifier": 2
+        "ident": 2,
+        "generics": null
       }
     ]
   }

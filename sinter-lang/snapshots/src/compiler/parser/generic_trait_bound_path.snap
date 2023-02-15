@@ -8,17 +8,16 @@
   {
     "segments": [
       {
-        "Identifier": 1
-      },
-      {
-        "Generic": [
+        "ident": 1,
+        "generics": [
           {
             "val": 1
           }
         ]
       },
       {
-        "Identifier": 4
+        "ident": 4,
+        "generics": null
       }
     ]
   }

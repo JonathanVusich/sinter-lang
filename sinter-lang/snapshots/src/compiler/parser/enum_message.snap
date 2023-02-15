@@ -111,7 +111,8 @@
                                         "Path": {
                                           "segments": [
                                             {
-                                              "Identifier": 11
+                                              "ident": 11,
+                                              "generics": null
                                             }
                                           ]
                                         }

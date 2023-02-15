@@ -5,7 +5,8 @@
   {
     "segments": [
       {
-        "Identifier": 1
+        "ident": 1,
+        "generics": null
       }
     ]
   }

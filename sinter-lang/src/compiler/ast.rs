@@ -697,32 +697,41 @@ pub enum ArrayExpr {
     Initializer(Vec<Expr>),
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
-pub enum PathSegment {
-    Identifier(InternedStr),
-    Generic(Vec<InternedTy>),
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Segment {
+    pub ident: InternedStr,
+    pub generics: Option<Generics>,
+}
+
+impl Segment {
+    pub fn new(ident: InternedStr, generics: Option<Generics>) -> Self {
+        Self {
+            ident,
+            generics,
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PathExpr {
-    pub segments: Vec<PathSegment>,
+    pub segments: Vec<Segment>,
 }
 
 impl PathExpr {
-    pub fn new(segments: Vec<PathSegment>) -> Self {
+    pub fn new(segments: Vec<Segment>) -> Self {
         Self { segments }
     }
 
-    pub fn prefix(&self, module: &QualifiedIdent) -> Self {
+    pub fn prefix(self, module: &QualifiedIdent) -> Self {
         // Verify that this is an appropriate module to prefix
-        assert_eq!(module.last(), self.first());
+        debug_assert_eq!(module.last(), self.first());
         let mut segments = Vec::with_capacity(module.idents.len() - 1 + self.segments.len());
         for ident in &module.idents {
-            segments.push(PathSegment::Identifier(*ident));
+            segments.push(Segment::new(*ident, None));
         }
         segments.pop();
-        for segment in &self.segments {
-            segments.push(segment.clone());
+        for segment in self.segments {
+            segments.push(segment);
         }
         Self {
             segments,
@@ -730,19 +739,14 @@ impl PathExpr {
     }
 
     pub fn first(&self) -> InternedStr {
-        match self.segments.first().cloned() {
-            Some(PathSegment::Identifier(str)) => str,
-            _ => panic!("Path expression must start with an identifier!")
-        }
+        self.segments.first().unwrap().ident
     }
 
     pub fn qualified_path(&self) -> QualifiedIdent {
-        let mut idents = Vec::new();
-        for segment in &self.segments {
-            if let PathSegment::Identifier(ident) = segment {
-                idents.push(*ident);
-            }
-        }
+        let idents = self.segments
+            .iter()
+            .map(|f| f.ident)
+            .collect::<Vec<InternedStr>>();
         QualifiedIdent::new(idents)
     }
 }
