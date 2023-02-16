@@ -8,16 +8,21 @@ use anyhow::Result;
 use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, Segment, Pattern, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt};
 use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::hir::VarDeclaration;
 use crate::compiler::interner::Key;
 use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateUseStmt, DuplicateVarDecl};
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 
-pub fn check_names(ctxt: CompilerCtxt, module: Module) -> Result<(CompilerCtxt, Module)> {
+pub fn resolve_module(ctxt: CompilerCtxt, module: Module) -> Result<(CompilerCtxt, Module)> {
     let resolver = Resolver::new(ctxt);
     resolver.resolve(module)
 }
 
 struct ResolvedModule {
+    constants: Vec<LetStmt>,
+    free_fns: Vec<FnStmt>,
+    classes: Vec<ClassStmt>,
+
     stmts: Vec<OuterStmt>,
 }
 
@@ -58,15 +63,28 @@ impl Resolver {
     }
 
     fn resolve(mut self, module: Module) -> Result<(CompilerCtxt, Module)> {
-        for stmt in module.stmts() {
-            if let Use(use_stmt) = stmt {
-                if !self.module_env.add_module_use(use_stmt.ident.clone()) {
-                    return Err(DuplicateUseStmt(use_stmt.ident.clone()).into());
-                }
+        for use_stmt in &module.use_stmts {
+            if !self.module_env.add_module_use(use_stmt.ident.clone()) {
+                return Err(DuplicateUseStmt(use_stmt.ident.clone()).into());
             }
         }
-        for stmt in module.stmts() {
-            self.check_outer_stmt(stmt)?;
+        for stmt in &module.let_stmts {
+            self.check_let_stmt(stmt)?;
+        }
+        for stmt in &module.class_stmts {
+            self.check_class_stmt(stmt)?;
+        }
+        for stmt in &module.enum_stmts {
+            self.check_enum_stmt(stmt)?;
+        }
+        for stmt in &module.trait_stmts {
+            self.check_trait_stmt(stmt)?;
+        }
+        for stmt in &module.trait_impl_stmts {
+            self.check_trait_impl_stmt(stmt)?;
+        }
+        for stmt in &module.fn_stmts {
+            self.check_fn_stmt(stmt)?;
         }
         Ok((self.ctxt, module))
     }

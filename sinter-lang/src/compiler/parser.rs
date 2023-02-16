@@ -21,7 +21,7 @@ use crate::compiler::tokens::tokenized_file::{TokenSpan, TokenizedInput};
 use crate::compiler::types::types::Type::{Closure, F32, F64, I16, I32, I64, I8, Infer, Path, QSelf, Str, U16, U32, U64, U8, Union};
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 use crate::compiler::{StringInterner, TyInterner};
-use crate::compiler::ast::OuterStmt::{Class, Enum, Fn, Trait, TraitImpl, Use};
+use crate::compiler::ast::OuterStmt::{Class, Enum, Fn, Let, Trait, TraitImpl, Use};
 use crate::compiler::compiler::CompilerCtxt;
 use crate::gc::block::Block;
 
@@ -89,16 +89,32 @@ impl Parser {
     }
 
     fn parse(mut self) -> Result<(CompilerCtxt, Module)> {
-        let stmts = self.parse_outer_stmts()?;
-        Ok((self.compiler_ctxt, Module::new(stmts)))
+        let module = self.parse_module()?;
+        Ok((self.compiler_ctxt, module))
     }
 
-    fn parse_outer_stmts(&mut self) -> Result<Vec<OuterStmt>> {
-        let mut stmts = Vec::new();
+    fn parse_module(&mut self) -> Result<Module> {
+        let mut use_stmts = Vec::new();
+        let mut let_stmts = Vec::new();
+        let mut class_stmts = Vec::new();
+        let mut enum_stmts = Vec::new();
+        let mut trait_stmts = Vec::new();
+        let mut trait_impl_stmts = Vec::new();
+        let mut fn_stmts = Vec::new();
+
         while self.pos < self.token_types.len() {
-            stmts.push(self.parse_outer_stmt()?);
+            let stmt = self.parse_outer_stmt()?;
+            match stmt {
+                Use(use_stmt) => use_stmts.push(use_stmt),
+                Let(let_stmt) => let_stmts.push(let_stmt),
+                Class(class_stmt) => class_stmts.push(class_stmt),
+                Enum(enum_stmt) => enum_stmts.push(enum_stmt),
+                Trait(trait_stmt) => trait_stmts.push(trait_stmt),
+                TraitImpl(trait_impl_stmt) => trait_impl_stmts.push(trait_impl_stmt),
+                Fn(fn_stmt) => fn_stmts.push(fn_stmt),
+            }
         }
-        Ok(stmts)
+        Ok(Module::new(use_stmts, let_stmts, class_stmts, enum_stmts, trait_stmts, trait_impl_stmts, fn_stmts))
     }
 
     fn parse_outer_stmt(&mut self) -> Result<OuterStmt> {
@@ -1675,13 +1691,13 @@ mod tests {
                 let ty = Some(ctxt.intern_ty($typ));
 
                 assert_eq!(
-                    vec![OuterStmt::Let(LetStmt::new(
+                    vec![LetStmt::new(
                         ctxt.intern_str("x"),
                         Mutability::Immutable,
                         ty,
                         None
-                    ))],
-                    module.stmts()
+                    )],
+                    module.let_stmts
                 );
             }
         };

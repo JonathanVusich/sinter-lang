@@ -10,16 +10,34 @@ use crate::compiler::tokens::tokenized_file::Span;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
-    stmts: Vec<OuterStmt>,
+    pub use_stmts: Vec<UseStmt>,
+    pub let_stmts: Vec<LetStmt>,
+    pub class_stmts: Vec<ClassStmt>,
+    pub enum_stmts: Vec<EnumStmt>,
+    pub trait_stmts: Vec<TraitStmt>,
+    pub trait_impl_stmts: Vec<TraitImplStmt>,
+    pub fn_stmts: Vec<FnStmt>,
 }
 
 impl Module {
-    pub fn new(stmts: Vec<OuterStmt>) -> Self {
-        Self { stmts }
-    }
-
-    pub fn stmts(&self) -> &[OuterStmt] {
-        &self.stmts
+    pub fn new(
+        use_stmts: Vec<UseStmt>,
+        let_stmts: Vec<LetStmt>,
+        class_stmts: Vec<ClassStmt>,
+        enum_stmts: Vec<EnumStmt>,
+        trait_stmts: Vec<TraitStmt>,
+        trait_impl_stmts: Vec<TraitImplStmt>,
+        fn_stmts: Vec<FnStmt>,
+    ) -> Self {
+        Self {
+            use_stmts,
+            let_stmts,
+            class_stmts,
+            enum_stmts,
+            trait_stmts,
+            trait_impl_stmts,
+            fn_stmts
+        }
     }
 }
 

@@ -17,6 +17,7 @@ mod interner;
 pub mod resolver;
 pub mod ty_checker;
 pub mod codegen;
+pub mod hir;
 
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;
