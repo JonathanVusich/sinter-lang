@@ -5,7 +5,7 @@ use std::{mem, vec};
 
 use anyhow::Result;
 
-use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, Segment, Pattern, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt};
+use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, Segment, Pattern, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt, UseStmt};
 use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::hir::VarDeclaration;
@@ -19,11 +19,13 @@ pub fn resolve_module(ctxt: CompilerCtxt, module: Module) -> Result<(CompilerCtx
 }
 
 struct ResolvedModule {
-    constants: Vec<LetStmt>,
-    free_fns: Vec<FnStmt>,
-    classes: Vec<ClassStmt>,
-
-    stmts: Vec<OuterStmt>,
+    pub use_stmts: Vec<UseStmt>,
+    pub let_stmts: Vec<LetStmt>,
+    pub class_stmts: Vec<ClassStmt>,
+    pub enum_stmts: Vec<EnumStmt>,
+    pub trait_stmts: Vec<TraitStmt>,
+    pub trait_impl_stmts: Vec<TraitImplStmt>,
+    pub fn_stmts: Vec<FnStmt>,
 }
 
 
