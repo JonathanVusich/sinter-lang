@@ -83,385 +83,389 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [
       {
-        "Enum": {
-          "name": 1,
-          "generic_params": {
-            "params": [
-              {
-                "ident": 2,
-                "trait_bound": {
-                  "bounds": [
-                    {
-                      "ident": {
-                        "idents": [
-                          3
-                        ]
-                      },
-                      "generics": []
-                    },
-                    {
-                      "ident": {
-                        "idents": [
-                          4
-                        ]
-                      },
-                      "generics": []
-                    }
-                  ]
-                }
-              },
-              {
-                "ident": 5,
-                "trait_bound": {
-                  "bounds": [
-                    {
-                      "ident": {
-                        "idents": [
-                          3
-                        ]
-                      },
-                      "generics": []
-                    },
-                    {
-                      "ident": {
-                        "idents": [
-                          4
-                        ]
-                      },
-                      "generics": []
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          "members": [
+        "name": 1,
+        "generic_params": {
+          "params": [
             {
-              "name": 6,
-              "fields": {
-                "params": [
+              "ident": 2,
+              "trait_bound": {
+                "bounds": [
                   {
-                    "ident": 7,
-                    "ty": {
-                      "val": 1
+                    "ident": {
+                      "idents": [
+                        3
+                      ]
                     },
-                    "mutability": "Immutable"
+                    "generics": []
                   },
                   {
-                    "ident": 8,
-                    "ty": {
-                      "val": 2
+                    "ident": {
+                      "idents": [
+                        4
+                      ]
                     },
-                    "mutability": "Immutable"
+                    "generics": []
                   }
                 ]
-              },
-              "member_fns": []
+              }
             },
             {
-              "name": 9,
-              "fields": {
-                "params": [
+              "ident": 5,
+              "trait_bound": {
+                "bounds": [
                   {
-                    "ident": 7,
-                    "ty": {
-                      "val": 1
+                    "ident": {
+                      "idents": [
+                        3
+                      ]
                     },
-                    "mutability": "Immutable"
+                    "generics": []
                   },
                   {
-                    "ident": 8,
-                    "ty": {
-                      "val": 2
+                    "ident": {
+                      "idents": [
+                        4
+                      ]
                     },
-                    "mutability": "Immutable"
-                  }
-                ]
-              },
-              "member_fns": []
-            }
-          ],
-          "member_fns": [
-            {
-              "sig": {
-                "name": 10,
-                "generic_params": {
-                  "params": []
-                },
-                "params": {
-                  "params": [
-                    {
-                      "ident": 16,
-                      "ty": {
-                        "val": 3
-                      },
-                      "mutability": "Immutable"
-                    }
-                  ]
-                },
-                "return_type": {
-                  "val": 4
-                }
-              },
-              "body": {
-                "stmts": [
-                  {
-                    "Expression": {
-                      "expr": {
-                        "Match": {
-                          "source": {
-                            "Path": {
-                              "segments": [
-                                {
-                                  "ident": 16,
-                                  "generics": null
-                                }
-                              ]
-                            }
-                          },
-                          "arms": [
-                            {
-                              "pattern": {
-                                "Ty": [
-                                  {
-                                    "val": 5
-                                  },
-                                  11
-                                ]
-                              },
-                              "body": {
-                                "Expression": {
-                                  "expr": {
-                                    "Path": {
-                                      "segments": [
-                                        {
-                                          "ident": 11,
-                                          "generics": null
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "implicit_return": true
-                                }
-                              }
-                            },
-                            {
-                              "pattern": {
-                                "Ty": [
-                                  {
-                                    "val": 6
-                                  },
-                                  12
-                                ]
-                              },
-                              "body": {
-                                "Block": {
-                                  "stmts": [
-                                    {
-                                      "Let": {
-                                        "ident": 13,
-                                        "mutability": "Immutable",
-                                        "ty": null,
-                                        "initializer": {
-                                          "Call": {
-                                            "func": {
-                                              "Path": {
-                                                "segments": [
-                                                  {
-                                                    "ident": 14,
-                                                    "generics": null
-                                                  },
-                                                  {
-                                                    "ident": 15,
-                                                    "generics": null
-                                                  }
-                                                ]
-                                              }
-                                            },
-                                            "args": {
-                                              "args": [
-                                                {
-                                                  "Infix": {
-                                                    "operator": "Add",
-                                                    "lhs": {
-                                                      "Infix": {
-                                                        "operator": "Multiply",
-                                                        "lhs": {
-                                                          "Field": {
-                                                            "lhs": {
-                                                              "Path": {
-                                                                "segments": [
-                                                                  {
-                                                                    "ident": 12,
-                                                                    "generics": null
-                                                                  }
-                                                                ]
-                                                              }
-                                                            },
-                                                            "ident": 7
-                                                          }
-                                                        },
-                                                        "rhs": {
-                                                          "Field": {
-                                                            "lhs": {
-                                                              "Path": {
-                                                                "segments": [
-                                                                  {
-                                                                    "ident": 12,
-                                                                    "generics": null
-                                                                  }
-                                                                ]
-                                                              }
-                                                            },
-                                                            "ident": 7
-                                                          }
-                                                        }
-                                                      }
-                                                    },
-                                                    "rhs": {
-                                                      "Infix": {
-                                                        "operator": "Multiply",
-                                                        "lhs": {
-                                                          "Field": {
-                                                            "lhs": {
-                                                              "Path": {
-                                                                "segments": [
-                                                                  {
-                                                                    "ident": 12,
-                                                                    "generics": null
-                                                                  }
-                                                                ]
-                                                              }
-                                                            },
-                                                            "ident": 8
-                                                          }
-                                                        },
-                                                        "rhs": {
-                                                          "Field": {
-                                                            "lhs": {
-                                                              "Path": {
-                                                                "segments": [
-                                                                  {
-                                                                    "ident": 12,
-                                                                    "generics": null
-                                                                  }
-                                                                ]
-                                                              }
-                                                            },
-                                                            "ident": 8
-                                                          }
-                                                        }
-                                                      }
-                                                    }
-                                                  }
-                                                }
-                                              ]
-                                            }
-                                          }
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "Expression": {
-                                        "expr": {
-                                          "Call": {
-                                            "func": {
-                                              "Path": {
-                                                "segments": [
-                                                  {
-                                                    "ident": 6,
-                                                    "generics": null
-                                                  }
-                                                ]
-                                              }
-                                            },
-                                            "args": {
-                                              "args": [
-                                                {
-                                                  "Infix": {
-                                                    "operator": "Divide",
-                                                    "lhs": {
-                                                      "Field": {
-                                                        "lhs": {
-                                                          "Path": {
-                                                            "segments": [
-                                                              {
-                                                                "ident": 12,
-                                                                "generics": null
-                                                              }
-                                                            ]
-                                                          }
-                                                        },
-                                                        "ident": 7
-                                                      }
-                                                    },
-                                                    "rhs": {
-                                                      "Path": {
-                                                        "segments": [
-                                                          {
-                                                            "ident": 13,
-                                                            "generics": null
-                                                          }
-                                                        ]
-                                                      }
-                                                    }
-                                                  }
-                                                },
-                                                {
-                                                  "Infix": {
-                                                    "operator": "Divide",
-                                                    "lhs": {
-                                                      "Field": {
-                                                        "lhs": {
-                                                          "Path": {
-                                                            "segments": [
-                                                              {
-                                                                "ident": 12,
-                                                                "generics": null
-                                                              }
-                                                            ]
-                                                          }
-                                                        },
-                                                        "ident": 8
-                                                      }
-                                                    },
-                                                    "rhs": {
-                                                      "Path": {
-                                                        "segments": [
-                                                          {
-                                                            "ident": 13,
-                                                            "generics": null
-                                                          }
-                                                        ]
-                                                      }
-                                                    }
-                                                  }
-                                                }
-                                              ]
-                                            }
-                                          }
-                                        },
-                                        "implicit_return": false
-                                      }
-                                    }
-                                  ]
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      },
-                      "implicit_return": false
-                    }
+                    "generics": []
                   }
                 ]
               }
             }
           ]
-        }
+        },
+        "members": [
+          {
+            "name": 6,
+            "fields": {
+              "params": [
+                {
+                  "ident": 7,
+                  "ty": {
+                    "val": 1
+                  },
+                  "mutability": "Immutable"
+                },
+                {
+                  "ident": 8,
+                  "ty": {
+                    "val": 2
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "member_fns": []
+          },
+          {
+            "name": 9,
+            "fields": {
+              "params": [
+                {
+                  "ident": 7,
+                  "ty": {
+                    "val": 1
+                  },
+                  "mutability": "Immutable"
+                },
+                {
+                  "ident": 8,
+                  "ty": {
+                    "val": 2
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "member_fns": []
+          }
+        ],
+        "member_fns": [
+          {
+            "sig": {
+              "name": 10,
+              "generic_params": {
+                "params": []
+              },
+              "params": {
+                "params": [
+                  {
+                    "ident": 16,
+                    "ty": {
+                      "val": 3
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "return_type": {
+                "val": 4
+              }
+            },
+            "body": {
+              "stmts": [
+                {
+                  "Expression": {
+                    "expr": {
+                      "Match": {
+                        "source": {
+                          "Path": {
+                            "segments": [
+                              {
+                                "ident": 16,
+                                "generics": null
+                              }
+                            ]
+                          }
+                        },
+                        "arms": [
+                          {
+                            "pattern": {
+                              "Ty": [
+                                {
+                                  "val": 5
+                                },
+                                11
+                              ]
+                            },
+                            "body": {
+                              "Expression": {
+                                "expr": {
+                                  "Path": {
+                                    "segments": [
+                                      {
+                                        "ident": 11,
+                                        "generics": null
+                                      }
+                                    ]
+                                  }
+                                },
+                                "implicit_return": true
+                              }
+                            }
+                          },
+                          {
+                            "pattern": {
+                              "Ty": [
+                                {
+                                  "val": 6
+                                },
+                                12
+                              ]
+                            },
+                            "body": {
+                              "Block": {
+                                "stmts": [
+                                  {
+                                    "Let": {
+                                      "ident": 13,
+                                      "mutability": "Immutable",
+                                      "ty": null,
+                                      "initializer": {
+                                        "Call": {
+                                          "func": {
+                                            "Path": {
+                                              "segments": [
+                                                {
+                                                  "ident": 14,
+                                                  "generics": null
+                                                },
+                                                {
+                                                  "ident": 15,
+                                                  "generics": null
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "args": {
+                                            "args": [
+                                              {
+                                                "Infix": {
+                                                  "operator": "Add",
+                                                  "lhs": {
+                                                    "Infix": {
+                                                      "operator": "Multiply",
+                                                      "lhs": {
+                                                        "Field": {
+                                                          "lhs": {
+                                                            "Path": {
+                                                              "segments": [
+                                                                {
+                                                                  "ident": 12,
+                                                                  "generics": null
+                                                                }
+                                                              ]
+                                                            }
+                                                          },
+                                                          "ident": 7
+                                                        }
+                                                      },
+                                                      "rhs": {
+                                                        "Field": {
+                                                          "lhs": {
+                                                            "Path": {
+                                                              "segments": [
+                                                                {
+                                                                  "ident": 12,
+                                                                  "generics": null
+                                                                }
+                                                              ]
+                                                            }
+                                                          },
+                                                          "ident": 7
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "rhs": {
+                                                    "Infix": {
+                                                      "operator": "Multiply",
+                                                      "lhs": {
+                                                        "Field": {
+                                                          "lhs": {
+                                                            "Path": {
+                                                              "segments": [
+                                                                {
+                                                                  "ident": 12,
+                                                                  "generics": null
+                                                                }
+                                                              ]
+                                                            }
+                                                          },
+                                                          "ident": 8
+                                                        }
+                                                      },
+                                                      "rhs": {
+                                                        "Field": {
+                                                          "lhs": {
+                                                            "Path": {
+                                                              "segments": [
+                                                                {
+                                                                  "ident": 12,
+                                                                  "generics": null
+                                                                }
+                                                              ]
+                                                            }
+                                                          },
+                                                          "ident": 8
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "Expression": {
+                                      "expr": {
+                                        "Call": {
+                                          "func": {
+                                            "Path": {
+                                              "segments": [
+                                                {
+                                                  "ident": 6,
+                                                  "generics": null
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "args": {
+                                            "args": [
+                                              {
+                                                "Infix": {
+                                                  "operator": "Divide",
+                                                  "lhs": {
+                                                    "Field": {
+                                                      "lhs": {
+                                                        "Path": {
+                                                          "segments": [
+                                                            {
+                                                              "ident": 12,
+                                                              "generics": null
+                                                            }
+                                                          ]
+                                                        }
+                                                      },
+                                                      "ident": 7
+                                                    }
+                                                  },
+                                                  "rhs": {
+                                                    "Path": {
+                                                      "segments": [
+                                                        {
+                                                          "ident": 13,
+                                                          "generics": null
+                                                        }
+                                                      ]
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "Infix": {
+                                                  "operator": "Divide",
+                                                  "lhs": {
+                                                    "Field": {
+                                                      "lhs": {
+                                                        "Path": {
+                                                          "segments": [
+                                                            {
+                                                              "ident": 12,
+                                                              "generics": null
+                                                            }
+                                                          ]
+                                                        }
+                                                      },
+                                                      "ident": 8
+                                                    }
+                                                  },
+                                                  "rhs": {
+                                                    "Path": {
+                                                      "segments": [
+                                                        {
+                                                          "ident": 13,
+                                                          "generics": null
+                                                        }
+                                                      ]
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "implicit_return": false
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "implicit_return": false
+                  }
+                }
+              ]
+            }
+          }
+        ]
       }
-    ]
+    ],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": []
   }
 ]

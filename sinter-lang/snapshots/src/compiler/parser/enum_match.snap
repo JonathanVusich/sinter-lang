@@ -42,98 +42,82 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [
       {
-        "Let": {
-          "ident": 1,
-          "mutability": "Immutable",
-          "ty": null,
-          "initializer": {
-            "Match": {
-              "source": {
-                "Path": {
-                  "segments": [
-                    {
-                      "ident": 2,
-                      "generics": null
-                    }
-                  ]
-                }
-              },
-              "arms": [
-                {
-                  "pattern": {
-                    "Or": {
-                      "patterns": [
-                        {
-                          "Destructure": [
+        "ident": 1,
+        "ty": null,
+        "initializer": {
+          "Match": {
+            "source": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": 2,
+                    "generics": null
+                  }
+                ]
+              }
+            },
+            "arms": [
+              {
+                "pattern": {
+                  "Or": {
+                    "patterns": [
+                      {
+                        "Destructure": [
+                          {
+                            "val": 1
+                          },
+                          [
                             {
-                              "val": 1
-                            },
-                            [
-                              {
-                                "String": 5
-                              }
-                            ]
+                              "String": 5
+                            }
                           ]
-                        },
-                        {
-                          "Destructure": [
-                            {
-                              "val": 2
-                            },
-                            [
-                              {
-                                "String": 5
-                              },
-                              {
-                                "Path": {
-                                  "segments": [
-                                    {
-                                      "ident": 7,
-                                      "generics": null
-                                    }
-                                  ]
-                                }
-                              }
-                            ]
-                          ]
-                        }
-                      ]
-                    }
-                  },
-                  "body": {
-                    "Expression": {
-                      "expr": {
-                        "String": 8
+                        ]
                       },
-                      "implicit_return": true
-                    }
+                      {
+                        "Destructure": [
+                          {
+                            "val": 2
+                          },
+                          [
+                            {
+                              "String": 5
+                            },
+                            {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": 7,
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        ]
+                      }
+                    ]
                   }
                 },
-                {
-                  "pattern": {
-                    "Destructure": [
+                "body": {
+                  "Expression": {
+                    "expr": {
+                      "String": 8
+                    },
+                    "implicit_return": true
+                  }
+                }
+              },
+              {
+                "pattern": {
+                  "Destructure": [
+                    {
+                      "val": 1
+                    },
+                    [
                       {
-                        "val": 1
-                      },
-                      [
-                        {
-                          "Path": {
-                            "segments": [
-                              {
-                                "ident": 9,
-                                "generics": null
-                              }
-                            ]
-                          }
-                        }
-                      ]
-                    ]
-                  },
-                  "body": {
-                    "Expression": {
-                      "expr": {
                         "Path": {
                           "segments": [
                             {
@@ -142,44 +126,34 @@
                             }
                           ]
                         }
-                      },
-                      "implicit_return": true
-                    }
-                  }
-                },
-                {
-                  "pattern": {
-                    "Destructure": [
-                      {
-                        "val": 2
-                      },
-                      [
-                        {
-                          "Path": {
-                            "segments": [
-                              {
-                                "ident": 10,
-                                "generics": null
-                              }
-                            ]
-                          }
-                        },
-                        {
-                          "Path": {
-                            "segments": [
-                              {
-                                "ident": 7,
-                                "generics": null
-                              }
-                            ]
-                          }
-                        }
-                      ]
+                      }
                     ]
-                  },
-                  "body": {
-                    "Expression": {
-                      "expr": {
+                  ]
+                },
+                "body": {
+                  "Expression": {
+                    "expr": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": 9,
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "implicit_return": true
+                  }
+                }
+              },
+              {
+                "pattern": {
+                  "Destructure": [
+                    {
+                      "val": 2
+                    },
+                    [
+                      {
                         "Path": {
                           "segments": [
                             {
@@ -189,15 +163,44 @@
                           ]
                         }
                       },
-                      "implicit_return": true
-                    }
+                      {
+                        "Path": {
+                          "segments": [
+                            {
+                              "ident": 7,
+                              "generics": null
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  ]
+                },
+                "body": {
+                  "Expression": {
+                    "expr": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": 10,
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "implicit_return": true
                   }
                 }
-              ]
-            }
+              }
+            ]
           }
         }
       }
-    ]
+    ],
+    "class_stmts": [],
+    "enum_stmts": [],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": []
   }
 ]

@@ -19,76 +19,80 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": [
       {
-        "Fn": {
-          "sig": {
-            "name": 1,
-            "generic_params": {
-              "params": []
-            },
-            "params": {
-              "params": [
-                {
-                  "ident": 2,
-                  "ty": {
-                    "val": 2
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
-            },
-            "return_type": null
+        "sig": {
+          "name": 1,
+          "generic_params": {
+            "params": []
           },
-          "body": {
-            "stmts": [
+          "params": {
+            "params": [
               {
-                "Expression": {
-                  "expr": {
-                    "Call": {
-                      "func": {
-                        "Path": {
-                          "segments": [
-                            {
-                              "ident": 4,
-                              "generics": null
-                            }
-                          ]
-                        }
-                      },
-                      "args": {
-                        "args": [
+                "ident": 2,
+                "ty": {
+                  "val": 2
+                },
+                "mutability": "Immutable"
+              }
+            ]
+          },
+          "return_type": null
+        },
+        "body": {
+          "stmts": [
+            {
+              "Expression": {
+                "expr": {
+                  "Call": {
+                    "func": {
+                      "Path": {
+                        "segments": [
                           {
-                            "Call": {
-                              "func": {
-                                "Field": {
-                                  "lhs": {
-                                    "Path": {
-                                      "segments": [
-                                        {
-                                          "ident": 2,
-                                          "generics": null
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "ident": 5
-                                }
-                              },
-                              "args": {
-                                "args": []
-                              }
-                            }
+                            "ident": 4,
+                            "generics": null
                           }
                         ]
                       }
+                    },
+                    "args": {
+                      "args": [
+                        {
+                          "Call": {
+                            "func": {
+                              "Field": {
+                                "lhs": {
+                                  "Path": {
+                                    "segments": [
+                                      {
+                                        "ident": 2,
+                                        "generics": null
+                                      }
+                                    ]
+                                  }
+                                },
+                                "ident": 5
+                              }
+                            },
+                            "args": {
+                              "args": []
+                            }
+                          }
+                        }
+                      ]
                     }
-                  },
-                  "implicit_return": true
-                }
+                  }
+                },
+                "implicit_return": true
               }
-            ]
-          }
+            }
+          ]
         }
       }
     ]

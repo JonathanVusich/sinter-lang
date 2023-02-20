@@ -11,70 +11,74 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": [
       {
-        "Fn": {
-          "sig": {
-            "name": 1,
-            "generic_params": {
-              "params": []
-            },
-            "params": {
-              "params": [
-                {
-                  "ident": 2,
-                  "ty": {
-                    "val": 1
-                  },
-                  "mutability": "Immutable"
-                },
-                {
-                  "ident": 4,
-                  "ty": {
-                    "val": 1
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
-            },
-            "return_type": {
-              "val": 1
-            }
+        "sig": {
+          "name": 1,
+          "generic_params": {
+            "params": []
           },
-          "body": {
-            "stmts": [
+          "params": {
+            "params": [
               {
-                "Expression": {
-                  "expr": {
-                    "Infix": {
-                      "operator": "Add",
-                      "lhs": {
-                        "Path": {
-                          "segments": [
-                            {
-                              "ident": 2,
-                              "generics": null
-                            }
-                          ]
-                        }
-                      },
-                      "rhs": {
-                        "Path": {
-                          "segments": [
-                            {
-                              "ident": 4,
-                              "generics": null
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  },
-                  "implicit_return": false
-                }
+                "ident": 2,
+                "ty": {
+                  "val": 1
+                },
+                "mutability": "Immutable"
+              },
+              {
+                "ident": 4,
+                "ty": {
+                  "val": 1
+                },
+                "mutability": "Immutable"
               }
             ]
+          },
+          "return_type": {
+            "val": 1
           }
+        },
+        "body": {
+          "stmts": [
+            {
+              "Expression": {
+                "expr": {
+                  "Infix": {
+                    "operator": "Add",
+                    "lhs": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": 2,
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "rhs": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": 4,
+                            "generics": null
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "implicit_return": false
+              }
+            }
+          ]
         }
       }
     ]

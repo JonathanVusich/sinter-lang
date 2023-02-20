@@ -54,204 +54,205 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [],
+    "trait_stmts": [
       {
-        "Trait": {
-          "name": 1,
+        "name": 1,
+        "generic_params": {
+          "params": []
+        },
+        "member_fns": [
+          {
+            "sig": {
+              "name": 2,
+              "generic_params": {
+                "params": []
+              },
+              "params": {
+                "params": [
+                  {
+                    "ident": 10,
+                    "ty": {
+                      "val": 1
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "return_type": {
+                "val": 2
+              }
+            },
+            "body": null
+          }
+        ]
+      }
+    ],
+    "trait_impl_stmts": [],
+    "fn_stmts": [
+      {
+        "sig": {
+          "name": 4,
           "generic_params": {
-            "params": []
-          },
-          "member_fns": [
-            {
-              "sig": {
-                "name": 2,
-                "generic_params": {
-                  "params": []
-                },
-                "params": {
-                  "params": [
+            "params": [
+              {
+                "ident": 5,
+                "trait_bound": {
+                  "bounds": [
                     {
-                      "ident": 10,
-                      "ty": {
-                        "val": 1
+                      "ident": {
+                        "idents": [
+                          1
+                        ]
                       },
-                      "mutability": "Immutable"
+                      "generics": []
+                    },
+                    {
+                      "ident": {
+                        "idents": [
+                          6
+                        ]
+                      },
+                      "generics": []
                     }
                   ]
-                },
-                "return_type": {
-                  "val": 2
                 }
-              },
-              "body": null
+              }
+            ]
+          },
+          "params": {
+            "params": [
+              {
+                "ident": 7,
+                "ty": {
+                  "val": 3
+                },
+                "mutability": "Immutable"
+              }
+            ]
+          },
+          "return_type": null
+        },
+        "body": {
+          "stmts": [
+            {
+              "Expression": {
+                "expr": {
+                  "Call": {
+                    "func": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": 8,
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "args": {
+                      "args": [
+                        {
+                          "Call": {
+                            "func": {
+                              "Field": {
+                                "lhs": {
+                                  "Path": {
+                                    "segments": [
+                                      {
+                                        "ident": 7,
+                                        "generics": null
+                                      }
+                                    ]
+                                  }
+                                },
+                                "ident": 2
+                              }
+                            },
+                            "args": {
+                              "args": []
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                "implicit_return": true
+              }
             }
           ]
         }
       },
       {
-        "Fn": {
-          "sig": {
-            "name": 4,
-            "generic_params": {
-              "params": [
-                {
-                  "ident": 5,
-                  "trait_bound": {
-                    "bounds": [
-                      {
-                        "ident": {
-                          "idents": [
-                            1
-                          ]
-                        },
-                        "generics": []
-                      },
-                      {
-                        "ident": {
-                          "idents": [
-                            6
-                          ]
-                        },
-                        "generics": []
+        "sig": {
+          "name": 9,
+          "generic_params": {
+            "params": []
+          },
+          "params": {
+            "params": [
+              {
+                "ident": 7,
+                "ty": {
+                  "val": 4
+                },
+                "mutability": "Immutable"
+              }
+            ]
+          },
+          "return_type": null
+        },
+        "body": {
+          "stmts": [
+            {
+              "Expression": {
+                "expr": {
+                  "Call": {
+                    "func": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": 8,
+                            "generics": null
+                          }
+                        ]
                       }
-                    ]
+                    },
+                    "args": {
+                      "args": [
+                        {
+                          "Call": {
+                            "func": {
+                              "Field": {
+                                "lhs": {
+                                  "Path": {
+                                    "segments": [
+                                      {
+                                        "ident": 7,
+                                        "generics": null
+                                      }
+                                    ]
+                                  }
+                                },
+                                "ident": 2
+                              }
+                            },
+                            "args": {
+                              "args": []
+                            }
+                          }
+                        }
+                      ]
+                    }
                   }
-                }
-              ]
-            },
-            "params": {
-              "params": [
-                {
-                  "ident": 7,
-                  "ty": {
-                    "val": 3
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
-            },
-            "return_type": null
-          },
-          "body": {
-            "stmts": [
-              {
-                "Expression": {
-                  "expr": {
-                    "Call": {
-                      "func": {
-                        "Path": {
-                          "segments": [
-                            {
-                              "ident": 8,
-                              "generics": null
-                            }
-                          ]
-                        }
-                      },
-                      "args": {
-                        "args": [
-                          {
-                            "Call": {
-                              "func": {
-                                "Field": {
-                                  "lhs": {
-                                    "Path": {
-                                      "segments": [
-                                        {
-                                          "ident": 7,
-                                          "generics": null
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "ident": 2
-                                }
-                              },
-                              "args": {
-                                "args": []
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  "implicit_return": true
-                }
+                },
+                "implicit_return": true
               }
-            ]
-          }
-        }
-      },
-      {
-        "Fn": {
-          "sig": {
-            "name": 9,
-            "generic_params": {
-              "params": []
-            },
-            "params": {
-              "params": [
-                {
-                  "ident": 7,
-                  "ty": {
-                    "val": 4
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
-            },
-            "return_type": null
-          },
-          "body": {
-            "stmts": [
-              {
-                "Expression": {
-                  "expr": {
-                    "Call": {
-                      "func": {
-                        "Path": {
-                          "segments": [
-                            {
-                              "ident": 8,
-                              "generics": null
-                            }
-                          ]
-                        }
-                      },
-                      "args": {
-                        "args": [
-                          {
-                            "Call": {
-                              "func": {
-                                "Field": {
-                                  "lhs": {
-                                    "Path": {
-                                      "segments": [
-                                        {
-                                          "ident": 7,
-                                          "generics": null
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "ident": 2
-                                }
-                              },
-                              "args": {
-                                "args": []
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  "implicit_return": true
-                }
-              }
-            ]
-          }
+            }
+          ]
         }
       }
     ]

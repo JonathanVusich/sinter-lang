@@ -24,180 +24,174 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [
       {
-        "Class": {
-          "name": 1,
-          "class_type": "Inline",
-          "generic_params": {
-            "params": []
-          },
-          "fields": {
-            "params": [
+        "ident": 6,
+        "ty": {
+          "val": 3
+        },
+        "initializer": {
+          "Array": {
+            "Initializer": [
               {
-                "ident": 2,
-                "ty": {
-                  "val": 1
-                },
-                "mutability": "Immutable"
+                "Integer": 1
               },
               {
-                "ident": 4,
-                "ty": {
-                  "val": 1
-                },
-                "mutability": "Immutable"
+                "Integer": 2
+              },
+              {
+                "Integer": 3
               }
             ]
-          },
-          "member_fns": []
-        }
-      },
-      {
-        "Class": {
-          "name": 5,
-          "class_type": "Reference",
-          "generic_params": {
-            "params": []
-          },
-          "fields": {
-            "params": []
-          },
-          "member_fns": []
-        }
-      },
-      {
-        "Let": {
-          "ident": 6,
-          "mutability": "Immutable",
-          "ty": {
-            "val": 3
-          },
-          "initializer": {
-            "Array": {
-              "Initializer": [
-                {
-                  "Integer": 1
-                },
-                {
-                  "Integer": 2
-                },
-                {
-                  "Integer": 3
-                }
-              ]
-            }
           }
         }
       },
       {
-        "Let": {
-          "ident": 8,
-          "mutability": "Immutable",
-          "ty": null,
-          "initializer": {
-            "Array": {
-              "Initializer": [
-                {
-                  "Call": {
-                    "func": {
-                      "Path": {
-                        "segments": [
-                          {
-                            "ident": 1,
-                            "generics": null
-                          }
-                        ]
-                      }
-                    },
-                    "args": {
-                      "args": [
+        "ident": 8,
+        "ty": null,
+        "initializer": {
+          "Array": {
+            "Initializer": [
+              {
+                "Call": {
+                  "func": {
+                    "Path": {
+                      "segments": [
                         {
-                          "Float": 1.0
-                        },
-                        {
-                          "Float": 2.0
+                          "ident": 1,
+                          "generics": null
                         }
                       ]
                     }
-                  }
-                },
-                {
-                  "Call": {
-                    "func": {
-                      "Path": {
-                        "segments": [
-                          {
-                            "ident": 1,
-                            "generics": null
-                          }
-                        ]
+                  },
+                  "args": {
+                    "args": [
+                      {
+                        "Float": 1.0
+                      },
+                      {
+                        "Float": 2.0
                       }
-                    },
-                    "args": {
-                      "args": [
-                        {
-                          "Float": 1.5
-                        },
-                        {
-                          "Float": 2.5
-                        }
-                      ]
-                    }
+                    ]
                   }
                 }
-              ]
-            }
+              },
+              {
+                "Call": {
+                  "func": {
+                    "Path": {
+                      "segments": [
+                        {
+                          "ident": 1,
+                          "generics": null
+                        }
+                      ]
+                    }
+                  },
+                  "args": {
+                    "args": [
+                      {
+                        "Float": 1.5
+                      },
+                      {
+                        "Float": 2.5
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
           }
         }
       },
       {
-        "Let": {
-          "ident": 9,
-          "mutability": "Immutable",
-          "ty": null,
-          "initializer": {
-            "Array": {
-              "Initializer": [
-                {
-                  "Call": {
-                    "func": {
-                      "Path": {
-                        "segments": [
-                          {
-                            "ident": 5,
-                            "generics": null
-                          }
-                        ]
-                      }
-                    },
-                    "args": {
-                      "args": []
+        "ident": 9,
+        "ty": null,
+        "initializer": {
+          "Array": {
+            "Initializer": [
+              {
+                "Call": {
+                  "func": {
+                    "Path": {
+                      "segments": [
+                        {
+                          "ident": 5,
+                          "generics": null
+                        }
+                      ]
                     }
-                  }
-                },
-                {
-                  "Call": {
-                    "func": {
-                      "Path": {
-                        "segments": [
-                          {
-                            "ident": 5,
-                            "generics": null
-                          }
-                        ]
-                      }
-                    },
-                    "args": {
-                      "args": []
-                    }
+                  },
+                  "args": {
+                    "args": []
                   }
                 }
-              ]
-            }
+              },
+              {
+                "Call": {
+                  "func": {
+                    "Path": {
+                      "segments": [
+                        {
+                          "ident": 5,
+                          "generics": null
+                        }
+                      ]
+                    }
+                  },
+                  "args": {
+                    "args": []
+                  }
+                }
+              }
+            ]
           }
         }
       }
-    ]
+    ],
+    "class_stmts": [
+      {
+        "name": 1,
+        "class_type": "Inline",
+        "generic_params": {
+          "params": []
+        },
+        "fields": {
+          "params": [
+            {
+              "ident": 2,
+              "ty": {
+                "val": 1
+              },
+              "mutability": "Immutable"
+            },
+            {
+              "ident": 4,
+              "ty": {
+                "val": 1
+              },
+              "mutability": "Immutable"
+            }
+          ]
+        },
+        "member_fns": []
+      },
+      {
+        "name": 5,
+        "class_type": "Reference",
+        "generic_params": {
+          "params": []
+        },
+        "fields": {
+          "params": []
+        },
+        "member_fns": []
+      }
+    ],
+    "enum_stmts": [],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": []
   }
 ]

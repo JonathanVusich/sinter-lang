@@ -10,38 +10,38 @@
     "ty_interner": []
   },
   {
-    "stmts": [
+    "use_stmts": [
       {
-        "Use": {
-          "ident": {
-            "idents": [
-              1,
-              2
-            ]
-          }
+        "ident": {
+          "idents": [
+            1,
+            2
+          ]
         }
       },
       {
-        "Use": {
-          "ident": {
-            "idents": [
-              1,
-              3
-            ]
-          }
+        "ident": {
+          "idents": [
+            1,
+            3
+          ]
         }
       },
       {
-        "Use": {
-          "ident": {
-            "idents": [
-              1,
-              4,
-              5
-            ]
-          }
+        "ident": {
+          "idents": [
+            1,
+            4,
+            5
+          ]
         }
       }
-    ]
+    ],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": []
   }
 ]

@@ -15,81 +15,85 @@
     "ty_interner": []
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [
       {
-        "Enum": {
-          "name": 1,
-          "generic_params": {
-            "params": []
+        "name": 1,
+        "generic_params": {
+          "params": []
+        },
+        "members": [
+          {
+            "name": 2,
+            "fields": {
+              "params": []
+            },
+            "member_fns": []
           },
-          "members": [
-            {
-              "name": 2,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+          {
+            "name": 3,
+            "fields": {
+              "params": []
             },
-            {
-              "name": 3,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+            "member_fns": []
+          },
+          {
+            "name": 4,
+            "fields": {
+              "params": []
             },
-            {
-              "name": 4,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+            "member_fns": []
+          },
+          {
+            "name": 5,
+            "fields": {
+              "params": []
             },
-            {
-              "name": 5,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+            "member_fns": []
+          },
+          {
+            "name": 6,
+            "fields": {
+              "params": []
             },
-            {
-              "name": 6,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+            "member_fns": []
+          },
+          {
+            "name": 7,
+            "fields": {
+              "params": []
             },
-            {
-              "name": 7,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+            "member_fns": []
+          },
+          {
+            "name": 8,
+            "fields": {
+              "params": []
             },
-            {
-              "name": 8,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+            "member_fns": []
+          },
+          {
+            "name": 9,
+            "fields": {
+              "params": []
             },
-            {
-              "name": 9,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+            "member_fns": []
+          },
+          {
+            "name": 10,
+            "fields": {
+              "params": []
             },
-            {
-              "name": 10,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
-            }
-          ],
-          "member_fns": []
-        }
+            "member_fns": []
+          }
+        ],
+        "member_fns": []
       }
-    ]
+    ],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": []
   }
 ]

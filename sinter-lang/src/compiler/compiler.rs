@@ -7,7 +7,7 @@ use anyhow::Result;
 use lasso::{Key as K, LargeSpur, Rodeo};
 use serde::{Serialize, Deserialize, Deserializer};
 use serde::de::DeserializeOwned;
-use crate::compiler::ast::{Stmt, UseStmt};
+use crate::compiler::ast::{Module, QualifiedIdent, Stmt, UseStmt};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::parse;
 use crate::compiler::{StringInterner, TyInterner};
@@ -83,12 +83,19 @@ impl From<CompilerCtxt> for (StringInterner, TyInterner) {
 }
 
 fn compile(application: Application) -> Result<CompiledApplication> {
-    let (compiler_ctxt, tokens) = tokenize_file(&application.entry_point)?;
+    let compiler_ctxt = CompilerCtxt::default();
+
+    let (compiler_ctxt, module) = import_module(compiler_ctxt, &application.entry_point)?;
+    let (compiler_ctxt, tychecked_module) = ty_check(compiler_ctxt, module)?;
+
+    emit_code(compiler_ctxt, tychecked_module)
+}
+
+
+fn import_module(compiler_ctxt: CompilerCtxt, module_path: &Path) -> Result<(CompilerCtxt, Module)> {
+    let (compiler_ctxt, tokens) = tokenize_file(module_path.as_ref())?;
     let (compiler_ctxt, module) = parse(compiler_ctxt, tokens)?;
 
     // Ensure that all names and variable uses are correct
-    let (compiler_ctxt, resolved_module) = resolve_module(compiler_ctxt, module)?;
-    let (compiler_ctxt, tychecked_module) = ty_check(compiler_ctxt, resolved_module)?;
-
-    emit_code(compiler_ctxt, tychecked_module)
+    resolve_module(compiler_ctxt, module)
 }

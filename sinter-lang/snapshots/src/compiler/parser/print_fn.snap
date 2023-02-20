@@ -11,64 +11,68 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": [
       {
-        "Fn": {
-          "sig": {
-            "name": 1,
-            "generic_params": {
-              "params": []
-            },
-            "params": {
-              "params": [
-                {
-                  "ident": 2,
-                  "ty": {
-                    "val": 1
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
-            },
-            "return_type": null
+        "sig": {
+          "name": 1,
+          "generic_params": {
+            "params": []
           },
-          "body": {
-            "stmts": [
+          "params": {
+            "params": [
               {
-                "Expression": {
-                  "expr": {
-                    "Call": {
-                      "func": {
-                        "Path": {
-                          "segments": [
-                            {
-                              "ident": 4,
-                              "generics": null
-                            }
-                          ]
-                        }
-                      },
-                      "args": {
-                        "args": [
+                "ident": 2,
+                "ty": {
+                  "val": 1
+                },
+                "mutability": "Immutable"
+              }
+            ]
+          },
+          "return_type": null
+        },
+        "body": {
+          "stmts": [
+            {
+              "Expression": {
+                "expr": {
+                  "Call": {
+                    "func": {
+                      "Path": {
+                        "segments": [
                           {
-                            "Path": {
-                              "segments": [
-                                {
-                                  "ident": 2,
-                                  "generics": null
-                                }
-                              ]
-                            }
+                            "ident": 4,
+                            "generics": null
                           }
                         ]
                       }
+                    },
+                    "args": {
+                      "args": [
+                        {
+                          "Path": {
+                            "segments": [
+                              {
+                                "ident": 2,
+                                "generics": null
+                              }
+                            ]
+                          }
+                        }
+                      ]
                     }
-                  },
-                  "implicit_return": true
-                }
+                  }
+                },
+                "implicit_return": true
               }
-            ]
-          }
+            }
+          ]
         }
       }
     ]

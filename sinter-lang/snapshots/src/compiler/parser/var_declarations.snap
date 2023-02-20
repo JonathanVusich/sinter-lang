@@ -10,29 +10,29 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [
       {
-        "Let": {
-          "ident": 1,
-          "mutability": "Immutable",
-          "ty": {
-            "val": 1
-          },
-          "initializer": {
-            "Integer": 1
-          }
+        "ident": 1,
+        "ty": {
+          "val": 1
+        },
+        "initializer": {
+          "Integer": 1
         }
       },
       {
-        "Let": {
-          "ident": 3,
-          "mutability": "Immutable",
-          "ty": null,
-          "initializer": {
-            "Integer": 2
-          }
+        "ident": 3,
+        "ty": null,
+        "initializer": {
+          "Integer": 2
         }
       }
-    ]
+    ],
+    "class_stmts": [],
+    "enum_stmts": [],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": []
   }
 ]

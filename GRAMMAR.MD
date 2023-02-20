@@ -1,6 +1,6 @@
 ### Statement Types
 
-`outerStmt => useStmt | classStmt | fnStmt | letStmt | enumStmt | traitStmt | traitImplStmt`
+`outerStmt => useStmt | classStmt | fnStmt | constLetStmt | enumStmt | traitStmt | traitImplStmt`
 
 `stmt => letStmt | forStmt | whileStmt | blockStmt | returnStmt | ifStmt | expression`
 
@@ -13,7 +13,7 @@ _________________________________
 
 `fnStmt => fnHead params fnTail`
 
-`letStmt => "let" "mut"? ident ( ":" ty )? ( "=" expression )? ";"`
+`constLetStmt => "let" ident ( ":" ty )? "=" expression ";"`
 
 `enumStmt => "enum" ident genericParams? enumMembers ( fnStmts | ";" )`
 
@@ -25,6 +25,7 @@ _________________________________
 
 _________________________________
 ### Statement Definitions
+`letStmt => "let" "mut"? ident ( ":" ty )? ( "=" expression )? ";"`
 
 `forStmt => "for" ident "in" expression blockStmt`
 

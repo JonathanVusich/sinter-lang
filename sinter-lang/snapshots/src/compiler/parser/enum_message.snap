@@ -32,113 +32,117 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [
       {
-        "Enum": {
-          "name": 1,
-          "generic_params": {
-            "params": []
-          },
-          "members": [
-            {
-              "name": 2,
-              "fields": {
-                "params": [
-                  {
-                    "ident": 3,
-                    "ty": {
-                      "val": 1
-                    },
-                    "mutability": "Immutable"
-                  }
-                ]
-              },
-              "member_fns": []
-            },
-            {
-              "name": 5,
-              "fields": {
-                "params": [
-                  {
-                    "ident": 6,
-                    "ty": {
-                      "val": 1
-                    },
-                    "mutability": "Immutable"
-                  },
-                  {
-                    "ident": 7,
-                    "ty": {
-                      "val": 2
-                    },
-                    "mutability": "Immutable"
-                  }
-                ]
-              },
-              "member_fns": [
+        "name": 1,
+        "generic_params": {
+          "params": []
+        },
+        "members": [
+          {
+            "name": 2,
+            "fields": {
+              "params": [
                 {
-                  "sig": {
-                    "name": 9,
-                    "generic_params": {
-                      "params": []
-                    },
-                    "params": {
-                      "params": [
-                        {
-                          "ident": 11,
-                          "ty": {
-                            "val": 3
-                          },
-                          "mutability": "Immutable"
-                        }
-                      ]
-                    },
-                    "return_type": {
-                      "val": 4
-                    }
+                  "ident": 3,
+                  "ty": {
+                    "val": 1
                   },
-                  "body": {
-                    "stmts": [
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "member_fns": []
+          },
+          {
+            "name": 5,
+            "fields": {
+              "params": [
+                {
+                  "ident": 6,
+                  "ty": {
+                    "val": 1
+                  },
+                  "mutability": "Immutable"
+                },
+                {
+                  "ident": 7,
+                  "ty": {
+                    "val": 2
+                  },
+                  "mutability": "Immutable"
+                }
+              ]
+            },
+            "member_fns": [
+              {
+                "sig": {
+                  "name": 9,
+                  "generic_params": {
+                    "params": []
+                  },
+                  "params": {
+                    "params": [
                       {
-                        "Return": {
-                          "value": {
-                            "Call": {
-                              "func": {
-                                "Field": {
-                                  "lhs": {
-                                    "Field": {
-                                      "lhs": {
-                                        "Path": {
-                                          "segments": [
-                                            {
-                                              "ident": 11,
-                                              "generics": null
-                                            }
-                                          ]
-                                        }
-                                      },
-                                      "ident": 7
-                                    }
-                                  },
-                                  "ident": 9
-                                }
-                              },
-                              "args": {
-                                "args": []
+                        "ident": 11,
+                        "ty": {
+                          "val": 3
+                        },
+                        "mutability": "Immutable"
+                      }
+                    ]
+                  },
+                  "return_type": {
+                    "val": 4
+                  }
+                },
+                "body": {
+                  "stmts": [
+                    {
+                      "Return": {
+                        "value": {
+                          "Call": {
+                            "func": {
+                              "Field": {
+                                "lhs": {
+                                  "Field": {
+                                    "lhs": {
+                                      "Path": {
+                                        "segments": [
+                                          {
+                                            "ident": 11,
+                                            "generics": null
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "ident": 7
+                                  }
+                                },
+                                "ident": 9
                               }
+                            },
+                            "args": {
+                              "args": []
                             }
                           }
                         }
                       }
-                    ]
-                  }
+                    }
+                  ]
                 }
-              ]
-            }
-          ],
-          "member_fns": []
-        }
+              }
+            ]
+          }
+        ],
+        "member_fns": []
       }
-    ]
+    ],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": []
   }
 ]

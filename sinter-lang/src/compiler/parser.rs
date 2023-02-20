@@ -11,7 +11,7 @@ use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Expr::Infix;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
-use crate::compiler::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, OuterStmt, Param, Params, PathExpr, Segment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
+use crate::compiler::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, OuterStmt, Param, Params, PathExpr, Segment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, GlobalLetStmt, DestructurePattern, TyPattern, ClosureParam, PatternLocal};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
@@ -21,7 +21,7 @@ use crate::compiler::tokens::tokenized_file::{TokenSpan, TokenizedInput};
 use crate::compiler::types::types::Type::{Closure, F32, F64, I16, I32, I64, I8, Infer, Path, QSelf, Str, U16, U32, U64, U8, Union};
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 use crate::compiler::{StringInterner, TyInterner};
-use crate::compiler::ast::OuterStmt::{Class, Enum, Fn, Let, Trait, TraitImpl, Use};
+use crate::compiler::ast::OuterStmt::{Class, Enum, Fn, GlobalLet, Trait, TraitImpl, Use};
 use crate::compiler::compiler::CompilerCtxt;
 use crate::gc::block::Block;
 
@@ -95,7 +95,7 @@ impl Parser {
 
     fn parse_module(&mut self) -> Result<Module> {
         let mut use_stmts = Vec::new();
-        let mut let_stmts = Vec::new();
+        let mut const_let_stmts = Vec::new();
         let mut class_stmts = Vec::new();
         let mut enum_stmts = Vec::new();
         let mut trait_stmts = Vec::new();
@@ -106,7 +106,7 @@ impl Parser {
             let stmt = self.parse_outer_stmt()?;
             match stmt {
                 Use(use_stmt) => use_stmts.push(use_stmt),
-                Let(let_stmt) => let_stmts.push(let_stmt),
+                GlobalLet(const_let_stmt) => const_let_stmts.push(const_let_stmt),
                 Class(class_stmt) => class_stmts.push(class_stmt),
                 Enum(enum_stmt) => enum_stmts.push(enum_stmt),
                 Trait(trait_stmt) => trait_stmts.push(trait_stmt),
@@ -114,7 +114,7 @@ impl Parser {
                 Fn(fn_stmt) => fn_stmts.push(fn_stmt),
             }
         }
-        Ok(Module::new(use_stmts, let_stmts, class_stmts, enum_stmts, trait_stmts, trait_impl_stmts, fn_stmts))
+        Ok(Module::new(use_stmts, const_let_stmts, class_stmts, enum_stmts, trait_stmts, trait_impl_stmts, fn_stmts))
     }
 
     fn parse_outer_stmt(&mut self) -> Result<OuterStmt> {
@@ -124,7 +124,7 @@ impl Parser {
                 TokenType::Ref => self.parse_class_stmt(),
                 TokenType::Class => self.parse_class_stmt(),
                 TokenType::Fn => self.parse_fn_stmt(),
-                TokenType::Let => self.parse_outer_let_stmt(),
+                TokenType::Let => self.parse_global_let_stmt(),
                 TokenType::Enum => self.parse_enum_stmt(),
                 TokenType::Trait => self.parse_trait_stmt(),
                 TokenType::Impl => self.parse_trait_impl_stmt(),
@@ -234,12 +234,26 @@ impl Parser {
         }
     }
 
-    fn parse_outer_let_stmt(&mut self) -> Result<OuterStmt> {
-        Ok(OuterStmt::Let(self.let_stmt()?))
+    fn parse_global_let_stmt(&mut self) -> Result<OuterStmt> {
+        Ok(GlobalLet(self.global_let_stmt()?))
     }
 
     fn parse_let_stmt(&mut self) -> Result<Stmt> {
         Ok(Stmt::Let(self.let_stmt()?))
+    }
+
+    fn global_let_stmt(&mut self) -> Result<GlobalLetStmt> {
+        self.expect(TokenType::Let)?;
+        let identifier = self.identifier()?;
+        let mut ty = None;
+        if self.matches(TokenType::Colon) {
+            self.advance();
+            ty = Some(self.parse_ty()?);
+        }
+        self.expect(TokenType::Equal)?;
+        let initializer = self.expr()?;
+        self.expect(TokenType::Semicolon)?;
+        Ok(GlobalLetStmt::new(identifier, ty, initializer))
     }
 
     fn let_stmt(&mut self) -> Result<LetStmt> {
@@ -404,6 +418,7 @@ impl Parser {
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
         )?;
+        let closure_params = vars.iter().map(|f| ClosureParam::new(*f)).collect::<Vec<ClosureParam>>();
 
         self.expect(TokenType::RightArrow)?;
 
@@ -417,7 +432,7 @@ impl Parser {
             }
         };
 
-        Ok(Expr::Closure(Box::new(ClosureExpr::new(vars, stmt))))
+        Ok(Expr::Closure(Box::new(ClosureExpr::new(closure_params, stmt))))
     }
 
     fn identifier(&mut self) -> Result<InternedStr> {
@@ -1164,13 +1179,18 @@ impl Parser {
                         let exprs =
                             self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
                         self.expect(TokenType::RightParentheses)?;
-                        Ok(Pattern::Destructure(ty, exprs))
+                        let destructure_pat = DestructurePattern::new(ty, exprs);
+                        Ok(Pattern::Destructure(destructure_pat))
                     }
                     Some(TokenType::Identifier(str)) => {
                         self.advance();
-                        Ok(Pattern::Ty(ty, Some(str)))
+                        let ty_pat = TyPattern::new(ty, Some(PatternLocal::new(str)));
+                        Ok(Pattern::Ty(ty_pat))
                     }
-                    Some(TokenType::RightArrow) => Ok(Pattern::Ty(ty, None)),
+                    Some(TokenType::RightArrow) => {
+                        let ty_pat = TyPattern::new(ty, None);
+                        Ok(Pattern::Ty(ty_pat))
+                    },
                     Some(token) => self.unexpected_token(token),
                     None => self.unexpected_end(),
                 }
@@ -1687,17 +1707,9 @@ mod tests {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]
             pub fn $fn_name() {
-                let (mut ctxt, module) = parse_module(concat!("let x: ", $code, ";")).unwrap();
-                let ty = Some(ctxt.intern_ty($typ));
-
+                let (ctxt, ty) = parse_ty!($code);
                 assert_eq!(
-                    vec![LetStmt::new(
-                        ctxt.intern_str("x"),
-                        Mutability::Immutable,
-                        ty,
-                        None
-                    )],
-                    module.let_stmts
+                    $typ, ty
                 );
             }
         };

@@ -7,71 +7,75 @@
     "ty_interner": []
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": [
       {
-        "Fn": {
-          "sig": {
-            "name": 1,
-            "generic_params": {
-              "params": []
-            },
-            "params": {
-              "params": []
-            },
-            "return_type": null
+        "sig": {
+          "name": 1,
+          "generic_params": {
+            "params": []
           },
-          "body": {
-            "stmts": [
-              {
-                "Let": {
-                  "ident": 2,
-                  "mutability": "Mutable",
-                  "ty": null,
-                  "initializer": {
-                    "Integer": 5
-                  }
+          "params": {
+            "params": []
+          },
+          "return_type": null
+        },
+        "body": {
+          "stmts": [
+            {
+              "Let": {
+                "ident": 2,
+                "mutability": "Mutable",
+                "ty": null,
+                "initializer": {
+                  "Integer": 5
                 }
-              },
-              {
-                "Expression": {
-                  "expr": {
-                    "Infix": {
-                      "operator": "Assign",
-                      "lhs": {
-                        "Path": {
-                          "segments": [
-                            {
-                              "ident": 2,
-                              "generics": null
-                            }
-                          ]
-                        }
-                      },
-                      "rhs": {
-                        "Infix": {
-                          "operator": "Add",
-                          "lhs": {
-                            "Path": {
-                              "segments": [
-                                {
-                                  "ident": 2,
-                                  "generics": null
-                                }
-                              ]
-                            }
-                          },
-                          "rhs": {
-                            "Integer": 1
+              }
+            },
+            {
+              "Expression": {
+                "expr": {
+                  "Infix": {
+                    "operator": "Assign",
+                    "lhs": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": 2,
+                            "generics": null
                           }
+                        ]
+                      }
+                    },
+                    "rhs": {
+                      "Infix": {
+                        "operator": "Add",
+                        "lhs": {
+                          "Path": {
+                            "segments": [
+                              {
+                                "ident": 2,
+                                "generics": null
+                              }
+                            ]
+                          }
+                        },
+                        "rhs": {
+                          "Integer": 1
                         }
                       }
                     }
-                  },
-                  "implicit_return": true
-                }
+                  }
+                },
+                "implicit_return": true
               }
-            ]
-          }
+            }
+          ]
         }
       }
     ]

@@ -56,257 +56,260 @@
     ]
   },
   {
-    "stmts": [
+    "use_stmts": [],
+    "const_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [
       {
-        "Fn": {
-          "sig": {
-            "name": 1,
-            "generic_params": {
-              "params": [
-                {
-                  "ident": 2,
-                  "trait_bound": {
-                    "bounds": [
-                      {
-                        "ident": {
-                          "idents": [
-                            3
-                          ]
-                        },
-                        "generics": []
-                      }
-                    ]
-                  }
-                }
-              ]
+        "name": 5,
+        "generic_params": {
+          "params": []
+        },
+        "members": [
+          {
+            "name": 11,
+            "fields": {
+              "params": []
             },
-            "params": {
-              "params": [
-                {
-                  "ident": 4,
-                  "ty": {
-                    "val": 1
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
-            },
-            "return_type": {
-              "val": 4
-            }
+            "member_fns": []
           },
-          "body": {
-            "stmts": [
+          {
+            "name": 13,
+            "fields": {
+              "params": []
+            },
+            "member_fns": []
+          }
+        ],
+        "member_fns": []
+      }
+    ],
+    "trait_stmts": [],
+    "trait_impl_stmts": [],
+    "fn_stmts": [
+      {
+        "sig": {
+          "name": 1,
+          "generic_params": {
+            "params": [
               {
-                "Let": {
-                  "ident": 6,
-                  "mutability": "Immutable",
-                  "ty": null,
-                  "initializer": {
-                    "Call": {
-                      "func": {
-                        "Field": {
-                          "lhs": {
-                            "Path": {
-                              "segments": [
-                                {
-                                  "ident": 4,
-                                  "generics": null
-                                }
-                              ]
-                            }
-                          },
-                          "ident": 7
-                        }
+                "ident": 2,
+                "trait_bound": {
+                  "bounds": [
+                    {
+                      "ident": {
+                        "idents": [
+                          3
+                        ]
                       },
-                      "args": {
-                        "args": []
-                      }
+                      "generics": []
                     }
-                  }
-                }
-              },
-              {
-                "If": {
-                  "condition": {
-                    "Infix": {
-                      "operator": "Less",
-                      "lhs": {
-                        "Call": {
-                          "func": {
-                            "Field": {
-                              "lhs": {
-                                "Path": {
-                                  "segments": [
-                                    {
-                                      "ident": 8,
-                                      "generics": null
-                                    }
-                                  ]
-                                }
-                              },
-                              "ident": 9
-                            }
-                          },
-                          "args": {
-                            "args": []
-                          }
-                        }
-                      },
-                      "rhs": {
-                        "Call": {
-                          "func": {
-                            "Field": {
-                              "lhs": {
-                                "Path": {
-                                  "segments": [
-                                    {
-                                      "ident": 6,
-                                      "generics": null
-                                    }
-                                  ]
-                                }
-                              },
-                              "ident": 10
-                            }
-                          },
-                          "args": {
-                            "args": []
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "if_true": {
-                    "stmts": [
-                      {
-                        "Expression": {
-                          "expr": {
-                            "Path": {
-                              "segments": [
-                                {
-                                  "ident": 5,
-                                  "generics": null
-                                },
-                                {
-                                  "ident": 11,
-                                  "generics": null
-                                }
-                              ]
-                            }
-                          },
-                          "implicit_return": false
-                        }
-                      }
-                    ]
-                  },
-                  "if_false": {
-                    "stmts": []
-                  }
-                }
-              },
-              {
-                "If": {
-                  "condition": {
-                    "Unary": {
-                      "operator": "Bang",
-                      "expr": {
-                        "Call": {
-                          "func": {
-                            "Field": {
-                              "lhs": {
-                                "Path": {
-                                  "segments": [
-                                    {
-                                      "ident": 8,
-                                      "generics": null
-                                    }
-                                  ]
-                                }
-                              },
-                              "ident": 12
-                            }
-                          },
-                          "args": {
-                            "args": [
-                              {
-                                "Path": {
-                                  "segments": [
-                                    {
-                                      "ident": 6,
-                                      "generics": null
-                                    }
-                                  ]
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "if_true": {
-                    "stmts": [
-                      {
-                        "Expression": {
-                          "expr": {
-                            "Path": {
-                              "segments": [
-                                {
-                                  "ident": 5,
-                                  "generics": null
-                                },
-                                {
-                                  "ident": 13,
-                                  "generics": null
-                                }
-                              ]
-                            }
-                          },
-                          "implicit_return": false
-                        }
-                      }
-                    ]
-                  },
-                  "if_false": {
-                    "stmts": [
-                      {
-                        "Expression": {
-                          "expr": "None",
-                          "implicit_return": false
-                        }
-                      }
-                    ]
-                  }
+                  ]
                 }
               }
             ]
-          }
-        }
-      },
-      {
-        "Enum": {
-          "name": 5,
-          "generic_params": {
-            "params": []
           },
-          "members": [
+          "params": {
+            "params": [
+              {
+                "ident": 4,
+                "ty": {
+                  "val": 1
+                },
+                "mutability": "Immutable"
+              }
+            ]
+          },
+          "return_type": {
+            "val": 4
+          }
+        },
+        "body": {
+          "stmts": [
             {
-              "name": 11,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+              "Let": {
+                "ident": 6,
+                "mutability": "Immutable",
+                "ty": null,
+                "initializer": {
+                  "Call": {
+                    "func": {
+                      "Field": {
+                        "lhs": {
+                          "Path": {
+                            "segments": [
+                              {
+                                "ident": 4,
+                                "generics": null
+                              }
+                            ]
+                          }
+                        },
+                        "ident": 7
+                      }
+                    },
+                    "args": {
+                      "args": []
+                    }
+                  }
+                }
+              }
             },
             {
-              "name": 13,
-              "fields": {
-                "params": []
-              },
-              "member_fns": []
+              "If": {
+                "condition": {
+                  "Infix": {
+                    "operator": "Less",
+                    "lhs": {
+                      "Call": {
+                        "func": {
+                          "Field": {
+                            "lhs": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": 8,
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "ident": 9
+                          }
+                        },
+                        "args": {
+                          "args": []
+                        }
+                      }
+                    },
+                    "rhs": {
+                      "Call": {
+                        "func": {
+                          "Field": {
+                            "lhs": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": 6,
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "ident": 10
+                          }
+                        },
+                        "args": {
+                          "args": []
+                        }
+                      }
+                    }
+                  }
+                },
+                "if_true": {
+                  "stmts": [
+                    {
+                      "Expression": {
+                        "expr": {
+                          "Path": {
+                            "segments": [
+                              {
+                                "ident": 5,
+                                "generics": null
+                              },
+                              {
+                                "ident": 11,
+                                "generics": null
+                              }
+                            ]
+                          }
+                        },
+                        "implicit_return": false
+                      }
+                    }
+                  ]
+                },
+                "if_false": {
+                  "stmts": []
+                }
+              }
+            },
+            {
+              "If": {
+                "condition": {
+                  "Unary": {
+                    "operator": "Bang",
+                    "expr": {
+                      "Call": {
+                        "func": {
+                          "Field": {
+                            "lhs": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": 8,
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "ident": 12
+                          }
+                        },
+                        "args": {
+                          "args": [
+                            {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": 6,
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "if_true": {
+                  "stmts": [
+                    {
+                      "Expression": {
+                        "expr": {
+                          "Path": {
+                            "segments": [
+                              {
+                                "ident": 5,
+                                "generics": null
+                              },
+                              {
+                                "ident": 13,
+                                "generics": null
+                              }
+                            ]
+                          }
+                        },
+                        "implicit_return": false
+                      }
+                    }
+                  ]
+                },
+                "if_false": {
+                  "stmts": [
+                    {
+                      "Expression": {
+                        "expr": "None",
+                        "implicit_return": false
+                      }
+                    }
+                  ]
+                }
+              }
             }
-          ],
-          "member_fns": []
+          ]
         }
       }
     ]

@@ -6,12 +6,13 @@ use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, Prefix};
 use crate::compiler::interner::Key;
+use crate::compiler::resolver::{TyDecl, TyKind, VarDecl, VarDeclKind};
 use crate::compiler::tokens::tokenized_file::Span;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
     pub use_stmts: Vec<UseStmt>,
-    pub let_stmts: Vec<LetStmt>,
+    pub global_let_stmts: Vec<GlobalLetStmt>,
     pub class_stmts: Vec<ClassStmt>,
     pub enum_stmts: Vec<EnumStmt>,
     pub trait_stmts: Vec<TraitStmt>,
@@ -22,7 +23,7 @@ pub struct Module {
 impl Module {
     pub fn new(
         use_stmts: Vec<UseStmt>,
-        let_stmts: Vec<LetStmt>,
+        const_let_stmts: Vec<GlobalLetStmt>,
         class_stmts: Vec<ClassStmt>,
         enum_stmts: Vec<EnumStmt>,
         trait_stmts: Vec<TraitStmt>,
@@ -31,7 +32,7 @@ impl Module {
     ) -> Self {
         Self {
             use_stmts,
-            let_stmts,
+            global_let_stmts: const_let_stmts,
             class_stmts,
             enum_stmts,
             trait_stmts,
@@ -48,6 +49,7 @@ pub trait DeclaredType {
 }
 
 pub trait AstNode {
+    // fn node_id(&self) -> NodeId;
     fn span(&self) -> Span;
 }
 
@@ -313,6 +315,16 @@ impl ClassStmt {
     }
 }
 
+impl TyDecl for ClassStmt {
+    fn ident(&self) -> InternedStr {
+        self.name
+    }
+
+    fn into(&self) -> TyKind {
+        TyKind::Class(self.clone())
+    }
+}
+
 impl DeclaredType for ClassStmt {
     fn name(&self) -> InternedStr {
         self.name
@@ -359,6 +371,16 @@ impl EnumStmt {
     }
 }
 
+impl TyDecl for EnumStmt {
+    fn ident(&self) -> InternedStr {
+        self.name
+    }
+
+    fn into(&self) -> TyKind {
+        TyKind::Enum(self.clone())
+    }
+}
+
 impl DeclaredType for EnumStmt {
     fn name(&self) -> InternedStr {
         self.name
@@ -387,6 +409,16 @@ impl TraitStmt {
             generic_params,
             member_fns: functions,
         }
+    }
+}
+
+impl TyDecl for TraitStmt {
+    fn ident(&self) -> InternedStr {
+        self.name
+    }
+
+    fn into(&self) -> TyKind {
+        TyKind::Trait(self.clone())
     }
 }
 
@@ -443,6 +475,21 @@ pub struct ForStmt {
 impl ForStmt {
     pub fn new(ident: InternedStr, range: Expr, body: BlockStmt) -> Self {
         Self { ident, range, body }
+    }
+}
+
+impl VarDecl for ForStmt {
+
+    fn ident(&self) -> InternedStr {
+        self.ident
+    }
+
+    fn is_global(&self) -> bool {
+        false
+    }
+
+    fn into(&self) -> VarDeclKind {
+        VarDeclKind::For(self.clone())
     }
 }
 
@@ -518,7 +565,7 @@ impl FnSig {
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Param {
     pub (crate) ident: InternedStr,
-    pub (crate) ty: Key,
+    pub (crate) ty: InternedTy,
     pub (crate) mutability: Mutability,
 }
 
@@ -529,6 +576,20 @@ impl Param {
             ty,
             mutability,
         }
+    }
+}
+
+impl VarDecl for Param {
+    fn ident(&self) -> InternedStr {
+        self.ident
+    }
+
+    fn is_global(&self) -> bool {
+        false
+    }
+
+    fn into(&self) -> VarDeclKind {
+        VarDeclKind::Param(self.clone())
     }
 }
 
@@ -555,6 +616,43 @@ pub struct ArgumentDecl {
     ty: Type,
 }
 
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct GlobalLetStmt {
+    pub ident: InternedStr,
+    pub ty: Option<InternedTy>,
+    pub initializer: Expr,
+}
+
+impl GlobalLetStmt {
+    pub fn new(
+        ident: InternedStr,
+        ty: Option<Key>,
+        initializer: Expr,
+    ) -> Self {
+        Self {
+            ident,
+            ty,
+            initializer,
+        }
+    }
+}
+
+impl VarDecl for GlobalLetStmt {
+
+    fn ident(&self) -> InternedStr {
+        self.ident
+    }
+
+    fn is_global(&self) -> bool {
+        true
+    }
+
+    fn into(&self) -> VarDeclKind {
+        VarDeclKind::Global(self.clone())
+    }
+}
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct LetStmt {
     pub ident: InternedStr,
@@ -570,12 +668,27 @@ impl LetStmt {
         ty: Option<Key>,
         initializer: Option<Expr>,
     ) -> Self {
-        LetStmt {
+        Self {
             ident,
             mutability,
             ty,
             initializer,
         }
+    }
+}
+
+impl VarDecl for LetStmt {
+
+    fn ident(&self) -> InternedStr {
+        self.ident
+    }
+
+    fn is_global(&self) -> bool {
+        false
+    }
+
+    fn into(&self) -> VarDeclKind {
+        VarDeclKind::NonGlobal(self.clone())
     }
 }
 
@@ -669,13 +782,42 @@ impl MatchArm {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClosureExpr {
-    pub params: Vec<InternedStr>,
+    pub params: Vec<ClosureParam>,
     pub stmt: Stmt,
 }
 
 impl ClosureExpr {
-    pub fn new(params: Vec<InternedStr>, stmt: Stmt) -> Self {
+    pub fn new(params: Vec<ClosureParam>, stmt: Stmt) -> Self {
         Self { params, stmt }
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[repr(transparent)]
+#[serde(transparent)]
+pub struct ClosureParam {
+    pub ident: InternedStr,
+}
+
+impl ClosureParam {
+    pub fn new(ident: InternedStr) -> Self {
+        Self {
+            ident,
+        }
+    }
+}
+
+impl VarDecl for ClosureParam {
+    fn ident(&self) -> InternedStr {
+        self.ident
+    }
+
+    fn is_global(&self) -> bool {
+        false
+    }
+
+    fn into(&self) -> VarDeclKind {
+        VarDeclKind::ClosureParam(self.clone())
     }
 }
 
@@ -791,8 +933,8 @@ pub enum Pattern {
     Boolean(bool),                // true/false
     Integer(i64),                 // 100
     String(InternedStr),          // "true"
-    Ty(InternedTy, Option<InternedStr>), // Logical logical => { }
-    Destructure(InternedTy, Vec<Expr>),  // Logical(1, true, 100) => { }
+    Ty(TyPattern), // Logical logical => { }
+    Destructure(DestructurePattern),  // Logical(1, true, 100) => { }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -813,6 +955,66 @@ pub struct OrPattern {
 impl OrPattern {
     pub fn new(patterns: Vec<Pattern>) -> Self {
         Self { patterns }
+    }
+}
+
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[repr(transparent)]
+#[serde(transparent)]
+pub struct PatternLocal {
+    pub ident: InternedStr,
+}
+
+impl PatternLocal {
+    pub fn new(ident: InternedStr) -> Self {
+        Self {
+            ident,
+        }
+    }
+}
+
+impl VarDecl for PatternLocal {
+    fn ident(&self) -> InternedStr {
+        self.ident
+    }
+
+    fn is_global(&self) -> bool {
+        false
+    }
+
+    fn into(&self) -> VarDeclKind {
+        VarDeclKind::PatternLocal(self.clone())
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct TyPattern {
+    pub ty: InternedTy,
+    pub ident: Option<PatternLocal>,
+}
+
+impl TyPattern {
+    pub fn new(ty: InternedTy, ident: Option<PatternLocal>) -> Self {
+        Self {
+            ty,
+            ident,
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct DestructurePattern {
+    pub ty: InternedTy,
+    pub exprs: Vec<Expr>,
+}
+
+impl DestructurePattern {
+    pub fn new(ty: InternedTy, exprs: Vec<Expr>) -> Self {
+        Self {
+            ty,
+            exprs,
+        }
     }
 }
 
@@ -938,7 +1140,7 @@ impl InfixOp {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum OuterStmt {
     Use(UseStmt),
-    Let(LetStmt),
+    GlobalLet(GlobalLetStmt),
     Class(ClassStmt),
     Enum(EnumStmt),
     Trait(TraitStmt),
