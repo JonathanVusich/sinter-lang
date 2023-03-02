@@ -1,12 +1,13 @@
+use std::{mem, vec};
+use std;
 use std::collections::{HashMap, HashSet};
+use std::env::var;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use std::{mem, vec};
-use std::env::var;
 
 use anyhow::Result;
 
-use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, Segment, Pattern, QualifiedIdent, ReturnStmt, Stmt, TraitImplStmt, TraitStmt, WhileStmt, UseStmt, GlobalLetStmt, ClosureParam, PatternLocal};
+use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, ClosureParam, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, GlobalLetStmt, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, PathTy, Pattern, PatternLocal, QualifiedIdent, ReturnStmt, Segment, Stmt, TraitImplStmt, TraitStmt, UseStmt, WhileStmt};
 use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::interner::Key;
@@ -367,7 +368,7 @@ impl Resolver {
                 self.check_ty(ty);
             }
             Type::Path { path } => {
-                self.check_qualified_path(&path.ident);
+                self.check_qualified_path(&path);
                 for generic in &path.generics {
                     self.check_ty(*generic);
                 }
@@ -388,8 +389,11 @@ impl Resolver {
         self.module_env.resolve_module(path);
     }
 
-    fn check_qualified_path(&mut self, path: &QualifiedIdent) -> Result<()> {
-        todo!()
+    fn check_qualified_path(&mut self, path: &PathTy) {
+        self.module_env.resolve_module(path);
+        for generic in &path.generics {
+            self.check_ty(*generic);
+        }
     }
 }
 
@@ -398,7 +402,9 @@ impl Resolver {
 struct ModuleEnv {
     used_modules: HashMap<InternedStr, QualifiedIdent>,
     qualified_modules: HashSet<QualifiedIdent>,
+
     duplicate_uses: Vec<UseStmt>,
+    unknown_uses: Vec<PathKind>,
 
     module_tys: HashSet<InternedStr>,
     duplicate_tys: Vec<TyKind>,
@@ -418,6 +424,17 @@ struct ModuleEnv {
     member_fns: HashSet<InternedStr>,
     duplicate_member_fns: Vec<FnStmt>,
     enum_members: HashSet<InternedStr>,
+}
+
+pub enum PathKind {
+    Ty(PathTy),
+    Expr(PathExpr),
+}
+
+pub trait PathDecl {
+    fn first(&self) -> InternedStr;
+    fn module_path(&self) -> QualifiedIdent;
+    fn into(&self) -> PathKind;
 }
 
 pub enum TyKind {
@@ -452,6 +469,7 @@ impl ModuleEnv {
             used_modules: HashMap::default(),
             qualified_modules: Default::default(),
             duplicate_uses: Vec::new(),
+            unknown_uses: Vec::new(),
             module_tys: HashSet::default(),
             duplicate_tys: Vec::new(),
             module_fns: HashSet::default(),
@@ -477,12 +495,14 @@ impl ModuleEnv {
         }
     }
 
-    fn resolve_module(&mut self, name: &PathExpr) {
-        if let Some(module) = self.used_modules.get(&name.first()) {
-            let new_path = name.prefix(module);
-            name = new_path;
-        } else {
-            self.qualified_modules.insert(name.prefix())
+    fn resolve_module<T: PathDecl>(&mut self, name: &T) {
+        if !self.used_modules.contains_key(&name.first()) {
+            let module_path = name.module_path();
+            if module_path.is_empty() {
+                self.unknown_uses.push(name.into());
+            } else {
+                self.qualified_modules.insert(name.module_path());
+            }
         }
     }
 

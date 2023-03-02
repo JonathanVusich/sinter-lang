@@ -37,7 +37,7 @@
         }
       }
     ],
-    "const_let_stmts": [],
+    "global_let_stmts": [],
     "class_stmts": [],
     "enum_stmts": [],
     "trait_stmts": [],

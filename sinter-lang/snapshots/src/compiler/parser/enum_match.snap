@@ -43,7 +43,7 @@
   },
   {
     "use_stmts": [],
-    "const_let_stmts": [
+    "global_let_stmts": [
       {
         "ident": 1,
         "ty": null,
@@ -65,23 +65,23 @@
                   "Or": {
                     "patterns": [
                       {
-                        "Destructure": [
-                          {
+                        "Destructure": {
+                          "ty": {
                             "val": 1
                           },
-                          [
+                          "exprs": [
                             {
                               "String": 5
                             }
                           ]
-                        ]
+                        }
                       },
                       {
-                        "Destructure": [
-                          {
+                        "Destructure": {
+                          "ty": {
                             "val": 2
                           },
-                          [
+                          "exprs": [
                             {
                               "String": 5
                             },
@@ -96,7 +96,7 @@
                               }
                             }
                           ]
-                        ]
+                        }
                       }
                     ]
                   }
@@ -112,11 +112,11 @@
               },
               {
                 "pattern": {
-                  "Destructure": [
-                    {
+                  "Destructure": {
+                    "ty": {
                       "val": 1
                     },
-                    [
+                    "exprs": [
                       {
                         "Path": {
                           "segments": [
@@ -128,7 +128,7 @@
                         }
                       }
                     ]
-                  ]
+                  }
                 },
                 "body": {
                   "Expression": {
@@ -148,11 +148,11 @@
               },
               {
                 "pattern": {
-                  "Destructure": [
-                    {
+                  "Destructure": {
+                    "ty": {
                       "val": 2
                     },
-                    [
+                    "exprs": [
                       {
                         "Path": {
                           "segments": [
@@ -174,7 +174,7 @@
                         }
                       }
                     ]
-                  ]
+                  }
                 },
                 "body": {
                   "Expression": {

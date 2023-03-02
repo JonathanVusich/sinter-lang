@@ -11,7 +11,7 @@
   },
   {
     "use_stmts": [],
-    "const_let_stmts": [
+    "global_let_stmts": [
       {
         "ident": 1,
         "ty": {

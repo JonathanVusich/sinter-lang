@@ -6,7 +6,7 @@ use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, Prefix};
 use crate::compiler::interner::Key;
-use crate::compiler::resolver::{TyDecl, TyKind, VarDecl, VarDeclKind};
+use crate::compiler::resolver::{PathDecl, PathKind, TyDecl, TyKind, VarDecl, VarDeclKind};
 use crate::compiler::tokens::tokenized_file::Span;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -67,6 +67,10 @@ impl QualifiedIdent {
         Self { idents }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.idents.is_empty()
+    }
+
     pub fn first(&self) -> InternedStr {
         // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
         self.idents.first().copied().unwrap()
@@ -100,6 +104,24 @@ pub struct PathTy {
 impl PathTy {
     pub fn new(ident: QualifiedIdent, generics: Generics) -> Self {
         Self { ident, generics }
+    }
+}
+
+impl PathDecl for PathTy {
+
+    fn first(&self) -> InternedStr {
+        self.ident.first()
+    }
+
+    fn module_path(&self) -> QualifiedIdent {
+        let mut path = self.ident.clone();
+        // Pop off the last segment, as it points to the actual type.
+        path.idents.pop();
+        path
+    }
+
+    fn into(&self) -> PathKind {
+        PathKind::Ty(self.clone())
     }
 }
 
@@ -902,12 +924,29 @@ impl PathExpr {
         self.segments.first().unwrap().ident
     }
 
-    pub fn qualified_path(&self) -> QualifiedIdent {
-        let idents = self.segments
+    pub fn to_module_path(&self) -> QualifiedIdent {
+        let mut idents = self.segments
             .iter()
             .map(|f| f.ident)
             .collect::<Vec<InternedStr>>();
+        // Remove the last ident because it is not part of the module path.
+        idents.pop();
         QualifiedIdent::new(idents)
+    }
+}
+
+impl PathDecl for PathExpr {
+    fn first(&self) -> InternedStr {
+        // This should be safe because a path should always have at least one segment.
+        self.segments.first().unwrap().ident
+    }
+
+    fn module_path(&self) -> QualifiedIdent {
+        self.to_module_path()
+    }
+
+    fn into(&self) -> PathKind {
+        PathKind::Expr(self.clone())
     }
 }
 

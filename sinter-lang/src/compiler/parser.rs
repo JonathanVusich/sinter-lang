@@ -1727,22 +1727,6 @@ mod tests {
     simple_type!(Type::F32, f32_type, "f32");
     simple_type!(Type::F64, f64_type, "f64");
     simple_type!(Type::None, none_type, "None");
-    // simple_type!(Array(Box::new(Basic(U8))), u8_array_type, "[u8]");
-    // simple_type!(Array(Box::new(Basic(U16))), u16_array_type, "[u16]");
-    // simple_type!(Array(Box::new(Basic(U32))), u32_array_type, "[u32]");
-    // simple_type!(Array(Box::new(Basic(U64))), u64_array_type, "[u64]");
-    // simple_type!(Array(Box::new(Basic(I8))), i8_array_type, "[i8]");
-    // simple_type!(Array(Box::new(Basic(I16))), i16_array_type, "[i16]");
-    // simple_type!(Array(Box::new(Basic(I32))), i32_array_type, "[i32]");
-    // simple_type!(Array(Box::new(Basic(I64))), i64_array_type, "[i64]");
-    // simple_type!(Array(Box::new(Basic(F32))), f32_array_type, "[f32]");
-    // simple_type!(Array(Box::new(Basic(F64))), f64_array_type, "[f64]");
-    // simple_type!(
-    //     Array(Box::new(Basic(BasicType::None))),
-    //     none_array_type,
-    //     "[None]"
-    // );
-    // simple_type!(Array(Box::new(Basic(Str))), str_array_type, "[str]");
 
     #[test]
     #[snapshot]
