@@ -685,4 +685,10 @@ mod tests {
     pub fn enum_match() -> (StringInterner, TokenizedInput) {
         tokenize_str(utils::read_file(["short_examples", "enum_match.si"]))
     }
+
+    #[test]
+    #[snapshot]
+    pub fn impl_trait() -> (StringInterner, TokenizedInput) {
+        tokenize_str(utils::read_file(["short_examples", "impl_trait.si"]))
+    }
 }

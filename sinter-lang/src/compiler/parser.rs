@@ -337,7 +337,7 @@ impl Parser {
         self.expect(TokenType::Impl)?;
         let trait_to_impl = self.parse_path_ty()?;
         self.expect(TokenType::For)?;
-        let target_ty = self.parse_ty()?;
+        let target_ty = self.qualified_ident()?;
 
         match self.current() {
             Some(TokenType::Semicolon) => {
@@ -1880,5 +1880,11 @@ mod tests {
     #[snapshot]
     pub fn enum_match() -> (CompilerCtxt, Module) {
         parse!(utils::read_file(["short_examples", "enum_match.si"]))
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn impl_trait() -> (CompilerCtxt, Module) {
+        parse!(utils::read_file(["short_examples", "impl_trait.si"]))
     }
 }

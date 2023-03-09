@@ -6,6 +6,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 
 use anyhow::Result;
+use serde::{Serialize, Deserialize};
 
 use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, ClosureParam, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, GlobalLetStmt, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, PathTy, Pattern, PatternLocal, QualifiedIdent, ResolvedModule, ReturnStmt, Segment, Stmt, TraitImplStmt, TraitStmt, UseStmt, WhileStmt};
 use crate::compiler::ast::OuterStmt::Use;
@@ -76,7 +77,28 @@ impl Resolver {
             self.check_fn_stmt(stmt);
         }
 
-        let mut resolved_mod = ResolvedModule::new();
+        let ModuleEnv {
+            used_modules,
+            qualified_modules,
+            duplicate_uses,
+            unknown_uses,
+            module_tys,
+            duplicate_tys,
+            module_impls,
+            duplicate_impls,
+            module_fns,
+            duplicate_fns,
+            var_scopes,
+            duplicate_var_decls,
+            generic_scopes,
+            duplicate_generics,
+            class_fields,
+            duplicate_class_fields,
+            duplicate_enum_members,
+            member_fns,
+            duplicate_member_fns,
+            enum_members
+        } = self.module_env;
 
         let Module {
             use_stmts,
@@ -88,9 +110,30 @@ impl Resolver {
             fn_stmts
         } = module;
 
-        // TODO: Construct resolved module from module
+        let used_modules = use_stmts.into_iter().map(|stmt| (stmt.ident.last(), stmt)).collect();
+        let mut module_tys = HashMap::default();
 
-        Ok((self.ctxt, resolved_mod))
+        for class_stmt in class_stmts {
+            module_tys.insert(class_stmt.name, TyKind::Class(class_stmt));
+        }
+        for enum_stmt in enum_stmts {
+            module_tys.insert(enum_stmt.name, TyKind::Enum(enum_stmt));
+        }
+        for trait_stmt in trait_stmts {
+            module_tys.insert(trait_stmt.name, TyKind::Trait(trait_stmt));
+        }
+
+        let module_impls = trait_impl_stmts.into_iter().map(|stmt| ((stmt.trait_to_impl.ident.clone(), stmt.target_ty.clone()), stmt)).collect();
+        let module_fns = fn_stmts.into_iter().map(|stmt| (stmt.sig.name, stmt)).collect();
+
+        let resolved_module = ResolvedModule::new(
+            used_modules,
+            module_tys,
+            module_impls,
+            module_fns,
+        );
+
+        Ok((self.ctxt, resolved_module))
     }
 
     fn check_block_stmt(&mut self, block_stmt: &BlockStmt) {
@@ -99,19 +142,6 @@ impl Resolver {
             self.check_stmt(stmt);
         }
         self.module_env.end_scope();
-    }
-
-    fn check_outer_stmt(&mut self, stmt: &OuterStmt) {
-        match stmt {
-            OuterStmt::GlobalLet(const_let_stmt) => self.check_global_let_stmt(const_let_stmt),
-            OuterStmt::Class(class_stmt) => self.check_class_stmt(class_stmt),
-            OuterStmt::Enum(enum_stmt) => self.check_enum_stmt(enum_stmt),
-            OuterStmt::Trait(trait_stmt) => self.check_trait_stmt(trait_stmt),
-            OuterStmt::TraitImpl(trait_impl_stmt) => self.check_trait_impl_stmt(trait_impl_stmt),
-            OuterStmt::Fn(fn_stmt) => self.check_fn_stmt(fn_stmt),
-            // We have already scanned all use statements, no further action necessary
-            Use(_) => {}
-        }
     }
 
     fn check_stmt(&mut self, stmt: &Stmt) {
@@ -273,6 +303,7 @@ impl Resolver {
 
     fn check_trait_impl_stmt(&mut self, trait_impl_stmt: &TraitImplStmt) {
         self.module_env.begin_scope();
+        self.module_env.add_trait_impl(trait_impl_stmt);
 
         // TODO: Ensure trait and type are in scope
         self.check_member_fns(&trait_impl_stmt.member_fns);
@@ -412,6 +443,9 @@ struct ModuleEnv {
     module_tys: HashSet<InternedStr>,
     duplicate_tys: Vec<TyKind>,
 
+    module_impls: HashSet<(QualifiedIdent, QualifiedIdent)>,
+    duplicate_impls: Vec<TraitImplStmt>,
+
     module_fns: HashSet<InternedStr>,
     duplicate_fns: Vec<FnStmt>,
 
@@ -440,6 +474,7 @@ pub trait PathDecl {
     fn into(&self) -> PathKind;
 }
 
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum TyKind {
     Class(ClassStmt),
     Enum(EnumStmt),
@@ -475,6 +510,8 @@ impl ModuleEnv {
             unknown_uses: Vec::new(),
             module_tys: HashSet::default(),
             duplicate_tys: Vec::new(),
+            module_impls: HashSet::default(),
+            duplicate_impls: Vec::new(),
             module_fns: HashSet::default(),
             duplicate_fns: Vec::new(),
             var_scopes: vec![HashSet::default()],
@@ -512,6 +549,16 @@ impl ModuleEnv {
     fn add_ty_decl<T: TyDecl>(&mut self, ty_decl: &T) {
         if !self.module_tys.insert(ty_decl.ident()) {
             self.duplicate_tys.push(ty_decl.into());
+        }
+    }
+
+    fn add_trait_impl(&mut self, trait_impl_stmt: &TraitImplStmt) {
+        let trait_impl = (
+            trait_impl_stmt.trait_to_impl.ident.clone(),
+            trait_impl_stmt.target_ty.clone()
+        );
+        if !self.module_impls.insert(trait_impl) {
+            self.duplicate_impls.push(trait_impl_stmt.clone());
         }
     }
 

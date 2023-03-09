@@ -45,14 +45,19 @@ impl Module {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ResolvedModule {
-    pub used_modules: HashMap<InternedStr, QualifiedIdent>,
+    pub used_modules: HashMap<InternedStr, UseStmt>,
     pub module_tys: HashMap<InternedStr, TyKind>,
     pub module_impls: HashMap<InternedStr, TraitImplStmt>,
     pub module_fns: HashMap<InternedStr, FnStmt>,
 }
 
 impl ResolvedModule {
-    pub fn new() -> Self {
+    pub fn new(
+        used_modules: HashMap<InternedStr, UseStmt>,
+        module_tys: HashMap<InternedStr, TyKind>,
+        module_impls: HashMap<(QualifiedIdent, QualifiedIdent), TraitImplStmt>,
+        module_fns: HashMap<InternedStr, FnStmt>
+    ) -> Self {
         Self {
             used_modules: HashMap::default(),
             module_tys: HashMap::default(),
@@ -481,12 +486,12 @@ impl DeclaredType for TraitStmt {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitImplStmt {
     pub trait_to_impl: PathTy,
-    pub target_ty: Key,
+    pub target_ty: QualifiedIdent,
     pub member_fns: Vec<FnStmt>,
 }
 
 impl TraitImplStmt {
-    pub fn new(trait_to_impl: PathTy, target_ty: Key, fns: Vec<FnStmt>) -> Self {
+    pub fn new(trait_to_impl: PathTy, target_ty: QualifiedIdent, fns: Vec<FnStmt>) -> Self {
         Self {
             trait_to_impl,
             target_ty,
@@ -585,7 +590,7 @@ pub struct FnSig {
     pub (crate) name: InternedStr,
     pub (crate) generic_params: GenericParams,
     pub (crate) params: Params,
-    pub (crate) return_type: Option<Key>,
+    pub (crate) return_type: Option<InternedTy>,
 }
 
 impl FnSig {
@@ -593,7 +598,7 @@ impl FnSig {
         name: InternedStr,
         generic_params: GenericParams,
         parameters: Params,
-        return_type: Option<Key>,
+        return_type: Option<InternedTy>,
     ) -> Self {
         Self {
             name,
@@ -612,7 +617,7 @@ pub struct Param {
 }
 
 impl Param {
-    pub fn new(name: InternedStr, ty: Key, mutability: Mutability) -> Self {
+    pub fn new(name: InternedStr, ty: InternedTy, mutability: Mutability) -> Self {
         Self {
             ident: name,
             ty,

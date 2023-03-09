@@ -7,7 +7,7 @@ use anyhow::Result;
 use lasso::{Key as K, LargeSpur, Rodeo};
 use serde::{Serialize, Deserialize, Deserializer};
 use serde::de::DeserializeOwned;
-use crate::compiler::ast::{Module, QualifiedIdent, Stmt, UseStmt};
+use crate::compiler::ast::{Module, QualifiedIdent, ResolvedModule, Stmt, UseStmt};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::parse;
 use crate::compiler::{StringInterner, TyInterner};
@@ -92,7 +92,7 @@ fn compile(application: Application) -> Result<CompiledApplication> {
 }
 
 
-fn import_module(compiler_ctxt: CompilerCtxt, module_path: &Path) -> Result<(CompilerCtxt, Module)> {
+fn import_module(compiler_ctxt: CompilerCtxt, module_path: &Path) -> Result<(CompilerCtxt, ResolvedModule)> {
     let (compiler_ctxt, tokens) = tokenize_file(module_path.as_ref())?;
     let (compiler_ctxt, module) = parse(compiler_ctxt, tokens)?;
 

@@ -1,0 +1,153 @@
+[
+  {
+    "string_interner": [
+      "core",
+      "tweet",
+      "Tweet",
+      "Summary",
+      "summarize",
+      "str",
+      "username",
+      "content",
+      "self"
+    ],
+    "ty_interner": [
+      "QSelf",
+      "Str"
+    ]
+  },
+  {
+    "use_stmts": [
+      {
+        "ident": {
+          "idents": [
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    ],
+    "global_let_stmts": [],
+    "class_stmts": [],
+    "enum_stmts": [],
+    "trait_stmts": [
+      {
+        "name": 4,
+        "generic_params": {
+          "params": []
+        },
+        "member_fns": [
+          {
+            "sig": {
+              "name": 5,
+              "generic_params": {
+                "params": []
+              },
+              "params": {
+                "params": [
+                  {
+                    "ident": 9,
+                    "ty": {
+                      "val": 1
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "return_type": {
+                "val": 2
+              }
+            },
+            "body": null
+          }
+        ]
+      }
+    ],
+    "trait_impl_stmts": [
+      {
+        "trait_to_impl": {
+          "ident": {
+            "idents": [
+              4
+            ]
+          },
+          "generics": []
+        },
+        "target_ty": {
+          "idents": [
+            3
+          ]
+        },
+        "member_fns": [
+          {
+            "sig": {
+              "name": 5,
+              "generic_params": {
+                "params": []
+              },
+              "params": {
+                "params": [
+                  {
+                    "ident": 9,
+                    "ty": {
+                      "val": 1
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "return_type": {
+                "val": 2
+              }
+            },
+            "body": {
+              "stmts": [
+                {
+                  "Return": {
+                    "value": {
+                      "Infix": {
+                        "operator": "Add",
+                        "lhs": {
+                          "Field": {
+                            "lhs": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": 9,
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "ident": 7
+                          }
+                        },
+                        "rhs": {
+                          "Field": {
+                            "lhs": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": 9,
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "ident": 8
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "fn_stmts": []
+  }
+]
