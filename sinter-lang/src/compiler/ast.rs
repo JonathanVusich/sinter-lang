@@ -1,3 +1,4 @@
+use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
 use crate::compiler::parser::ClassType;
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
@@ -38,6 +39,25 @@ impl Module {
             trait_stmts,
             trait_impl_stmts,
             fn_stmts
+        }
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct ResolvedModule {
+    pub used_modules: HashMap<InternedStr, QualifiedIdent>,
+    pub module_tys: HashMap<InternedStr, TyKind>,
+    pub module_impls: HashMap<InternedStr, TraitImplStmt>,
+    pub module_fns: HashMap<InternedStr, FnStmt>,
+}
+
+impl ResolvedModule {
+    pub fn new() -> Self {
+        Self {
+            used_modules: HashMap::default(),
+            module_tys: HashMap::default(),
+            module_impls: HashMap::default(),
+            module_fns: HashMap::default(),
         }
     }
 }

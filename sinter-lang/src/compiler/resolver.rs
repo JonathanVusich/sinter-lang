@@ -7,27 +7,17 @@ use std::fmt::{Display, Formatter};
 
 use anyhow::Result;
 
-use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, ClosureParam, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, GlobalLetStmt, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, PathTy, Pattern, PatternLocal, QualifiedIdent, ReturnStmt, Segment, Stmt, TraitImplStmt, TraitStmt, UseStmt, WhileStmt};
+use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, ClosureParam, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, GlobalLetStmt, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, PathTy, Pattern, PatternLocal, QualifiedIdent, ResolvedModule, ReturnStmt, Segment, Stmt, TraitImplStmt, TraitStmt, UseStmt, WhileStmt};
 use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::interner::Key;
 use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateUseStmt, DuplicateVarDecl};
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 
-pub fn resolve_module(ctxt: CompilerCtxt, module: Module) -> Result<(CompilerCtxt, Module)> {
+pub fn resolve_module(ctxt: CompilerCtxt, module: Module) -> Result<(CompilerCtxt, ResolvedModule)> {
     let resolver = Resolver::new(ctxt);
     resolver.resolve(module)
 }
-
-struct ResolvedModule {
-    pub const_let_stmts: Vec<GlobalLetStmt>,
-    pub class_stmts: Vec<ClassStmt>,
-    pub enum_stmts: Vec<EnumStmt>,
-    pub trait_stmts: Vec<TraitStmt>,
-    pub trait_impl_stmts: Vec<TraitImplStmt>,
-    pub fn_stmts: Vec<FnStmt>,
-}
-
 
 struct Resolver {
     module_env: ModuleEnv,
@@ -56,7 +46,6 @@ impl Error for ResolutionError {}
 
 
 impl Resolver {
-
     fn new(ctxt: CompilerCtxt) -> Self {
         Self {
             module_env: ModuleEnv::new(),
@@ -64,7 +53,7 @@ impl Resolver {
         }
     }
 
-    fn resolve(mut self, module: Module) -> Result<(CompilerCtxt, Module)> {
+    fn resolve(mut self, module: Module) -> Result<(CompilerCtxt, ResolvedModule)> {
         for use_stmt in &module.use_stmts {
             self.module_env.add_module_use(use_stmt);
         }
@@ -86,7 +75,22 @@ impl Resolver {
         for stmt in &module.fn_stmts {
             self.check_fn_stmt(stmt);
         }
-        Ok((self.ctxt, module))
+
+        let mut resolved_mod = ResolvedModule::new();
+
+        let Module {
+            use_stmts,
+            global_let_stmts,
+            class_stmts,
+            enum_stmts,
+            trait_stmts,
+            trait_impl_stmts,
+            fn_stmts
+        } = module;
+
+        // TODO: Construct resolved module from module
+
+        Ok((self.ctxt, resolved_mod))
     }
 
     fn check_block_stmt(&mut self, block_stmt: &BlockStmt) {
@@ -106,7 +110,7 @@ impl Resolver {
             OuterStmt::TraitImpl(trait_impl_stmt) => self.check_trait_impl_stmt(trait_impl_stmt),
             OuterStmt::Fn(fn_stmt) => self.check_fn_stmt(fn_stmt),
             // We have already scanned all use statements, no further action necessary
-            Use(_) => {},
+            Use(_) => {}
         }
     }
 
@@ -227,7 +231,7 @@ impl Resolver {
             Expr::Path(path) => {
                 self.check_path(path);
             }
-            Expr::None | Expr::Boolean(_) | Expr::Integer(_) | Expr::Float(_) | Expr::String(_) | Expr::Break | Expr::Continue => { }
+            Expr::None | Expr::Boolean(_) | Expr::Integer(_) | Expr::Float(_) | Expr::String(_) | Expr::Break | Expr::Continue => {}
         }
         self.module_env.end_scope();
     }
@@ -339,7 +343,7 @@ impl Resolver {
 
     fn check_pattern(&mut self, pattern: &Pattern) {
         match pattern {
-            Pattern::Wildcard | Pattern::Boolean(_) | Pattern::Integer(_) | Pattern::String(_) => {},
+            Pattern::Wildcard | Pattern::Boolean(_) | Pattern::Integer(_) | Pattern::String(_) => {}
             Pattern::Or(or_pattern) => {
                 for pattern in &or_pattern.patterns {
                     self.check_pattern(pattern);
@@ -396,7 +400,6 @@ impl Resolver {
         }
     }
 }
-
 
 
 struct ModuleEnv {
@@ -586,7 +589,6 @@ impl ModuleEnv {
     fn clear_enum_members(&mut self) {
         self.enum_members.clear();
     }
-
 }
 
 mod tests {
