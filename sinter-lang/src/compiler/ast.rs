@@ -7,7 +7,7 @@ use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, Prefix};
 use crate::compiler::interner::Key;
-use crate::compiler::resolver::{PathDecl, PathKind, TyDecl, TyKind, VarDecl, VarDeclKind};
+use crate::compiler::resolver::{PathDecl, PathKind, TraitTy, TyDecl, TyStmt, VarDecl, VarDeclKind};
 use crate::compiler::tokens::tokenized_file::Span;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -46,31 +46,25 @@ impl Module {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ResolvedModule {
     pub used_modules: HashMap<InternedStr, UseStmt>,
-    pub module_tys: HashMap<InternedStr, TyKind>,
-    pub module_impls: HashMap<InternedStr, TraitImplStmt>,
+    pub module_tys: HashMap<InternedStr, TyStmt>,
+    pub module_impls: HashMap<TraitTy, TraitImplStmt>,
     pub module_fns: HashMap<InternedStr, FnStmt>,
 }
 
 impl ResolvedModule {
     pub fn new(
         used_modules: HashMap<InternedStr, UseStmt>,
-        module_tys: HashMap<InternedStr, TyKind>,
-        module_impls: HashMap<(QualifiedIdent, QualifiedIdent), TraitImplStmt>,
+        module_tys: HashMap<InternedStr, TyStmt>,
+        module_impls: HashMap<TraitTy, TraitImplStmt>,
         module_fns: HashMap<InternedStr, FnStmt>
     ) -> Self {
         Self {
-            used_modules: HashMap::default(),
-            module_tys: HashMap::default(),
-            module_impls: HashMap::default(),
-            module_fns: HashMap::default(),
+            used_modules,
+            module_tys,
+            module_impls,
+            module_fns,
         }
     }
-}
-
-pub trait DeclaredType {
-    fn name(&self) -> InternedStr;
-    fn member_fns(&self) -> &[FnStmt];
-    fn generic_params(&self) -> &[GenericParam];
 }
 
 pub trait AstNode {
@@ -367,22 +361,8 @@ impl TyDecl for ClassStmt {
         self.name
     }
 
-    fn into(&self) -> TyKind {
-        TyKind::Class(self.clone())
-    }
-}
-
-impl DeclaredType for ClassStmt {
-    fn name(&self) -> InternedStr {
-        self.name
-    }
-
-    fn member_fns(&self) -> &[FnStmt] {
-        self.member_fns.as_slice()    
-    }
-
-    fn generic_params(&self) -> &[GenericParam] {
-        &self.generic_params   
+    fn into(&self) -> TyStmt {
+        TyStmt::Class(self.clone())
     }
 }
 
@@ -423,22 +403,8 @@ impl TyDecl for EnumStmt {
         self.name
     }
 
-    fn into(&self) -> TyKind {
-        TyKind::Enum(self.clone())
-    }
-}
-
-impl DeclaredType for EnumStmt {
-    fn name(&self) -> InternedStr {
-        self.name
-    }
-
-    fn member_fns(&self) -> &[FnStmt] {
-        self.member_fns.as_slice()
-    }
-
-    fn generic_params(&self) -> &[GenericParam] {
-        &self.generic_params
+    fn into(&self) -> TyStmt {
+        TyStmt::Enum(self.clone())
     }
 }
 
@@ -464,22 +430,8 @@ impl TyDecl for TraitStmt {
         self.name
     }
 
-    fn into(&self) -> TyKind {
-        TyKind::Trait(self.clone())
-    }
-}
-
-impl DeclaredType for TraitStmt {
-    fn name(&self) -> InternedStr {
-        self.name
-    }
-
-    fn member_fns(&self) -> &[FnStmt] {
-        self.member_fns.as_slice()
-    }
-
-    fn generic_params(&self) -> &[GenericParam] {
-        &self.generic_params 
+    fn into(&self) -> TyStmt {
+        TyStmt::Trait(self.clone())
     }
 }
 

@@ -6,9 +6,9 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 
 use anyhow::Result;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, ClosureParam, DeclaredType, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, GlobalLetStmt, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, PathTy, Pattern, PatternLocal, QualifiedIdent, ResolvedModule, ReturnStmt, Segment, Stmt, TraitImplStmt, TraitStmt, UseStmt, WhileStmt};
+use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, ClosureParam, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, GlobalLetStmt, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, PathTy, Pattern, PatternLocal, QualifiedIdent, ResolvedModule, ReturnStmt, Segment, Stmt, TraitImplStmt, TraitStmt, UseStmt, WhileStmt};
 use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::interner::Key;
@@ -114,16 +114,16 @@ impl Resolver {
         let mut module_tys = HashMap::default();
 
         for class_stmt in class_stmts {
-            module_tys.insert(class_stmt.name, TyKind::Class(class_stmt));
+            module_tys.insert(class_stmt.name, TyStmt::Class(class_stmt));
         }
         for enum_stmt in enum_stmts {
-            module_tys.insert(enum_stmt.name, TyKind::Enum(enum_stmt));
+            module_tys.insert(enum_stmt.name, TyStmt::Enum(enum_stmt));
         }
         for trait_stmt in trait_stmts {
-            module_tys.insert(trait_stmt.name, TyKind::Trait(trait_stmt));
+            module_tys.insert(trait_stmt.name, TyStmt::Trait(trait_stmt));
         }
 
-        let module_impls = trait_impl_stmts.into_iter().map(|stmt| ((stmt.trait_to_impl.ident.clone(), stmt.target_ty.clone()), stmt)).collect();
+        let module_impls = trait_impl_stmts.into_iter().map(|stmt| (TraitTy::new(stmt.trait_to_impl.ident.clone(), stmt.target_ty.clone()), stmt)).collect();
         let module_fns = fn_stmts.into_iter().map(|stmt| (stmt.sig.name, stmt)).collect();
 
         let resolved_module = ResolvedModule::new(
@@ -441,7 +441,7 @@ struct ModuleEnv {
     unknown_uses: Vec<PathKind>,
 
     module_tys: HashSet<InternedStr>,
-    duplicate_tys: Vec<TyKind>,
+    duplicate_tys: Vec<TyStmt>,
 
     module_impls: HashSet<(QualifiedIdent, QualifiedIdent)>,
     duplicate_impls: Vec<TraitImplStmt>,
@@ -463,6 +463,21 @@ struct ModuleEnv {
     enum_members: HashSet<InternedStr>,
 }
 
+#[derive(Eq, Hash, PartialEq, Debug, Serialize, Deserialize)]
+pub struct TraitTy {
+    trait_to_impl: QualifiedIdent,
+    target_ty: QualifiedIdent,
+}
+
+impl TraitTy {
+    pub fn new(trait_to_impl: QualifiedIdent, target_ty: QualifiedIdent) -> Self {
+        Self {
+            trait_to_impl,
+            target_ty
+        }
+    }
+}
+
 pub enum PathKind {
     Ty(PathTy),
     Expr(PathExpr),
@@ -475,7 +490,7 @@ pub trait PathDecl {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub enum TyKind {
+pub enum TyStmt {
     Class(ClassStmt),
     Enum(EnumStmt),
     Trait(TraitStmt),
@@ -483,7 +498,7 @@ pub enum TyKind {
 
 pub trait TyDecl {
     fn ident(&self) -> InternedStr;
-    fn into(&self) -> TyKind;
+    fn into(&self) -> TyStmt;
 }
 
 pub trait VarDecl {
@@ -641,36 +656,141 @@ impl ModuleEnv {
 mod tests {
     use lasso::Key;
 
-    use crate::compiler::resolver::ModuleEnv;
+    use snap::snapshot;
+
+    use crate::compiler::ast::{QualifiedIdent, ResolvedModule};
+    use crate::compiler::compiler::CompilerCtxt;
+    use crate::compiler::resolver::{ModuleEnv, resolve_module};
     use crate::compiler::types::types::InternedStr;
+    use crate::compiler::parser::parse;
+    use crate::compiler::tokens::tokenizer::tokenize;
 
-    #[test]
-    pub fn var_scoping() {
-        // let string = InternedStr::default();
-        // let mut environment = ModuleEnv::new();
-        //
-        // assert!(!environment.var_name_exists(string));
-        // environment.add_var(string);
-        // assert!(environment.var_name_exists(string));
-        //
-        // environment.begin_scope();
-        // assert!(environment.var_name_exists(string));
-        //
-        // let second_string = InternedStr::try_from_usize(1).unwrap();
-        //
-        // assert!(!environment.var_name_exists(second_string));
-        // environment.add_var(second_string);
-        // assert!(environment.var_name_exists(second_string));
-        //
-        // environment.end_scope();
-        // assert!(environment.var_name_exists(string));
-        // assert!(!environment.var_name_exists(second_string));
+    use crate::util::utils;
+
+    macro_rules! resolve {
+        ($code:expr) => {{
+            let (compiler_ctxt, tokens) = tokenize($code).unwrap();
+            let (compiler_ctxt, module) = parse(compiler_ctxt, tokens).unwrap();
+            resolve_module(compiler_ctxt, module).unwrap()
+        }};
     }
 
     #[test]
-    #[should_panic]
-    pub fn popping_top_scope() {
-        let mut environment = ModuleEnv::new();
-        environment.end_scope();
+    #[snapshot]
+    pub fn use_statements() -> (CompilerCtxt, ResolvedModule) {
+        resolve!(utils::read_file(["short_examples", "use_stmts.si"]))
     }
+
+
+    #[test]
+    #[snapshot]
+    pub fn basic_enum() -> (CompilerCtxt, ResolvedModule) {
+        resolve!(utils::read_file(["short_examples", "basic_enum.si"]))
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn vector_enum() -> (CompilerCtxt, ResolvedModule) {
+        resolve!(utils::read_file(["short_examples", "vector_enum.si"]))
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn main_fn() -> (CompilerCtxt, ResolvedModule) {
+        resolve!(utils::read_file(["short_examples", "hello_world_fn.si"]))
+    }
+
+    // #[test]
+    // #[snapshot]
+    // pub fn main_fn_with_args() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "main_fn.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn declare_classes_and_vars() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "classes_and_vars.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn simple_add_func() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "sum_fn.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn var_declarations() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "var_declarations.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn mutable_assignment() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "mutable_assignment.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn print_fn() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "print_fn.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn returning_error_union() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file([
+    //         "short_examples",
+    //         "returning_error_union.si"
+    //     ]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn trait_vs_generic() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "trait_vs_generic.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn generic_lists() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "generic_lists.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn rectangle_class() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "rectangle_class.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn enum_message() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "enum_message.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn int_match() -> (CompilerCtxt, Expr) {
+    //     parse_expr!(utils::read_file(["short_examples", "int_match.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn enum_match() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "enum_match.si"]))
+    // }
+    //
+    // #[test]
+    // #[snapshot]
+    // pub fn impl_trait() -> (CompilerCtxt, Module) {
+    //     parse!(utils::read_file(["short_examples", "impl_trait.si"]))
+    // }
+    //
+    // #[test]
+    // #[should_panic]
+    // pub fn popping_top_scope() {
+    //     let mut environment = ModuleEnv::new();
+    //     environment.end_scope();
+    // }
 }

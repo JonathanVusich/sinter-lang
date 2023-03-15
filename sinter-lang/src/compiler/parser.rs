@@ -1731,33 +1731,14 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn use_statements() -> (CompilerCtxt, Module) {
-        let code = concat!(
-            "use std::vector;",
-            "use std::array;",
-            "use std::map::HashMap;"
-        );
-
-        parse!(code)
+        parse!(utils::read_file(["short_examples", "use_stmts.si"]))
     }
+
 
     #[test]
     #[snapshot]
     pub fn basic_enum() -> (CompilerCtxt, Module) {
-        let code = concat!(
-            "enum Planet(\n",
-            "    Mercury,\n",
-            "    Venus,\n",
-            "    Earth,\n",
-            "    Mars,\n",
-            "    Jupiter,\n",
-            "    Saturn,\n",
-            "    Uranus,\n",
-            "    Neptune,\n",
-            "    Pluto,\n",
-            ");"
-        );
-
-        parse!(code)
+        parse!(utils::read_file(["short_examples", "basic_enum.si"]))
     }
 
     #[test]
@@ -1769,72 +1750,43 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn main_fn() -> (CompilerCtxt, Module) {
-        let code = concat!("fn main() {\n", "    print(\"Hello world!\");\n", "}");
-
-        parse!(code)
+        parse!(utils::read_file(["short_examples", "hello_world_fn.si"]))
     }
 
     #[test]
     #[snapshot]
     pub fn main_fn_with_args() -> (CompilerCtxt, Module) {
-        let code = concat!(
-            "fn main(args: [str]) {\n",
-            "    print(args.to_str());\n",
-            "}"
-        );
-
-        parse!(code)
+        parse!(utils::read_file(["short_examples", "main_fn.si"]))
     }
 
     #[test]
     #[snapshot]
     pub fn declare_classes_and_vars() -> (CompilerCtxt, Module) {
-        let code = concat!(
-            "class Point(x: f64, y: f64);\n",
-            "ref class Node;\n",
-            "let i32_array: [i32] = [1, 2, 3];\n",
-            "let point_array = [Point(1.0, 2.0), Point(1.5, 2.5)];\n",
-            "let node_array = [Node(), Node()];"
-        );
-
-        parse!(code)
+        parse!(utils::read_file(["short_examples", "classes_and_vars.si"]))
     }
 
     #[test]
     #[snapshot]
     pub fn simple_add_func() -> (CompilerCtxt, Module) {
-        let code = concat!("fn sum(a: i64, b: i64) => i64 {\n", "    a + b\n", "}");
-
-        parse!(code)
+        parse!(utils::read_file(["short_examples", "sum_fn.si"]))
     }
 
     #[test]
     #[snapshot]
     pub fn var_declarations() -> (CompilerCtxt, Module) {
-        let code = concat!(
-            "let a: i64 = 1; // Immediate assignment\n",
-            "let b = 2; // `i64` type is inferred\n"
-        );
-        parse!(code)
+        parse!(utils::read_file(["short_examples", "var_declarations.si"]))
     }
 
     #[test]
     #[snapshot]
     pub fn mutable_assignment() -> (CompilerCtxt, Module) {
-        let code = concat!(
-            "fn mut_var() {\n",
-            "    let mut x = 5; // `i64` type is inferred\n",
-            "    x = x + 1;\n",
-            "}"
-        );
-        parse!(code)
+        parse!(utils::read_file(["short_examples", "mutable_assignment.si"]))
     }
 
     #[test]
     #[snapshot]
     pub fn print_fn() -> (CompilerCtxt, Module) {
-        let code = concat!("fn print(text: str) {\n", "    println(text);\n", "}");
-        parse!(code)
+        parse!(utils::read_file(["short_examples", "print_fn.si"]))
     }
 
     #[test]
