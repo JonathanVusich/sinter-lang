@@ -91,3 +91,4 @@ pub fn snapshot_folder(_ignored: TokenStream) -> TokenStream {
     })
     .into()
 }
+

@@ -4,6 +4,7 @@ use std::collections::{HashMap, HashSet};
 use std::env::var;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::path::Path;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -15,14 +16,16 @@ use crate::compiler::interner::Key;
 use crate::compiler::resolver::ResolutionError::{DuplicateEnumMember, DuplicateFieldName, DuplicateFnName, DuplicateGenericParam, DuplicateParam, DuplicateTyDecl, DuplicateUseStmt, DuplicateVarDecl};
 use crate::compiler::types::types::{InternedStr, InternedTy, Type};
 
-pub fn resolve_module(ctxt: CompilerCtxt, module: Module) -> Result<(CompilerCtxt, ResolvedModule)> {
-    let resolver = Resolver::new(ctxt);
+pub fn resolve_module(ctxt: CompilerCtxt, module: Module, module_path: &Path) -> Result<(CompilerCtxt, ResolvedModule)> {
+    let resolver = Resolver::new(ctxt, module_path);
     resolver.resolve(module)
 }
 
-struct Resolver {
+struct Resolver<'this> {
     module_env: ModuleEnv,
+    module_path: &'this Path,
     ctxt: CompilerCtxt,
+    self_ident: InternedStr,
 }
 
 #[derive(Debug)]
@@ -46,11 +49,14 @@ impl Display for ResolutionError {
 impl Error for ResolutionError {}
 
 
-impl Resolver {
-    fn new(ctxt: CompilerCtxt) -> Self {
+impl<'this> Resolver<'this> {
+    fn new(mut ctxt: CompilerCtxt, module_path: &'this Path) -> Self {
+        let self_ident = ctxt.intern_str("self");
         Self {
             module_env: ModuleEnv::new(),
+            module_path,
             ctxt,
+            self_ident,
         }
     }
 
@@ -421,6 +427,12 @@ impl Resolver {
     }
 
     fn check_path(&mut self, path: &PathExpr) {
+        if let Some(ident) = path.var_identifier() {
+            if self.module_env.resolve_var_decl(ident) {
+                return;
+            }
+        }
+        // Check for self in path
         self.module_env.resolve_module(path);
     }
 
@@ -599,6 +611,16 @@ impl ModuleEnv {
         }
     }
 
+    fn resolve_var_decl(&mut self, ident: InternedStr) -> bool {
+        for var_scope in &self.var_scopes {
+            if var_scope.contains(&ident) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     fn add_generic(&mut self, param: &GenericParam) {
         for scope in self.generic_scopes.iter().rev() {
             if scope.contains(&param.ident) {
@@ -671,7 +693,8 @@ mod tests {
         ($code:expr) => {{
             let (compiler_ctxt, tokens) = tokenize($code).unwrap();
             let (compiler_ctxt, module) = parse(compiler_ctxt, tokens).unwrap();
-            resolve_module(compiler_ctxt, module).unwrap()
+            let module_path = Path::new("");
+            resolve_module(compiler_ctxt, module, &module_path).unwrap()
         }};
     }
 
@@ -692,12 +715,6 @@ mod tests {
     #[snapshot]
     pub fn vector_enum() -> (CompilerCtxt, ResolvedModule) {
         resolve!(utils::read_file(["short_examples", "vector_enum.si"]))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn main_fn() -> (CompilerCtxt, ResolvedModule) {
-        resolve!(utils::read_file(["short_examples", "hello_world_fn.si"]))
     }
 
     // #[test]

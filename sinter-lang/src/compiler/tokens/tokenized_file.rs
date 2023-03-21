@@ -1,28 +1,23 @@
+use std::path::Path;
 use crate::compiler::tokens::token::Token;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct TokenizedInput {
-    pub(crate) tokens: Vec<Token>,
-    pub(crate) line_map: Vec<usize>,
-    line_counter: usize,
-}
-
-#[derive(Eq, PartialEq, Debug)]
-pub struct TokenSpan {
-    pub line: usize,
-    pub pos: usize,
+    pub (crate) tokens: Vec<Token>,
+    pub (crate) line_map: Vec<u32>,
+    line_counter: u32,
 }
 
 #[derive(Eq, PartialEq, Debug, Hash, Serialize, Deserialize, Copy, Clone)]
 pub struct Span {
-    pub start: usize,
-    pub end: usize,
+    pub start: u32,
+    pub end: u32,
 }
 
 impl Span {
 
-    pub fn new(start: usize, end: usize) -> Self {
+    pub fn new(start: u32, end: u32) -> Self {
         Self {
             start,
             end,
@@ -39,26 +34,20 @@ impl TokenizedInput {
         }
     }
 
-    pub fn token_position(&self, pos: usize) -> TokenSpan {
-        let line = self.line_map.partition_point(|&line_pos| line_pos <= pos);
+    pub fn token_position(&self, pos: u32) -> Span {
+        let line = self.line_map.partition_point(|&line_pos| line_pos <= pos) as u32;
 
         let line_pos = if line > 0 {
             pos - self.line_map[line - 1]
         } else {
             pos
         };
-        TokenSpan::new(line + 1, line_pos)
+        Span::new(line + 1, line_pos)
     }
 
-    pub fn add_line_break(&mut self, pos: usize) {
+    pub fn add_line_break(&mut self, pos: u32) {
         self.line_map.push(pos);
         self.line_counter += 1;
-    }
-}
-
-impl TokenSpan {
-    pub fn new(line: usize, pos: usize) -> Self {
-        Self { line, pos }
     }
 }
 

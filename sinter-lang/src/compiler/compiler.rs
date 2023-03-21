@@ -97,5 +97,5 @@ fn import_module(compiler_ctxt: CompilerCtxt, module_path: &Path) -> Result<(Com
     let (compiler_ctxt, module) = parse(compiler_ctxt, tokens)?;
 
     // Ensure that all names and variable uses are correct
-    resolve_module(compiler_ctxt, module)
+    resolve_module(compiler_ctxt, module, module_path)
 }

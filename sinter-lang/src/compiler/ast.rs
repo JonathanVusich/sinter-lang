@@ -6,9 +6,68 @@ use crate::gc::block::Block;
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, Prefix};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::compiler::interner::Key;
 use crate::compiler::resolver::{PathDecl, PathKind, TraitTy, TyDecl, TyStmt, VarDecl, VarDeclKind};
-use crate::compiler::tokens::tokenized_file::Span;
+use crate::compiler::tokens::tokenized_file::{Span, TokenSpan};
+
+pub struct NodeFactory {
+    curr_id: AtomicUsize,
+}
+
+impl NodeFactory {
+
+    pub fn new() -> Self {
+        Self {
+            curr_id: AtomicUsize::new(0),
+        }
+    }
+
+    pub fn gen(&self, node_kind: NodeKind, span: Span) -> AstNode {
+        let id = self.curr_id.fetch_add(1, Ordering::AcqRel);
+        let node_id = NodeId::new(id);
+        AstNode::new(node_kind, node_id, span)
+    }
+}
+
+pub struct NodeId {
+    id: usize,
+}
+
+impl NodeId {
+    pub fn new(id: usize) -> Self {
+        Self {
+            id,
+        }
+    }
+}
+
+pub struct AstNode<K = NodeKind> {
+    node: NodeKind,
+    id: NodeId,
+    span: Span,
+}
+
+impl AstNode {
+    pub fn new(node: NodeKind, id: NodeId, span: Span) -> Self {
+        Self {
+            node,
+            id,
+            span,
+        }
+    }
+}
+
+pub enum NodeKind {
+    Use(UseStmt),
+    GlobalLet(GlobalLetStmt),
+    Class(ClassStmt),
+    Enum(EnumStmt),
+    Trait(TraitStmt),
+    TraitImpl(TraitImplStmt),
+    Fn(FnStmt),
+}
+
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
@@ -24,7 +83,7 @@ pub struct Module {
 impl Module {
     pub fn new(
         use_stmts: Vec<UseStmt>,
-        const_let_stmts: Vec<GlobalLetStmt>,
+        global_let_stmts: Vec<GlobalLetStmt>,
         class_stmts: Vec<ClassStmt>,
         enum_stmts: Vec<EnumStmt>,
         trait_stmts: Vec<TraitStmt>,
@@ -33,7 +92,7 @@ impl Module {
     ) -> Self {
         Self {
             use_stmts,
-            global_let_stmts: const_let_stmts,
+            global_let_stmts,
             class_stmts,
             enum_stmts,
             trait_stmts,
@@ -65,11 +124,6 @@ impl ResolvedModule {
             module_fns,
         }
     }
-}
-
-pub trait AstNode {
-    // fn node_id(&self) -> NodeId;
-    fn span(&self) -> Span;
 }
 
 
@@ -900,6 +954,15 @@ impl PathExpr {
     pub fn first(&self) -> InternedStr {
         self.segments.first().unwrap().ident
     }
+
+    pub fn var_identifier(&self) -> Option<InternedStr> {
+        if self.segments.len() == 1 {
+            Some(self.first())
+        } else {
+            None
+        }
+    }
+
 
     pub fn to_module_path(&self) -> QualifiedIdent {
         let mut idents = self.segments

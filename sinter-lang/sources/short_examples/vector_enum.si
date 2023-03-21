@@ -1,6 +1,10 @@
-enum Vector<X: Number + Display, Y: Number + Display>(
-    Normalized(x: X, y: Y),
-    Absolute(x: X, y: Y),
+use std::math;
+use std::Display;
+use std::Number;
+
+enum Vector<N: Number + Display>(
+    Normalized(x: N, y: N),
+    Absolute(x: N, y: N),
 ) {
     fn to_normalized(self) => Vector {
         match self {
