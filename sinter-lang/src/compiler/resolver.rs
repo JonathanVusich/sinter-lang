@@ -9,7 +9,7 @@ use std::path::Path;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{ArrayExpr, BlockStmt, ClassStmt, ClosureParam, EnumMemberStmt, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, GlobalLetStmt, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, PathTy, Pattern, PatternLocal, QualifiedIdent, ResolvedModule, ReturnStmt, Segment, Stmt, TraitImplStmt, TraitStmt, UseStmt, WhileStmt};
+use crate::compiler::ast::{ArrayExpr, Block, ClassStmt, ClosureParam, EnumMember, EnumStmt, Expr, Field, FnStmt, ForStmt, GenericParam, GenericParams, GlobalLetStmt, IfStmt, LetStmt, Module, OuterStmt, Param, PathExpr, PathTy, Pattern, PatternLocal, QualifiedIdent, ResolvedModule, ReturnStmt, Segment, Stmt, TraitImplStmt, TraitStmt, UseStmt, WhileStmt};
 use crate::compiler::ast::OuterStmt::Use;
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::interner::Key;
@@ -142,7 +142,7 @@ impl<'this> Resolver<'this> {
         Ok((self.ctxt, resolved_module))
     }
 
-    fn check_block_stmt(&mut self, block_stmt: &BlockStmt) {
+    fn check_block_stmt(&mut self, block_stmt: &Block) {
         self.module_env.begin_scope();
         for stmt in &block_stmt.stmts {
             self.check_stmt(stmt);
@@ -360,7 +360,7 @@ impl<'this> Resolver<'this> {
         }
     }
 
-    fn check_enum_members(&mut self, members: &[EnumMemberStmt]) {
+    fn check_enum_members(&mut self, members: &[EnumMember]) {
         for member in members {
             self.module_env.add_enum_member(member);
             self.check_fields(&member.fields);
@@ -469,7 +469,7 @@ struct ModuleEnv {
     class_fields: HashSet<InternedStr>,
 
     duplicate_class_fields: Vec<Field>,
-    duplicate_enum_members: Vec<EnumMemberStmt>,
+    duplicate_enum_members: Vec<EnumMember>,
     member_fns: HashSet<InternedStr>,
     duplicate_member_fns: Vec<FnStmt>,
     enum_members: HashSet<InternedStr>,
@@ -643,7 +643,7 @@ impl ModuleEnv {
         }
     }
 
-    fn add_enum_member(&mut self, member: &EnumMemberStmt) {
+    fn add_enum_member(&mut self, member: &EnumMember) {
         if !self.class_fields.insert(member.name) {
             self.duplicate_enum_members.push(member.clone());
         }

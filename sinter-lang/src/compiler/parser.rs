@@ -11,7 +11,7 @@ use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Expr::Infix;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
-use crate::compiler::ast::{Args, ArrayExpr, BlockStmt, Call, ClassStmt, ClosureExpr, EnumMemberStmt, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, OuterStmt, Param, Params, PathExpr, Segment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, GlobalLetStmt, DestructurePattern, TyPattern, ClosureParam, PatternLocal};
+use crate::compiler::ast::{Args, ArrayExpr, Block, Call, ClassStmt, ClosureExpr, EnumMember, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, OuterStmt, Param, Params, PathExpr, Segment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, GlobalLetStmt, DestructurePattern, TyPattern, ClosureParam, PatternLocal};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
@@ -533,8 +533,8 @@ impl Parser {
         Ok(trait_bound)
     }
 
-    fn enum_members(&mut self) -> Result<Vec<EnumMemberStmt>> {
-        self.parse_multiple_with_scope_delimiter::<EnumMemberStmt, 1>(
+    fn enum_members(&mut self) -> Result<Vec<EnumMember>> {
+        self.parse_multiple_with_scope_delimiter::<EnumMember, 1>(
             Self::enum_member,
             TokenType::Comma,
             TokenType::LeftParentheses,
@@ -542,7 +542,7 @@ impl Parser {
         )
     }
 
-    fn enum_member(&mut self) -> Result<EnumMemberStmt> {
+    fn enum_member(&mut self) -> Result<EnumMember> {
         match self.current() {
             Some(TokenType::Identifier(ident)) => {
                 self.advance();
@@ -552,7 +552,7 @@ impl Parser {
                 } else {
                     Vec::new()
                 };
-                Ok(EnumMemberStmt::new(ident, fields, fn_stmts))
+                Ok(EnumMember::new(ident, fields, fn_stmts))
             }
             Some(token) => {
                 let ident = self.intern_str("");
@@ -654,13 +654,13 @@ impl Parser {
         Ok(FnSig::new(identifier, generics, params, ty))
     }
 
-    fn block_stmt(&mut self) -> Result<BlockStmt> {
+    fn block_stmt(&mut self) -> Result<Block> {
         let stmts = self.parse_multiple_with_scope(
             Self::parse_inner_stmt,
             TokenType::LeftBrace,
             TokenType::RightBrace,
         )?;
-        Ok(BlockStmt::new(stmts))
+        Ok(Block::new(stmts))
     }
 
     fn parse_block_stmt(&mut self) -> Result<Stmt> {
@@ -1444,7 +1444,7 @@ mod tests {
 
     use crate::compiler::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::{
-        Args, BlockStmt, Call, EnumMemberStmt, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
+        Args, Block, Call, EnumMember, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
         Param, Params, PathExpr, QualifiedIdent, Stmt,
     };
     use crate::compiler::ast::{Module, UseStmt, OuterStmt};
