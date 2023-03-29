@@ -7,7 +7,7 @@ use anyhow::Result;
 use lasso::{Key as K, LargeSpur, Rodeo};
 use serde::{Serialize, Deserialize, Deserializer};
 use serde::de::DeserializeOwned;
-use crate::compiler::ast::{AstNode, Module, NodeId, NodeKind, QualifiedIdent, ResolvedModule, Stmt, UseStmt};
+use crate::compiler::ast::{AstNode, Module, NodeId, ItemKind, QualifiedIdent, ResolvedModule, Stmt, UseStmt};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::parse;
 use crate::compiler::{StringInterner, TyInterner};
@@ -41,7 +41,7 @@ pub struct CompilerCtxt {
 
 impl CompilerCtxt {
 
-    pub (crate) fn create_node(&mut self, node: NodeKind, span: Span) -> AstNode {
+    pub (crate) fn create_node(&mut self, node: ItemKind, span: Span) -> AstNode {
         let node_id = NodeId::new(self.ast_id);
         self.ast_id += 1;
         AstNode::new(node, node_id, span)

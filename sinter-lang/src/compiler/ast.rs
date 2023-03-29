@@ -10,32 +10,27 @@ use crate::compiler::interner::Key;
 use crate::compiler::resolver::{PathDecl, PathKind, TraitTy, TyDecl, TyStmt, VarDecl, VarDeclKind};
 use crate::compiler::tokens::tokenized_file::{Span, TokenSpan};
 
+/// This is a unique identifier for a parsed module.
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct NodeId {
-    id: usize,
+    id: u32,
 }
 
-impl NodeId {
-    pub fn new(id: usize) -> Self {
-        Self {
-            id,
-        }
-    }
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct NodeInfo {
+    span: Span,
+    id: NodeId,
 }
 
+/// This trait describes a visitor that can traverse the AST and collect information.
 pub trait AstVisitor<T> {
-    fn visit_use_stmt(&mut self, use_stmt: &UseStmt) -> T;
-    fn visit_global_let_stmt(&mut self, global_let_stmt: &GlobalLetStmt) -> T;
-    fn visit_class_stmt(&mut self, class_stmt: &ClassStmt) -> T;
-    fn visit_enum_stmt(&mut self, enum_stmt: &EnumStmt) -> T;
-    fn visit_trait_stmt(&mut self, trait_stmt: &TraitStmt) -> T;
-    fn visit_trait_impl_stmt(&mut self, trait_impl_stmt: &TraitImplStmt) -> T;
-    fn visit_fn_stmt(&mut self, fn_stmt: &FnStmt) -> T;
-
-
-    fn visit_path(&mut self, path: &PathExpr) -> T;
+    fn visit_node(&mut self, node: &Item);
+    fn visit_expr(&mut self, expr: &Expr);
 }
 
-pub enum NodeKind {
+/// This enum represents the various types of nodes in the AST.
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub enum ItemKind {
     Use(UseStmt),
     GlobalLet(GlobalLetStmt),
     Class(ClassStmt),
@@ -43,6 +38,80 @@ pub enum NodeKind {
     Trait(TraitStmt),
     TraitImpl(TraitImplStmt),
     Fn(FnStmt),
+}
+
+/// This struct represents the node plus diagnostic information.
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Item {
+    kind: ItemKind,
+    info: NodeInfo,
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub enum ExprKind {
+    Array(ArrayExpr),
+    Call(CallExpr),
+    Infix(InfixExpr),
+    Unary(UnaryExpr),
+    None,
+    Boolean(bool),
+    Integer(i64),
+    Float(f64),
+    String(InternedStr),
+    Match(MatchExpr),
+    Closure(ClosureExpr),
+    Assign(AssignExpr),
+    Field(FieldExpr),
+    Index(IndexExpr),
+    Path(PathExpr),
+    Break,
+    Continue,
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Expr {
+    kind: ExprKind,
+    info: NodeInfo,
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct Ty {
+    kind: TyKind,
+    info: NodeInfo,
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub enum TyKind {
+    Array {
+        ty: Box<Ty>,
+    },
+    Path {
+        path: PathTy,
+    },
+    Union {
+        tys: Vec<Box<Ty>>,
+    },
+    TraitBound {
+        trait_bound: TraitBound,
+    },
+    Closure {
+        params: Vec<Box<Ty>>,
+        ret_ty: InternedTy
+    },
+    Infer,
+    QSelf,
+    U8,
+    U16,
+    U32,
+    U64,
+    I8,
+    I16,
+    I32,
+    I64,
+    F32,
+    F64,
+    Str,
+    None
 }
 
 
@@ -745,33 +814,12 @@ pub enum VarInitializer {
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub enum Expr {
-    Array(Box<ArrayExpr>),
-    Call(Box<Call>),
-    Infix(Box<InfixExpr>),
-    Unary(Box<UnaryExpr>),
-    None,
-    Boolean(bool),
-    Integer(i64),
-    Float(f64),
-    String(InternedStr),
-    Match(Box<MatchExpr>),
-    Closure(Box<ClosureExpr>),
-    Assign(Box<AssignExpr>),
-    Field(Box<FieldExpr>),
-    Index(Box<IndexExpr>),
-    Path(PathExpr),
-    Break,
-    Continue,
-}
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Call {
+pub struct CallExpr {
     pub func: Expr,
     pub args: Args,
 }
 
-impl Call {
+impl CallExpr {
     pub fn new(func: Expr, args: Args) -> Self {
         Self { func, args }
     }

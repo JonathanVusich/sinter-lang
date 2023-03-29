@@ -11,7 +11,7 @@ use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Expr::Infix;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
-use crate::compiler::ast::{Args, ArrayExpr, Block, Call, ClassStmt, ClosureExpr, EnumMember, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, OuterStmt, Param, Params, PathExpr, Segment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, GlobalLetStmt, DestructurePattern, TyPattern, ClosureParam, PatternLocal};
+use crate::compiler::ast::{Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, EnumMember, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, IfStmt, IndexExpr, InfixExpr, InfixOp, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, OuterStmt, Param, Params, PathExpr, Segment, PathTy, Pattern, PostfixOp, QualifiedIdent, Range, ReturnStmt, Stmt, TraitBound, TraitImplStmt, TraitStmt, UnaryExpr, UnaryOp, UseStmt, WhileStmt, GlobalLetStmt, DestructurePattern, TyPattern, ClosureParam, PatternLocal};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
@@ -1029,7 +1029,7 @@ impl Parser {
                             TokenType::LeftParentheses,
                             TokenType::RightParentheses,
                         )?;
-                        Expr::Call(Box::new(Call::new(lhs, Args::new(args))))
+                        Expr::Call(Box::new(CallExpr::new(lhs, Args::new(args))))
                     }
                     PostfixOp::LeftBracket => {
                         self.advance();
@@ -1444,7 +1444,7 @@ mod tests {
 
     use crate::compiler::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::{
-        Args, Block, Call, EnumMember, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
+        Args, Block, CallExpr, EnumMember, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
         Param, Params, PathExpr, QualifiedIdent, Stmt,
     };
     use crate::compiler::ast::{Module, UseStmt, OuterStmt};
