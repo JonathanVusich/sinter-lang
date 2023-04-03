@@ -23,6 +23,22 @@ impl Span {
             end,
         }
     }
+
+    pub fn to(&self, other: Self) -> Self {
+        Self {
+            start: self.start,
+            end: other.end,
+        }
+    }
+}
+
+impl Default for Span {
+    fn default() -> Self {
+        Self {
+            start: 0,
+            end: 0,
+        }
+    }
 }
 
 impl TokenizedInput {

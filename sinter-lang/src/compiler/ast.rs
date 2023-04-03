@@ -1,12 +1,11 @@
 use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
-use crate::compiler::parser::ClassType;
-use crate::compiler::types::types::{InternedStr, InternedTy, Type};
+use crate::compiler::parser::{ClassType, ParseError};
+use crate::compiler::types::types::{InternedStr, Type};
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, Prefix};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use crate::compiler::interner::Key;
 use crate::compiler::resolver::{PathDecl, PathKind, TraitTy, TyDecl, TyStmt, VarDecl, VarDeclKind};
 use crate::compiler::tokens::tokenized_file::{Span, TokenSpan};
 
@@ -16,10 +15,12 @@ pub struct NodeId {
     id: u32,
 }
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct NodeInfo {
-    span: Span,
-    id: NodeId,
+impl From<u32> for NodeId {
+    fn from(value: u32) -> Self {
+        NodeId {
+            id: value
+        }
+    }
 }
 
 /// This trait describes a visitor that can traverse the AST and collect information.
@@ -44,7 +45,18 @@ pub enum ItemKind {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Item {
     kind: ItemKind,
-    info: NodeInfo,
+    span: Span,
+    id: NodeId,
+}
+
+impl Item {
+    pub fn new(kind: ItemKind, span: Span, id: NodeId) -> Self {
+        Self {
+            kind,
+            span,
+            id,
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -64,6 +76,7 @@ pub enum ExprKind {
     Field(FieldExpr),
     Index(IndexExpr),
     Path(PathExpr),
+    Parentheses(Expr),
     Break,
     Continue,
 }
@@ -71,13 +84,35 @@ pub enum ExprKind {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expr {
     kind: ExprKind,
-    info: NodeInfo,
+    span: Span,
+    id: NodeId,
+}
+
+impl Expr {
+    pub fn new(kind: ExprKind, span: Span, id: NodeId) -> Self {
+        Self {
+            kind,
+            span,
+            id,
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Ty {
     kind: TyKind,
-    info: NodeInfo,
+    span: Span,
+    id: NodeId,
+}
+
+impl Ty {
+    pub fn new(kind: TyKind, span: Span, id: NodeId) -> Self {
+        Self {
+            kind,
+            span,
+            id,
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -89,14 +124,14 @@ pub enum TyKind {
         path: PathTy,
     },
     Union {
-        tys: Vec<Box<Ty>>,
+        tys: Vec<Ty>,
     },
     TraitBound {
         trait_bound: TraitBound,
     },
     Closure {
         params: Vec<Box<Ty>>,
-        ret_ty: InternedTy
+        ret_ty: Ty,
     },
     Infer,
     QSelf,
@@ -111,39 +146,23 @@ pub enum TyKind {
     F32,
     F64,
     Str,
-    None
+    None,
 }
 
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Module {
-    pub use_stmts: Vec<UseStmt>,
-    pub global_let_stmts: Vec<GlobalLetStmt>,
-    pub class_stmts: Vec<ClassStmt>,
-    pub enum_stmts: Vec<EnumStmt>,
-    pub trait_stmts: Vec<TraitStmt>,
-    pub trait_impl_stmts: Vec<TraitImplStmt>,
-    pub fn_stmts: Vec<FnStmt>,
+    items: Vec<Item>,
+    parse_errors: Vec<ParseError>,
 }
 
 impl Module {
     pub fn new(
-        use_stmts: Vec<UseStmt>,
-        global_let_stmts: Vec<GlobalLetStmt>,
-        class_stmts: Vec<ClassStmt>,
-        enum_stmts: Vec<EnumStmt>,
-        trait_stmts: Vec<TraitStmt>,
-        trait_impl_stmts: Vec<TraitImplStmt>,
-        fn_stmts: Vec<FnStmt>,
+        items: Vec<Item>,
     ) -> Self {
         Self {
-            use_stmts,
-            global_let_stmts,
-            class_stmts,
-            enum_stmts,
-            trait_stmts,
-            trait_impl_stmts,
-            fn_stmts,
+            items,
+            parse_errors: Vec::new(),
         }
     }
 }
@@ -173,29 +192,42 @@ impl ResolvedModule {
 }
 
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Ident {
+    pub ident: InternedStr,
+    pub span: Span,
+    pub id: NodeId,
+}
+
+impl Ident {
+    pub fn new(ident: InternedStr, span: Span, id: NodeId) -> Self {
+        Self {
+            ident,
+            span,
+            id,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QualifiedIdent {
-    idents: Vec<InternedStr>,
+    idents: Vec<Ident>,
 }
 
 impl QualifiedIdent {
-    pub fn new(idents: Vec<InternedStr>) -> Self {
+    pub fn new(idents: Vec<Ident>) -> Self {
         if idents.len() < 1 {
             panic!("QualifiedIdent must have at least one identifier!")
         }
         Self { idents }
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.idents.is_empty()
-    }
-
-    pub fn first(&self) -> InternedStr {
+    pub fn first(&self) -> Ident {
         // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
         self.idents.first().copied().unwrap()
     }
 
-    pub fn last(&self) -> InternedStr {
+    pub fn last(&self) -> Ident {
         // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
         self.idents.last().copied().unwrap()
     }
@@ -208,13 +240,46 @@ pub struct TraitBound {
 
 impl TraitBound {
     pub fn new(bounds: Vec<PathTy>) -> Self {
-        Self { bounds }
+        Self {
+            bounds,
+        }
     }
 }
 
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Generics {
-    generic_args: Vec<InternedTy>,
-    span: Span,
+    generics: Vec<Ty>,
+}
+
+impl Generics {
+    pub fn new(generics: Vec<Ty>) -> Self {
+        Self {
+            generics,
+        }
+    }
+}
+
+impl IntoIterator for Generics {
+    type Item = Ty;
+    type IntoIter = <Vec<Ty> as IntoIterator>::IntoIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.generics.into_iter()
+    }
+}
+
+impl Deref for Generics {
+    type Target = [Ty];
+
+    fn deref(&self) -> &Self::Target {
+        &self.generics.as_slice()
+    }
+}
+
+impl DerefMut for Generics {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.generics
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -231,7 +296,7 @@ impl PathTy {
 
 impl PathDecl for PathTy {
     fn first(&self) -> InternedStr {
-        self.ident.first()
+        self.ident.first().ident
     }
 
     fn module_path(&self) -> QualifiedIdent {
@@ -293,23 +358,30 @@ impl DerefMut for GenericParams {
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Serialize, Deserialize)]
 pub struct GenericParam {
-    pub(crate) ident: InternedStr,
+    pub(crate) ident: Ident,
     pub(crate) trait_bound: Option<TraitBound>,
+    pub(crate) span: Span,
+    pub(crate) id: NodeId,
 }
 
 impl GenericParam {
-    pub fn new(ident: InternedStr, trait_bound: Option<TraitBound>) -> Self {
-        Self { ident, trait_bound }
+    pub fn new(
+        ident: Ident,
+        trait_bound: Option<TraitBound>,
+        span: Span,
+        id: NodeId,
+    ) -> Self {
+        Self { ident, trait_bound, span, id }
     }
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug, Serialize, Deserialize)]
 pub struct GenericCallSite {
-    generics: Vec<Key>,
+    generics: Vec<Ty>,
 }
 
 impl GenericCallSite {
-    pub fn new(generics: Vec<Key>) -> Self {
+    pub fn new(generics: Vec<Ty>) -> Self {
         Self { generics }
     }
 }
@@ -430,7 +502,7 @@ pub enum Mutability {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ClassStmt {
-    pub(crate) name: InternedStr,
+    pub(crate) name: Ident,
     pub(crate) class_type: ClassType,
     pub(crate) generic_params: GenericParams,
     pub(crate) fields: Fields,
@@ -439,7 +511,7 @@ pub struct ClassStmt {
 
 impl ClassStmt {
     pub fn new(
-        name: InternedStr,
+        name: Ident,
         class_type: ClassType,
         generic_params: GenericParams,
         fields: Fields,
@@ -467,7 +539,7 @@ impl TyDecl for ClassStmt {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumStmt {
-    pub name: InternedStr,
+    pub name: Ident,
     pub generic_params: GenericParams,
     pub members: Vec<EnumMember>,
     pub member_fns: Vec<FnStmt>,
@@ -475,7 +547,7 @@ pub struct EnumStmt {
 
 impl EnumStmt {
     pub fn new(
-        name: InternedStr,
+        name: Ident,
         generic_params: GenericParams,
         members: Vec<EnumMember>,
         fn_stmts: Vec<FnStmt>,
@@ -509,13 +581,13 @@ impl TyDecl for EnumStmt {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitStmt {
-    pub name: InternedStr,
+    pub name: Ident,
     pub generic_params: GenericParams,
     pub member_fns: Vec<FnStmt>,
 }
 
 impl TraitStmt {
-    pub fn new(ident: InternedStr, generic_params: GenericParams, functions: Vec<FnStmt>) -> Self {
+    pub fn new(ident: Ident, generic_params: GenericParams, functions: Vec<FnStmt>) -> Self {
         Self {
             name: ident,
             generic_params,
@@ -565,19 +637,19 @@ impl FnStmt {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ForStmt {
-    pub ident: InternedStr,
+    pub ident: Ident,
     pub range: Expr,
     pub body: Block,
 }
 
 impl ForStmt {
-    pub fn new(ident: InternedStr, range: Expr, body: Block) -> Self {
+    pub fn new(ident: Ident, range: Expr, body: Block) -> Self {
         Self { ident, range, body }
     }
 }
 
 impl VarDecl for ForStmt {
-    fn ident(&self) -> InternedStr {
+    fn ident(&self) -> Ident {
         self.ident
     }
 
@@ -623,16 +695,16 @@ pub struct EnumMember {
     pub name: InternedStr,
     pub fields: Fields,
     pub member_fns: Vec<FnStmt>,
-    pub id: NodeId,
     pub span: Span,
+    pub id: NodeId,
 }
 
 impl EnumMember {
     pub fn new(name: InternedStr,
                parameters: Fields,
                member_functions: Vec<FnStmt>,
-               id: NodeId,
-               span: Span) -> Self {
+               span: Span,
+               id: NodeId) -> Self {
         Self {
             name,
             fields: parameters,
@@ -645,18 +717,18 @@ impl EnumMember {
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct FnSig {
-    pub(crate) name: InternedStr,
+    pub(crate) name: Ident,
     pub(crate) generic_params: GenericParams,
     pub(crate) params: Params,
-    pub(crate) return_type: Option<InternedTy>,
+    pub(crate) return_type: Option<Ty>,
 }
 
 impl FnSig {
     pub fn new(
-        name: InternedStr,
+        name: Ident,
         generic_params: GenericParams,
         parameters: Params,
-        return_type: Option<InternedTy>,
+        return_type: Option<Ty>,
     ) -> Self {
         Self {
             name,
@@ -669,15 +741,15 @@ impl FnSig {
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Param {
-    pub(crate) ident: InternedStr,
-    pub(crate) ty: InternedTy,
+    pub(crate) ident: Ident,
+    pub(crate) ty: Ty,
     pub(crate) mutability: Mutability,
 }
 
 impl Param {
-    pub fn new(name: InternedStr, ty: InternedTy, mutability: Mutability) -> Self {
+    pub fn new(ident: Ident, ty: Ty, mutability: Mutability) -> Self {
         Self {
-            ident: name,
+            ident,
             ty,
             mutability,
         }
@@ -700,17 +772,21 @@ impl VarDecl for Param {
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Field {
-    pub(crate) ident: InternedStr,
-    pub(crate) ty: Key,
+    pub(crate) ident: Ident,
+    pub(crate) ty: Ty,
     pub(crate) mutability: Mutability,
+    pub(crate) span: Span,
+    pub(crate) id: NodeId,
 }
 
 impl Field {
-    pub fn new(name: InternedStr, ty: Key, mutability: Mutability) -> Self {
+    pub fn new(ident: Ident, ty: Ty, mutability: Mutability, span: Span, id: NodeId) -> Self {
         Self {
-            ident: name,
+            ident,
             ty,
             mutability,
+            span,
+            id,
         }
     }
 }
@@ -724,8 +800,8 @@ pub struct ArgumentDecl {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
-    pub ident: InternedStr,
-    pub ty: Option<InternedTy>,
+    pub ident: Ident,
+    pub ty: Option<Ty>,
     pub initializer: Expr,
     pub id: NodeId,
     pub span: Span,
@@ -733,8 +809,8 @@ pub struct GlobalLetStmt {
 
 impl GlobalLetStmt {
     pub fn new(
-        ident: InternedStr,
-        ty: Option<InternedTy>,
+        ident: Ident,
+        ty: Option<Ty>,
         initializer: Expr,
         id: NodeId,
         span: Span,
@@ -765,30 +841,24 @@ impl VarDecl for GlobalLetStmt {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct LetStmt {
-    pub ident: InternedStr,
+    pub ident: Ident,
     pub mutability: Mutability,
-    pub ty: Option<InternedTy>,
+    pub ty: Option<Ty>,
     pub initializer: Option<Expr>,
-    pub id: NodeId,
-    pub span: Span,
 }
 
 impl LetStmt {
     pub fn new(
-        ident: InternedStr,
+        ident: Ident,
         mutability: Mutability,
-        ty: Option<InternedTy>,
+        ty: Option<Ty>,
         initializer: Option<Expr>,
-        id: NodeId,
-        span: Span,
     ) -> Self {
         Self {
             ident,
             mutability,
             ty,
             initializer,
-            id,
-            span,
         }
     }
 }
@@ -890,11 +960,11 @@ impl ClosureExpr {
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct ClosureParam {
-    pub ident: InternedStr,
+    pub ident: Ident,
 }
 
 impl ClosureParam {
-    pub fn new(ident: InternedStr) -> Self {
+    pub fn new(ident: Ident) -> Self {
         Self {
             ident,
         }
@@ -902,7 +972,7 @@ impl ClosureParam {
 }
 
 impl VarDecl for ClosureParam {
-    fn ident(&self) -> InternedStr {
+    fn ident(&self) -> Ident{
         self.ident
     }
 
@@ -924,11 +994,11 @@ pub struct AssignExpr {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct FieldExpr {
     pub lhs: Expr,
-    pub ident: InternedStr,
+    pub ident: Ident,
 }
 
 impl FieldExpr {
-    pub fn new(lhs: Expr, ident: InternedStr) -> Self {
+    pub fn new(lhs: Expr, ident: Ident) -> Self {
         Self { lhs, ident }
     }
 }
@@ -953,12 +1023,12 @@ pub enum ArrayExpr {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Segment {
-    pub ident: InternedStr,
+    pub ident: Ident,
     pub generics: Option<Generics>,
 }
 
 impl Segment {
-    pub fn new(ident: InternedStr, generics: Option<Generics>) -> Self {
+    pub fn new(ident: Ident, generics: Option<Generics>) -> Self {
         Self {
             ident,
             generics,
@@ -992,11 +1062,11 @@ impl PathExpr {
         }
     }
 
-    pub fn first(&self) -> InternedStr {
+    pub fn first(&self) -> Ident {
         self.segments.first().unwrap().ident
     }
 
-    pub fn var_identifier(&self) -> Option<InternedStr> {
+    pub fn var_identifier(&self) -> Option<Ident> {
         if self.segments.len() == 1 {
             Some(self.first())
         } else {
@@ -1009,7 +1079,7 @@ impl PathExpr {
         let mut idents = self.segments
             .iter()
             .map(|f| f.ident)
-            .collect::<Vec<InternedStr>>();
+            .collect::<Vec<Ident>>();
         // Remove the last ident because it is not part of the module path.
         idents.pop();
         QualifiedIdent::new(idents)
@@ -1017,7 +1087,7 @@ impl PathExpr {
 }
 
 impl PathDecl for PathExpr {
-    fn first(&self) -> InternedStr {
+    fn first(&self) -> Ident {
         // This should be safe because a path should always have at least one segment.
         self.segments.first().unwrap().ident
     }
@@ -1121,12 +1191,12 @@ impl VarDecl for PatternLocal {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TyPattern {
-    pub ty: InternedTy,
+    pub ty: Ty,
     pub ident: Option<PatternLocal>,
 }
 
 impl TyPattern {
-    pub fn new(ty: InternedTy, ident: Option<PatternLocal>) -> Self {
+    pub fn new(ty: Ty, ident: Option<PatternLocal>) -> Self {
         Self {
             ty,
             ident,
@@ -1136,12 +1206,12 @@ impl TyPattern {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct DestructurePattern {
-    pub ty: InternedTy,
+    pub ty: Ty,
     pub exprs: Vec<Expr>,
 }
 
 impl DestructurePattern {
-    pub fn new(ty: InternedTy, exprs: Vec<Expr>) -> Self {
+    pub fn new(ty: Ty, exprs: Vec<Expr>) -> Self {
         Self {
             ty,
             exprs,
@@ -1167,11 +1237,17 @@ impl WhileStmt {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Block {
     pub stmts: Vec<Stmt>,
+    pub span: Span,
+    pub id: NodeId,
 }
 
 impl Block {
-    pub fn new(stmts: Vec<Stmt>) -> Self {
-        Self { stmts }
+    pub fn new(stmts: Vec<Stmt>, span: Span, id: NodeId) -> Self {
+        Self {
+            stmts,
+            span,
+            id,
+        }
     }
 }
 
@@ -1267,17 +1343,6 @@ impl InfixOp {
     }
 }
 
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub enum OuterStmt {
-    Use(UseStmt),
-    GlobalLet(GlobalLetStmt),
-    Class(ClassStmt),
-    Enum(EnumStmt),
-    Trait(TraitStmt),
-    TraitImpl(TraitImplStmt),
-    Fn(FnStmt),
-}
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum Stmt {
