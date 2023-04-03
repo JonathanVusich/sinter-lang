@@ -808,7 +808,10 @@ impl Parser {
         }
     }
 
+    /// Parses a closure type. This method assumes that a valid closure signature
+    /// already exists.
     fn parse_closure_ty(&mut self) -> ParseResult<Ty> {
+        self.track_span();
         let params = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
             Self::parse_ty,
             TokenType::Comma,
@@ -827,17 +830,21 @@ impl Parser {
                 }
                 _ => self.parse_ty()?,
             };
-            Ok(self.intern_ty(Closure { params, ret_ty }))
+
+            let ty_kind = TyKind::Closure { params, ret_ty };
+            Ok(Ty::new(ty_kind, self.get_span(), self.get_id()))
         } else {
             self.unexpected_end()
         }
     }
 
     fn parse_array_ty(&mut self) -> ParseResult<Ty> {
+        self.track_span();
         self.expect(TokenType::LeftBracket)?;
-        let ty = Type::Array { ty: self.parse_ty()? };
+        let ty_kind = TyKind::Array { ty: self.parse_ty()? };
+        let ty = Ty::new(ty_kind, self.get_span(), self.get_id());
         self.expect(TokenType::RightBracket)?;
-        Ok(self.intern_ty(ty))
+        Ok(ty)
     }
 
     fn parse_qualified_ty(&mut self) -> ParseResult<Ty> {
@@ -855,7 +862,7 @@ impl Parser {
             Ok(Ty::new(TyKind::TraitBound { trait_bound: TraitBound::new(paths) }, span, self.get_id()))
         } else {
             let span = self.get_span();
-            Ok(Ty::new(TyKind::Path { path: path }, span, self.get_id()))
+            Ok(Ty::new(TyKind::Path { path }, span, self.get_id()))
         }
     }
 

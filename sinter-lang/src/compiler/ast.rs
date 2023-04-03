@@ -118,7 +118,7 @@ impl Ty {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum TyKind {
     Array {
-        ty: Box<Ty>,
+        ty: Ty,
     },
     Path {
         path: PathTy,
@@ -130,7 +130,7 @@ pub enum TyKind {
         trait_bound: TraitBound,
     },
     Closure {
-        params: Vec<Box<Ty>>,
+        params: Vec<Ty>,
         ret_ty: Ty,
     },
     Infer,
@@ -528,7 +528,7 @@ impl ClassStmt {
 }
 
 impl TyDecl for ClassStmt {
-    fn ident(&self) -> InternedStr {
+    fn ident(&self) -> Ident {
         self.name
     }
 
@@ -570,7 +570,7 @@ impl EnumStmt {
 }
 
 impl TyDecl for EnumStmt {
-    fn ident(&self) -> InternedStr {
+    fn ident(&self) -> Ident {
         self.name
     }
 
@@ -597,7 +597,7 @@ impl TraitStmt {
 }
 
 impl TyDecl for TraitStmt {
-    fn ident(&self) -> InternedStr {
+    fn ident(&self) -> Ident {
         self.name
     }
 
@@ -757,7 +757,7 @@ impl Param {
 }
 
 impl VarDecl for Param {
-    fn ident(&self) -> InternedStr {
+    fn ident(&self) -> Ident {
         self.ident
     }
 
@@ -826,7 +826,7 @@ impl GlobalLetStmt {
 }
 
 impl VarDecl for GlobalLetStmt {
-    fn ident(&self) -> InternedStr {
+    fn ident(&self) -> Ident {
         self.ident
     }
 
@@ -864,7 +864,7 @@ impl LetStmt {
 }
 
 impl VarDecl for LetStmt {
-    fn ident(&self) -> InternedStr {
+    fn ident(&self) -> Ident {
         self.ident
     }
 
