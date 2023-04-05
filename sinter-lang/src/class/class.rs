@@ -7,7 +7,6 @@ use std::slice::Iter;
 
 use crate::class::size_class::SizeClass;
 use crate::class::version::{Version, CURRENT_VERSION};
-use crate::compiler::types::types::Type;
 use crate::function::method::Method;
 use crate::gc::block::{BLOCK_SIZE, LINE_SIZE};
 use crate::pointers::heap_pointer::HeapPointer;

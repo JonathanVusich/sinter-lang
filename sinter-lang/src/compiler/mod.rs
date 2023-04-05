@@ -1,24 +1,21 @@
-use std::collections::hash_map::RandomState;
+use crate::compiler::interner::Interner;
 use lasso::{LargeSpur, Rodeo, Spur, ThreadedRodeo};
 use rustc_hash::FxHasher;
+use std::collections::hash_map::RandomState;
 use std::hash::{BuildHasher, BuildHasherDefault};
 use std::rc::Rc;
 use std::sync::Arc;
-use crate::compiler::interner::Interner;
-use crate::compiler::types::types::Type;
 
-pub mod parser;
 pub mod ast;
-pub mod tokens;
-pub mod types;
-pub mod compiler;
-pub mod compiled_module;
-pub mod interner;
-pub mod resolver;
-pub mod ty_checker;
 pub mod codegen;
+pub mod compiled_module;
+pub mod compiler;
 pub mod hir;
+pub mod interner;
+pub mod parser;
+pub mod tokens;
+pub mod ty_checker;
+pub mod types;
 
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;
-pub type TyInterner = Interner<Type>;

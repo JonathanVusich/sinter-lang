@@ -1,10 +1,10 @@
 use crate::compiler::ast::{PathTy, QualifiedIdent, TraitBound, Ty};
+use crate::compiler::interner::Key;
 use lasso::Spur;
 use serde::{Deserialize, Serialize};
-use crate::compiler::interner::Key;
 
 #[repr(transparent)]
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct InternedStr {
     str: Spur,
 }
@@ -15,18 +15,22 @@ impl From<InternedStr> for Spur {
     }
 }
 
+impl From<Spur> for InternedStr {
+    fn from(value: Spur) -> Self {
+        InternedStr { str: value }
+    }
+}
+
 impl InternedStr {
     pub fn new(str: Spur) -> Self {
-        Self {
-            str,
-        }
+        Self { str }
     }
 }
 
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct InternedTy {
-    ty: Key
+    ty: Key,
 }
 
 impl From<InternedTy> for Key {
@@ -37,8 +41,6 @@ impl From<InternedTy> for Key {
 
 impl InternedTy {
     pub fn new(ty: Key) -> Self {
-        Self {
-            ty,
-        }
+        Self { ty }
     }
 }

@@ -1,7 +1,7 @@
+use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::types::InternedStr;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
-use crate::compiler::tokens::tokenized_file::Span;
 
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Token {
@@ -175,11 +175,7 @@ impl Token {
     pub fn new(token_type: TokenType, start: usize, end: usize) -> Self {
         Self {
             token_type,
-            span: Span::new(start, end),
+            span: Span::new(start as u32, end as u32),
         }
-    }
-
-    pub fn end_pos(&self) -> usize {
-        self.span.start + self.span.end
     }
 }

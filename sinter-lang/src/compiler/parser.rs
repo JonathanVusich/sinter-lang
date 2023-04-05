@@ -1,27 +1,32 @@
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt::Alignment::Right;
+use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::{StringInterner, TyInterner};
-use crate::compiler::ast::{Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident, IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module, Mutability, NodeId, OrPattern, OuterStmt, Param, Params, PathExpr, PathTy, Pattern, PatternLocal, PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt};
-use crate::compiler::ast::Expr::Infix;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
-use crate::compiler::ast::OuterStmt::{Class, Enum, Fn, GlobalLet, Trait, TraitImpl, Use};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
+use crate::compiler::ast::{
+    Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern,
+    EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSig, FnStmt,
+    ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident, IfStmt,
+    IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module,
+    Mutability, NodeId, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern,
+    PatternLocal, PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound,
+    TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
+};
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
 };
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{Span, TokenizedInput, TokenSpan};
-use crate::compiler::types::types::{InternedStr, InternedTy, Type};
-use crate::compiler::types::types::Type::{Closure, F32, F64, I16, I32, I64, I8, Infer, QSelf, Str, U16, U32, U64, U8, Union};
+use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
+use crate::compiler::types::types::{InternedStr, InternedTy};
+use crate::compiler::StringInterner;
 
 pub fn parse(ctxt: CompilerCtxt, input: TokenizedInput) -> (CompilerCtxt, Module) {
     let parser = Parser::new(ctxt, input);
@@ -31,6 +36,7 @@ pub fn parse(ctxt: CompilerCtxt, input: TokenizedInput) -> (CompilerCtxt, Module
 struct Parser {
     compiler_ctxt: CompilerCtxt,
     tokenized_input: TokenizedInput,
+
     pos: usize,
     current_id: u32,
     spans: Vec<usize>,
@@ -38,16 +44,16 @@ struct Parser {
 
 type ParseResult<T, E = ParseError> = Result<T, E>;
 
-#[derive(Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum ParseError {
-    UnexpectedEof(Span),
-    ExpectedToken(TokenType, Span),
-    ExpectedTokens(TokenTypes, Span),
-    UnexpectedToken(TokenType, Span),
+    UnexpectedEof(NormalizedSpan),
+    ExpectedToken(TokenType, NormalizedSpan),
+    ExpectedTokens(TokenTypes, NormalizedSpan),
+    UnexpectedToken(TokenType, NormalizedSpan),
 }
 
-#[derive(Debug)]
-struct TokenTypes {
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct TokenTypes {
     token_types: Vec<TokenType>,
 }
 
@@ -74,8 +80,7 @@ pub enum ClassType {
 }
 
 impl Parser {
-    fn new(ctxt: CompilerCtxt,
-           tokenized_input: TokenizedInput) -> Self {
+    fn new(ctxt: CompilerCtxt, tokenized_input: TokenizedInput) -> Self {
         Self {
             compiler_ctxt: ctxt,
             tokenized_input,
@@ -110,8 +115,16 @@ impl Parser {
     }
 
     fn compute_span(&self, start: usize, end: usize) -> Span {
-        let start_token = self.tokenized_input.tokens.get(start).expect("No valid start token!");
-        let end_token = self.tokenized_input.tokens.get(end).expect("No valid end token!");
+        let start_token = self
+            .tokenized_input
+            .tokens
+            .get(start)
+            .expect("No valid start token!");
+        let end_token = self
+            .tokenized_input
+            .tokens
+            .get(end)
+            .expect("No valid end token!");
 
         start_token.span.to(end_token.span)
     }
@@ -120,27 +133,32 @@ impl Parser {
         let mut items = Vec::new();
         let mut errors = Vec::new();
 
-        while self.pos < self.token_types.len() {
+        while self.pos < self.tokenized_input.tokens.len() {
             match self.parse_outer_item() {
                 Ok(item) => items.push(item),
-                Err(err) => errors.push(err)
+                Err(err) => errors.push(err),
             }
-            items.push(self.parse_outer_item()?);
         }
         Module::new(items)
     }
 
-    fn parse_node<T, I>(&mut self,
-                        parse_fn: fn(&mut Parser) -> ParseResult<T>,
-                        constructor: fn(T, Span, NodeId) -> I,
+    fn parse_node<T, I>(
+        &mut self,
+        parse_fn: fn(&mut Parser) -> ParseResult<T>,
+        constructor: fn(T, Span, NodeId) -> I,
     ) -> ParseResult<I> {
-        self.track_span()?;
-        let value = parse_fn(self);
-        let (span, id) = self.get_span_id();
-        constructor(value, span, id)
+        self.track_span();
+        let value = parse_fn(self)?;
+        let span = self.get_span();
+        let id = self.get_id();
+        Ok(constructor(value, self.get_span(), self.get_id()))
     }
 
-    fn parse_item<U>(&mut self, parse_fn: fn(&mut Parser) -> ParseResult<U>, kind: fn(U) -> ItemKind) -> ParseResult<Item> {
+    fn parse_item<U>(
+        &mut self,
+        parse_fn: fn(&mut Parser) -> ParseResult<U>,
+        kind: fn(U) -> ItemKind,
+    ) -> ParseResult<Item> {
         self.track_span();
         let item = parse_fn(self)?;
         let span = self.get_span();
@@ -161,7 +179,7 @@ impl Parser {
             Some(TokenType::Trait) => self.parse_trait_stmt(),
             Some(TokenType::Impl) => self.parse_trait_impl_stmt(),
             Some(token) => self.unexpected_token(token),
-            None => self.unexpected_end()
+            None => self.unexpected_end(),
         }
     }
 
@@ -174,7 +192,7 @@ impl Parser {
             Some(TokenType::Return) => self.parse_return_stmt(),
             Some(TokenType::If) => self.parse_if_stmt(),
             Some(token) => self.parse_expression(),
-            None => self.unexpected_end()
+            None => self.unexpected_end(),
         }
     }
 
@@ -255,6 +273,7 @@ impl Parser {
     }
 
     fn global_let_stmt(&mut self) -> ParseResult<GlobalLetStmt> {
+        self.track_span();
         self.expect(TokenType::Let)?;
         let identifier = self.identifier()?;
         let mut ty = None;
@@ -265,7 +284,8 @@ impl Parser {
         self.expect(TokenType::Equal)?;
         let initializer = self.expr()?;
         let end = self.expect(TokenType::Semicolon)?;
-        let global_let_stmt = GlobalLetStmt::new(identifier, ty, initializer, self.get_id(), start.to(end));
+        let global_let_stmt =
+            GlobalLetStmt::new(identifier, ty, initializer, self.get_span(), self.get_id());
         Ok(global_let_stmt)
     }
 
@@ -276,15 +296,10 @@ impl Parser {
                 self.advance();
                 Mutable
             }
-            Some(TokenType::Identifier(_)) => {
-                Immutable
-            },
+            Some(TokenType::Identifier(_)) => Immutable,
             _ => {
                 let ident = self.intern_str("");
-                return self.expected_tokens(vec![
-                    TokenType::Mut,
-                    TokenType::Identifier(ident),
-                ]);
+                return self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)]);
             }
         };
         let identifier = self.identifier()?;
@@ -333,9 +348,7 @@ impl Parser {
         let identifier = self.identifier()?;
         let generics = self.generic_params()?;
         match self.current() {
-            Some(TokenType::Semicolon) => {
-                Ok(TraitStmt::new(identifier, generics, Vec::new()))
-            }
+            Some(TokenType::Semicolon) => Ok(TraitStmt::new(identifier, generics, Vec::new())),
             Some(TokenType::LeftBrace) => {
                 Ok(TraitStmt::new(identifier, generics, self.fn_trait_stmts()?))
             }
@@ -359,13 +372,11 @@ impl Parser {
                 self.advance();
                 Ok(TraitImplStmt::new(trait_to_impl, target_ty, Vec::new()))
             }
-            Some(TokenType::LeftBrace) => {
-                Ok(TraitImplStmt::new(
-                    trait_to_impl,
-                    target_ty,
-                    self.fn_trait_stmts()?,
-                ))
-            }
+            Some(TokenType::LeftBrace) => Ok(TraitImplStmt::new(
+                trait_to_impl,
+                target_ty,
+                self.fn_trait_stmts()?,
+            )),
             Some(token) => self.unexpected_token(token),
             None => self.unexpected_end(),
         }
@@ -379,20 +390,13 @@ impl Parser {
         } else {
             false
         };
-        Ok(Stmt::Expression {
-            expr,
-            implicit_return,
-        })
+        Ok(Stmt::Expression(Expression::new(expr, implicit_return)))
     }
 
     fn expr(&mut self) -> ParseResult<Expr> {
         if self.matches_closure() {
-            self.parse_node(
-                Self::parse_closure_expr,
-                Expr::new,
-            )
+            return self.parse_node(Self::parse_closure_expr, Expr::new);
         }
-
         self.parse_expr(0)
     }
 
@@ -439,7 +443,10 @@ impl Parser {
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
         )?;
-        let closure_params = vars.iter().map(|f| ClosureParam::new(*f)).collect::<Vec<ClosureParam>>();
+        let closure_params = vars
+            .iter()
+            .map(|f| ClosureParam::new(*f))
+            .collect::<Vec<ClosureParam>>();
 
         self.expect(TokenType::RightArrow)?;
 
@@ -447,10 +454,7 @@ impl Parser {
             self.parse_block_stmt()?
         } else {
             let expr = self.expr()?;
-            Stmt::Expression {
-                expr,
-                implicit_return: true,
-            }
+            Stmt::Expression(Expression::new(expr, true))
         };
 
         Ok(ExprKind::Closure(ClosureExpr::new(closure_params, stmt)))
@@ -458,7 +462,10 @@ impl Parser {
 
     fn identifier(&mut self) -> ParseResult<Ident> {
         match self.current_token() {
-            Some(Token { token_type: TokenType::Identifier(ident), span }) => {
+            Some(Token {
+                token_type: TokenType::Identifier(ident),
+                span,
+            }) => {
                 self.advance();
                 Ok(Ident::new(ident, span, self.get_id()))
             }
@@ -466,9 +473,7 @@ impl Parser {
                 let ident = self.intern_str("");
                 self.expected_token(TokenType::Identifier(ident))
             }
-            None => {
-                self.unexpected_end()
-            }
+            None => self.unexpected_end(),
         }
     }
 
@@ -477,13 +482,13 @@ impl Parser {
         loop {
             match self.current_token() {
                 Some(Token {
-                         token_type: TokenType::Identifier(ident),
-                         span
-                     }) => {
-                    let ident = Ident::new(ident, span, self.get_id());
+                    token_type: TokenType::Identifier(identifier),
+                    span,
+                }) => {
+                    let ident = Ident::new(identifier, span, self.get_id());
                     idents.push(ident);
                     if self.matches_multiple([
-                        TokenType::Identifier(_),
+                        TokenType::Identifier(identifier),
                         TokenType::Colon,
                         TokenType::Colon,
                     ]) {
@@ -495,19 +500,14 @@ impl Parser {
                 }
                 _ => {
                     let ident = self.intern_str("");
-                    return self.expected_token(TokenType::Identifier(
-                        ident
-                    ));
+                    return self.expected_token(TokenType::Identifier(ident));
                 }
             }
-            if let Some(TokenType::Identifier(ident)) = self.current_token() {} else {}
         }
 
         if idents.is_empty() {
             let ident = self.intern_str("");
-            self.expected_token(TokenType::Identifier(
-                ident
-            ))
+            self.expected_token(TokenType::Identifier(ident))
         } else {
             Ok(QualifiedIdent::new(idents))
         }
@@ -541,7 +541,12 @@ impl Parser {
             self.advance();
             trait_bound = Some(self.trait_bound()?);
         }
-        Ok(GenericParam::new(ident, trait_bound, self.get_span(), self.get_id()))
+        Ok(GenericParam::new(
+            ident,
+            trait_bound,
+            self.get_span(),
+            self.get_id(),
+        ))
     }
 
     fn fn_stmts(&mut self) -> ParseResult<Vec<FnStmt>> {
@@ -593,11 +598,9 @@ impl Parser {
             }
             Some(token) => {
                 let ident = self.intern_str("");
-                self.expected_token(TokenType::Identifier(
-                    ident
-                ))
+                self.expected_token(TokenType::Identifier(ident))
             }
-            None => self.unexpected_end()
+            None => self.unexpected_end(),
         }
     }
 
@@ -650,10 +653,14 @@ impl Parser {
         let mutability = self.mutability();
         let ident;
         let ty;
-        if let Some(Token { token_type: TokenType::SelfLowercase, span }) = self.current_token() {
+        if let Some(Token {
+            token_type: TokenType::SelfLowercase,
+            span,
+        }) = self.current_token()
+        {
             self.advance();
             ident = Ident::new(self.intern_str("self"), span, self.get_id());
-            ty = self.intern_ty(TyKind::QSelf);
+            ty = Ty::new(TyKind::QSelf, span, self.get_id());
         } else {
             ident = self.identifier()?;
             self.expect(TokenType::Colon)?;
@@ -668,16 +675,15 @@ impl Parser {
         let mutability = self.mutability();
 
         match self.current_token() {
-            Some(Token { token_type: TokenType::SelfLowercase, span }) => {
+            Some(Token {
+                token_type: TokenType::SelfLowercase,
+                span,
+            }) => {
                 self.advance();
                 let ident = Ident::new(self.intern_str("self"), span, self.get_id());
                 let ty = Ty::new(TyKind::QSelf, span, self.get_id());
 
-                Ok(Param::new(
-                    ident,
-                    ty,
-                    mutability,
-                ))
+                Ok(Param::new(ident, ty, mutability))
             }
             Some(token) => self.expected_token(TokenType::SelfLowercase),
             None => self.unexpected_end(),
@@ -741,13 +747,25 @@ impl Parser {
 
     fn parse_any_ty(&mut self) -> ParseResult<Ty> {
         match self.current_token() {
-            Some(Token { token_type: TokenType::LeftParentheses, .. }) => self.parse_closure_ty(),
-            Some(Token { token_type: TokenType::LeftBracket, .. }) => self.parse_array_ty(),
-            Some(Token { token_type: TokenType::None, span }) => {
+            Some(Token {
+                token_type: TokenType::LeftParentheses,
+                ..
+            }) => self.parse_closure_ty(),
+            Some(Token {
+                token_type: TokenType::LeftBracket,
+                ..
+            }) => self.parse_array_ty(),
+            Some(Token {
+                token_type: TokenType::None,
+                span,
+            }) => {
                 self.advance();
                 Ok(Ty::new(TyKind::None, span, self.get_id()))
             }
-            Some(Token { token_type: TokenType::Identifier(ident), span }) => {
+            Some(Token {
+                token_type: TokenType::Identifier(ident),
+                span,
+            }) => {
                 // These built in types are officially encoded as strings to avoid them being
                 // tokenized as keywords.
                 let ident = self.resolve_str(ident);
@@ -799,7 +817,10 @@ impl Parser {
                     other => self.parse_qualified_ty(),
                 }
             }
-            Some(Token{ token_type: TokenType::SelfCapitalized, span }) => {
+            Some(Token {
+                token_type: TokenType::SelfCapitalized,
+                span,
+            }) => {
                 self.advance();
                 Ok(Ty::new(TyKind::QSelf, span, self.get_id()))
             }
@@ -831,7 +852,10 @@ impl Parser {
                 _ => self.parse_ty()?,
             };
 
-            let ty_kind = TyKind::Closure { params, ret_ty };
+            let ty_kind = TyKind::Closure {
+                params,
+                ret_ty: Box::new(ret_ty),
+            };
             Ok(Ty::new(ty_kind, self.get_span(), self.get_id()))
         } else {
             self.unexpected_end()
@@ -841,7 +865,9 @@ impl Parser {
     fn parse_array_ty(&mut self) -> ParseResult<Ty> {
         self.track_span();
         self.expect(TokenType::LeftBracket)?;
-        let ty_kind = TyKind::Array { ty: self.parse_ty()? };
+        let ty_kind = TyKind::Array {
+            ty: Box::new(self.parse_ty()?),
+        };
         let ty = Ty::new(ty_kind, self.get_span(), self.get_id());
         self.expect(TokenType::RightBracket)?;
         Ok(ty)
@@ -859,7 +885,13 @@ impl Parser {
             paths.insert(0, path);
 
             let span = self.get_span();
-            Ok(Ty::new(TyKind::TraitBound { trait_bound: TraitBound::new(paths) }, span, self.get_id()))
+            Ok(Ty::new(
+                TyKind::TraitBound {
+                    trait_bound: TraitBound::new(paths),
+                },
+                span,
+                self.get_id(),
+            ))
         } else {
             let span = self.get_span();
             Ok(Ty::new(TyKind::Path { path }, span, self.get_id()))
@@ -902,14 +934,6 @@ impl Parser {
         Ok(For(ForStmt::new(identifier, range_expr, body)))
     }
 
-    fn parse_break_expr(&mut self) -> ParseResult<Expr> {
-        Ok(Expr::Break)
-    }
-
-    fn parse_continue_expr(&mut self) -> ParseResult<Expr> {
-        Ok(Expr::Continue)
-    }
-
     fn parse_return_stmt(&mut self) -> ParseResult<Stmt> {
         self.expect(TokenType::Return)?;
         if self.matches(TokenType::Semicolon) {
@@ -932,29 +956,34 @@ impl Parser {
             if self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
                 self.advance_multiple(2);
                 match self.current_token() {
-                    Some(Token { token_type: TokenType::Less, .. }) => {
+                    Some(Token {
+                        token_type: TokenType::Less,
+                        ..
+                    }) => {
                         let generic_paths = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
                             Self::parse_ty,
                             TokenType::Comma,
                             TokenType::Less,
                             TokenType::Greater,
                         )?;
-                        path_segments.last_mut().unwrap().generics = Some(Generics::new(generic_paths));
+                        path_segments.last_mut().unwrap().generics =
+                            Some(Generics::new(generic_paths));
                         if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
                             return self.expected_token(TokenType::Colon);
                         }
                     }
-                    Some(Token { token_type: TokenType::Identifier(ident), span }) => {
+                    Some(Token {
+                        token_type: TokenType::Identifier(ident),
+                        span,
+                    }) => {
                         let ident = Ident::new(ident, span, self.get_id());
                         path_segments.push(Segment::new(ident, None));
                         self.advance();
                     }
                     Some(token) => {
                         let ident = self.intern_str("");
-                        return self.expected_tokens(vec![
-                            TokenType::Less,
-                            TokenType::Identifier(ident),
-                        ]);
+                        return self
+                            .expected_tokens(vec![TokenType::Less, TokenType::Identifier(ident)]);
                     }
                     None => return self.unexpected_end(),
                 }
@@ -970,7 +999,7 @@ impl Parser {
         self.track_span();
 
         // Check for prefix operator
-        let mut lhs = if let Some(prefix_op) = self.prefix_op() {
+        let lhs = if let Some(prefix_op) = self.prefix_op() {
             self.advance();
             let ((), prefix_bp) = prefix_op.binding_power();
             let rhs = self.parse_expr(prefix_bp)?;
@@ -1018,7 +1047,7 @@ impl Parser {
                     self.advance();
                     let expr = self.parse_expr(min_bp)?;
                     self.expect(TokenType::RightParentheses)?;
-                    ExprKind::Parentheses(expr)
+                    ExprKind::Parentheses(Parentheses::new(expr))
                 }
 
                 // Handle array expression
@@ -1030,7 +1059,10 @@ impl Parser {
                             self.advance();
                             let size = self.expr()?;
                             self.expect(TokenType::RightBracket)?;
-                            ExprKind::Array(ArrayExpr::SizedInitializer(expr, size))
+                            ExprKind::Array(ArrayExpr::SizedInitializer(
+                                Box::new(expr),
+                                Box::new(size),
+                            ))
                         }
                         Some(TokenType::Comma) => {
                             self.advance();
@@ -1074,8 +1106,7 @@ impl Parser {
             return self.unexpected_end();
         };
 
-        let (span, id) = self.get_span_id();
-        let mut lhs_expr = Expr::new(lhs, span, id);
+        let mut lhs_expr = Expr::new(lhs, self.get_span(), self.get_id());
 
         while let Some(current) = self.current() {
             if let Some(postfix_op) = self.postfix_op() {
@@ -1094,8 +1125,7 @@ impl Parser {
                             TokenType::RightParentheses,
                         )?;
                         let expr_kind = ExprKind::Call(CallExpr::new(lhs_expr, Args::new(args)));
-                        let (span, id) = self.get_span_id();
-                        Expr::new(expr_kind, span, id)
+                        Expr::new(expr_kind, self.get_span(), self.get_id())
                     }
                     PostfixOp::LeftBracket => {
                         self.track_span();
@@ -1103,16 +1133,14 @@ impl Parser {
                         let rhs = self.expr()?;
                         self.expect(TokenType::RightBracket)?;
                         let expr_kind = ExprKind::Index(IndexExpr::new(lhs_expr, rhs));
-                        let (span, id) = self.get_span_id();
-                        Expr::new(expr_kind, span, id)
+                        Expr::new(expr_kind, self.get_span(), self.get_id())
                     }
                     PostfixOp::Dot => {
-                        self.track_span()?;
+                        self.track_span();
                         self.advance();
                         let ident = self.identifier()?;
                         let expr_kind = ExprKind::Field(FieldExpr::new(lhs_expr, ident));
-                        let (span, id) = self.get_span_id();
-                        Expr::new(expr_kind, span, id)
+                        Expr::new(expr_kind, self.get_span(), self.get_id())
                     }
                 };
                 continue;
@@ -1131,8 +1159,7 @@ impl Parser {
                 let rhs = self.parse_expr(right_bp)?;
 
                 let expr_kind = ExprKind::Infix(InfixExpr::new(lhs_expr, rhs, infix_op));
-                let (span, id) = self.get_span_id();
-                lhs_expr = Expr::new(expr_kind, span, id);
+                lhs_expr = Expr::new(expr_kind, self.get_span(), self.get_id());
                 continue;
             }
 
@@ -1216,10 +1243,8 @@ impl Parser {
         let stmt = if self.matches(TokenType::LeftBrace) {
             self.parse_block_stmt()?
         } else {
-            Stmt::Expression {
-                expr: self.expr()?,
-                implicit_return: true,
-            }
+            let expr = self.expr()?;
+            Stmt::Expression(Expression::new(expr, true))
         };
         Ok(MatchArm::new(pattern, stmt))
     }
@@ -1399,7 +1424,8 @@ impl Parser {
     }
 
     fn current(&self) -> Option<TokenType> {
-        self.tokenized_input.tokens
+        self.tokenized_input
+            .tokens
             .get(self.pos)
             .map(|token| token.token_type)
     }
@@ -1412,27 +1438,22 @@ impl Parser {
         self.next(delta).map(|token| token.token_type)
     }
 
-    fn current_position(&mut self) -> Option<Span> {
+    fn current_position(&mut self) -> Option<NormalizedSpan> {
         if let Some(token) = self.current_token() {
-            Some(self.tokenized_input.token_position(token.span.start))
+            Some(self.tokenized_input.token_position(token.span))
         } else {
             None
         }
-    }
-
-    fn next_position(&mut self, delta: usize) -> Option<TokenSpan> {
-        self.next(delta)
-            .map(|token| self.tokenized_input.token_position(token.span.start))
     }
 
     fn last(&mut self) -> Option<Token> {
         self.tokenized_input.tokens.last().copied()
     }
 
-    fn last_position(&mut self) -> TokenSpan {
+    fn last_position(&mut self) -> NormalizedSpan {
         self.last()
-            .map(|token| self.tokenized_input.token_position(token.span.end))
-            .unwrap_or(TokenSpan::new(0, 0))
+            .map(|token| self.tokenized_input.token_position(token.span))
+            .unwrap_or(NormalizedSpan::default())
     }
 
     fn expect(&mut self, token_type: TokenType) -> ParseResult<()> {
@@ -1455,35 +1476,54 @@ impl Parser {
 
     fn matches_multiple<const N: usize>(&mut self, tokens: [TokenType; N]) -> bool {
         let end = self.pos + tokens.len();
-        if self.token_types.len() < end {
+        if self.tokenized_input.tokens.len() < end {
             return false;
         }
-        tokens == self.token_types[self.pos..end]
+
+        let token_types: Vec<TokenType> = self.tokenized_input.tokens[self.pos..end]
+            .iter()
+            .map(|token| token.token_type)
+            .collect();
+
+        // TODO: Map to token types
+        tokens.as_slice() == token_types
+    }
+
+    fn advance_multiple(&mut self, num: usize) {
+        self.pos += num;
+    }
+
+    fn advance(&mut self) {
+        self.pos += 1;
     }
 
     fn remaining(&self) -> usize {
-        self.token_types.len() - (self.pos + 1)
+        self.tokenized_input.tokens.len() - (self.pos + 1)
     }
 }
 
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            UnexpectedEof(pos) => write!(f, "unexpected eof at {}:{}!", pos.line, pos.pos),
-            ExpectedToken(token_type, pos) => write!(
+            UnexpectedEof(span) => write!(
+                f,
+                "unexpected eof at {}:{}!",
+                span.start_line, span.start_pos
+            ),
+            ExpectedToken(token_type, span) => write!(
                 f,
                 "expected token {} at {}:{}!",
-                token_type, pos.line, pos.pos
+                token_type, span.start_line, span.start_pos
             ),
-            ExpectedTokens(token_types, pos) => write!(
+            ExpectedTokens(token_types, span) => write!(
                 f,
                 "expected tokens {} at {}:{}!",
-                token_types, pos.line, pos.pos
+                token_types, span.start_line, span.start_pos
             ),
-            UnexpectedToken(token_type, pos) => write!(
+            UnexpectedToken(token_type, span) => write!(
                 f,
                 "unrecognized token {} at {}:{}!",
-                token_type, pos.line, pos.pos
+                token_type, span.start_line, span.start_pos
             ),
         }
     }
@@ -1509,22 +1549,21 @@ mod tests {
 
     use snap::snapshot;
 
-    use crate::compiler::{StringInterner, TyInterner};
+    use crate::compiler::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::{
         Args, Block, CallExpr, EnumMember, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
-        Param, Params, PathExpr, QualifiedIdent, Stmt,
+        Param, Params, PathExpr, QualifiedIdent, Stmt, Ty, TyKind,
     };
-    use crate::compiler::ast::{Module, OuterStmt, UseStmt};
-    use crate::compiler::ast::Mutability::{Immutable, Mutable};
+    use crate::compiler::ast::{Module, NodeId, UseStmt};
     use crate::compiler::compiler::CompilerCtxt;
-    use crate::compiler::parser::{ParseError, Parser, ParseResult};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
+    use crate::compiler::parser::{ParseError, ParseResult, Parser};
     use crate::compiler::tokens::token::TokenType;
-    use crate::compiler::tokens::token::TokenType::Identifier;
-    use crate::compiler::tokens::tokenized_file::{TokenizedInput, TokenSpan};
+    use crate::compiler::tokens::token::TokenType::{Identifier, Semicolon};
+    use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
-    use crate::compiler::types::types::Type;
-    use crate::compiler::types::types::Type::{Array, Closure, TraitBound};
+    use crate::compiler::types::types::InternedStr;
+    use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
@@ -1534,9 +1573,9 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn parse_module<T: AsRef<str>>(code: T) -> ParseResult<(CompilerCtxt, Module)> {
+    fn parse_module<T: AsRef<str>>(code: T) -> (CompilerCtxt, Module) {
         let parser = create_parser(code.as_ref());
-        Ok(parser.parse()?)
+        parser.parse()
     }
 
     #[cfg(test)]
@@ -1552,15 +1591,14 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse {
         ($code:expr) => {{
-            parse_module($code).unwrap()
+            parse_module($code)
         }};
     }
 
     #[cfg(test)]
     macro_rules! parse_ty {
         ($code:expr) => {{
-            let (ctxt, key) = parse_code($code, Parser::parse_ty).unwrap();
-            let ty = ctxt.resolve_ty(key).clone();
+            let (ctxt, ty) = parse_code($code, Parser::parse_ty).unwrap();
             (StringInterner::from(ctxt), ty)
         }};
     }
@@ -1582,48 +1620,61 @@ mod tests {
 
     #[test]
     pub fn invalid_use_stmts() {
-        match parse_module("use std::vector::") {
-            Ok(module) => {
-                panic!();
-            }
-            Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedToken(Identifier(_), pos)) => {}
-                _ => {
-                    panic!();
-                }
-            },
-        }
+        let (mut ctxt, mut module) = parse_module("use std::vector::");
+        let mut errors = &module.parse_errors;
 
-        match parse_module("use std::vector::Vector") {
-            Ok(_) => panic!(),
-            Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedToken(TokenType::Semicolon, _)) => {}
-                _ => panic!(),
-            },
-        }
+        assert_eq!(1, errors.len());
 
-        match parse_module("use;") {
-            Ok(_) => panic!(),
-            Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedToken(Identifier(_), pos)) => {}
-                _ => panic!(),
-            },
-        }
+        let error = &errors[0];
+        let expected_ident = ctxt.intern_str("");
+        assert_eq!(
+            std::mem::discriminant(error),
+            std::mem::discriminant(&ExpectedToken(
+                Identifier(expected_ident),
+                NormalizedSpan::default()
+            ))
+        );
 
-        match parse_module("use") {
-            Ok(_) => panic!(),
-            Err(error) => match error.downcast_ref::<ParseError>() {
-                Some(ExpectedToken(Identifier(_), pos)) => {}
-                _ => {
-                    panic!()
-                }
-            },
-        }
+        (ctxt, module) = parse_module("use std::vector::Vector");
+        errors = &module.parse_errors;
+
+        assert_eq!(1, errors.len());
+        let error = &errors[0];
+        assert_eq!(
+            std::mem::discriminant(error),
+            std::mem::discriminant(&ExpectedToken(Semicolon, NormalizedSpan::default()))
+        );
+
+        let (ctxt, module) = parse_module("use;");
+        errors = &module.parse_errors;
+
+        assert_eq!(1, errors.len());
+        let error = &errors[0];
+        assert_eq!(
+            std::mem::discriminant(error),
+            std::mem::discriminant(&ExpectedToken(
+                Identifier(expected_ident),
+                NormalizedSpan::default()
+            ))
+        );
+
+        let (ctxt, module) = parse_module("use");
+        errors = &module.parse_errors;
+
+        assert_eq!(1, errors.len());
+        let error = &errors[0];
+        assert_eq!(
+            std::mem::discriminant(error),
+            std::mem::discriminant(&ExpectedToken(
+                Identifier(expected_ident),
+                NormalizedSpan::default()
+            ))
+        );
     }
 
     #[test]
     #[snapshot]
-    pub fn closure_return_closure() -> (StringInterner, Type) {
+    pub fn closure_return_closure() -> (StringInterner, Ty) {
         parse_ty!("() => (() => None)")
     }
 
@@ -1635,13 +1686,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn closure_returns_trait_bound_or_none() -> (StringInterner, Type) {
+    pub fn closure_returns_trait_bound_or_none() -> (StringInterner, Ty) {
         parse_ty!("() => [first::party::package::Send<K, V> + third::party::package::Sync<T> + std::Copy + std::Clone] | None")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_type() -> (StringInterner, Type) {
+    pub fn generic_type() -> (StringInterner, Ty) {
         parse_ty!("List<List<i64>>")
     }
 
@@ -1774,33 +1825,31 @@ mod tests {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]
             pub fn $fn_name() {
+                let actual_ty = Ty::new($typ, Span::new(0, $code.len() as u32), NodeId::new(0));
                 let (ctxt, ty) = parse_ty!($code);
-                assert_eq!(
-                    $typ, ty
-                );
+                assert_eq!(actual_ty, ty);
             }
         };
     }
 
-    simple_type!(Type::Str, str_type, "str");
-    simple_type!(Type::U8, u8_type, "u8");
-    simple_type!(Type::U16, u16_type, "u16");
-    simple_type!(Type::U32, u32_type, "u32");
-    simple_type!(Type::U64, u64_type, "u64");
-    simple_type!(Type::I8, i8_type, "i8");
-    simple_type!(Type::I16, i16_type, "i16");
-    simple_type!(Type::I32, i32_type, "i32");
-    simple_type!(Type::I64, i64_type, "i64");
-    simple_type!(Type::F32, f32_type, "f32");
-    simple_type!(Type::F64, f64_type, "f64");
-    simple_type!(Type::None, none_type, "None");
+    simple_type!(TyKind::Str, str_type, "str");
+    simple_type!(TyKind::U8, u8_type, "u8");
+    simple_type!(TyKind::U16, u16_type, "u16");
+    simple_type!(TyKind::U32, u32_type, "u32");
+    simple_type!(TyKind::U64, u64_type, "u64");
+    simple_type!(TyKind::I8, i8_type, "i8");
+    simple_type!(TyKind::I16, i16_type, "i16");
+    simple_type!(TyKind::I32, i32_type, "i32");
+    simple_type!(TyKind::I64, i64_type, "i64");
+    simple_type!(TyKind::F32, f32_type, "f32");
+    simple_type!(TyKind::F64, f64_type, "f64");
+    simple_type!(TyKind::None, none_type, "None");
 
     #[test]
     #[snapshot]
     pub fn use_statements() -> (CompilerCtxt, Module) {
         parse!(utils::read_file(["short_examples", "use_stmts.si"]))
     }
-
 
     #[test]
     #[snapshot]
@@ -1847,7 +1896,10 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn mutable_assignment() -> (CompilerCtxt, Module) {
-        parse!(utils::read_file(["short_examples", "mutable_assignment.si"]))
+        parse!(utils::read_file([
+            "short_examples",
+            "mutable_assignment.si"
+        ]))
     }
 
     #[test]

@@ -6,11 +6,11 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 
+use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::interner::{Interner, Key};
 use anyhow::Result;
 use phf::phf_map;
 use unicode_segmentation::UnicodeSegmentation;
-use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::interner::{Interner, Key};
 
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
@@ -23,9 +23,7 @@ pub fn tokenize_file(path: &Path) -> Result<(CompilerCtxt, TokenizedInput)> {
     tokenizer.tokenize()
 }
 
-pub fn tokenize<T: AsRef<str>>(
-    input: T,
-) -> Result<(CompilerCtxt, TokenizedInput)> {
+pub fn tokenize<T: AsRef<str>>(input: T) -> Result<(CompilerCtxt, TokenizedInput)> {
     let source_file = input.as_ref();
     let tokenizer = Tokenizer::new(source_file);
     tokenizer.tokenize()
@@ -219,9 +217,7 @@ impl<'this> Tokenizer<'this> {
             .join("")
             .parse::<i64>()
             .map(TokenType::SignedInteger)
-            .unwrap_or_else(|_| {
-                TokenType::Unrecognized(self.intern("Invalid integer."))
-            });
+            .unwrap_or_else(|_| TokenType::Unrecognized(self.intern("Invalid integer.")));
         self.create_token(token_type);
     }
 
@@ -230,7 +226,7 @@ impl<'this> Tokenizer<'this> {
         while let Some(char) = self.peek() && char != "\"" {
             self.next();
             if is_line_break(char) {
-                self.tokenized_file.add_line_break(self.current);
+                self.tokenized_file.add_line_break(self.current as u32);
             }
             tokens.push(char);
         }
@@ -253,7 +249,7 @@ impl<'this> Tokenizer<'this> {
                     self.next();
                 }
                 "\r" | "\n" | "\r\n" => {
-                    self.tokenized_file.add_line_break(self.current);
+                    self.tokenized_file.add_line_break(self.current as u32);
                     self.next();
                 }
                 "/" => {
@@ -373,8 +369,8 @@ mod tests {
     use anyhow::Result;
     use serde::de::Unexpected::Str;
 
-    use snap::snapshot;
     use crate::compiler::compiler::CompilerCtxt;
+    use snap::snapshot;
 
     use crate::compiler::tokens::token::{Token, TokenType};
     use crate::compiler::tokens::tokenized_file::TokenizedInput;

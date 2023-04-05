@@ -2,7 +2,6 @@ use crate::bytes::serializable::Serializable;
 use crate::bytes::serializers::{ByteReader, ByteWriter};
 use crate::class::constant_pool::ConstantPoolEntry;
 use crate::class::references::{InlineReference, Reference};
-use crate::compiler::types::types::Type;
 use crate::pointers::heap_pointer::HeapPointer;
 use crate::pointers::pointer::Pointer;
 use crate::pool::internal_string::InternalString;

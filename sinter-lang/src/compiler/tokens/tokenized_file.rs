@@ -1,12 +1,31 @@
-use std::path::Path;
 use crate::compiler::tokens::token::Token;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 
 #[derive(Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct TokenizedInput {
-    pub (crate) tokens: Vec<Token>,
-    pub (crate) line_map: Vec<u32>,
+    pub(crate) tokens: Vec<Token>,
+    pub(crate) line_map: Vec<u32>,
     line_counter: u32,
+}
+
+#[derive(PartialEq, Default, Debug, Serialize, Deserialize)]
+pub struct NormalizedSpan {
+    pub start_pos: u32,
+    pub start_line: u32,
+    pub end_pos: u32,
+    pub end_line: u32,
+}
+
+impl NormalizedSpan {
+    pub fn new(start_pos: u32, start_line: u32, end_pos: u32, end_line: u32) -> Self {
+        Self {
+            start_pos,
+            start_line,
+            end_pos,
+            end_line,
+        }
+    }
 }
 
 #[derive(Eq, PartialEq, Debug, Hash, Serialize, Deserialize, Copy, Clone)]
@@ -16,12 +35,8 @@ pub struct Span {
 }
 
 impl Span {
-
     pub fn new(start: u32, end: u32) -> Self {
-        Self {
-            start,
-            end,
-        }
+        Self { start, end }
     }
 
     pub fn to(&self, other: Self) -> Self {
@@ -34,10 +49,7 @@ impl Span {
 
 impl Default for Span {
     fn default() -> Self {
-        Self {
-            start: 0,
-            end: 0,
-        }
+        Self { start: 0, end: 0 }
     }
 }
 
@@ -50,15 +62,32 @@ impl TokenizedInput {
         }
     }
 
-    pub fn token_position(&self, pos: u32) -> Span {
-        let line = self.line_map.partition_point(|&line_pos| line_pos <= pos) as u32;
+    pub fn token_position(&self, span: Span) -> NormalizedSpan {
+        let start_line = self
+            .line_map
+            .partition_point(|&line_pos| line_pos <= span.start);
+        let end_line = self
+            .line_map
+            .partition_point(|&line_pos| line_pos <= span.end);
 
-        let line_pos = if line > 0 {
-            pos - self.line_map[line - 1]
+        let start_pos = if start_line > 0 {
+            span.start - self.line_map[start_line - 1]
         } else {
-            pos
+            span.start
         };
-        Span::new(line + 1, line_pos)
+
+        let end_pos = if end_line > 0 {
+            span.end - self.line_map[end_line - 1]
+        } else {
+            span.end
+        };
+
+        NormalizedSpan::new(
+            start_pos,
+            start_line as u32 + 1,
+            end_pos,
+            end_line as u32 + 1,
+        )
     }
 
     pub fn add_line_break(&mut self, pos: u32) {
@@ -68,7 +97,7 @@ impl TokenizedInput {
 }
 
 mod tests {
-    use crate::compiler::tokens::tokenized_file::{TokenSpan, TokenizedInput};
+    use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
 
     #[test]
     pub fn line_map() {
@@ -77,11 +106,13 @@ mod tests {
         tokenized_input.add_line_break(2);
         tokenized_input.add_line_break(5);
 
-        assert_eq!(TokenSpan::new(1, 0), tokenized_input.token_position(0));
-        assert_eq!(TokenSpan::new(1, 1), tokenized_input.token_position(1));
-        assert_eq!(TokenSpan::new(2, 0), tokenized_input.token_position(2));
-        assert_eq!(TokenSpan::new(2, 1), tokenized_input.token_position(3));
-        assert_eq!(TokenSpan::new(2, 2), tokenized_input.token_position(4));
-        assert_eq!(TokenSpan::new(3, 0), tokenized_input.token_position(5));
+        assert_eq!(
+            NormalizedSpan::new(0, 1, 1, 1),
+            tokenized_input.token_position(Span::new(0, 1))
+        );
+        assert_eq!(
+            NormalizedSpan::new(1, 1, 0, 2),
+            tokenized_input.token_position(Span::new(1, 2))
+        );
     }
 }

@@ -299,7 +299,6 @@ impl Default for VM {
 }
 
 mod tests {
-    use crate::compiler::types::types::Type;
     use crate::function::method::Method;
     use crate::opcode::OpCode;
     use crate::pointers::pointer::Pointer;
