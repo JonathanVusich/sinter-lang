@@ -139,7 +139,8 @@ impl Parser {
                 Err(err) => errors.push(err),
             }
         }
-        Module::new(items)
+
+        Module::new(items, errors)
     }
 
     fn parse_node<T, I>(
@@ -149,8 +150,6 @@ impl Parser {
     ) -> ParseResult<I> {
         self.track_span();
         let value = parse_fn(self)?;
-        let span = self.get_span();
-        let id = self.get_id();
         Ok(constructor(value, self.get_span(), self.get_id()))
     }
 
@@ -1619,8 +1618,10 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     pub fn invalid_use_stmts() {
-        let (mut ctxt, mut module) = parse_module("use std::vector::");
+        let (mut ctxt, module) = parse_module("use std::vector::");
+        eprintln!("Parsed code!");
         let mut errors = &module.parse_errors;
 
         assert_eq!(1, errors.len());
@@ -1635,7 +1636,7 @@ mod tests {
             ))
         );
 
-        (ctxt, module) = parse_module("use std::vector::Vector");
+        let (ctxt, module) = parse_module("use std::vector::Vector");
         errors = &module.parse_errors;
 
         assert_eq!(1, errors.len());

@@ -30,8 +30,6 @@ pub struct CompiledApplication {}
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct CompilerCtxt {
     string_interner: StringInterner,
-
-    ast_id: usize,
 }
 
 impl CompilerCtxt {
@@ -48,7 +46,6 @@ impl Default for CompilerCtxt {
     fn default() -> Self {
         Self {
             string_interner: StringInterner::default(),
-            ast_id: 0,
         }
     }
 }

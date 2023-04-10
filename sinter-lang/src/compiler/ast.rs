@@ -136,10 +136,10 @@ pub struct Module {
 }
 
 impl Module {
-    pub fn new(items: Vec<Item>) -> Self {
+    pub fn new(items: Vec<Item>, parse_errors: Vec<ParseError>) -> Self {
         Self {
             items,
-            parse_errors: Vec::new(),
+            parse_errors,
         }
     }
 }
