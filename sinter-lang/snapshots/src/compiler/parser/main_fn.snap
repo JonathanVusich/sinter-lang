@@ -4,59 +4,122 @@
       "main",
       "print",
       "Hello world!"
-    ],
-    "ty_interner": []
+    ]
   },
   {
-    "use_stmts": [],
-    "global_let_stmts": [],
-    "class_stmts": [],
-    "enum_stmts": [],
-    "trait_stmts": [],
-    "trait_impl_stmts": [],
-    "fn_stmts": [
+    "items": [
       {
-        "sig": {
-          "name": 1,
-          "generic_params": {
-            "params": []
-          },
-          "params": {
-            "params": []
-          },
-          "return_type": null
-        },
-        "body": {
-          "stmts": [
-            {
-              "Expression": {
-                "expr": {
-                  "Call": {
-                    "func": {
-                      "Path": {
-                        "segments": [
-                          {
-                            "ident": 2,
-                            "generics": null
+        "kind": {
+          "Fn": {
+            "sig": {
+              "name": {
+                "ident": {
+                  "str": 1
+                },
+                "span": {
+                  "start": 3,
+                  "end": 7
+                },
+                "id": {
+                  "id": 0
+                }
+              },
+              "generic_params": {
+                "params": []
+              },
+              "params": {
+                "params": []
+              },
+              "return_type": null
+            },
+            "body": {
+              "stmts": [
+                {
+                  "Expression": {
+                    "expr": {
+                      "kind": {
+                        "Call": {
+                          "func": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": {
+                                        "str": 2
+                                      },
+                                      "span": {
+                                        "start": 16,
+                                        "end": 21
+                                      },
+                                      "id": {
+                                        "id": 1
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 16,
+                              "end": 21
+                            },
+                            "id": {
+                              "id": 2
+                            }
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "kind": {
+                                  "String": {
+                                    "str": 3
+                                  }
+                                },
+                                "span": {
+                                  "start": 22,
+                                  "end": 36
+                                },
+                                "id": {
+                                  "id": 3
+                                }
+                              }
+                            ]
                           }
-                        ]
+                        }
+                      },
+                      "span": {
+                        "start": 16,
+                        "end": 37
+                      },
+                      "id": {
+                        "id": 4
                       }
                     },
-                    "args": {
-                      "args": [
-                        {
-                          "String": 3
-                        }
-                      ]
-                    }
+                    "implicit_return": true
                   }
-                },
-                "implicit_return": true
+                }
+              ],
+              "span": {
+                "start": 10,
+                "end": 40
+              },
+              "id": {
+                "id": 5
               }
             }
-          ]
+          }
+        },
+        "span": {
+          "start": 0,
+          "end": 40
+        },
+        "id": {
+          "id": 6
         }
       }
-    ]
+    ],
+    "parse_errors": []
   }
 ]

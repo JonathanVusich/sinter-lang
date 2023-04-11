@@ -12,137 +12,366 @@
       "size",
       "u64",
       "self"
-    ],
-    "ty_interner": [
-      "Str",
-      {
-        "Path": {
-          "path": {
-            "ident": {
-              "idents": [
-                8
-              ]
-            },
-            "generics": []
-          }
-        }
-      },
-      "QSelf",
-      "U64"
     ]
   },
   {
-    "use_stmts": [],
-    "global_let_stmts": [],
-    "class_stmts": [],
-    "enum_stmts": [
+    "items": [
       {
-        "name": 1,
-        "generic_params": {
-          "params": []
-        },
-        "members": [
-          {
-            "name": 2,
-            "fields": {
-              "params": [
-                {
-                  "ident": 3,
-                  "ty": {
-                    "val": 1
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
+        "kind": {
+          "Enum": {
+            "name": {
+              "ident": {
+                "str": 1
+              },
+              "span": {
+                "start": 5,
+                "end": 12
+              },
+              "id": {
+                "id": 0
+              }
             },
-            "member_fns": []
-          },
-          {
-            "name": 5,
-            "fields": {
-              "params": [
-                {
-                  "ident": 6,
-                  "ty": {
-                    "val": 1
-                  },
-                  "mutability": "Immutable"
-                },
-                {
-                  "ident": 7,
-                  "ty": {
-                    "val": 2
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
+            "generic_params": {
+              "params": []
             },
-            "member_fns": [
+            "members": [
               {
-                "sig": {
-                  "name": 9,
-                  "generic_params": {
-                    "params": []
-                  },
-                  "params": {
-                    "params": [
-                      {
-                        "ident": 11,
-                        "ty": {
-                          "val": 3
-                        },
-                        "mutability": "Immutable"
-                      }
-                    ]
-                  },
-                  "return_type": {
-                    "val": 4
-                  }
+                "name": {
+                  "str": 2
                 },
-                "body": {
-                  "stmts": [
+                "fields": {
+                  "params": [
                     {
-                      "Return": {
-                        "value": {
-                          "Call": {
-                            "func": {
-                              "Field": {
-                                "lhs": {
-                                  "Field": {
-                                    "lhs": {
-                                      "Path": {
-                                        "segments": [
-                                          {
-                                            "ident": 11,
-                                            "generics": null
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "ident": 7
-                                  }
-                                },
-                                "ident": 9
-                              }
-                            },
-                            "args": {
-                              "args": []
-                            }
-                          }
+                      "ident": {
+                        "ident": {
+                          "str": 3
+                        },
+                        "span": {
+                          "start": 23,
+                          "end": 30
+                        },
+                        "id": {
+                          "id": 1
                         }
+                      },
+                      "ty": {
+                        "kind": "Str",
+                        "span": {
+                          "start": 32,
+                          "end": 35
+                        },
+                        "id": {
+                          "id": 2
+                        }
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 32,
+                        "end": 35
+                      },
+                      "id": {
+                        "id": 3
                       }
                     }
                   ]
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 23,
+                  "end": 36
+                },
+                "id": {
+                  "id": 4
+                }
+              },
+              {
+                "name": {
+                  "str": 5
+                },
+                "fields": {
+                  "params": [
+                    {
+                      "ident": {
+                        "ident": {
+                          "str": 6
+                        },
+                        "span": {
+                          "start": 48,
+                          "end": 55
+                        },
+                        "id": {
+                          "id": 5
+                        }
+                      },
+                      "ty": {
+                        "kind": "Str",
+                        "span": {
+                          "start": 57,
+                          "end": 60
+                        },
+                        "id": {
+                          "id": 6
+                        }
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 57,
+                        "end": 60
+                      },
+                      "id": {
+                        "id": 7
+                      }
+                    },
+                    {
+                      "ident": {
+                        "ident": {
+                          "str": 7
+                        },
+                        "span": {
+                          "start": 62,
+                          "end": 67
+                        },
+                        "id": {
+                          "id": 8
+                        }
+                      },
+                      "ty": {
+                        "kind": {
+                          "Path": {
+                            "path": {
+                              "ident": {
+                                "idents": [
+                                  {
+                                    "ident": {
+                                      "str": 8
+                                    },
+                                    "span": {
+                                      "start": 69,
+                                      "end": 84
+                                    },
+                                    "id": {
+                                      "id": 9
+                                    }
+                                  }
+                                ]
+                              },
+                              "generics": {
+                                "generics": []
+                              }
+                            }
+                          }
+                        },
+                        "span": {
+                          "start": 69,
+                          "end": 84
+                        },
+                        "id": {
+                          "id": 10
+                        }
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 69,
+                        "end": 84
+                      },
+                      "id": {
+                        "id": 11
+                      }
+                    }
+                  ]
+                },
+                "member_fns": [
+                  {
+                    "sig": {
+                      "name": {
+                        "ident": {
+                          "str": 9
+                        },
+                        "span": {
+                          "start": 99,
+                          "end": 103
+                        },
+                        "id": {
+                          "id": 12
+                        }
+                      },
+                      "generic_params": {
+                        "params": []
+                      },
+                      "params": {
+                        "params": [
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 11
+                              },
+                              "span": {
+                                "start": 104,
+                                "end": 108
+                              },
+                              "id": {
+                                "id": 13
+                              }
+                            },
+                            "ty": {
+                              "kind": "QSelf",
+                              "span": {
+                                "start": 104,
+                                "end": 108
+                              },
+                              "id": {
+                                "id": 14
+                              }
+                            },
+                            "mutability": "Immutable"
+                          }
+                        ]
+                      },
+                      "return_type": {
+                        "kind": "U64",
+                        "span": {
+                          "start": 113,
+                          "end": 116
+                        },
+                        "id": {
+                          "id": 15
+                        }
+                      }
+                    },
+                    "body": {
+                      "stmts": [
+                        {
+                          "Return": {
+                            "value": {
+                              "kind": {
+                                "Call": {
+                                  "func": {
+                                    "kind": {
+                                      "Field": {
+                                        "lhs": {
+                                          "kind": {
+                                            "Field": {
+                                              "lhs": {
+                                                "kind": {
+                                                  "Path": {
+                                                    "segments": [
+                                                      {
+                                                        "ident": {
+                                                          "ident": {
+                                                            "str": 11
+                                                          },
+                                                          "span": {
+                                                            "start": 138,
+                                                            "end": 142
+                                                          },
+                                                          "id": {
+                                                            "id": 16
+                                                          }
+                                                        },
+                                                        "generics": null
+                                                      }
+                                                    ]
+                                                  }
+                                                },
+                                                "span": {
+                                                  "start": 138,
+                                                  "end": 142
+                                                },
+                                                "id": {
+                                                  "id": 17
+                                                }
+                                              },
+                                              "ident": {
+                                                "ident": {
+                                                  "str": 7
+                                                },
+                                                "span": {
+                                                  "start": 143,
+                                                  "end": 148
+                                                },
+                                                "id": {
+                                                  "id": 18
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "span": {
+                                            "start": 138,
+                                            "end": 148
+                                          },
+                                          "id": {
+                                            "id": 19
+                                          }
+                                        },
+                                        "ident": {
+                                          "ident": {
+                                            "str": 9
+                                          },
+                                          "span": {
+                                            "start": 149,
+                                            "end": 153
+                                          },
+                                          "id": {
+                                            "id": 20
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "span": {
+                                      "start": 138,
+                                      "end": 153
+                                    },
+                                    "id": {
+                                      "id": 21
+                                    }
+                                  },
+                                  "args": {
+                                    "args": []
+                                  }
+                                }
+                              },
+                              "span": {
+                                "start": 138,
+                                "end": 155
+                              },
+                              "id": {
+                                "id": 22
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "span": {
+                        "start": 117,
+                        "end": 166
+                      },
+                      "id": {
+                        "id": 23
+                      }
+                    }
+                  }
+                ],
+                "span": {
+                  "start": 113,
+                  "end": 172
+                },
+                "id": {
+                  "id": 24
                 }
               }
-            ]
+            ],
+            "member_fns": []
           }
-        ],
-        "member_fns": []
+        },
+        "span": {
+          "start": 62,
+          "end": 176
+        },
+        "id": {
+          "id": 25
+        }
       }
     ],
-    "trait_stmts": [],
-    "trait_impl_stmts": [],
-    "fn_stmts": []
+    "parse_errors": []
   }
 ]

@@ -3,45 +3,124 @@
     "string_interner": [
       "x",
       "y"
-    ],
-    "ty_interner": []
+    ]
   },
   {
-    "Closure": {
-      "params": [
-        1,
-        2
-      ],
-      "stmt": {
-        "Expression": {
-          "expr": {
-            "Infix": {
-              "operator": "Add",
-              "lhs": {
-                "Path": {
-                  "segments": [
-                    {
-                      "ident": 1,
-                      "generics": null
-                    }
-                  ]
-                }
-              },
-              "rhs": {
-                "Path": {
-                  "segments": [
-                    {
-                      "ident": 2,
-                      "generics": null
-                    }
-                  ]
-                }
-              }
+    "kind": {
+      "Closure": {
+        "params": [
+          {
+            "ident": {
+              "str": 1
+            },
+            "span": {
+              "start": 1,
+              "end": 2
+            },
+            "id": {
+              "id": 0
             }
           },
-          "implicit_return": true
+          {
+            "ident": {
+              "str": 2
+            },
+            "span": {
+              "start": 4,
+              "end": 5
+            },
+            "id": {
+              "id": 1
+            }
+          }
+        ],
+        "stmt": {
+          "Expression": {
+            "expr": {
+              "kind": {
+                "Infix": {
+                  "operator": "Add",
+                  "lhs": {
+                    "kind": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 1
+                              },
+                              "span": {
+                                "start": 10,
+                                "end": 11
+                              },
+                              "id": {
+                                "id": 2
+                              }
+                            },
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 10,
+                      "end": 11
+                    },
+                    "id": {
+                      "id": 3
+                    }
+                  },
+                  "rhs": {
+                    "kind": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 2
+                              },
+                              "span": {
+                                "start": 14,
+                                "end": 15
+                              },
+                              "id": {
+                                "id": 4
+                              }
+                            },
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 14,
+                      "end": 15
+                    },
+                    "id": {
+                      "id": 5
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 10,
+                "end": 15
+              },
+              "id": {
+                "id": 6
+              }
+            },
+            "implicit_return": true
+          }
         }
       }
+    },
+    "span": {
+      "start": 0,
+      "end": 15
+    },
+    "id": {
+      "id": 7
     }
   }
 ]

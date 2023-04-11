@@ -5,76 +5,164 @@
       "text",
       "str",
       "println"
-    ],
-    "ty_interner": [
-      "Str"
     ]
   },
   {
-    "use_stmts": [],
-    "global_let_stmts": [],
-    "class_stmts": [],
-    "enum_stmts": [],
-    "trait_stmts": [],
-    "trait_impl_stmts": [],
-    "fn_stmts": [
+    "items": [
       {
-        "sig": {
-          "name": 1,
-          "generic_params": {
-            "params": []
-          },
-          "params": {
-            "params": [
-              {
-                "ident": 2,
-                "ty": {
-                  "val": 1
+        "kind": {
+          "Fn": {
+            "sig": {
+              "name": {
+                "ident": {
+                  "str": 1
                 },
-                "mutability": "Immutable"
-              }
-            ]
-          },
-          "return_type": null
-        },
-        "body": {
-          "stmts": [
-            {
-              "Expression": {
-                "expr": {
-                  "Call": {
-                    "func": {
-                      "Path": {
-                        "segments": [
-                          {
-                            "ident": 4,
-                            "generics": null
-                          }
-                        ]
+                "span": {
+                  "start": 3,
+                  "end": 8
+                },
+                "id": {
+                  "id": 0
+                }
+              },
+              "generic_params": {
+                "params": []
+              },
+              "params": {
+                "params": [
+                  {
+                    "ident": {
+                      "ident": {
+                        "str": 2
+                      },
+                      "span": {
+                        "start": 9,
+                        "end": 13
+                      },
+                      "id": {
+                        "id": 1
                       }
                     },
-                    "args": {
-                      "args": [
-                        {
-                          "Path": {
-                            "segments": [
+                    "ty": {
+                      "kind": "Str",
+                      "span": {
+                        "start": 15,
+                        "end": 18
+                      },
+                      "id": {
+                        "id": 2
+                      }
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "return_type": null
+            },
+            "body": {
+              "stmts": [
+                {
+                  "Expression": {
+                    "expr": {
+                      "kind": {
+                        "Call": {
+                          "func": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": {
+                                        "str": 4
+                                      },
+                                      "span": {
+                                        "start": 26,
+                                        "end": 33
+                                      },
+                                      "id": {
+                                        "id": 3
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 26,
+                              "end": 33
+                            },
+                            "id": {
+                              "id": 4
+                            }
+                          },
+                          "args": {
+                            "args": [
                               {
-                                "ident": 2,
-                                "generics": null
+                                "kind": {
+                                  "Path": {
+                                    "segments": [
+                                      {
+                                        "ident": {
+                                          "ident": {
+                                            "str": 2
+                                          },
+                                          "span": {
+                                            "start": 34,
+                                            "end": 38
+                                          },
+                                          "id": {
+                                            "id": 5
+                                          }
+                                        },
+                                        "generics": null
+                                      }
+                                    ]
+                                  }
+                                },
+                                "span": {
+                                  "start": 34,
+                                  "end": 38
+                                },
+                                "id": {
+                                  "id": 6
+                                }
                               }
                             ]
                           }
                         }
-                      ]
-                    }
+                      },
+                      "span": {
+                        "start": 26,
+                        "end": 39
+                      },
+                      "id": {
+                        "id": 7
+                      }
+                    },
+                    "implicit_return": true
                   }
-                },
-                "implicit_return": true
+                }
+              ],
+              "span": {
+                "start": 20,
+                "end": 42
+              },
+              "id": {
+                "id": 8
               }
             }
-          ]
+          }
+        },
+        "span": {
+          "start": 15,
+          "end": 42
+        },
+        "id": {
+          "id": 9
         }
       }
-    ]
+    ],
+    "parse_errors": []
   }
 ]

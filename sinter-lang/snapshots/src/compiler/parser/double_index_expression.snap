@@ -2,31 +2,86 @@
   {
     "string_interner": [
       "x"
-    ],
-    "ty_interner": []
+    ]
   },
   {
-    "Index": {
-      "expr": {
-        "Index": {
-          "expr": {
-            "Path": {
-              "segments": [
-                {
-                  "ident": 1,
-                  "generics": null
+    "kind": {
+      "Index": {
+        "expr": {
+          "kind": {
+            "Index": {
+              "expr": {
+                "kind": {
+                  "Path": {
+                    "segments": [
+                      {
+                        "ident": {
+                          "ident": {
+                            "str": 1
+                          },
+                          "span": {
+                            "start": 0,
+                            "end": 1
+                          },
+                          "id": {
+                            "id": 0
+                          }
+                        },
+                        "generics": null
+                      }
+                    ]
+                  }
+                },
+                "span": {
+                  "start": 0,
+                  "end": 1
+                },
+                "id": {
+                  "id": 1
                 }
-              ]
+              },
+              "key": {
+                "kind": {
+                  "Integer": 0
+                },
+                "span": {
+                  "start": 2,
+                  "end": 3
+                },
+                "id": {
+                  "id": 2
+                }
+              }
             }
           },
-          "key": {
-            "Integer": 0
+          "span": {
+            "start": 0,
+            "end": 4
+          },
+          "id": {
+            "id": 3
+          }
+        },
+        "key": {
+          "kind": {
+            "Integer": 1
+          },
+          "span": {
+            "start": 5,
+            "end": 6
+          },
+          "id": {
+            "id": 4
           }
         }
-      },
-      "key": {
-        "Integer": 1
       }
+    },
+    "span": {
+      "start": 0,
+      "end": 7
+    },
+    "id": {
+      "id": 5
     }
   }
 ]

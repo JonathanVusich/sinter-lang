@@ -14,11 +14,356 @@
     "Clone"
   ],
   {
-    "Closure": [
-      [],
-      {
-        "val": 7
+    "kind": {
+      "Closure": {
+        "params": [],
+        "ret_ty": {
+          "kind": {
+            "Union": {
+              "tys": [
+                {
+                  "kind": {
+                    "Array": {
+                      "ty": {
+                        "kind": {
+                          "TraitBound": {
+                            "trait_bound": {
+                              "bounds": [
+                                {
+                                  "ident": {
+                                    "idents": [
+                                      {
+                                        "ident": {
+                                          "str": 1
+                                        },
+                                        "span": {
+                                          "start": 7,
+                                          "end": 12
+                                        },
+                                        "id": {
+                                          "id": 0
+                                        }
+                                      },
+                                      {
+                                        "ident": {
+                                          "str": 2
+                                        },
+                                        "span": {
+                                          "start": 14,
+                                          "end": 19
+                                        },
+                                        "id": {
+                                          "id": 1
+                                        }
+                                      },
+                                      {
+                                        "ident": {
+                                          "str": 3
+                                        },
+                                        "span": {
+                                          "start": 21,
+                                          "end": 28
+                                        },
+                                        "id": {
+                                          "id": 2
+                                        }
+                                      },
+                                      {
+                                        "ident": {
+                                          "str": 4
+                                        },
+                                        "span": {
+                                          "start": 30,
+                                          "end": 34
+                                        },
+                                        "id": {
+                                          "id": 3
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "generics": {
+                                    "generics": [
+                                      {
+                                        "kind": {
+                                          "Path": {
+                                            "path": {
+                                              "ident": {
+                                                "idents": [
+                                                  {
+                                                    "ident": {
+                                                      "str": 5
+                                                    },
+                                                    "span": {
+                                                      "start": 35,
+                                                      "end": 36
+                                                    },
+                                                    "id": {
+                                                      "id": 4
+                                                    }
+                                                  }
+                                                ]
+                                              },
+                                              "generics": {
+                                                "generics": []
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "span": {
+                                          "start": 35,
+                                          "end": 36
+                                        },
+                                        "id": {
+                                          "id": 5
+                                        }
+                                      },
+                                      {
+                                        "kind": {
+                                          "Path": {
+                                            "path": {
+                                              "ident": {
+                                                "idents": [
+                                                  {
+                                                    "ident": {
+                                                      "str": 6
+                                                    },
+                                                    "span": {
+                                                      "start": 38,
+                                                      "end": 39
+                                                    },
+                                                    "id": {
+                                                      "id": 6
+                                                    }
+                                                  }
+                                                ]
+                                              },
+                                              "generics": {
+                                                "generics": []
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "span": {
+                                          "start": 38,
+                                          "end": 39
+                                        },
+                                        "id": {
+                                          "id": 7
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "ident": {
+                                    "idents": [
+                                      {
+                                        "ident": {
+                                          "str": 7
+                                        },
+                                        "span": {
+                                          "start": 43,
+                                          "end": 48
+                                        },
+                                        "id": {
+                                          "id": 8
+                                        }
+                                      },
+                                      {
+                                        "ident": {
+                                          "str": 2
+                                        },
+                                        "span": {
+                                          "start": 50,
+                                          "end": 55
+                                        },
+                                        "id": {
+                                          "id": 9
+                                        }
+                                      },
+                                      {
+                                        "ident": {
+                                          "str": 3
+                                        },
+                                        "span": {
+                                          "start": 57,
+                                          "end": 64
+                                        },
+                                        "id": {
+                                          "id": 10
+                                        }
+                                      },
+                                      {
+                                        "ident": {
+                                          "str": 8
+                                        },
+                                        "span": {
+                                          "start": 66,
+                                          "end": 70
+                                        },
+                                        "id": {
+                                          "id": 11
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "generics": {
+                                    "generics": [
+                                      {
+                                        "kind": {
+                                          "Path": {
+                                            "path": {
+                                              "ident": {
+                                                "idents": [
+                                                  {
+                                                    "ident": {
+                                                      "str": 9
+                                                    },
+                                                    "span": {
+                                                      "start": 71,
+                                                      "end": 72
+                                                    },
+                                                    "id": {
+                                                      "id": 12
+                                                    }
+                                                  }
+                                                ]
+                                              },
+                                              "generics": {
+                                                "generics": []
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "span": {
+                                          "start": 71,
+                                          "end": 72
+                                        },
+                                        "id": {
+                                          "id": 13
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {
+                                  "ident": {
+                                    "idents": [
+                                      {
+                                        "ident": {
+                                          "str": 10
+                                        },
+                                        "span": {
+                                          "start": 76,
+                                          "end": 79
+                                        },
+                                        "id": {
+                                          "id": 14
+                                        }
+                                      },
+                                      {
+                                        "ident": {
+                                          "str": 11
+                                        },
+                                        "span": {
+                                          "start": 81,
+                                          "end": 85
+                                        },
+                                        "id": {
+                                          "id": 15
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "generics": {
+                                    "generics": []
+                                  }
+                                },
+                                {
+                                  "ident": {
+                                    "idents": [
+                                      {
+                                        "ident": {
+                                          "str": 10
+                                        },
+                                        "span": {
+                                          "start": 88,
+                                          "end": 91
+                                        },
+                                        "id": {
+                                          "id": 16
+                                        }
+                                      },
+                                      {
+                                        "ident": {
+                                          "str": 12
+                                        },
+                                        "span": {
+                                          "start": 93,
+                                          "end": 98
+                                        },
+                                        "id": {
+                                          "id": 17
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "generics": {
+                                    "generics": []
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "span": {
+                          "start": 71,
+                          "end": 98
+                        },
+                        "id": {
+                          "id": 18
+                        }
+                      }
+                    }
+                  },
+                  "span": {
+                    "start": 38,
+                    "end": 98
+                  },
+                  "id": {
+                    "id": 19
+                  }
+                },
+                {
+                  "kind": "None",
+                  "span": {
+                    "start": 102,
+                    "end": 106
+                  },
+                  "id": {
+                    "id": 20
+                  }
+                }
+              ]
+            }
+          },
+          "span": {
+            "start": 35,
+            "end": 106
+          },
+          "id": {
+            "id": 21
+          }
+        }
       }
-    ]
+    },
+    "span": {
+      "start": 7,
+      "end": 106
+    },
+    "id": {
+      "id": 22
+    }
   }
 ]

@@ -10,188 +10,578 @@
       "i32",
       "point_array",
       "node_array"
-    ],
-    "ty_interner": [
-      "F64",
-      "I32",
-      {
-        "Array": {
-          "ty": {
-            "val": 2
-          }
-        }
-      }
     ]
   },
   {
-    "use_stmts": [],
-    "global_let_stmts": [
+    "items": [
       {
-        "ident": 6,
-        "ty": {
-          "val": 3
-        },
-        "initializer": {
-          "Array": {
-            "Initializer": [
-              {
-                "Integer": 1
+        "kind": {
+          "Class": {
+            "name": {
+              "ident": {
+                "str": 1
               },
-              {
-                "Integer": 2
+              "span": {
+                "start": 6,
+                "end": 11
               },
-              {
-                "Integer": 3
+              "id": {
+                "id": 0
               }
-            ]
-          }
-        }
-      },
-      {
-        "ident": 8,
-        "ty": null,
-        "initializer": {
-          "Array": {
-            "Initializer": [
-              {
-                "Call": {
-                  "func": {
-                    "Path": {
-                      "segments": [
-                        {
-                          "ident": 1,
-                          "generics": null
-                        }
-                      ]
-                    }
-                  },
-                  "args": {
-                    "args": [
-                      {
-                        "Float": 1.0
-                      },
-                      {
-                        "Float": 2.0
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "Call": {
-                  "func": {
-                    "Path": {
-                      "segments": [
-                        {
-                          "ident": 1,
-                          "generics": null
-                        }
-                      ]
-                    }
-                  },
-                  "args": {
-                    "args": [
-                      {
-                        "Float": 1.5
-                      },
-                      {
-                        "Float": 2.5
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          }
-        }
-      },
-      {
-        "ident": 9,
-        "ty": null,
-        "initializer": {
-          "Array": {
-            "Initializer": [
-              {
-                "Call": {
-                  "func": {
-                    "Path": {
-                      "segments": [
-                        {
-                          "ident": 5,
-                          "generics": null
-                        }
-                      ]
-                    }
-                  },
-                  "args": {
-                    "args": []
-                  }
-                }
-              },
-              {
-                "Call": {
-                  "func": {
-                    "Path": {
-                      "segments": [
-                        {
-                          "ident": 5,
-                          "generics": null
-                        }
-                      ]
-                    }
-                  },
-                  "args": {
-                    "args": []
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
-    ],
-    "class_stmts": [
-      {
-        "name": 1,
-        "class_type": "Inline",
-        "generic_params": {
-          "params": []
-        },
-        "fields": {
-          "params": [
-            {
-              "ident": 2,
-              "ty": {
-                "val": 1
-              },
-              "mutability": "Immutable"
             },
-            {
-              "ident": 4,
-              "ty": {
-                "val": 1
-              },
-              "mutability": "Immutable"
-            }
-          ]
+            "class_type": "Inline",
+            "generic_params": {
+              "params": []
+            },
+            "fields": {
+              "params": [
+                {
+                  "ident": {
+                    "ident": {
+                      "str": 2
+                    },
+                    "span": {
+                      "start": 12,
+                      "end": 13
+                    },
+                    "id": {
+                      "id": 1
+                    }
+                  },
+                  "ty": {
+                    "kind": "F64",
+                    "span": {
+                      "start": 15,
+                      "end": 18
+                    },
+                    "id": {
+                      "id": 2
+                    }
+                  },
+                  "mutability": "Immutable",
+                  "span": {
+                    "start": 15,
+                    "end": 18
+                  },
+                  "id": {
+                    "id": 3
+                  }
+                },
+                {
+                  "ident": {
+                    "ident": {
+                      "str": 4
+                    },
+                    "span": {
+                      "start": 20,
+                      "end": 21
+                    },
+                    "id": {
+                      "id": 4
+                    }
+                  },
+                  "ty": {
+                    "kind": "F64",
+                    "span": {
+                      "start": 23,
+                      "end": 26
+                    },
+                    "id": {
+                      "id": 5
+                    }
+                  },
+                  "mutability": "Immutable",
+                  "span": {
+                    "start": 23,
+                    "end": 26
+                  },
+                  "id": {
+                    "id": 6
+                  }
+                }
+              ]
+            },
+            "member_fns": []
+          }
         },
-        "member_fns": []
+        "span": {
+          "start": 20,
+          "end": 28
+        },
+        "id": {
+          "id": 7
+        }
       },
       {
-        "name": 5,
-        "class_type": "Reference",
-        "generic_params": {
-          "params": []
+        "kind": {
+          "Class": {
+            "name": {
+              "ident": {
+                "str": 5
+              },
+              "span": {
+                "start": 39,
+                "end": 43
+              },
+              "id": {
+                "id": 8
+              }
+            },
+            "class_type": "Reference",
+            "generic_params": {
+              "params": []
+            },
+            "fields": {
+              "params": []
+            },
+            "member_fns": []
+          }
         },
-        "fields": {
-          "params": []
+        "span": {
+          "start": 29,
+          "end": 44
         },
-        "member_fns": []
+        "id": {
+          "id": 9
+        }
+      },
+      {
+        "kind": {
+          "GlobalLet": {
+            "ident": {
+              "ident": {
+                "str": 6
+              },
+              "span": {
+                "start": 49,
+                "end": 58
+              },
+              "id": {
+                "id": 10
+              }
+            },
+            "ty": {
+              "kind": {
+                "Array": {
+                  "ty": {
+                    "kind": "I32",
+                    "span": {
+                      "start": 61,
+                      "end": 64
+                    },
+                    "id": {
+                      "id": 11
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 61,
+                "end": 64
+              },
+              "id": {
+                "id": 12
+              }
+            },
+            "initializer": {
+              "kind": {
+                "Array": {
+                  "Initializer": [
+                    {
+                      "kind": {
+                        "Integer": 1
+                      },
+                      "span": {
+                        "start": 69,
+                        "end": 70
+                      },
+                      "id": {
+                        "id": 13
+                      }
+                    },
+                    {
+                      "kind": {
+                        "Integer": 2
+                      },
+                      "span": {
+                        "start": 72,
+                        "end": 73
+                      },
+                      "id": {
+                        "id": 14
+                      }
+                    },
+                    {
+                      "kind": {
+                        "Integer": 3
+                      },
+                      "span": {
+                        "start": 75,
+                        "end": 76
+                      },
+                      "id": {
+                        "id": 15
+                      }
+                    }
+                  ]
+                }
+              },
+              "span": {
+                "start": 68,
+                "end": 77
+              },
+              "id": {
+                "id": 16
+              }
+            },
+            "span": {
+              "start": 60,
+              "end": 78
+            },
+            "id": {
+              "id": 17
+            }
+          }
+        },
+        "span": {
+          "start": 60,
+          "end": 78
+        },
+        "id": {
+          "id": 18
+        }
+      },
+      {
+        "kind": {
+          "GlobalLet": {
+            "ident": {
+              "ident": {
+                "str": 8
+              },
+              "span": {
+                "start": 83,
+                "end": 94
+              },
+              "id": {
+                "id": 19
+              }
+            },
+            "ty": null,
+            "initializer": {
+              "kind": {
+                "Array": {
+                  "Initializer": [
+                    {
+                      "kind": {
+                        "Call": {
+                          "func": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": {
+                                        "str": 1
+                                      },
+                                      "span": {
+                                        "start": 98,
+                                        "end": 103
+                                      },
+                                      "id": {
+                                        "id": 20
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 98,
+                              "end": 103
+                            },
+                            "id": {
+                              "id": 21
+                            }
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "kind": {
+                                  "Float": 1.0
+                                },
+                                "span": {
+                                  "start": 104,
+                                  "end": 107
+                                },
+                                "id": {
+                                  "id": 22
+                                }
+                              },
+                              {
+                                "kind": {
+                                  "Float": 2.0
+                                },
+                                "span": {
+                                  "start": 109,
+                                  "end": 112
+                                },
+                                "id": {
+                                  "id": 23
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 98,
+                        "end": 113
+                      },
+                      "id": {
+                        "id": 24
+                      }
+                    },
+                    {
+                      "kind": {
+                        "Call": {
+                          "func": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": {
+                                        "str": 1
+                                      },
+                                      "span": {
+                                        "start": 115,
+                                        "end": 120
+                                      },
+                                      "id": {
+                                        "id": 25
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 115,
+                              "end": 120
+                            },
+                            "id": {
+                              "id": 26
+                            }
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "kind": {
+                                  "Float": 1.5
+                                },
+                                "span": {
+                                  "start": 121,
+                                  "end": 124
+                                },
+                                "id": {
+                                  "id": 27
+                                }
+                              },
+                              {
+                                "kind": {
+                                  "Float": 2.5
+                                },
+                                "span": {
+                                  "start": 126,
+                                  "end": 129
+                                },
+                                "id": {
+                                  "id": 28
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 115,
+                        "end": 130
+                      },
+                      "id": {
+                        "id": 29
+                      }
+                    }
+                  ]
+                }
+              },
+              "span": {
+                "start": 97,
+                "end": 131
+              },
+              "id": {
+                "id": 30
+              }
+            },
+            "span": {
+              "start": 79,
+              "end": 132
+            },
+            "id": {
+              "id": 31
+            }
+          }
+        },
+        "span": {
+          "start": 79,
+          "end": 132
+        },
+        "id": {
+          "id": 32
+        }
+      },
+      {
+        "kind": {
+          "GlobalLet": {
+            "ident": {
+              "ident": {
+                "str": 9
+              },
+              "span": {
+                "start": 137,
+                "end": 147
+              },
+              "id": {
+                "id": 33
+              }
+            },
+            "ty": null,
+            "initializer": {
+              "kind": {
+                "Array": {
+                  "Initializer": [
+                    {
+                      "kind": {
+                        "Call": {
+                          "func": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": {
+                                        "str": 5
+                                      },
+                                      "span": {
+                                        "start": 151,
+                                        "end": 155
+                                      },
+                                      "id": {
+                                        "id": 34
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 151,
+                              "end": 155
+                            },
+                            "id": {
+                              "id": 35
+                            }
+                          },
+                          "args": {
+                            "args": []
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 151,
+                        "end": 157
+                      },
+                      "id": {
+                        "id": 36
+                      }
+                    },
+                    {
+                      "kind": {
+                        "Call": {
+                          "func": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": {
+                                        "str": 5
+                                      },
+                                      "span": {
+                                        "start": 159,
+                                        "end": 163
+                                      },
+                                      "id": {
+                                        "id": 37
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 159,
+                              "end": 163
+                            },
+                            "id": {
+                              "id": 38
+                            }
+                          },
+                          "args": {
+                            "args": []
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 159,
+                        "end": 165
+                      },
+                      "id": {
+                        "id": 39
+                      }
+                    }
+                  ]
+                }
+              },
+              "span": {
+                "start": 150,
+                "end": 166
+              },
+              "id": {
+                "id": 40
+              }
+            },
+            "span": {
+              "start": 133,
+              "end": 167
+            },
+            "id": {
+              "id": 41
+            }
+          }
+        },
+        "span": {
+          "start": 133,
+          "end": 167
+        },
+        "id": {
+          "id": 42
+        }
       }
     ],
-    "enum_stmts": [],
-    "trait_stmts": [],
-    "trait_impl_stmts": [],
-    "fn_stmts": []
+    "parse_errors": []
   }
 ]

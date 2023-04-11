@@ -11,89 +11,186 @@
       "Uranus",
       "Neptune",
       "Pluto"
-    ],
-    "ty_interner": []
+    ]
   },
   {
-    "use_stmts": [],
-    "global_let_stmts": [],
-    "class_stmts": [],
-    "enum_stmts": [
+    "items": [
       {
-        "name": 1,
-        "generic_params": {
-          "params": []
-        },
-        "members": [
-          {
-            "name": 2,
-            "fields": {
+        "kind": {
+          "Enum": {
+            "name": {
+              "ident": {
+                "str": 1
+              },
+              "span": {
+                "start": 5,
+                "end": 11
+              },
+              "id": {
+                "id": 0
+              }
+            },
+            "generic_params": {
               "params": []
             },
-            "member_fns": []
-          },
-          {
-            "name": 3,
-            "fields": {
-              "params": []
-            },
-            "member_fns": []
-          },
-          {
-            "name": 4,
-            "fields": {
-              "params": []
-            },
-            "member_fns": []
-          },
-          {
-            "name": 5,
-            "fields": {
-              "params": []
-            },
-            "member_fns": []
-          },
-          {
-            "name": 6,
-            "fields": {
-              "params": []
-            },
-            "member_fns": []
-          },
-          {
-            "name": 7,
-            "fields": {
-              "params": []
-            },
-            "member_fns": []
-          },
-          {
-            "name": 8,
-            "fields": {
-              "params": []
-            },
-            "member_fns": []
-          },
-          {
-            "name": 9,
-            "fields": {
-              "params": []
-            },
-            "member_fns": []
-          },
-          {
-            "name": 10,
-            "fields": {
-              "params": []
-            },
+            "members": [
+              {
+                "name": {
+                  "str": 2
+                },
+                "fields": {
+                  "params": []
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 17,
+                  "end": 24
+                },
+                "id": {
+                  "id": 1
+                }
+              },
+              {
+                "name": {
+                  "str": 3
+                },
+                "fields": {
+                  "params": []
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 30,
+                  "end": 35
+                },
+                "id": {
+                  "id": 2
+                }
+              },
+              {
+                "name": {
+                  "str": 4
+                },
+                "fields": {
+                  "params": []
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 41,
+                  "end": 46
+                },
+                "id": {
+                  "id": 3
+                }
+              },
+              {
+                "name": {
+                  "str": 5
+                },
+                "fields": {
+                  "params": []
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 52,
+                  "end": 56
+                },
+                "id": {
+                  "id": 4
+                }
+              },
+              {
+                "name": {
+                  "str": 6
+                },
+                "fields": {
+                  "params": []
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 62,
+                  "end": 69
+                },
+                "id": {
+                  "id": 5
+                }
+              },
+              {
+                "name": {
+                  "str": 7
+                },
+                "fields": {
+                  "params": []
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 75,
+                  "end": 81
+                },
+                "id": {
+                  "id": 6
+                }
+              },
+              {
+                "name": {
+                  "str": 8
+                },
+                "fields": {
+                  "params": []
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 87,
+                  "end": 93
+                },
+                "id": {
+                  "id": 7
+                }
+              },
+              {
+                "name": {
+                  "str": 9
+                },
+                "fields": {
+                  "params": []
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 99,
+                  "end": 106
+                },
+                "id": {
+                  "id": 8
+                }
+              },
+              {
+                "name": {
+                  "str": 10
+                },
+                "fields": {
+                  "params": []
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 112,
+                  "end": 117
+                },
+                "id": {
+                  "id": 9
+                }
+              }
+            ],
             "member_fns": []
           }
-        ],
-        "member_fns": []
+        },
+        "span": {
+          "start": 0,
+          "end": 121
+        },
+        "id": {
+          "id": 10
+        }
       }
     ],
-    "trait_stmts": [],
-    "trait_impl_stmts": [],
-    "fn_stmts": []
+    "parse_errors": []
   }
 ]

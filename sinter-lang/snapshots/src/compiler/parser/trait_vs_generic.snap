@@ -11,250 +11,629 @@
       "println",
       "log_trait_message",
       "self"
-    ],
-    "ty_interner": [
-      "QSelf",
-      "Str",
-      {
-        "Path": {
-          "path": {
-            "ident": {
-              "idents": [
-                5
-              ]
-            },
-            "generics": []
-          }
-        }
-      },
-      {
-        "TraitBound": {
-          "trait_bound": {
-            "bounds": [
-              {
-                "ident": {
-                  "idents": [
-                    1
-                  ]
-                },
-                "generics": []
-              },
-              {
-                "ident": {
-                  "idents": [
-                    6
-                  ]
-                },
-                "generics": []
-              }
-            ]
-          }
-        }
-      }
     ]
   },
   {
-    "use_stmts": [],
-    "global_let_stmts": [],
-    "class_stmts": [],
-    "enum_stmts": [],
-    "trait_stmts": [
+    "items": [
       {
-        "name": 1,
-        "generic_params": {
-          "params": []
+        "kind": {
+          "Trait": {
+            "name": {
+              "ident": {
+                "str": 1
+              },
+              "span": {
+                "start": 6,
+                "end": 14
+              },
+              "id": {
+                "id": 0
+              }
+            },
+            "generic_params": {
+              "params": []
+            },
+            "member_fns": [
+              {
+                "sig": {
+                  "name": {
+                    "ident": {
+                      "str": 2
+                    },
+                    "span": {
+                      "start": 24,
+                      "end": 42
+                    },
+                    "id": {
+                      "id": 1
+                    }
+                  },
+                  "generic_params": {
+                    "params": []
+                  },
+                  "params": {
+                    "params": [
+                      {
+                        "ident": {
+                          "ident": {
+                            "str": 10
+                          },
+                          "span": {
+                            "start": 43,
+                            "end": 47
+                          },
+                          "id": {
+                            "id": 2
+                          }
+                        },
+                        "ty": {
+                          "kind": "QSelf",
+                          "span": {
+                            "start": 43,
+                            "end": 47
+                          },
+                          "id": {
+                            "id": 3
+                          }
+                        },
+                        "mutability": "Immutable"
+                      }
+                    ]
+                  },
+                  "return_type": {
+                    "kind": "Str",
+                    "span": {
+                      "start": 52,
+                      "end": 55
+                    },
+                    "id": {
+                      "id": 4
+                    }
+                  }
+                },
+                "body": null
+              }
+            ]
+          }
         },
-        "member_fns": [
-          {
+        "span": {
+          "start": 52,
+          "end": 58
+        },
+        "id": {
+          "id": 5
+        }
+      },
+      {
+        "kind": {
+          "Fn": {
             "sig": {
-              "name": 2,
+              "name": {
+                "ident": {
+                  "str": 4
+                },
+                "span": {
+                  "start": 63,
+                  "end": 86
+                },
+                "id": {
+                  "id": 6
+                }
+              },
+              "generic_params": {
+                "params": [
+                  {
+                    "ident": {
+                      "ident": {
+                        "str": 5
+                      },
+                      "span": {
+                        "start": 87,
+                        "end": 88
+                      },
+                      "id": {
+                        "id": 7
+                      }
+                    },
+                    "trait_bound": {
+                      "bounds": [
+                        {
+                          "ident": {
+                            "idents": [
+                              {
+                                "ident": {
+                                  "str": 1
+                                },
+                                "span": {
+                                  "start": 90,
+                                  "end": 98
+                                },
+                                "id": {
+                                  "id": 8
+                                }
+                              }
+                            ]
+                          },
+                          "generics": {
+                            "generics": []
+                          }
+                        },
+                        {
+                          "ident": {
+                            "idents": [
+                              {
+                                "ident": {
+                                  "str": 6
+                                },
+                                "span": {
+                                  "start": 101,
+                                  "end": 113
+                                },
+                                "id": {
+                                  "id": 9
+                                }
+                              }
+                            ]
+                          },
+                          "generics": {
+                            "generics": []
+                          }
+                        }
+                      ]
+                    },
+                    "span": {
+                      "start": 87,
+                      "end": 113
+                    },
+                    "id": {
+                      "id": 10
+                    }
+                  }
+                ]
+              },
+              "params": {
+                "params": [
+                  {
+                    "ident": {
+                      "ident": {
+                        "str": 7
+                      },
+                      "span": {
+                        "start": 115,
+                        "end": 122
+                      },
+                      "id": {
+                        "id": 11
+                      }
+                    },
+                    "ty": {
+                      "kind": {
+                        "Path": {
+                          "path": {
+                            "ident": {
+                              "idents": [
+                                {
+                                  "ident": {
+                                    "str": 5
+                                  },
+                                  "span": {
+                                    "start": 124,
+                                    "end": 125
+                                  },
+                                  "id": {
+                                    "id": 12
+                                  }
+                                }
+                              ]
+                            },
+                            "generics": {
+                              "generics": []
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 124,
+                        "end": 125
+                      },
+                      "id": {
+                        "id": 13
+                      }
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "return_type": null
+            },
+            "body": {
+              "stmts": [
+                {
+                  "Expression": {
+                    "expr": {
+                      "kind": {
+                        "Call": {
+                          "func": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": {
+                                        "str": 8
+                                      },
+                                      "span": {
+                                        "start": 133,
+                                        "end": 140
+                                      },
+                                      "id": {
+                                        "id": 14
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 133,
+                              "end": 140
+                            },
+                            "id": {
+                              "id": 15
+                            }
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "kind": {
+                                  "Call": {
+                                    "func": {
+                                      "kind": {
+                                        "Field": {
+                                          "lhs": {
+                                            "kind": {
+                                              "Path": {
+                                                "segments": [
+                                                  {
+                                                    "ident": {
+                                                      "ident": {
+                                                        "str": 7
+                                                      },
+                                                      "span": {
+                                                        "start": 141,
+                                                        "end": 148
+                                                      },
+                                                      "id": {
+                                                        "id": 16
+                                                      }
+                                                    },
+                                                    "generics": null
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "span": {
+                                              "start": 141,
+                                              "end": 148
+                                            },
+                                            "id": {
+                                              "id": 17
+                                            }
+                                          },
+                                          "ident": {
+                                            "ident": {
+                                              "str": 2
+                                            },
+                                            "span": {
+                                              "start": 149,
+                                              "end": 167
+                                            },
+                                            "id": {
+                                              "id": 18
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "span": {
+                                        "start": 141,
+                                        "end": 167
+                                      },
+                                      "id": {
+                                        "id": 19
+                                      }
+                                    },
+                                    "args": {
+                                      "args": []
+                                    }
+                                  }
+                                },
+                                "span": {
+                                  "start": 141,
+                                  "end": 169
+                                },
+                                "id": {
+                                  "id": 20
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 133,
+                        "end": 170
+                      },
+                      "id": {
+                        "id": 21
+                      }
+                    },
+                    "implicit_return": true
+                  }
+                }
+              ],
+              "span": {
+                "start": 127,
+                "end": 173
+              },
+              "id": {
+                "id": 22
+              }
+            }
+          }
+        },
+        "span": {
+          "start": 124,
+          "end": 173
+        },
+        "id": {
+          "id": 23
+        }
+      },
+      {
+        "kind": {
+          "Fn": {
+            "sig": {
+              "name": {
+                "ident": {
+                  "str": 9
+                },
+                "span": {
+                  "start": 178,
+                  "end": 195
+                },
+                "id": {
+                  "id": 24
+                }
+              },
               "generic_params": {
                 "params": []
               },
               "params": {
                 "params": [
                   {
-                    "ident": 10,
+                    "ident": {
+                      "ident": {
+                        "str": 7
+                      },
+                      "span": {
+                        "start": 196,
+                        "end": 203
+                      },
+                      "id": {
+                        "id": 25
+                      }
+                    },
                     "ty": {
-                      "val": 1
+                      "kind": {
+                        "TraitBound": {
+                          "trait_bound": {
+                            "bounds": [
+                              {
+                                "ident": {
+                                  "idents": [
+                                    {
+                                      "ident": {
+                                        "str": 1
+                                      },
+                                      "span": {
+                                        "start": 205,
+                                        "end": 213
+                                      },
+                                      "id": {
+                                        "id": 26
+                                      }
+                                    }
+                                  ]
+                                },
+                                "generics": {
+                                  "generics": []
+                                }
+                              },
+                              {
+                                "ident": {
+                                  "idents": [
+                                    {
+                                      "ident": {
+                                        "str": 6
+                                      },
+                                      "span": {
+                                        "start": 216,
+                                        "end": 228
+                                      },
+                                      "id": {
+                                        "id": 27
+                                      }
+                                    }
+                                  ]
+                                },
+                                "generics": {
+                                  "generics": []
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 205,
+                        "end": 228
+                      },
+                      "id": {
+                        "id": 28
+                      }
                     },
                     "mutability": "Immutable"
                   }
                 ]
               },
-              "return_type": {
-                "val": 2
-              }
+              "return_type": null
             },
-            "body": null
+            "body": {
+              "stmts": [
+                {
+                  "Expression": {
+                    "expr": {
+                      "kind": {
+                        "Call": {
+                          "func": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": {
+                                        "str": 8
+                                      },
+                                      "span": {
+                                        "start": 236,
+                                        "end": 243
+                                      },
+                                      "id": {
+                                        "id": 29
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 236,
+                              "end": 243
+                            },
+                            "id": {
+                              "id": 30
+                            }
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "kind": {
+                                  "Call": {
+                                    "func": {
+                                      "kind": {
+                                        "Field": {
+                                          "lhs": {
+                                            "kind": {
+                                              "Path": {
+                                                "segments": [
+                                                  {
+                                                    "ident": {
+                                                      "ident": {
+                                                        "str": 7
+                                                      },
+                                                      "span": {
+                                                        "start": 244,
+                                                        "end": 251
+                                                      },
+                                                      "id": {
+                                                        "id": 31
+                                                      }
+                                                    },
+                                                    "generics": null
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "span": {
+                                              "start": 244,
+                                              "end": 251
+                                            },
+                                            "id": {
+                                              "id": 32
+                                            }
+                                          },
+                                          "ident": {
+                                            "ident": {
+                                              "str": 2
+                                            },
+                                            "span": {
+                                              "start": 252,
+                                              "end": 270
+                                            },
+                                            "id": {
+                                              "id": 33
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "span": {
+                                        "start": 244,
+                                        "end": 270
+                                      },
+                                      "id": {
+                                        "id": 34
+                                      }
+                                    },
+                                    "args": {
+                                      "args": []
+                                    }
+                                  }
+                                },
+                                "span": {
+                                  "start": 244,
+                                  "end": 272
+                                },
+                                "id": {
+                                  "id": 35
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 236,
+                        "end": 273
+                      },
+                      "id": {
+                        "id": 36
+                      }
+                    },
+                    "implicit_return": true
+                  }
+                }
+              ],
+              "span": {
+                "start": 230,
+                "end": 276
+              },
+              "id": {
+                "id": 37
+              }
+            }
           }
-        ]
+        },
+        "span": {
+          "start": 205,
+          "end": 276
+        },
+        "id": {
+          "id": 38
+        }
       }
     ],
-    "trait_impl_stmts": [],
-    "fn_stmts": [
-      {
-        "sig": {
-          "name": 4,
-          "generic_params": {
-            "params": [
-              {
-                "ident": 5,
-                "trait_bound": {
-                  "bounds": [
-                    {
-                      "ident": {
-                        "idents": [
-                          1
-                        ]
-                      },
-                      "generics": []
-                    },
-                    {
-                      "ident": {
-                        "idents": [
-                          6
-                        ]
-                      },
-                      "generics": []
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          "params": {
-            "params": [
-              {
-                "ident": 7,
-                "ty": {
-                  "val": 3
-                },
-                "mutability": "Immutable"
-              }
-            ]
-          },
-          "return_type": null
-        },
-        "body": {
-          "stmts": [
-            {
-              "Expression": {
-                "expr": {
-                  "Call": {
-                    "func": {
-                      "Path": {
-                        "segments": [
-                          {
-                            "ident": 8,
-                            "generics": null
-                          }
-                        ]
-                      }
-                    },
-                    "args": {
-                      "args": [
-                        {
-                          "Call": {
-                            "func": {
-                              "Field": {
-                                "lhs": {
-                                  "Path": {
-                                    "segments": [
-                                      {
-                                        "ident": 7,
-                                        "generics": null
-                                      }
-                                    ]
-                                  }
-                                },
-                                "ident": 2
-                              }
-                            },
-                            "args": {
-                              "args": []
-                            }
-                          }
-                        }
-                      ]
-                    }
-                  }
-                },
-                "implicit_return": true
-              }
-            }
-          ]
-        }
-      },
-      {
-        "sig": {
-          "name": 9,
-          "generic_params": {
-            "params": []
-          },
-          "params": {
-            "params": [
-              {
-                "ident": 7,
-                "ty": {
-                  "val": 4
-                },
-                "mutability": "Immutable"
-              }
-            ]
-          },
-          "return_type": null
-        },
-        "body": {
-          "stmts": [
-            {
-              "Expression": {
-                "expr": {
-                  "Call": {
-                    "func": {
-                      "Path": {
-                        "segments": [
-                          {
-                            "ident": 8,
-                            "generics": null
-                          }
-                        ]
-                      }
-                    },
-                    "args": {
-                      "args": [
-                        {
-                          "Call": {
-                            "func": {
-                              "Field": {
-                                "lhs": {
-                                  "Path": {
-                                    "segments": [
-                                      {
-                                        "ident": 7,
-                                        "generics": null
-                                      }
-                                    ]
-                                  }
-                                },
-                                "ident": 2
-                              }
-                            },
-                            "args": {
-                              "args": []
-                            }
-                          }
-                        }
-                      ]
-                    }
-                  }
-                },
-                "implicit_return": true
-              }
-            }
-          ]
-        }
-      }
-    ]
+    "parse_errors": []
   }
 ]

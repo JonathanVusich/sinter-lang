@@ -8,19 +8,85 @@
   {
     "segments": [
       {
-        "ident": 1,
+        "ident": {
+          "ident": {
+            "str": 1
+          },
+          "span": {
+            "start": 0,
+            "end": 3
+          },
+          "id": {
+            "id": 0
+          }
+        },
         "generics": null
       },
       {
-        "ident": 2,
-        "generics": [
-          {
-            "val": 1
+        "ident": {
+          "ident": {
+            "str": 2
+          },
+          "span": {
+            "start": 5,
+            "end": 12
+          },
+          "id": {
+            "id": 1
           }
-        ]
+        },
+        "generics": {
+          "generics": [
+            {
+              "kind": {
+                "Path": {
+                  "path": {
+                    "ident": {
+                      "idents": [
+                        {
+                          "ident": {
+                            "str": 3
+                          },
+                          "span": {
+                            "start": 15,
+                            "end": 16
+                          },
+                          "id": {
+                            "id": 2
+                          }
+                        }
+                      ]
+                    },
+                    "generics": {
+                      "generics": []
+                    }
+                  }
+                }
+              },
+              "span": {
+                "start": 15,
+                "end": 16
+              },
+              "id": {
+                "id": 3
+              }
+            }
+          ]
+        }
       },
       {
-        "ident": 4,
+        "ident": {
+          "ident": {
+            "str": 4
+          },
+          "span": {
+            "start": 19,
+            "end": 22
+          },
+          "id": {
+            "id": 4
+          }
+        },
         "generics": null
       }
     ]

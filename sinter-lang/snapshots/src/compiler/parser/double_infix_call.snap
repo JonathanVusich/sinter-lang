@@ -3,45 +3,111 @@
     "string_interner": [
       "f",
       "g"
-    ],
-    "ty_interner": []
+    ]
   },
   {
-    "Unary": {
-      "operator": "Minus",
-      "expr": {
-        "Unary": {
-          "operator": "Minus",
-          "expr": {
-            "Call": {
-              "func": {
-                "Path": {
-                  "segments": [
-                    {
-                      "ident": 1,
-                      "generics": null
-                    }
-                  ]
-                }
-              },
-              "args": {
-                "args": [
-                  {
-                    "Path": {
-                      "segments": [
+    "kind": {
+      "Unary": {
+        "operator": "Minus",
+        "expr": {
+          "kind": {
+            "Unary": {
+              "operator": "Minus",
+              "expr": {
+                "kind": {
+                  "Call": {
+                    "func": {
+                      "kind": {
+                        "Path": {
+                          "segments": [
+                            {
+                              "ident": {
+                                "ident": {
+                                  "str": 1
+                                },
+                                "span": {
+                                  "start": 2,
+                                  "end": 3
+                                },
+                                "id": {
+                                  "id": 0
+                                }
+                              },
+                              "generics": null
+                            }
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 2,
+                        "end": 3
+                      },
+                      "id": {
+                        "id": 1
+                      }
+                    },
+                    "args": {
+                      "args": [
                         {
-                          "ident": 2,
-                          "generics": null
+                          "kind": {
+                            "Path": {
+                              "segments": [
+                                {
+                                  "ident": {
+                                    "ident": {
+                                      "str": 2
+                                    },
+                                    "span": {
+                                      "start": 4,
+                                      "end": 5
+                                    },
+                                    "id": {
+                                      "id": 2
+                                    }
+                                  },
+                                  "generics": null
+                                }
+                              ]
+                            }
+                          },
+                          "span": {
+                            "start": 4,
+                            "end": 5
+                          },
+                          "id": {
+                            "id": 3
+                          }
                         }
                       ]
                     }
                   }
-                ]
+                },
+                "span": {
+                  "start": 2,
+                  "end": 6
+                },
+                "id": {
+                  "id": 4
+                }
               }
             }
+          },
+          "span": {
+            "start": 1,
+            "end": 6
+          },
+          "id": {
+            "id": 5
           }
         }
       }
+    },
+    "span": {
+      "start": 0,
+      "end": 6
+    },
+    "id": {
+      "id": 6
     }
   }
 ]

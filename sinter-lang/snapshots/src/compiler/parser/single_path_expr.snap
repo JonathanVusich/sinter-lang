@@ -5,7 +5,18 @@
   {
     "segments": [
       {
-        "ident": 1,
+        "ident": {
+          "ident": {
+            "str": 1
+          },
+          "span": {
+            "start": 0,
+            "end": 3
+          },
+          "id": {
+            "id": 0
+          }
+        },
         "generics": null
       }
     ]

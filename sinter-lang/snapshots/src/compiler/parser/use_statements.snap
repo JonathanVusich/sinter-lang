@@ -6,42 +6,146 @@
       "array",
       "map",
       "HashMap"
-    ],
-    "ty_interner": []
+    ]
   },
   {
-    "use_stmts": [
+    "items": [
       {
-        "ident": {
-          "idents": [
-            1,
-            2
-          ]
+        "kind": {
+          "Use": {
+            "ident": {
+              "idents": [
+                {
+                  "ident": {
+                    "str": 1
+                  },
+                  "span": {
+                    "start": 4,
+                    "end": 7
+                  },
+                  "id": {
+                    "id": 0
+                  }
+                },
+                {
+                  "ident": {
+                    "str": 2
+                  },
+                  "span": {
+                    "start": 9,
+                    "end": 15
+                  },
+                  "id": {
+                    "id": 1
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "span": {
+          "start": 0,
+          "end": 16
+        },
+        "id": {
+          "id": 2
         }
       },
       {
-        "ident": {
-          "idents": [
-            1,
-            3
-          ]
+        "kind": {
+          "Use": {
+            "ident": {
+              "idents": [
+                {
+                  "ident": {
+                    "str": 1
+                  },
+                  "span": {
+                    "start": 21,
+                    "end": 24
+                  },
+                  "id": {
+                    "id": 3
+                  }
+                },
+                {
+                  "ident": {
+                    "str": 3
+                  },
+                  "span": {
+                    "start": 26,
+                    "end": 31
+                  },
+                  "id": {
+                    "id": 4
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "span": {
+          "start": 17,
+          "end": 32
+        },
+        "id": {
+          "id": 5
         }
       },
       {
-        "ident": {
-          "idents": [
-            1,
-            4,
-            5
-          ]
+        "kind": {
+          "Use": {
+            "ident": {
+              "idents": [
+                {
+                  "ident": {
+                    "str": 1
+                  },
+                  "span": {
+                    "start": 37,
+                    "end": 40
+                  },
+                  "id": {
+                    "id": 6
+                  }
+                },
+                {
+                  "ident": {
+                    "str": 4
+                  },
+                  "span": {
+                    "start": 42,
+                    "end": 45
+                  },
+                  "id": {
+                    "id": 7
+                  }
+                },
+                {
+                  "ident": {
+                    "str": 5
+                  },
+                  "span": {
+                    "start": 47,
+                    "end": 54
+                  },
+                  "id": {
+                    "id": 8
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "span": {
+          "start": 33,
+          "end": 55
+        },
+        "id": {
+          "id": 9
         }
       }
     ],
-    "global_let_stmts": [],
-    "class_stmts": [],
-    "enum_stmts": [],
-    "trait_stmts": [],
-    "trait_impl_stmts": [],
-    "fn_stmts": []
+    "parse_errors": []
   }
 ]

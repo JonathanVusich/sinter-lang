@@ -18,324 +18,925 @@
       "unions",
       "str",
       "Self"
-    ],
-    "ty_interner": [
-      {
-        "Path": {
-          "path": {
-            "ident": {
-              "idents": [
-                2
-              ]
-            },
-            "generics": []
-          }
-        }
-      },
-      {
-        "Array": {
-          "ty": {
-            "val": 1
-          }
-        }
-      },
-      "U64",
-      "QSelf",
-      "I64",
-      "F64",
-      {
-        "Path": {
-          "path": {
-            "ident": {
-              "idents": [
-                1
-              ]
-            },
-            "generics": [
-              {
-                "val": 6
-              }
-            ]
-          }
-        }
-      },
-      {
-        "TraitBound": {
-          "trait_bound": {
-            "bounds": [
-              {
-                "ident": {
-                  "idents": [
-                    13
-                  ]
-                },
-                "generics": []
-              },
-              {
-                "ident": {
-                  "idents": [
-                    14
-                  ]
-                },
-                "generics": []
-              }
-            ]
-          }
-        }
-      },
-      "Str",
-      {
-        "Union": {
-          "tys": [
-            {
-              "val": 9
-            },
-            {
-              "val": 5
-            },
-            {
-              "val": 6
-            }
-          ]
-        }
-      }
     ]
   },
   {
-    "use_stmts": [],
-    "global_let_stmts": [
+    "items": [
       {
-        "ident": 8,
-        "ty": null,
-        "initializer": {
-          "Call": {
-            "func": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": 1,
-                    "generics": [
-                      {
-                        "val": 5
-                      }
-                    ]
-                  },
-                  {
-                    "ident": 6,
-                    "generics": null
-                  }
-                ]
-              }
-            },
-            "args": {
-              "args": []
-            }
-          }
-        }
-      },
-      {
-        "ident": 10,
-        "ty": null,
-        "initializer": {
-          "Call": {
-            "func": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": 1,
-                    "generics": [
-                      {
-                        "val": 7
-                      }
-                    ]
-                  },
-                  {
-                    "ident": 6,
-                    "generics": null
-                  }
-                ]
-              }
-            },
-            "args": {
-              "args": []
-            }
-          }
-        }
-      },
-      {
-        "ident": 12,
-        "ty": null,
-        "initializer": {
-          "Call": {
-            "func": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": 1,
-                    "generics": [
-                      {
-                        "val": 8
-                      }
-                    ]
-                  },
-                  {
-                    "ident": 6,
-                    "generics": null
-                  }
-                ]
-              }
-            },
-            "args": {
-              "args": []
-            }
-          }
-        }
-      },
-      {
-        "ident": 15,
-        "ty": null,
-        "initializer": {
-          "Call": {
-            "func": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": 1,
-                    "generics": [
-                      {
-                        "val": 10
-                      }
-                    ]
-                  },
-                  {
-                    "ident": 6,
-                    "generics": null
-                  }
-                ]
-              }
-            },
-            "args": {
-              "args": []
-            }
-          }
-        }
-      }
-    ],
-    "class_stmts": [
-      {
-        "name": 1,
-        "class_type": "Reference",
-        "generic_params": {
-          "params": [
-            {
-              "ident": 2,
-              "trait_bound": null
-            }
-          ]
-        },
-        "fields": {
-          "params": [
-            {
-              "ident": 3,
-              "ty": {
-                "val": 2
+        "kind": {
+          "Class": {
+            "name": {
+              "ident": {
+                "str": 1
               },
-              "mutability": "Immutable"
-            },
-            {
-              "ident": 4,
-              "ty": {
-                "val": 3
+              "span": {
+                "start": 10,
+                "end": 14
               },
-              "mutability": "Immutable"
-            }
-          ]
-        },
-        "member_fns": [
-          {
-            "sig": {
-              "name": 6,
-              "generic_params": {
-                "params": []
-              },
-              "params": {
-                "params": [
-                  {
-                    "ident": 7,
-                    "ty": {
-                      "val": 3
-                    },
-                    "mutability": "Immutable"
-                  }
-                ]
-              },
-              "return_type": {
-                "val": 4
+              "id": {
+                "id": 0
               }
             },
-            "body": {
-              "stmts": [
+            "class_type": "Reference",
+            "generic_params": {
+              "params": [
                 {
-                  "Expression": {
-                    "expr": {
-                      "Call": {
-                        "func": {
-                          "Path": {
-                            "segments": [
-                              {
-                                "ident": 17,
-                                "generics": null
+                  "ident": {
+                    "ident": {
+                      "str": 2
+                    },
+                    "span": {
+                      "start": 15,
+                      "end": 16
+                    },
+                    "id": {
+                      "id": 1
+                    }
+                  },
+                  "trait_bound": null,
+                  "span": {
+                    "start": 15,
+                    "end": 16
+                  },
+                  "id": {
+                    "id": 2
+                  }
+                }
+              ]
+            },
+            "fields": {
+              "params": [
+                {
+                  "ident": {
+                    "ident": {
+                      "str": 3
+                    },
+                    "span": {
+                      "start": 18,
+                      "end": 23
+                    },
+                    "id": {
+                      "id": 3
+                    }
+                  },
+                  "ty": {
+                    "kind": {
+                      "Array": {
+                        "ty": {
+                          "kind": {
+                            "Path": {
+                              "path": {
+                                "ident": {
+                                  "idents": [
+                                    {
+                                      "ident": {
+                                        "str": 2
+                                      },
+                                      "span": {
+                                        "start": 26,
+                                        "end": 27
+                                      },
+                                      "id": {
+                                        "id": 4
+                                      }
+                                    }
+                                  ]
+                                },
+                                "generics": {
+                                  "generics": []
+                                }
                               }
-                            ]
+                            }
+                          },
+                          "span": {
+                            "start": 26,
+                            "end": 27
+                          },
+                          "id": {
+                            "id": 5
+                          }
+                        }
+                      }
+                    },
+                    "span": {
+                      "start": 26,
+                      "end": 27
+                    },
+                    "id": {
+                      "id": 6
+                    }
+                  },
+                  "mutability": "Immutable",
+                  "span": {
+                    "start": 25,
+                    "end": 28
+                  },
+                  "id": {
+                    "id": 7
+                  }
+                },
+                {
+                  "ident": {
+                    "ident": {
+                      "str": 4
+                    },
+                    "span": {
+                      "start": 30,
+                      "end": 34
+                    },
+                    "id": {
+                      "id": 8
+                    }
+                  },
+                  "ty": {
+                    "kind": "U64",
+                    "span": {
+                      "start": 36,
+                      "end": 39
+                    },
+                    "id": {
+                      "id": 9
+                    }
+                  },
+                  "mutability": "Immutable",
+                  "span": {
+                    "start": 36,
+                    "end": 39
+                  },
+                  "id": {
+                    "id": 10
+                  }
+                }
+              ]
+            },
+            "member_fns": [
+              {
+                "sig": {
+                  "name": {
+                    "ident": {
+                      "str": 6
+                    },
+                    "span": {
+                      "start": 51,
+                      "end": 54
+                    },
+                    "id": {
+                      "id": 11
+                    }
+                  },
+                  "generic_params": {
+                    "params": []
+                  },
+                  "params": {
+                    "params": [
+                      {
+                        "ident": {
+                          "ident": {
+                            "str": 7
+                          },
+                          "span": {
+                            "start": 55,
+                            "end": 71
+                          },
+                          "id": {
+                            "id": 12
                           }
                         },
-                        "args": {
-                          "args": [
-                            {
-                              "Array": {
-                                "SizedInitializer": [
+                        "ty": {
+                          "kind": "U64",
+                          "span": {
+                            "start": 73,
+                            "end": 76
+                          },
+                          "id": {
+                            "id": 13
+                          }
+                        },
+                        "mutability": "Immutable"
+                      }
+                    ]
+                  },
+                  "return_type": {
+                    "kind": "QSelf",
+                    "span": {
+                      "start": 81,
+                      "end": 85
+                    },
+                    "id": {
+                      "id": 14
+                    }
+                  }
+                },
+                "body": {
+                  "stmts": [
+                    {
+                      "Expression": {
+                        "expr": {
+                          "kind": {
+                            "Call": {
+                              "func": {
+                                "kind": {
+                                  "Path": {
+                                    "segments": [
+                                      {
+                                        "ident": {
+                                          "ident": {
+                                            "str": 17
+                                          },
+                                          "span": {
+                                            "start": 96,
+                                            "end": 100
+                                          },
+                                          "id": {
+                                            "id": 15
+                                          }
+                                        },
+                                        "generics": null
+                                      }
+                                    ]
+                                  }
+                                },
+                                "span": {
+                                  "start": 96,
+                                  "end": 100
+                                },
+                                "id": {
+                                  "id": 16
+                                }
+                              },
+                              "args": {
+                                "args": [
                                   {
-                                    "Path": {
-                                      "segments": [
-                                        {
-                                          "ident": 2,
-                                          "generics": null
-                                        }
-                                      ]
+                                    "kind": {
+                                      "Array": {
+                                        "SizedInitializer": [
+                                          {
+                                            "kind": {
+                                              "Path": {
+                                                "segments": [
+                                                  {
+                                                    "ident": {
+                                                      "ident": {
+                                                        "str": 2
+                                                      },
+                                                      "span": {
+                                                        "start": 102,
+                                                        "end": 103
+                                                      },
+                                                      "id": {
+                                                        "id": 17
+                                                      }
+                                                    },
+                                                    "generics": null
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "span": {
+                                              "start": 102,
+                                              "end": 103
+                                            },
+                                            "id": {
+                                              "id": 18
+                                            }
+                                          },
+                                          {
+                                            "kind": {
+                                              "Path": {
+                                                "segments": [
+                                                  {
+                                                    "ident": {
+                                                      "ident": {
+                                                        "str": 7
+                                                      },
+                                                      "span": {
+                                                        "start": 105,
+                                                        "end": 121
+                                                      },
+                                                      "id": {
+                                                        "id": 19
+                                                      }
+                                                    },
+                                                    "generics": null
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "span": {
+                                              "start": 105,
+                                              "end": 121
+                                            },
+                                            "id": {
+                                              "id": 20
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "span": {
+                                      "start": 101,
+                                      "end": 122
+                                    },
+                                    "id": {
+                                      "id": 21
                                     }
                                   },
                                   {
-                                    "Path": {
-                                      "segments": [
-                                        {
-                                          "ident": 7,
-                                          "generics": null
-                                        }
-                                      ]
+                                    "kind": {
+                                      "Integer": 0
+                                    },
+                                    "span": {
+                                      "start": 124,
+                                      "end": 125
+                                    },
+                                    "id": {
+                                      "id": 22
                                     }
                                   }
                                 ]
                               }
-                            },
-                            {
-                              "Integer": 0
                             }
-                          ]
-                        }
+                          },
+                          "span": {
+                            "start": 96,
+                            "end": 126
+                          },
+                          "id": {
+                            "id": 23
+                          }
+                        },
+                        "implicit_return": false
                       }
-                    },
-                    "implicit_return": false
+                    }
+                  ],
+                  "span": {
+                    "start": 86,
+                    "end": 132
+                  },
+                  "id": {
+                    "id": 24
                   }
                 }
-              ]
+              }
+            ]
+          }
+        },
+        "span": {
+          "start": 81,
+          "end": 134
+        },
+        "id": {
+          "id": 25
+        }
+      },
+      {
+        "kind": {
+          "GlobalLet": {
+            "ident": {
+              "ident": {
+                "str": 8
+              },
+              "span": {
+                "start": 140,
+                "end": 152
+              },
+              "id": {
+                "id": 26
+              }
+            },
+            "ty": null,
+            "initializer": {
+              "kind": {
+                "Call": {
+                  "func": {
+                    "kind": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 1
+                              },
+                              "span": {
+                                "start": 155,
+                                "end": 159
+                              },
+                              "id": {
+                                "id": 27
+                              }
+                            },
+                            "generics": {
+                              "generics": [
+                                {
+                                  "kind": "I64",
+                                  "span": {
+                                    "start": 162,
+                                    "end": 165
+                                  },
+                                  "id": {
+                                    "id": 28
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 6
+                              },
+                              "span": {
+                                "start": 168,
+                                "end": 171
+                              },
+                              "id": {
+                                "id": 29
+                              }
+                            },
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 155,
+                      "end": 171
+                    },
+                    "id": {
+                      "id": 30
+                    }
+                  },
+                  "args": {
+                    "args": []
+                  }
+                }
+              },
+              "span": {
+                "start": 155,
+                "end": 173
+              },
+              "id": {
+                "id": 31
+              }
+            },
+            "span": {
+              "start": 162,
+              "end": 174
+            },
+            "id": {
+              "id": 32
             }
           }
-        ]
+        },
+        "span": {
+          "start": 136,
+          "end": 174
+        },
+        "id": {
+          "id": 33
+        }
+      },
+      {
+        "kind": {
+          "GlobalLet": {
+            "ident": {
+              "ident": {
+                "str": 10
+              },
+              "span": {
+                "start": 179,
+                "end": 192
+              },
+              "id": {
+                "id": 34
+              }
+            },
+            "ty": null,
+            "initializer": {
+              "kind": {
+                "Call": {
+                  "func": {
+                    "kind": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 1
+                              },
+                              "span": {
+                                "start": 195,
+                                "end": 199
+                              },
+                              "id": {
+                                "id": 35
+                              }
+                            },
+                            "generics": {
+                              "generics": [
+                                {
+                                  "kind": {
+                                    "Path": {
+                                      "path": {
+                                        "ident": {
+                                          "idents": [
+                                            {
+                                              "ident": {
+                                                "str": 1
+                                              },
+                                              "span": {
+                                                "start": 202,
+                                                "end": 206
+                                              },
+                                              "id": {
+                                                "id": 36
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        "generics": {
+                                          "generics": [
+                                            {
+                                              "kind": "F64",
+                                              "span": {
+                                                "start": 207,
+                                                "end": 210
+                                              },
+                                              "id": {
+                                                "id": 37
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "span": {
+                                    "start": 207,
+                                    "end": 211
+                                  },
+                                  "id": {
+                                    "id": 38
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 6
+                              },
+                              "span": {
+                                "start": 214,
+                                "end": 217
+                              },
+                              "id": {
+                                "id": 39
+                              }
+                            },
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 195,
+                      "end": 217
+                    },
+                    "id": {
+                      "id": 40
+                    }
+                  },
+                  "args": {
+                    "args": []
+                  }
+                }
+              },
+              "span": {
+                "start": 195,
+                "end": 219
+              },
+              "id": {
+                "id": 41
+              }
+            },
+            "span": {
+              "start": 202,
+              "end": 220
+            },
+            "id": {
+              "id": 42
+            }
+          }
+        },
+        "span": {
+          "start": 202,
+          "end": 220
+        },
+        "id": {
+          "id": 43
+        }
+      },
+      {
+        "kind": {
+          "GlobalLet": {
+            "ident": {
+              "ident": {
+                "str": 12
+              },
+              "span": {
+                "start": 225,
+                "end": 237
+              },
+              "id": {
+                "id": 44
+              }
+            },
+            "ty": null,
+            "initializer": {
+              "kind": {
+                "Call": {
+                  "func": {
+                    "kind": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 1
+                              },
+                              "span": {
+                                "start": 240,
+                                "end": 244
+                              },
+                              "id": {
+                                "id": 45
+                              }
+                            },
+                            "generics": {
+                              "generics": [
+                                {
+                                  "kind": {
+                                    "TraitBound": {
+                                      "trait_bound": {
+                                        "bounds": [
+                                          {
+                                            "ident": {
+                                              "idents": [
+                                                {
+                                                  "ident": {
+                                                    "str": 13
+                                                  },
+                                                  "span": {
+                                                    "start": 247,
+                                                    "end": 255
+                                                  },
+                                                  "id": {
+                                                    "id": 46
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            "generics": {
+                                              "generics": []
+                                            }
+                                          },
+                                          {
+                                            "ident": {
+                                              "idents": [
+                                                {
+                                                  "ident": {
+                                                    "str": 14
+                                                  },
+                                                  "span": {
+                                                    "start": 258,
+                                                    "end": 270
+                                                  },
+                                                  "id": {
+                                                    "id": 47
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            "generics": {
+                                              "generics": []
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "span": {
+                                    "start": 247,
+                                    "end": 270
+                                  },
+                                  "id": {
+                                    "id": 48
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 6
+                              },
+                              "span": {
+                                "start": 273,
+                                "end": 276
+                              },
+                              "id": {
+                                "id": 49
+                              }
+                            },
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 240,
+                      "end": 276
+                    },
+                    "id": {
+                      "id": 50
+                    }
+                  },
+                  "args": {
+                    "args": []
+                  }
+                }
+              },
+              "span": {
+                "start": 240,
+                "end": 278
+              },
+              "id": {
+                "id": 51
+              }
+            },
+            "span": {
+              "start": 247,
+              "end": 279
+            },
+            "id": {
+              "id": 52
+            }
+          }
+        },
+        "span": {
+          "start": 221,
+          "end": 279
+        },
+        "id": {
+          "id": 53
+        }
+      },
+      {
+        "kind": {
+          "GlobalLet": {
+            "ident": {
+              "ident": {
+                "str": 15
+              },
+              "span": {
+                "start": 284,
+                "end": 290
+              },
+              "id": {
+                "id": 54
+              }
+            },
+            "ty": null,
+            "initializer": {
+              "kind": {
+                "Call": {
+                  "func": {
+                    "kind": {
+                      "Path": {
+                        "segments": [
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 1
+                              },
+                              "span": {
+                                "start": 293,
+                                "end": 297
+                              },
+                              "id": {
+                                "id": 55
+                              }
+                            },
+                            "generics": {
+                              "generics": [
+                                {
+                                  "kind": {
+                                    "Union": {
+                                      "tys": [
+                                        {
+                                          "kind": "Str",
+                                          "span": {
+                                            "start": 300,
+                                            "end": 303
+                                          },
+                                          "id": {
+                                            "id": 56
+                                          }
+                                        },
+                                        {
+                                          "kind": "I64",
+                                          "span": {
+                                            "start": 306,
+                                            "end": 309
+                                          },
+                                          "id": {
+                                            "id": 57
+                                          }
+                                        },
+                                        {
+                                          "kind": "F64",
+                                          "span": {
+                                            "start": 312,
+                                            "end": 315
+                                          },
+                                          "id": {
+                                            "id": 58
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "span": {
+                                    "start": 300,
+                                    "end": 315
+                                  },
+                                  "id": {
+                                    "id": 59
+                                  }
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "ident": {
+                              "ident": {
+                                "str": 6
+                              },
+                              "span": {
+                                "start": 318,
+                                "end": 321
+                              },
+                              "id": {
+                                "id": 60
+                              }
+                            },
+                            "generics": null
+                          }
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 293,
+                      "end": 321
+                    },
+                    "id": {
+                      "id": 61
+                    }
+                  },
+                  "args": {
+                    "args": []
+                  }
+                }
+              },
+              "span": {
+                "start": 293,
+                "end": 323
+              },
+              "id": {
+                "id": 62
+              }
+            },
+            "span": {
+              "start": 280,
+              "end": 324
+            },
+            "id": {
+              "id": 63
+            }
+          }
+        },
+        "span": {
+          "start": 280,
+          "end": 324
+        },
+        "id": {
+          "id": 64
+        }
       }
     ],
-    "enum_stmts": [],
-    "trait_stmts": [],
-    "trait_impl_stmts": [],
-    "fn_stmts": []
+    "parse_errors": []
   }
 ]

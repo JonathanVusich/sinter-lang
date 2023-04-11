@@ -6,10 +6,10 @@ quickly, scalably, and correctly.
 
 ## Basic syntax
 
-### Imports
+### Use statements 
 
 ```ignorelang
-import std::vector::Vector;
+use std::vector::Vector;
 ```
 Imports must be declared at the top of each source file. 
 
@@ -55,12 +55,15 @@ The `[]` type is a generic array type that can contain both integer and floating
 in addition to user defined types.
 
 ```ignorelang
-class Point(x: f64, y: f64);
+class Point {
+    x: f64, 
+    y: f64
+};
 ref class Node;
 
 let i32_array: [i32] = [1, 2, 3];
-let point_array = [Point(1.0, 2.0), Point(1.5, 2.5)];
-let node_array = [Node(), Node()];
+let point_array = [Point { 1.0, 2.0 }, Point { 1.5, 2.5 }];
+let node_array = [Node { }, Node { }];
 ```
 
 ### Functions
@@ -158,8 +161,9 @@ pointer in order for the runtime to inspect the objects at runtime. This uses mo
 but can be a valuable tool in cold paths where there are many different types being passed.
 
 ```ignorelang
-ref class List<T>(array: [T]) {
-
+ref class List<T> {
+    array: [T],
+    
     pub fn new(initial_capacity: u64) -> Self {
         Self([T; initial_capacity])
     }
@@ -186,18 +190,24 @@ ref class Shape;
 Properties of a class are listed in its declaration.
 
 ```ignorelang
-class Rectangle(width: f64, length: f64);
+class Rectangle {
+    width: f64, 
+    length: f64
+}
 ```
 
 Classes can be constructed by calling the qualified path with values for each class field.
 ```ignorelang
-let rectangle = Rectangle(10, 20);
+let rectangle = Rectangle { 10, 20 };
 ```
 
 Classes can contain instance and static method declarations. Instance methods are marked by providing a `self`
 argument in the declaration.
 ```ignorelang
-class Rectangle(width: f64, length: f64) {
+class Rectangle {
+    width: f64,
+    length: f64,
+    
     fn perimeter(self) => f64 {
         return (self.width * 2) + (self.height * 2);
     }
@@ -211,7 +221,9 @@ class Rectangle(width: f64, length: f64) {
 Instance fields can only be mutated from instance methods that take `mut self` instead of `self`.
 #### Incorrect:
 ```ignorelang
-class Counter(num: i64) {
+class Counter { 
+    num: i64,
+    
     fn increment(self) {
                  ^^^^  Error: self must be marked as mutable in order to modify the num field.
         self.num = self.num + 1;
@@ -220,8 +232,11 @@ class Counter(num: i64) {
 ```
 #### Correct:
 ```ignorelang
-class Counter(num: i64) {
+class Counter { 
+    num: i64,
+    
     fn increment(mut self) {
+                 ^^^^  Error: self must be marked as mutable in order to modify the num field.
         self.num = self.num + 1;
     }
 }
@@ -231,14 +246,14 @@ Likewise, classes cannot be mutated if the mutator does not have a mutable refer
 This is done in order to ensure strong immutability by default.
 #### Incorrect:
 ```ignorelang
-let counter = Counter(0);
+let counter = Counter { 0 };
 
 counter.increment();
        ^^^^^^^^^^^^  Error: Attempted to call a mutable method on an immutable variable.
 ```
 #### Correct:
 ```ignorelang
-let mut counter = Counter(0);
+let mut counter = Counter { 0 };
 
 counter.increment();
 ```
@@ -248,7 +263,7 @@ counter.increment();
 To define an enum, use the `enum` keyword.
 
 ```ignorelang
-enum Planet(
+enum Planet {
     Mercury,
     Venus,
     Earth,
@@ -257,34 +272,34 @@ enum Planet(
     Saturn,
     Uranus,
     Neptune,
-);
+};
 ```
 
 Enums can also contain a payload and functions that are specific to each member:
 ```ignorelang
-enum Message(
+enum Message {
     Text(message: str),
     Photo(caption: str, photo: SerializedPhoto) {
         fn size(self) => u64 {
             return self.photo.size();
         }
     },
-);
+};
 ```
 
 Enums can also contain functions that are not specific to each member:
 ```ignorelang
-enum Planet(
+enum Planet {
     Mercury,
-    ...
-) {
+    ...,
+    
     fn diameter(self) => f64 {
         match self {
             Mercury => ...,
             ...
         }
     }
-}
+};
 ```
 
 ### Traits
@@ -298,8 +313,6 @@ They can only contain function declarations or function implementation.
 trait StringIterator {
     fn next(self) => str | None;
 }
-
-
 ```
 
 Traits can also use generic parameters in order to improve usability.
@@ -309,8 +322,8 @@ trait Iterator<T> {
     fn next(self) => T | None;
 }
 
-ref class MutableList<T>(mut array: [T]) {
-    ...
+ref class MutableList<T> {
+    array: [T],
     
     fn extend<I: Iterator<T>>(mut self, iterator: I) {
         while true {
@@ -322,7 +335,6 @@ ref class MutableList<T>(mut array: [T]) {
     }
 }
 ```
-
 ### Pattern matching
 
 Sinter provides a `match` expression which is very useful for dispatching complicated control flow.

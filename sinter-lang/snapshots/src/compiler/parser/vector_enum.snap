@@ -1,11 +1,12 @@
 [
   {
     "string_interner": [
-      "Vector",
-      "X",
-      "Number",
+      "std",
+      "math",
       "Display",
-      "Y",
+      "Number",
+      "Vector",
+      "N",
       "Normalized",
       "x",
       "y",
@@ -14,458 +15,1363 @@
       "normalized",
       "abs",
       "magnitude",
-      "math",
       "sqrt",
       "self"
-    ],
-    "ty_interner": [
-      {
-        "Path": {
-          "path": {
-            "ident": {
-              "idents": [
-                2
-              ]
-            },
-            "generics": []
-          }
-        }
-      },
-      {
-        "Path": {
-          "path": {
-            "ident": {
-              "idents": [
-                5
-              ]
-            },
-            "generics": []
-          }
-        }
-      },
-      "QSelf",
-      {
-        "Path": {
-          "path": {
-            "ident": {
-              "idents": [
-                1
-              ]
-            },
-            "generics": []
-          }
-        }
-      },
-      {
-        "Path": {
-          "path": {
-            "ident": {
-              "idents": [
-                6
-              ]
-            },
-            "generics": []
-          }
-        }
-      },
-      {
-        "Path": {
-          "path": {
-            "ident": {
-              "idents": [
-                9
-              ]
-            },
-            "generics": []
-          }
-        }
-      }
     ]
   },
   {
-    "use_stmts": [],
-    "global_let_stmts": [],
-    "class_stmts": [],
-    "enum_stmts": [
+    "items": [
       {
-        "name": 1,
-        "generic_params": {
-          "params": [
-            {
-              "ident": 2,
-              "trait_bound": {
-                "bounds": [
-                  {
-                    "ident": {
-                      "idents": [
-                        3
-                      ]
-                    },
-                    "generics": []
+        "kind": {
+          "Use": {
+            "ident": {
+              "idents": [
+                {
+                  "ident": {
+                    "str": 1
                   },
-                  {
-                    "ident": {
-                      "idents": [
-                        4
-                      ]
-                    },
-                    "generics": []
-                  }
-                ]
-              }
-            },
-            {
-              "ident": 5,
-              "trait_bound": {
-                "bounds": [
-                  {
-                    "ident": {
-                      "idents": [
-                        3
-                      ]
-                    },
-                    "generics": []
+                  "span": {
+                    "start": 4,
+                    "end": 7
                   },
-                  {
-                    "ident": {
-                      "idents": [
-                        4
-                      ]
-                    },
-                    "generics": []
+                  "id": {
+                    "id": 0
                   }
-                ]
-              }
+                },
+                {
+                  "ident": {
+                    "str": 2
+                  },
+                  "span": {
+                    "start": 9,
+                    "end": 13
+                  },
+                  "id": {
+                    "id": 1
+                  }
+                }
+              ]
             }
-          ]
-        },
-        "members": [
-          {
-            "name": 6,
-            "fields": {
-              "params": [
-                {
-                  "ident": 7,
-                  "ty": {
-                    "val": 1
-                  },
-                  "mutability": "Immutable"
-                },
-                {
-                  "ident": 8,
-                  "ty": {
-                    "val": 2
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
-            },
-            "member_fns": []
-          },
-          {
-            "name": 9,
-            "fields": {
-              "params": [
-                {
-                  "ident": 7,
-                  "ty": {
-                    "val": 1
-                  },
-                  "mutability": "Immutable"
-                },
-                {
-                  "ident": 8,
-                  "ty": {
-                    "val": 2
-                  },
-                  "mutability": "Immutable"
-                }
-              ]
-            },
-            "member_fns": []
           }
-        ],
-        "member_fns": [
-          {
-            "sig": {
-              "name": 10,
-              "generic_params": {
-                "params": []
-              },
-              "params": {
-                "params": [
-                  {
-                    "ident": 16,
-                    "ty": {
-                      "val": 3
-                    },
-                    "mutability": "Immutable"
+        },
+        "span": {
+          "start": 0,
+          "end": 14
+        },
+        "id": {
+          "id": 2
+        }
+      },
+      {
+        "kind": {
+          "Use": {
+            "ident": {
+              "idents": [
+                {
+                  "ident": {
+                    "str": 1
+                  },
+                  "span": {
+                    "start": 19,
+                    "end": 22
+                  },
+                  "id": {
+                    "id": 3
                   }
-                ]
+                },
+                {
+                  "ident": {
+                    "str": 3
+                  },
+                  "span": {
+                    "start": 24,
+                    "end": 31
+                  },
+                  "id": {
+                    "id": 4
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "span": {
+          "start": 15,
+          "end": 32
+        },
+        "id": {
+          "id": 5
+        }
+      },
+      {
+        "kind": {
+          "Use": {
+            "ident": {
+              "idents": [
+                {
+                  "ident": {
+                    "str": 1
+                  },
+                  "span": {
+                    "start": 37,
+                    "end": 40
+                  },
+                  "id": {
+                    "id": 6
+                  }
+                },
+                {
+                  "ident": {
+                    "str": 4
+                  },
+                  "span": {
+                    "start": 42,
+                    "end": 48
+                  },
+                  "id": {
+                    "id": 7
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "span": {
+          "start": 33,
+          "end": 49
+        },
+        "id": {
+          "id": 8
+        }
+      },
+      {
+        "kind": {
+          "Enum": {
+            "name": {
+              "ident": {
+                "str": 5
               },
-              "return_type": {
-                "val": 4
+              "span": {
+                "start": 56,
+                "end": 62
+              },
+              "id": {
+                "id": 9
               }
             },
-            "body": {
-              "stmts": [
+            "generic_params": {
+              "params": [
                 {
-                  "Expression": {
-                    "expr": {
-                      "Match": {
-                        "source": {
-                          "Path": {
-                            "segments": [
-                              {
-                                "ident": 16,
-                                "generics": null
+                  "ident": {
+                    "ident": {
+                      "str": 6
+                    },
+                    "span": {
+                      "start": 63,
+                      "end": 64
+                    },
+                    "id": {
+                      "id": 10
+                    }
+                  },
+                  "trait_bound": {
+                    "bounds": [
+                      {
+                        "ident": {
+                          "idents": [
+                            {
+                              "ident": {
+                                "str": 4
+                              },
+                              "span": {
+                                "start": 66,
+                                "end": 72
+                              },
+                              "id": {
+                                "id": 11
                               }
-                            ]
+                            }
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      },
+                      {
+                        "ident": {
+                          "idents": [
+                            {
+                              "ident": {
+                                "str": 3
+                              },
+                              "span": {
+                                "start": 75,
+                                "end": 82
+                              },
+                              "id": {
+                                "id": 12
+                              }
+                            }
+                          ]
+                        },
+                        "generics": {
+                          "generics": []
+                        }
+                      }
+                    ]
+                  },
+                  "span": {
+                    "start": 63,
+                    "end": 82
+                  },
+                  "id": {
+                    "id": 13
+                  }
+                }
+              ]
+            },
+            "members": [
+              {
+                "name": {
+                  "str": 7
+                },
+                "fields": {
+                  "params": [
+                    {
+                      "ident": {
+                        "ident": {
+                          "str": 8
+                        },
+                        "span": {
+                          "start": 100,
+                          "end": 101
+                        },
+                        "id": {
+                          "id": 14
+                        }
+                      },
+                      "ty": {
+                        "kind": {
+                          "Path": {
+                            "path": {
+                              "ident": {
+                                "idents": [
+                                  {
+                                    "ident": {
+                                      "str": 6
+                                    },
+                                    "span": {
+                                      "start": 103,
+                                      "end": 104
+                                    },
+                                    "id": {
+                                      "id": 15
+                                    }
+                                  }
+                                ]
+                              },
+                              "generics": {
+                                "generics": []
+                              }
+                            }
                           }
                         },
-                        "arms": [
-                          {
-                            "pattern": {
-                              "Ty": {
-                                "ty": {
-                                  "val": 5
-                                },
-                                "ident": 11
+                        "span": {
+                          "start": 103,
+                          "end": 104
+                        },
+                        "id": {
+                          "id": 16
+                        }
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 103,
+                        "end": 104
+                      },
+                      "id": {
+                        "id": 17
+                      }
+                    },
+                    {
+                      "ident": {
+                        "ident": {
+                          "str": 9
+                        },
+                        "span": {
+                          "start": 106,
+                          "end": 107
+                        },
+                        "id": {
+                          "id": 18
+                        }
+                      },
+                      "ty": {
+                        "kind": {
+                          "Path": {
+                            "path": {
+                              "ident": {
+                                "idents": [
+                                  {
+                                    "ident": {
+                                      "str": 6
+                                    },
+                                    "span": {
+                                      "start": 109,
+                                      "end": 110
+                                    },
+                                    "id": {
+                                      "id": 19
+                                    }
+                                  }
+                                ]
+                              },
+                              "generics": {
+                                "generics": []
                               }
-                            },
-                            "body": {
-                              "Expression": {
-                                "expr": {
+                            }
+                          }
+                        },
+                        "span": {
+                          "start": 109,
+                          "end": 110
+                        },
+                        "id": {
+                          "id": 20
+                        }
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 109,
+                        "end": 110
+                      },
+                      "id": {
+                        "id": 21
+                      }
+                    }
+                  ]
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 106,
+                  "end": 111
+                },
+                "id": {
+                  "id": 22
+                }
+              },
+              {
+                "name": {
+                  "str": 10
+                },
+                "fields": {
+                  "params": [
+                    {
+                      "ident": {
+                        "ident": {
+                          "str": 8
+                        },
+                        "span": {
+                          "start": 126,
+                          "end": 127
+                        },
+                        "id": {
+                          "id": 23
+                        }
+                      },
+                      "ty": {
+                        "kind": {
+                          "Path": {
+                            "path": {
+                              "ident": {
+                                "idents": [
+                                  {
+                                    "ident": {
+                                      "str": 6
+                                    },
+                                    "span": {
+                                      "start": 129,
+                                      "end": 130
+                                    },
+                                    "id": {
+                                      "id": 24
+                                    }
+                                  }
+                                ]
+                              },
+                              "generics": {
+                                "generics": []
+                              }
+                            }
+                          }
+                        },
+                        "span": {
+                          "start": 129,
+                          "end": 130
+                        },
+                        "id": {
+                          "id": 25
+                        }
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 129,
+                        "end": 130
+                      },
+                      "id": {
+                        "id": 26
+                      }
+                    },
+                    {
+                      "ident": {
+                        "ident": {
+                          "str": 9
+                        },
+                        "span": {
+                          "start": 132,
+                          "end": 133
+                        },
+                        "id": {
+                          "id": 27
+                        }
+                      },
+                      "ty": {
+                        "kind": {
+                          "Path": {
+                            "path": {
+                              "ident": {
+                                "idents": [
+                                  {
+                                    "ident": {
+                                      "str": 6
+                                    },
+                                    "span": {
+                                      "start": 135,
+                                      "end": 136
+                                    },
+                                    "id": {
+                                      "id": 28
+                                    }
+                                  }
+                                ]
+                              },
+                              "generics": {
+                                "generics": []
+                              }
+                            }
+                          }
+                        },
+                        "span": {
+                          "start": 135,
+                          "end": 136
+                        },
+                        "id": {
+                          "id": 29
+                        }
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 135,
+                        "end": 136
+                      },
+                      "id": {
+                        "id": 30
+                      }
+                    }
+                  ]
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 132,
+                  "end": 137
+                },
+                "id": {
+                  "id": 31
+                }
+              }
+            ],
+            "member_fns": [
+              {
+                "sig": {
+                  "name": {
+                    "ident": {
+                      "str": 11
+                    },
+                    "span": {
+                      "start": 150,
+                      "end": 163
+                    },
+                    "id": {
+                      "id": 32
+                    }
+                  },
+                  "generic_params": {
+                    "params": []
+                  },
+                  "params": {
+                    "params": [
+                      {
+                        "ident": {
+                          "ident": {
+                            "str": 16
+                          },
+                          "span": {
+                            "start": 164,
+                            "end": 168
+                          },
+                          "id": {
+                            "id": 33
+                          }
+                        },
+                        "ty": {
+                          "kind": "QSelf",
+                          "span": {
+                            "start": 164,
+                            "end": 168
+                          },
+                          "id": {
+                            "id": 34
+                          }
+                        },
+                        "mutability": "Immutable"
+                      }
+                    ]
+                  },
+                  "return_type": {
+                    "kind": {
+                      "Path": {
+                        "path": {
+                          "ident": {
+                            "idents": [
+                              {
+                                "ident": {
+                                  "str": 5
+                                },
+                                "span": {
+                                  "start": 173,
+                                  "end": 179
+                                },
+                                "id": {
+                                  "id": 35
+                                }
+                              }
+                            ]
+                          },
+                          "generics": {
+                            "generics": []
+                          }
+                        }
+                      }
+                    },
+                    "span": {
+                      "start": 173,
+                      "end": 179
+                    },
+                    "id": {
+                      "id": 36
+                    }
+                  }
+                },
+                "body": {
+                  "stmts": [
+                    {
+                      "Expression": {
+                        "expr": {
+                          "kind": {
+                            "Match": {
+                              "source": {
+                                "kind": {
                                   "Path": {
                                     "segments": [
                                       {
-                                        "ident": 11,
+                                        "ident": {
+                                          "ident": {
+                                            "str": 16
+                                          },
+                                          "span": {
+                                            "start": 196,
+                                            "end": 200
+                                          },
+                                          "id": {
+                                            "id": 37
+                                          }
+                                        },
                                         "generics": null
                                       }
                                     ]
                                   }
                                 },
-                                "implicit_return": true
-                              }
-                            }
-                          },
-                          {
-                            "pattern": {
-                              "Ty": {
-                                "ty": {
-                                  "val": 6
+                                "span": {
+                                  "start": 196,
+                                  "end": 200
                                 },
-                                "ident": 12
-                              }
-                            },
-                            "body": {
-                              "Block": {
-                                "stmts": [
-                                  {
-                                    "Let": {
-                                      "ident": 13,
-                                      "mutability": "Immutable",
-                                      "ty": null,
-                                      "initializer": {
-                                        "Call": {
-                                          "func": {
-                                            "Path": {
-                                              "segments": [
-                                                {
-                                                  "ident": 14,
-                                                  "generics": null
-                                                },
-                                                {
-                                                  "ident": 15,
-                                                  "generics": null
-                                                }
-                                              ]
-                                            }
-                                          },
-                                          "args": {
-                                            "args": [
-                                              {
-                                                "Infix": {
-                                                  "operator": "Add",
-                                                  "lhs": {
-                                                    "Infix": {
-                                                      "operator": "Multiply",
-                                                      "lhs": {
-                                                        "Field": {
-                                                          "lhs": {
-                                                            "Path": {
-                                                              "segments": [
-                                                                {
-                                                                  "ident": 12,
-                                                                  "generics": null
-                                                                }
-                                                              ]
-                                                            }
-                                                          },
-                                                          "ident": 7
-                                                        }
-                                                      },
-                                                      "rhs": {
-                                                        "Field": {
-                                                          "lhs": {
-                                                            "Path": {
-                                                              "segments": [
-                                                                {
-                                                                  "ident": 12,
-                                                                  "generics": null
-                                                                }
-                                                              ]
-                                                            }
-                                                          },
-                                                          "ident": 7
-                                                        }
-                                                      }
-                                                    }
-                                                  },
-                                                  "rhs": {
-                                                    "Infix": {
-                                                      "operator": "Multiply",
-                                                      "lhs": {
-                                                        "Field": {
-                                                          "lhs": {
-                                                            "Path": {
-                                                              "segments": [
-                                                                {
-                                                                  "ident": 12,
-                                                                  "generics": null
-                                                                }
-                                                              ]
-                                                            }
-                                                          },
-                                                          "ident": 8
-                                                        }
-                                                      },
-                                                      "rhs": {
-                                                        "Field": {
-                                                          "lhs": {
-                                                            "Path": {
-                                                              "segments": [
-                                                                {
-                                                                  "ident": 12,
-                                                                  "generics": null
-                                                                }
-                                                              ]
-                                                            }
-                                                          },
-                                                          "ident": 8
-                                                        }
-                                                      }
+                                "id": {
+                                  "id": 38
+                                }
+                              },
+                              "arms": [
+                                {
+                                  "pattern": {
+                                    "Ty": {
+                                      "ty": {
+                                        "kind": {
+                                          "Path": {
+                                            "path": {
+                                              "ident": {
+                                                "idents": [
+                                                  {
+                                                    "ident": {
+                                                      "str": 7
+                                                    },
+                                                    "span": {
+                                                      "start": 215,
+                                                      "end": 225
+                                                    },
+                                                    "id": {
+                                                      "id": 39
                                                     }
                                                   }
-                                                }
+                                                ]
+                                              },
+                                              "generics": {
+                                                "generics": []
                                               }
-                                            ]
+                                            }
                                           }
+                                        },
+                                        "span": {
+                                          "start": 215,
+                                          "end": 225
+                                        },
+                                        "id": {
+                                          "id": 40
                                         }
+                                      },
+                                      "ident": {
+                                        "str": 12
                                       }
                                     }
                                   },
-                                  {
+                                  "body": {
                                     "Expression": {
                                       "expr": {
-                                        "Call": {
-                                          "func": {
-                                            "Path": {
-                                              "segments": [
-                                                {
-                                                  "ident": 6,
-                                                  "generics": null
-                                                }
-                                              ]
-                                            }
-                                          },
-                                          "args": {
-                                            "args": [
+                                        "kind": {
+                                          "Path": {
+                                            "segments": [
                                               {
-                                                "Infix": {
-                                                  "operator": "Divide",
-                                                  "lhs": {
-                                                    "Field": {
-                                                      "lhs": {
-                                                        "Path": {
-                                                          "segments": [
-                                                            {
-                                                              "ident": 12,
-                                                              "generics": null
-                                                            }
-                                                          ]
-                                                        }
-                                                      },
-                                                      "ident": 7
-                                                    }
+                                                "ident": {
+                                                  "ident": {
+                                                    "str": 12
                                                   },
-                                                  "rhs": {
-                                                    "Path": {
-                                                      "segments": [
-                                                        {
-                                                          "ident": 13,
-                                                          "generics": null
-                                                        }
-                                                      ]
-                                                    }
-                                                  }
-                                                }
-                                              },
-                                              {
-                                                "Infix": {
-                                                  "operator": "Divide",
-                                                  "lhs": {
-                                                    "Field": {
-                                                      "lhs": {
-                                                        "Path": {
-                                                          "segments": [
-                                                            {
-                                                              "ident": 12,
-                                                              "generics": null
-                                                            }
-                                                          ]
-                                                        }
-                                                      },
-                                                      "ident": 8
-                                                    }
+                                                  "span": {
+                                                    "start": 240,
+                                                    "end": 250
                                                   },
-                                                  "rhs": {
-                                                    "Path": {
-                                                      "segments": [
-                                                        {
-                                                          "ident": 13,
-                                                          "generics": null
-                                                        }
-                                                      ]
-                                                    }
+                                                  "id": {
+                                                    "id": 41
                                                   }
-                                                }
+                                                },
+                                                "generics": null
                                               }
                                             ]
                                           }
+                                        },
+                                        "span": {
+                                          "start": 240,
+                                          "end": 250
+                                        },
+                                        "id": {
+                                          "id": 42
                                         }
                                       },
-                                      "implicit_return": false
+                                      "implicit_return": true
                                     }
                                   }
-                                ]
-                              }
+                                },
+                                {
+                                  "pattern": {
+                                    "Ty": {
+                                      "ty": {
+                                        "kind": {
+                                          "Path": {
+                                            "path": {
+                                              "ident": {
+                                                "idents": [
+                                                  {
+                                                    "ident": {
+                                                      "str": 10
+                                                    },
+                                                    "span": {
+                                                      "start": 264,
+                                                      "end": 272
+                                                    },
+                                                    "id": {
+                                                      "id": 43
+                                                    }
+                                                  }
+                                                ]
+                                              },
+                                              "generics": {
+                                                "generics": []
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "span": {
+                                          "start": 264,
+                                          "end": 272
+                                        },
+                                        "id": {
+                                          "id": 44
+                                        }
+                                      },
+                                      "ident": {
+                                        "str": 13
+                                      }
+                                    }
+                                  },
+                                  "body": {
+                                    "Block": {
+                                      "stmts": [
+                                        {
+                                          "Let": {
+                                            "ident": {
+                                              "ident": {
+                                                "str": 14
+                                              },
+                                              "span": {
+                                                "start": 302,
+                                                "end": 311
+                                              },
+                                              "id": {
+                                                "id": 45
+                                              }
+                                            },
+                                            "mutability": "Immutable",
+                                            "ty": null,
+                                            "initializer": {
+                                              "kind": {
+                                                "Call": {
+                                                  "func": {
+                                                    "kind": {
+                                                      "Path": {
+                                                        "segments": [
+                                                          {
+                                                            "ident": {
+                                                              "ident": {
+                                                                "str": 2
+                                                              },
+                                                              "span": {
+                                                                "start": 314,
+                                                                "end": 318
+                                                              },
+                                                              "id": {
+                                                                "id": 46
+                                                              }
+                                                            },
+                                                            "generics": null
+                                                          },
+                                                          {
+                                                            "ident": {
+                                                              "ident": {
+                                                                "str": 15
+                                                              },
+                                                              "span": {
+                                                                "start": 320,
+                                                                "end": 324
+                                                              },
+                                                              "id": {
+                                                                "id": 47
+                                                              }
+                                                            },
+                                                            "generics": null
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    "span": {
+                                                      "start": 314,
+                                                      "end": 324
+                                                    },
+                                                    "id": {
+                                                      "id": 48
+                                                    }
+                                                  },
+                                                  "args": {
+                                                    "args": [
+                                                      {
+                                                        "kind": {
+                                                          "Infix": {
+                                                            "operator": "Add",
+                                                            "lhs": {
+                                                              "kind": {
+                                                                "Infix": {
+                                                                  "operator": "Multiply",
+                                                                  "lhs": {
+                                                                    "kind": {
+                                                                      "Field": {
+                                                                        "lhs": {
+                                                                          "kind": {
+                                                                            "Path": {
+                                                                              "segments": [
+                                                                                {
+                                                                                  "ident": {
+                                                                                    "ident": {
+                                                                                      "str": 13
+                                                                                    },
+                                                                                    "span": {
+                                                                                      "start": 325,
+                                                                                      "end": 328
+                                                                                    },
+                                                                                    "id": {
+                                                                                      "id": 49
+                                                                                    }
+                                                                                  },
+                                                                                  "generics": null
+                                                                                }
+                                                                              ]
+                                                                            }
+                                                                          },
+                                                                          "span": {
+                                                                            "start": 325,
+                                                                            "end": 328
+                                                                          },
+                                                                          "id": {
+                                                                            "id": 50
+                                                                          }
+                                                                        },
+                                                                        "ident": {
+                                                                          "ident": {
+                                                                            "str": 8
+                                                                          },
+                                                                          "span": {
+                                                                            "start": 329,
+                                                                            "end": 330
+                                                                          },
+                                                                          "id": {
+                                                                            "id": 51
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "span": {
+                                                                      "start": 325,
+                                                                      "end": 330
+                                                                    },
+                                                                    "id": {
+                                                                      "id": 52
+                                                                    }
+                                                                  },
+                                                                  "rhs": {
+                                                                    "kind": {
+                                                                      "Field": {
+                                                                        "lhs": {
+                                                                          "kind": {
+                                                                            "Path": {
+                                                                              "segments": [
+                                                                                {
+                                                                                  "ident": {
+                                                                                    "ident": {
+                                                                                      "str": 13
+                                                                                    },
+                                                                                    "span": {
+                                                                                      "start": 333,
+                                                                                      "end": 336
+                                                                                    },
+                                                                                    "id": {
+                                                                                      "id": 53
+                                                                                    }
+                                                                                  },
+                                                                                  "generics": null
+                                                                                }
+                                                                              ]
+                                                                            }
+                                                                          },
+                                                                          "span": {
+                                                                            "start": 333,
+                                                                            "end": 336
+                                                                          },
+                                                                          "id": {
+                                                                            "id": 54
+                                                                          }
+                                                                        },
+                                                                        "ident": {
+                                                                          "ident": {
+                                                                            "str": 8
+                                                                          },
+                                                                          "span": {
+                                                                            "start": 337,
+                                                                            "end": 338
+                                                                          },
+                                                                          "id": {
+                                                                            "id": 55
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "span": {
+                                                                      "start": 333,
+                                                                      "end": 338
+                                                                    },
+                                                                    "id": {
+                                                                      "id": 56
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "span": {
+                                                                "start": 325,
+                                                                "end": 338
+                                                              },
+                                                              "id": {
+                                                                "id": 57
+                                                              }
+                                                            },
+                                                            "rhs": {
+                                                              "kind": {
+                                                                "Infix": {
+                                                                  "operator": "Multiply",
+                                                                  "lhs": {
+                                                                    "kind": {
+                                                                      "Field": {
+                                                                        "lhs": {
+                                                                          "kind": {
+                                                                            "Path": {
+                                                                              "segments": [
+                                                                                {
+                                                                                  "ident": {
+                                                                                    "ident": {
+                                                                                      "str": 13
+                                                                                    },
+                                                                                    "span": {
+                                                                                      "start": 341,
+                                                                                      "end": 344
+                                                                                    },
+                                                                                    "id": {
+                                                                                      "id": 58
+                                                                                    }
+                                                                                  },
+                                                                                  "generics": null
+                                                                                }
+                                                                              ]
+                                                                            }
+                                                                          },
+                                                                          "span": {
+                                                                            "start": 341,
+                                                                            "end": 344
+                                                                          },
+                                                                          "id": {
+                                                                            "id": 59
+                                                                          }
+                                                                        },
+                                                                        "ident": {
+                                                                          "ident": {
+                                                                            "str": 9
+                                                                          },
+                                                                          "span": {
+                                                                            "start": 345,
+                                                                            "end": 346
+                                                                          },
+                                                                          "id": {
+                                                                            "id": 60
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "span": {
+                                                                      "start": 341,
+                                                                      "end": 346
+                                                                    },
+                                                                    "id": {
+                                                                      "id": 61
+                                                                    }
+                                                                  },
+                                                                  "rhs": {
+                                                                    "kind": {
+                                                                      "Field": {
+                                                                        "lhs": {
+                                                                          "kind": {
+                                                                            "Path": {
+                                                                              "segments": [
+                                                                                {
+                                                                                  "ident": {
+                                                                                    "ident": {
+                                                                                      "str": 13
+                                                                                    },
+                                                                                    "span": {
+                                                                                      "start": 349,
+                                                                                      "end": 352
+                                                                                    },
+                                                                                    "id": {
+                                                                                      "id": 62
+                                                                                    }
+                                                                                  },
+                                                                                  "generics": null
+                                                                                }
+                                                                              ]
+                                                                            }
+                                                                          },
+                                                                          "span": {
+                                                                            "start": 349,
+                                                                            "end": 352
+                                                                          },
+                                                                          "id": {
+                                                                            "id": 63
+                                                                          }
+                                                                        },
+                                                                        "ident": {
+                                                                          "ident": {
+                                                                            "str": 9
+                                                                          },
+                                                                          "span": {
+                                                                            "start": 353,
+                                                                            "end": 354
+                                                                          },
+                                                                          "id": {
+                                                                            "id": 64
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "span": {
+                                                                      "start": 349,
+                                                                      "end": 354
+                                                                    },
+                                                                    "id": {
+                                                                      "id": 65
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "span": {
+                                                                "start": 341,
+                                                                "end": 354
+                                                              },
+                                                              "id": {
+                                                                "id": 66
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "span": {
+                                                          "start": 325,
+                                                          "end": 354
+                                                        },
+                                                        "id": {
+                                                          "id": 67
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              },
+                                              "span": {
+                                                "start": 314,
+                                                "end": 355
+                                              },
+                                              "id": {
+                                                "id": 68
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "Expression": {
+                                            "expr": {
+                                              "kind": {
+                                                "Call": {
+                                                  "func": {
+                                                    "kind": {
+                                                      "Path": {
+                                                        "segments": [
+                                                          {
+                                                            "ident": {
+                                                              "ident": {
+                                                                "str": 7
+                                                              },
+                                                              "span": {
+                                                                "start": 373,
+                                                                "end": 383
+                                                              },
+                                                              "id": {
+                                                                "id": 69
+                                                              }
+                                                            },
+                                                            "generics": null
+                                                          }
+                                                        ]
+                                                      }
+                                                    },
+                                                    "span": {
+                                                      "start": 373,
+                                                      "end": 383
+                                                    },
+                                                    "id": {
+                                                      "id": 70
+                                                    }
+                                                  },
+                                                  "args": {
+                                                    "args": [
+                                                      {
+                                                        "kind": {
+                                                          "Infix": {
+                                                            "operator": "Divide",
+                                                            "lhs": {
+                                                              "kind": {
+                                                                "Field": {
+                                                                  "lhs": {
+                                                                    "kind": {
+                                                                      "Path": {
+                                                                        "segments": [
+                                                                          {
+                                                                            "ident": {
+                                                                              "ident": {
+                                                                                "str": 13
+                                                                              },
+                                                                              "span": {
+                                                                                "start": 384,
+                                                                                "end": 387
+                                                                              },
+                                                                              "id": {
+                                                                                "id": 71
+                                                                              }
+                                                                            },
+                                                                            "generics": null
+                                                                          }
+                                                                        ]
+                                                                      }
+                                                                    },
+                                                                    "span": {
+                                                                      "start": 384,
+                                                                      "end": 387
+                                                                    },
+                                                                    "id": {
+                                                                      "id": 72
+                                                                    }
+                                                                  },
+                                                                  "ident": {
+                                                                    "ident": {
+                                                                      "str": 8
+                                                                    },
+                                                                    "span": {
+                                                                      "start": 388,
+                                                                      "end": 389
+                                                                    },
+                                                                    "id": {
+                                                                      "id": 73
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "span": {
+                                                                "start": 384,
+                                                                "end": 389
+                                                              },
+                                                              "id": {
+                                                                "id": 74
+                                                              }
+                                                            },
+                                                            "rhs": {
+                                                              "kind": {
+                                                                "Path": {
+                                                                  "segments": [
+                                                                    {
+                                                                      "ident": {
+                                                                        "ident": {
+                                                                          "str": 14
+                                                                        },
+                                                                        "span": {
+                                                                          "start": 392,
+                                                                          "end": 401
+                                                                        },
+                                                                        "id": {
+                                                                          "id": 75
+                                                                        }
+                                                                      },
+                                                                      "generics": null
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              },
+                                                              "span": {
+                                                                "start": 392,
+                                                                "end": 401
+                                                              },
+                                                              "id": {
+                                                                "id": 76
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "span": {
+                                                          "start": 384,
+                                                          "end": 401
+                                                        },
+                                                        "id": {
+                                                          "id": 77
+                                                        }
+                                                      },
+                                                      {
+                                                        "kind": {
+                                                          "Infix": {
+                                                            "operator": "Divide",
+                                                            "lhs": {
+                                                              "kind": {
+                                                                "Field": {
+                                                                  "lhs": {
+                                                                    "kind": {
+                                                                      "Path": {
+                                                                        "segments": [
+                                                                          {
+                                                                            "ident": {
+                                                                              "ident": {
+                                                                                "str": 13
+                                                                              },
+                                                                              "span": {
+                                                                                "start": 403,
+                                                                                "end": 406
+                                                                              },
+                                                                              "id": {
+                                                                                "id": 78
+                                                                              }
+                                                                            },
+                                                                            "generics": null
+                                                                          }
+                                                                        ]
+                                                                      }
+                                                                    },
+                                                                    "span": {
+                                                                      "start": 403,
+                                                                      "end": 406
+                                                                    },
+                                                                    "id": {
+                                                                      "id": 79
+                                                                    }
+                                                                  },
+                                                                  "ident": {
+                                                                    "ident": {
+                                                                      "str": 9
+                                                                    },
+                                                                    "span": {
+                                                                      "start": 407,
+                                                                      "end": 408
+                                                                    },
+                                                                    "id": {
+                                                                      "id": 80
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "span": {
+                                                                "start": 403,
+                                                                "end": 408
+                                                              },
+                                                              "id": {
+                                                                "id": 81
+                                                              }
+                                                            },
+                                                            "rhs": {
+                                                              "kind": {
+                                                                "Path": {
+                                                                  "segments": [
+                                                                    {
+                                                                      "ident": {
+                                                                        "ident": {
+                                                                          "str": 14
+                                                                        },
+                                                                        "span": {
+                                                                          "start": 411,
+                                                                          "end": 420
+                                                                        },
+                                                                        "id": {
+                                                                          "id": 82
+                                                                        }
+                                                                      },
+                                                                      "generics": null
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              },
+                                                              "span": {
+                                                                "start": 411,
+                                                                "end": 420
+                                                              },
+                                                              "id": {
+                                                                "id": 83
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "span": {
+                                                          "start": 403,
+                                                          "end": 420
+                                                        },
+                                                        "id": {
+                                                          "id": 84
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              },
+                                              "span": {
+                                                "start": 373,
+                                                "end": 421
+                                              },
+                                              "id": {
+                                                "id": 85
+                                              }
+                                            },
+                                            "implicit_return": false
+                                          }
+                                        }
+                                      ],
+                                      "span": {
+                                        "start": 280,
+                                        "end": 435
+                                      },
+                                      "id": {
+                                        "id": 86
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
                             }
+                          },
+                          "span": {
+                            "start": 190,
+                            "end": 445
+                          },
+                          "id": {
+                            "id": 87
                           }
-                        ]
+                        },
+                        "implicit_return": false
                       }
-                    },
-                    "implicit_return": false
+                    }
+                  ],
+                  "span": {
+                    "start": 180,
+                    "end": 451
+                  },
+                  "id": {
+                    "id": 88
                   }
                 }
-              ]
-            }
+              }
+            ]
           }
-        ]
+        },
+        "span": {
+          "start": 173,
+          "end": 453
+        },
+        "id": {
+          "id": 89
+        }
       }
     ],
-    "trait_stmts": [],
-    "trait_impl_stmts": [],
-    "fn_stmts": []
+    "parse_errors": []
   }
 ]

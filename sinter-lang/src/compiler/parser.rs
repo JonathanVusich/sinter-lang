@@ -107,14 +107,11 @@ impl Parser {
 
     fn get_span(&mut self) -> Span {
         let first = self.spans.pop().expect("No start token found!");
-        let last = self.pos - 1;
-        let start_token = self.tokenized_input.tokens.get(first).unwrap();
-        let last_token = self.tokenized_input.tokens.get(last).unwrap();
 
-        start_token.span.to(last_token.span)
+        self.compute_span(first)
     }
 
-    fn compute_span(&self, start: usize, end: usize) -> Span {
+    fn compute_span(&self, start: usize) -> Span {
         let start_token = self
             .tokenized_input
             .tokens
@@ -123,7 +120,7 @@ impl Parser {
         let end_token = self
             .tokenized_input
             .tokens
-            .get(end)
+            .get(self.pos - 1)
             .expect("No valid end token!");
 
         start_token.span.to(end_token.span)
@@ -136,7 +133,23 @@ impl Parser {
         while self.pos < self.tokenized_input.tokens.len() {
             match self.parse_outer_item() {
                 Ok(item) => items.push(item),
-                Err(err) => errors.push(err),
+                Err(err) => {
+                    errors.push(err);
+                    // Ignore all tokens to the next semicolon since we have a malformed file
+                    // TODO: Improve the error handling here
+                    loop {
+                        match self.current() {
+                            Some(TokenType::Semicolon) => {
+                                self.advance();
+                                break;
+                            }
+                            None => {
+                                break;
+                            }
+                            _ => self.advance(),
+                        }
+                    }
+                }
             }
         }
 
@@ -995,7 +1008,7 @@ impl Parser {
     }
 
     fn parse_expr(&mut self, min_bp: u8) -> ParseResult<Expr> {
-        self.track_span();
+        let start = self.pos;
 
         // Check for prefix operator
         let lhs = if let Some(prefix_op) = self.prefix_op() {
@@ -1105,7 +1118,7 @@ impl Parser {
             return self.unexpected_end();
         };
 
-        let mut lhs_expr = Expr::new(lhs, self.get_span(), self.get_id());
+        let mut lhs_expr = Expr::new(lhs, self.compute_span(start), self.get_id());
 
         while let Some(current) = self.current() {
             if let Some(postfix_op) = self.postfix_op() {
@@ -1116,7 +1129,6 @@ impl Parser {
 
                 lhs_expr = match postfix_op {
                     PostfixOp::LeftParentheses => {
-                        self.track_span();
                         let args = self.parse_multiple_with_scope_delimiter::<Expr, 1>(
                             Self::expr,
                             TokenType::Comma,
@@ -1124,22 +1136,20 @@ impl Parser {
                             TokenType::RightParentheses,
                         )?;
                         let expr_kind = ExprKind::Call(CallExpr::new(lhs_expr, Args::new(args)));
-                        Expr::new(expr_kind, self.get_span(), self.get_id())
+                        Expr::new(expr_kind, self.compute_span(start), self.get_id())
                     }
                     PostfixOp::LeftBracket => {
-                        self.track_span();
                         self.advance();
                         let rhs = self.expr()?;
                         self.expect(TokenType::RightBracket)?;
                         let expr_kind = ExprKind::Index(IndexExpr::new(lhs_expr, rhs));
-                        Expr::new(expr_kind, self.get_span(), self.get_id())
+                        Expr::new(expr_kind, self.compute_span(start), self.get_id())
                     }
                     PostfixOp::Dot => {
-                        self.track_span();
                         self.advance();
                         let ident = self.identifier()?;
                         let expr_kind = ExprKind::Field(FieldExpr::new(lhs_expr, ident));
-                        Expr::new(expr_kind, self.get_span(), self.get_id())
+                        Expr::new(expr_kind, self.compute_span(start), self.get_id())
                     }
                 };
                 continue;
@@ -1152,13 +1162,12 @@ impl Parser {
                     break;
                 }
 
-                self.track_span();
                 self.advance_multiple(infix_op.token_len());
 
                 let rhs = self.parse_expr(right_bp)?;
 
                 let expr_kind = ExprKind::Infix(InfixExpr::new(lhs_expr, rhs, infix_op));
-                lhs_expr = Expr::new(expr_kind, self.get_span(), self.get_id());
+                lhs_expr = Expr::new(expr_kind, self.compute_span(start), self.get_id());
                 continue;
             }
 
@@ -1618,10 +1627,8 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     pub fn invalid_use_stmts() {
         let (mut ctxt, module) = parse_module("use std::vector::");
-        eprintln!("Parsed code!");
         let mut errors = &module.parse_errors;
 
         assert_eq!(1, errors.len());
