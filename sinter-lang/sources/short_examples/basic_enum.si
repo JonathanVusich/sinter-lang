@@ -1,4 +1,4 @@
-enum Planet(
+enum Planet {
     Mercury,
     Venus,
     Earth,
@@ -8,4 +8,4 @@ enum Planet(
     Uranus,
     Neptune,
     Pluto,
-);
+};

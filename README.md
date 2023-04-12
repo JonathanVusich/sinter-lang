@@ -205,8 +205,8 @@ Classes can contain instance and static method declarations. Instance methods ar
 argument in the declaration.
 ```ignorelang
 class Rectangle {
-    width: f64,
-    length: f64,
+    width: f64;
+    length: f64;
     
     fn perimeter(self) => f64 {
         return (self.width * 2) + (self.height * 2);
@@ -222,7 +222,7 @@ Instance fields can only be mutated from instance methods that take `mut self` i
 #### Incorrect:
 ```ignorelang
 class Counter { 
-    num: i64,
+    num: i64;
     
     fn increment(self) {
                  ^^^^  Error: self must be marked as mutable in order to modify the num field.

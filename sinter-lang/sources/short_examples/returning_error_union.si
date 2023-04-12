@@ -9,7 +9,7 @@ fn write<T: Serializable>(value: T) => None | WriteError {
     }
 }
 
-enum WriteError( 
+enum WriteError {
     BufferOverflow,
     MalformedBytes,
-);
+};

@@ -1,3 +1,6 @@
+### Notes on grammar decisions
+1. Enums and classes include methods in the body of each type to avoid having to reconcile multiple impl blocks for the same class. It also makes generic parameters easier to keep track of since the declared generic params are the ones that are global to class or enum methods.
+
 ### Statement Types
 
 `outerStmt => useStmt | classStmt | fnStmt | constLetStmt | enumStmt | traitStmt | traitImplStmt`
@@ -9,13 +12,13 @@ _________________________________
 
 `useStmt => "use" qualifiedIdent ";"`
 
-`classStmt => "ref"? "class" ident genericParams? params? ( fnStmts | ";" )`
+`classStmt => "ref"? "class" ident genericParams? "{" field* fnSelfStmt* "}"`
 
 `fnStmt => fnHead params fnTail`
 
 `constLetStmt => "let" ident ( ":" ty )? "=" expression ";"`
 
-`enumStmt => "enum" ident genericParams? enumMembers ( fnStmts | ";" )`
+`enumStmt => "enum" ident genericParams? "{" enumMembers ( fnSelfStmt* ) "}"`
 
 `traitStmt => "trait" ident genericParams? ( traitBody | ";" )`
 
@@ -79,9 +82,9 @@ _________________________________
 _________________________________
 ### Enum Definitions
 
-`enumMembers => "(" enumMember (, enumMember)* ,? ")"`
+`enumMembers => enumMember ("," enumMember)* ","`
 
-`enumMember => ident params? fnStmts?`
+`enumMember => ident params? ("{" fnSelfStmt* "}")?`
 
 _________________________________
 ### Trait Definitions
@@ -118,11 +121,13 @@ _________________________________
 
 `params => "(" param (, param)* ")"`
 
-`selfParams => "(" selfParam (, param)* ")"`
+`selfParams => "(" selfParam ("," param)* ")"`
 
 `selfParam => "mut"? "self"`
 
 `param => "mut"? ident ":" ty`
+
+`field => ident ":" ty ","`
 
 _________________________________
 ### Argument Definitions

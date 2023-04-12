@@ -1,8 +1,8 @@
-enum Message(
+enum Message {
     Text(message: str),
     Photo(caption: str, photo: SerializedPhoto) {
         fn size(self) => u64 {
             return self.photo.size();
         }
     },
-);
+}
