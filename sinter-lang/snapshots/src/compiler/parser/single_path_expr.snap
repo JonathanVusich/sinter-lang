@@ -6,9 +6,7 @@
     "segments": [
       {
         "ident": {
-          "ident": {
-            "str": 1
-          },
+          "ident": 1,
           "span": {
             "start": 0,
             "end": 3

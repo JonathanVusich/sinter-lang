@@ -16,9 +16,7 @@
             "ident": {
               "idents": [
                 {
-                  "ident": {
-                    "str": 1
-                  },
+                  "ident": 1,
                   "span": {
                     "start": 4,
                     "end": 7
@@ -28,9 +26,7 @@
                   }
                 },
                 {
-                  "ident": {
-                    "str": 2
-                  },
+                  "ident": 2,
                   "span": {
                     "start": 9,
                     "end": 15
@@ -57,9 +53,7 @@
             "ident": {
               "idents": [
                 {
-                  "ident": {
-                    "str": 1
-                  },
+                  "ident": 1,
                   "span": {
                     "start": 21,
                     "end": 24
@@ -69,9 +63,7 @@
                   }
                 },
                 {
-                  "ident": {
-                    "str": 3
-                  },
+                  "ident": 3,
                   "span": {
                     "start": 26,
                     "end": 31
@@ -98,9 +90,7 @@
             "ident": {
               "idents": [
                 {
-                  "ident": {
-                    "str": 1
-                  },
+                  "ident": 1,
                   "span": {
                     "start": 37,
                     "end": 40
@@ -110,9 +100,7 @@
                   }
                 },
                 {
-                  "ident": {
-                    "str": 4
-                  },
+                  "ident": 4,
                   "span": {
                     "start": 42,
                     "end": 45
@@ -122,9 +110,7 @@
                   }
                 },
                 {
-                  "ident": {
-                    "str": 5
-                  },
+                  "ident": 5,
                   "span": {
                     "start": 47,
                     "end": 54

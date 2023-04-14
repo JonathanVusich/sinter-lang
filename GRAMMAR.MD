@@ -1,5 +1,7 @@
 ### Notes on grammar decisions
 1. Enums and classes include methods in the body of each type to avoid having to reconcile multiple impl blocks for the same class. It also makes generic parameters easier to keep track of since the declared generic params are the ones that are global to class or enum methods.
+2. Class fields are delimited by semicolons. This makes parsing function bodies easier and avoids forced ordering for parsing to succeed.
+3. 
 
 ### Statement Types
 
@@ -12,13 +14,13 @@ _________________________________
 
 `useStmt => "use" qualifiedIdent ";"`
 
-`classStmt => "ref"? "class" ident genericParams? "{" field* fnSelfStmt* "}"`
+`classStmt => "ref"? "class" ident genericParams? ( "{" (field ",")* fnSelfStmt* "}" ) | ";"`
 
 `fnStmt => fnHead params fnTail`
 
 `constLetStmt => "let" ident ( ":" ty )? "=" expression ";"`
 
-`enumStmt => "enum" ident genericParams? "{" enumMembers ( fnSelfStmt* ) "}"`
+`enumStmt => "enum" ident genericParams? ( "{" (enumMember ",")* fnSelfStmt* "}" ) | ";"`
 
 `traitStmt => "trait" ident genericParams? ( traitBody | ";" )`
 
@@ -71,9 +73,11 @@ _________________________________
 
 `unary => ( "+" | "-" | "~" | "!" ) unary | call`
 
-`call => primary ( fnCall | index | "." ident )*`
+`call => primary ( fnCall | index | "." ident | constructor )*`
 
 `fnCall => ( "::" genericCallsite )? "(" args? ")"`
+
+`constructor => "{" args? "}" `
 
 `index => "[" expression "]"`
 
@@ -81,8 +85,6 @@ _________________________________
 
 _________________________________
 ### Enum Definitions
-
-`enumMembers => enumMember ("," enumMember)* ","`
 
 `enumMember => ident params? ("{" fnSelfStmt* "}")?`
 
@@ -127,7 +129,7 @@ _________________________________
 
 `param => "mut"? ident ":" ty`
 
-`field => ident ":" ty ","`
+`field => ident ":" ty`
 
 _________________________________
 ### Argument Definitions

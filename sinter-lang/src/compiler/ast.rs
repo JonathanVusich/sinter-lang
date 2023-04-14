@@ -62,6 +62,7 @@ impl Item {
 pub enum ExprKind {
     Array(ArrayExpr),
     Call(CallExpr),
+    Constructor(CallExpr),
     Infix(InfixExpr),
     Unary(UnaryExpr),
     None,
@@ -433,7 +434,7 @@ pub struct ClassStmt {
     pub(crate) class_type: ClassType,
     pub(crate) generic_params: GenericParams,
     pub(crate) fields: Fields,
-    pub(crate) member_fns: Vec<FnStmt>,
+    pub(crate) fn_stmts: Vec<FnStmt>,
 }
 
 impl ClassStmt {
@@ -442,14 +443,14 @@ impl ClassStmt {
         class_type: ClassType,
         generic_params: GenericParams,
         fields: Fields,
-        member_functions: Vec<FnStmt>,
+        fn_stmts: Vec<FnStmt>,
     ) -> Self {
         Self {
             name,
             class_type,
             generic_params,
             fields,
-            member_fns: member_functions,
+            fn_stmts,
         }
     }
 }
@@ -651,17 +652,15 @@ impl Param {
 pub struct Field {
     pub(crate) ident: Ident,
     pub(crate) ty: Ty,
-    pub(crate) mutability: Mutability,
     pub(crate) span: Span,
     pub(crate) id: NodeId,
 }
 
 impl Field {
-    pub fn new(ident: Ident, ty: Ty, mutability: Mutability, span: Span, id: NodeId) -> Self {
+    pub fn new(ident: Ident, ty: Ty, span: Span, id: NodeId) -> Self {
         Self {
             ident,
             ty,
-            mutability,
             span,
             id,
         }
@@ -721,14 +720,14 @@ pub enum VarInitializer {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct CallExpr {
-    pub func: Box<Expr>,
+    pub target: Box<Expr>,
     pub args: Args,
 }
 
 impl CallExpr {
     pub fn new(func: Expr, args: Args) -> Self {
         Self {
-            func: Box::new(func),
+            target: Box::new(func),
             args,
         }
     }
@@ -1097,6 +1096,7 @@ impl UnaryOp {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum PostfixOp {
+    LeftBrace,
     LeftBracket,
     LeftParentheses,
     Dot,

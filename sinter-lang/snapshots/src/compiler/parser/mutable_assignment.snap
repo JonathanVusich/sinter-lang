@@ -12,9 +12,7 @@
           "Fn": {
             "sig": {
               "name": {
-                "ident": {
-                  "str": 1
-                },
+                "ident": 1,
                 "span": {
                   "start": 3,
                   "end": 10
@@ -36,9 +34,7 @@
                 {
                   "Let": {
                     "ident": {
-                      "ident": {
-                        "str": 2
-                      },
+                      "ident": 2,
                       "span": {
                         "start": 27,
                         "end": 28
@@ -75,9 +71,7 @@
                                 "segments": [
                                   {
                                     "ident": {
-                                      "ident": {
-                                        "str": 2
-                                      },
+                                      "ident": 2,
                                       "span": {
                                         "start": 64,
                                         "end": 65
@@ -109,9 +103,7 @@
                                       "segments": [
                                         {
                                           "ident": {
-                                            "ident": {
-                                              "str": 2
-                                            },
+                                            "ident": 2,
                                             "span": {
                                               "start": 68,
                                               "end": 69

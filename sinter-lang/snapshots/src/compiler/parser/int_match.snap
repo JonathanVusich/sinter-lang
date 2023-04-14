@@ -17,9 +17,7 @@
               "segments": [
                 {
                   "ident": {
-                    "ident": {
-                      "str": 1
-                    },
+                    "ident": 1,
                     "span": {
                       "start": 6,
                       "end": 12
@@ -57,9 +55,7 @@
                             "segments": [
                               {
                                 "ident": {
-                                  "ident": {
-                                    "str": 2
-                                  },
+                                  "ident": 2,
                                   "span": {
                                     "start": 24,
                                     "end": 29
@@ -85,9 +81,7 @@
                         "args": [
                           {
                             "kind": {
-                              "String": {
-                                "str": 3
-                              }
+                              "String": 3
                             },
                             "span": {
                               "start": 30,
@@ -146,9 +140,7 @@
                             "segments": [
                               {
                                 "ident": {
-                                  "ident": {
-                                    "str": 2
-                                  },
+                                  "ident": 2,
                                   "span": {
                                     "start": 65,
                                     "end": 70
@@ -174,9 +166,7 @@
                         "args": [
                           {
                             "kind": {
-                              "String": {
-                                "str": 4
-                              }
+                              "String": 4
                             },
                             "span": {
                               "start": 71,
@@ -215,9 +205,7 @@
                             "segments": [
                               {
                                 "ident": {
-                                  "ident": {
-                                    "str": 2
-                                  },
+                                  "ident": 2,
                                   "span": {
                                     "start": 100,
                                     "end": 105
@@ -243,9 +231,7 @@
                         "args": [
                           {
                             "kind": {
-                              "String": {
-                                "str": 5
-                              }
+                              "String": 5
                             },
                             "span": {
                               "start": 106,

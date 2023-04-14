@@ -19,9 +19,7 @@
         "kind": {
           "Enum": {
             "name": {
-              "ident": {
-                "str": 1
-              },
+              "ident": 1,
               "span": {
                 "start": 5,
                 "end": 11
@@ -35,144 +33,126 @@
             },
             "members": [
               {
-                "name": {
-                  "str": 2
-                },
+                "name": 2,
                 "fields": {
                   "params": []
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 17,
-                  "end": 24
+                  "start": 18,
+                  "end": 26
                 },
                 "id": {
                   "id": 1
                 }
               },
               {
-                "name": {
-                  "str": 3
-                },
+                "name": 3,
                 "fields": {
                   "params": []
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 30,
-                  "end": 35
+                  "start": 31,
+                  "end": 37
                 },
                 "id": {
                   "id": 2
                 }
               },
               {
-                "name": {
-                  "str": 4
-                },
+                "name": 4,
                 "fields": {
                   "params": []
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 41,
-                  "end": 46
+                  "start": 42,
+                  "end": 48
                 },
                 "id": {
                   "id": 3
                 }
               },
               {
-                "name": {
-                  "str": 5
-                },
+                "name": 5,
                 "fields": {
                   "params": []
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 52,
-                  "end": 56
+                  "start": 53,
+                  "end": 58
                 },
                 "id": {
                   "id": 4
                 }
               },
               {
-                "name": {
-                  "str": 6
-                },
+                "name": 6,
                 "fields": {
                   "params": []
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 62,
-                  "end": 69
+                  "start": 63,
+                  "end": 71
                 },
                 "id": {
                   "id": 5
                 }
               },
               {
-                "name": {
-                  "str": 7
-                },
+                "name": 7,
                 "fields": {
                   "params": []
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 75,
-                  "end": 81
+                  "start": 76,
+                  "end": 83
                 },
                 "id": {
                   "id": 6
                 }
               },
               {
-                "name": {
-                  "str": 8
-                },
+                "name": 8,
                 "fields": {
                   "params": []
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 87,
-                  "end": 93
+                  "start": 88,
+                  "end": 95
                 },
                 "id": {
                   "id": 7
                 }
               },
               {
-                "name": {
-                  "str": 9
-                },
+                "name": 9,
                 "fields": {
                   "params": []
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 99,
-                  "end": 106
+                  "start": 100,
+                  "end": 108
                 },
                 "id": {
                   "id": 8
                 }
               },
               {
-                "name": {
-                  "str": 10
-                },
+                "name": 10,
                 "fields": {
                   "params": []
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 112,
-                  "end": 117
+                  "start": 113,
+                  "end": 119
                 },
                 "id": {
                   "id": 9

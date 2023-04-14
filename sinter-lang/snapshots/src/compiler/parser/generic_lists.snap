@@ -7,7 +7,6 @@
       "size",
       "u64",
       "new",
-      "initial_capacity",
       "list_of_ints",
       "i64",
       "list_of_lists",
@@ -26,9 +25,7 @@
         "kind": {
           "Class": {
             "name": {
-              "ident": {
-                "str": 1
-              },
+              "ident": 1,
               "span": {
                 "start": 10,
                 "end": 14
@@ -42,9 +39,7 @@
               "params": [
                 {
                   "ident": {
-                    "ident": {
-                      "str": 2
-                    },
+                    "ident": 2,
                     "span": {
                       "start": 15,
                       "end": 16
@@ -68,12 +63,10 @@
               "params": [
                 {
                   "ident": {
-                    "ident": {
-                      "str": 3
-                    },
+                    "ident": 3,
                     "span": {
-                      "start": 18,
-                      "end": 23
+                      "start": 24,
+                      "end": 29
                     },
                     "id": {
                       "id": 3
@@ -89,12 +82,10 @@
                                 "ident": {
                                   "idents": [
                                     {
-                                      "ident": {
-                                        "str": 2
-                                      },
+                                      "ident": 2,
                                       "span": {
-                                        "start": 26,
-                                        "end": 27
+                                        "start": 32,
+                                        "end": 33
                                       },
                                       "id": {
                                         "id": 4
@@ -109,8 +100,8 @@
                             }
                           },
                           "span": {
-                            "start": 26,
-                            "end": 27
+                            "start": 32,
+                            "end": 33
                           },
                           "id": {
                             "id": 5
@@ -119,17 +110,16 @@
                       }
                     },
                     "span": {
-                      "start": 26,
-                      "end": 27
+                      "start": 32,
+                      "end": 33
                     },
                     "id": {
                       "id": 6
                     }
                   },
-                  "mutability": "Immutable",
                   "span": {
-                    "start": 25,
-                    "end": 28
+                    "start": 31,
+                    "end": 34
                   },
                   "id": {
                     "id": 7
@@ -137,12 +127,10 @@
                 },
                 {
                   "ident": {
-                    "ident": {
-                      "str": 4
-                    },
+                    "ident": 4,
                     "span": {
-                      "start": 30,
-                      "end": 34
+                      "start": 40,
+                      "end": 44
                     },
                     "id": {
                       "id": 8
@@ -151,17 +139,16 @@
                   "ty": {
                     "kind": "U64",
                     "span": {
-                      "start": 36,
-                      "end": 39
+                      "start": 46,
+                      "end": 49
                     },
                     "id": {
                       "id": 9
                     }
                   },
-                  "mutability": "Immutable",
                   "span": {
-                    "start": 36,
-                    "end": 39
+                    "start": 46,
+                    "end": 49
                   },
                   "id": {
                     "id": 10
@@ -169,16 +156,14 @@
                 }
               ]
             },
-            "member_fns": [
+            "fn_stmts": [
               {
                 "sig": {
                   "name": {
-                    "ident": {
-                      "str": 6
-                    },
+                    "ident": 6,
                     "span": {
-                      "start": 51,
-                      "end": 54
+                      "start": 59,
+                      "end": 62
                     },
                     "id": {
                       "id": 11
@@ -188,42 +173,16 @@
                     "params": []
                   },
                   "params": {
-                    "params": [
-                      {
-                        "ident": {
-                          "ident": {
-                            "str": 7
-                          },
-                          "span": {
-                            "start": 55,
-                            "end": 71
-                          },
-                          "id": {
-                            "id": 12
-                          }
-                        },
-                        "ty": {
-                          "kind": "U64",
-                          "span": {
-                            "start": 73,
-                            "end": 76
-                          },
-                          "id": {
-                            "id": 13
-                          }
-                        },
-                        "mutability": "Immutable"
-                      }
-                    ]
+                    "params": []
                   },
                   "return_type": {
                     "kind": "QSelf",
                     "span": {
-                      "start": 81,
-                      "end": 85
+                      "start": 68,
+                      "end": 72
                     },
                     "id": {
-                      "id": 14
+                      "id": 12
                     }
                   }
                 },
@@ -233,22 +192,20 @@
                       "Expression": {
                         "expr": {
                           "kind": {
-                            "Call": {
-                              "func": {
+                            "Constructor": {
+                              "target": {
                                 "kind": {
                                   "Path": {
                                     "segments": [
                                       {
                                         "ident": {
-                                          "ident": {
-                                            "str": 17
-                                          },
+                                          "ident": 16,
                                           "span": {
-                                            "start": 96,
-                                            "end": 100
+                                            "start": 83,
+                                            "end": 87
                                           },
                                           "id": {
-                                            "id": 15
+                                            "id": 13
                                           }
                                         },
                                         "generics": null
@@ -257,11 +214,11 @@
                                   }
                                 },
                                 "span": {
-                                  "start": 96,
-                                  "end": 100
+                                  "start": 83,
+                                  "end": 87
                                 },
                                 "id": {
-                                  "id": 16
+                                  "id": 14
                                 }
                               },
                               "args": {
@@ -276,15 +233,13 @@
                                                 "segments": [
                                                   {
                                                     "ident": {
-                                                      "ident": {
-                                                        "str": 2
-                                                      },
+                                                      "ident": 2,
                                                       "span": {
-                                                        "start": 102,
-                                                        "end": 103
+                                                        "start": 91,
+                                                        "end": 92
                                                       },
                                                       "id": {
-                                                        "id": 17
+                                                        "id": 15
                                                       }
                                                     },
                                                     "generics": null
@@ -293,52 +248,34 @@
                                               }
                                             },
                                             "span": {
-                                              "start": 102,
-                                              "end": 103
+                                              "start": 91,
+                                              "end": 92
                                             },
                                             "id": {
-                                              "id": 18
+                                              "id": 16
                                             }
                                           },
                                           {
                                             "kind": {
-                                              "Path": {
-                                                "segments": [
-                                                  {
-                                                    "ident": {
-                                                      "ident": {
-                                                        "str": 7
-                                                      },
-                                                      "span": {
-                                                        "start": 105,
-                                                        "end": 121
-                                                      },
-                                                      "id": {
-                                                        "id": 19
-                                                      }
-                                                    },
-                                                    "generics": null
-                                                  }
-                                                ]
-                                              }
+                                              "Integer": 10
                                             },
                                             "span": {
-                                              "start": 105,
-                                              "end": 121
+                                              "start": 94,
+                                              "end": 96
                                             },
                                             "id": {
-                                              "id": 20
+                                              "id": 17
                                             }
                                           }
                                         ]
                                       }
                                     },
                                     "span": {
-                                      "start": 101,
-                                      "end": 122
+                                      "start": 90,
+                                      "end": 97
                                     },
                                     "id": {
-                                      "id": 21
+                                      "id": 18
                                     }
                                   },
                                   {
@@ -346,11 +283,11 @@
                                       "Integer": 0
                                     },
                                     "span": {
-                                      "start": 124,
-                                      "end": 125
+                                      "start": 99,
+                                      "end": 100
                                     },
                                     "id": {
-                                      "id": 22
+                                      "id": 19
                                     }
                                   }
                                 ]
@@ -358,11 +295,11 @@
                             }
                           },
                           "span": {
-                            "start": 96,
-                            "end": 126
+                            "start": 83,
+                            "end": 102
                           },
                           "id": {
-                            "id": 23
+                            "id": 20
                           }
                         },
                         "implicit_return": false
@@ -370,11 +307,11 @@
                     }
                   ],
                   "span": {
-                    "start": 86,
-                    "end": 132
+                    "start": 73,
+                    "end": 108
                   },
                   "id": {
-                    "id": 24
+                    "id": 21
                   }
                 }
               }
@@ -382,47 +319,43 @@
           }
         },
         "span": {
-          "start": 81,
-          "end": 134
+          "start": 68,
+          "end": 110
         },
         "id": {
-          "id": 25
+          "id": 22
         }
       },
       {
         "kind": {
           "GlobalLet": {
             "ident": {
-              "ident": {
-                "str": 8
-              },
+              "ident": 7,
               "span": {
-                "start": 140,
-                "end": 152
+                "start": 116,
+                "end": 128
               },
               "id": {
-                "id": 26
+                "id": 23
               }
             },
             "ty": null,
             "initializer": {
               "kind": {
                 "Call": {
-                  "func": {
+                  "target": {
                     "kind": {
                       "Path": {
                         "segments": [
                           {
                             "ident": {
-                              "ident": {
-                                "str": 1
-                              },
+                              "ident": 1,
                               "span": {
-                                "start": 155,
-                                "end": 159
+                                "start": 131,
+                                "end": 135
                               },
                               "id": {
-                                "id": 27
+                                "id": 24
                               }
                             },
                             "generics": {
@@ -430,11 +363,11 @@
                                 {
                                   "kind": "I64",
                                   "span": {
-                                    "start": 162,
-                                    "end": 165
+                                    "start": 138,
+                                    "end": 141
                                   },
                                   "id": {
-                                    "id": 28
+                                    "id": 25
                                   }
                                 }
                               ]
@@ -442,15 +375,13 @@
                           },
                           {
                             "ident": {
-                              "ident": {
-                                "str": 6
-                              },
+                              "ident": 6,
                               "span": {
-                                "start": 168,
-                                "end": 171
+                                "start": 144,
+                                "end": 147
                               },
                               "id": {
-                                "id": 29
+                                "id": 26
                               }
                             },
                             "generics": null
@@ -459,11 +390,11 @@
                       }
                     },
                     "span": {
-                      "start": 155,
-                      "end": 171
+                      "start": 131,
+                      "end": 147
                     },
                     "id": {
-                      "id": 30
+                      "id": 27
                     }
                   },
                   "args": {
@@ -472,64 +403,60 @@
                 }
               },
               "span": {
-                "start": 155,
-                "end": 173
+                "start": 131,
+                "end": 149
               },
               "id": {
-                "id": 31
+                "id": 28
               }
             },
             "span": {
-              "start": 162,
-              "end": 174
+              "start": 138,
+              "end": 150
             },
             "id": {
-              "id": 32
+              "id": 29
             }
           }
         },
         "span": {
-          "start": 136,
-          "end": 174
+          "start": 112,
+          "end": 150
         },
         "id": {
-          "id": 33
+          "id": 30
         }
       },
       {
         "kind": {
           "GlobalLet": {
             "ident": {
-              "ident": {
-                "str": 10
-              },
+              "ident": 9,
               "span": {
-                "start": 179,
-                "end": 192
+                "start": 155,
+                "end": 168
               },
               "id": {
-                "id": 34
+                "id": 31
               }
             },
             "ty": null,
             "initializer": {
               "kind": {
                 "Call": {
-                  "func": {
+                  "target": {
                     "kind": {
                       "Path": {
                         "segments": [
                           {
                             "ident": {
-                              "ident": {
-                                "str": 1
-                              },
+                              "ident": 1,
                               "span": {
-                                "start": 195,
-                                "end": 199
+                                "start": 171,
+                                "end": 175
                               },
                               "id": {
-                                "id": 35
+                                "id": 32
                               }
                             },
                             "generics": {
@@ -541,15 +468,13 @@
                                         "ident": {
                                           "idents": [
                                             {
-                                              "ident": {
-                                                "str": 1
-                                              },
+                                              "ident": 1,
                                               "span": {
-                                                "start": 202,
-                                                "end": 206
+                                                "start": 178,
+                                                "end": 182
                                               },
                                               "id": {
-                                                "id": 36
+                                                "id": 33
                                               }
                                             }
                                           ]
@@ -559,11 +484,11 @@
                                             {
                                               "kind": "F64",
                                               "span": {
-                                                "start": 207,
-                                                "end": 210
+                                                "start": 183,
+                                                "end": 186
                                               },
                                               "id": {
-                                                "id": 37
+                                                "id": 34
                                               }
                                             }
                                           ]
@@ -572,11 +497,11 @@
                                     }
                                   },
                                   "span": {
-                                    "start": 207,
-                                    "end": 211
+                                    "start": 183,
+                                    "end": 187
                                   },
                                   "id": {
-                                    "id": 38
+                                    "id": 35
                                   }
                                 }
                               ]
@@ -584,15 +509,13 @@
                           },
                           {
                             "ident": {
-                              "ident": {
-                                "str": 6
-                              },
+                              "ident": 6,
                               "span": {
-                                "start": 214,
-                                "end": 217
+                                "start": 190,
+                                "end": 193
                               },
                               "id": {
-                                "id": 39
+                                "id": 36
                               }
                             },
                             "generics": null
@@ -601,11 +524,11 @@
                       }
                     },
                     "span": {
-                      "start": 195,
-                      "end": 217
+                      "start": 171,
+                      "end": 193
                     },
                     "id": {
-                      "id": 40
+                      "id": 37
                     }
                   },
                   "args": {
@@ -614,64 +537,60 @@
                 }
               },
               "span": {
-                "start": 195,
-                "end": 219
+                "start": 171,
+                "end": 195
               },
               "id": {
-                "id": 41
+                "id": 38
               }
             },
             "span": {
-              "start": 202,
-              "end": 220
+              "start": 178,
+              "end": 196
             },
             "id": {
-              "id": 42
+              "id": 39
             }
           }
         },
         "span": {
-          "start": 202,
-          "end": 220
+          "start": 178,
+          "end": 196
         },
         "id": {
-          "id": 43
+          "id": 40
         }
       },
       {
         "kind": {
           "GlobalLet": {
             "ident": {
-              "ident": {
-                "str": 12
-              },
+              "ident": 11,
               "span": {
-                "start": 225,
-                "end": 237
+                "start": 201,
+                "end": 213
               },
               "id": {
-                "id": 44
+                "id": 41
               }
             },
             "ty": null,
             "initializer": {
               "kind": {
                 "Call": {
-                  "func": {
+                  "target": {
                     "kind": {
                       "Path": {
                         "segments": [
                           {
                             "ident": {
-                              "ident": {
-                                "str": 1
-                              },
+                              "ident": 1,
                               "span": {
-                                "start": 240,
-                                "end": 244
+                                "start": 216,
+                                "end": 220
                               },
                               "id": {
-                                "id": 45
+                                "id": 42
                               }
                             },
                             "generics": {
@@ -685,15 +604,13 @@
                                             "ident": {
                                               "idents": [
                                                 {
-                                                  "ident": {
-                                                    "str": 13
-                                                  },
+                                                  "ident": 12,
                                                   "span": {
-                                                    "start": 247,
-                                                    "end": 255
+                                                    "start": 223,
+                                                    "end": 231
                                                   },
                                                   "id": {
-                                                    "id": 46
+                                                    "id": 43
                                                   }
                                                 }
                                               ]
@@ -706,15 +623,13 @@
                                             "ident": {
                                               "idents": [
                                                 {
-                                                  "ident": {
-                                                    "str": 14
-                                                  },
+                                                  "ident": 13,
                                                   "span": {
-                                                    "start": 258,
-                                                    "end": 270
+                                                    "start": 234,
+                                                    "end": 246
                                                   },
                                                   "id": {
-                                                    "id": 47
+                                                    "id": 44
                                                   }
                                                 }
                                               ]
@@ -728,11 +643,11 @@
                                     }
                                   },
                                   "span": {
-                                    "start": 247,
-                                    "end": 270
+                                    "start": 223,
+                                    "end": 246
                                   },
                                   "id": {
-                                    "id": 48
+                                    "id": 45
                                   }
                                 }
                               ]
@@ -740,15 +655,13 @@
                           },
                           {
                             "ident": {
-                              "ident": {
-                                "str": 6
-                              },
+                              "ident": 6,
                               "span": {
-                                "start": 273,
-                                "end": 276
+                                "start": 249,
+                                "end": 252
                               },
                               "id": {
-                                "id": 49
+                                "id": 46
                               }
                             },
                             "generics": null
@@ -757,11 +670,11 @@
                       }
                     },
                     "span": {
-                      "start": 240,
-                      "end": 276
+                      "start": 216,
+                      "end": 252
                     },
                     "id": {
-                      "id": 50
+                      "id": 47
                     }
                   },
                   "args": {
@@ -770,64 +683,60 @@
                 }
               },
               "span": {
-                "start": 240,
-                "end": 278
+                "start": 216,
+                "end": 254
               },
               "id": {
-                "id": 51
+                "id": 48
               }
             },
             "span": {
-              "start": 247,
-              "end": 279
+              "start": 223,
+              "end": 255
             },
             "id": {
-              "id": 52
+              "id": 49
             }
           }
         },
         "span": {
-          "start": 221,
-          "end": 279
+          "start": 197,
+          "end": 255
         },
         "id": {
-          "id": 53
+          "id": 50
         }
       },
       {
         "kind": {
           "GlobalLet": {
             "ident": {
-              "ident": {
-                "str": 15
-              },
+              "ident": 14,
               "span": {
-                "start": 284,
-                "end": 290
+                "start": 260,
+                "end": 266
               },
               "id": {
-                "id": 54
+                "id": 51
               }
             },
             "ty": null,
             "initializer": {
               "kind": {
                 "Call": {
-                  "func": {
+                  "target": {
                     "kind": {
                       "Path": {
                         "segments": [
                           {
                             "ident": {
-                              "ident": {
-                                "str": 1
-                              },
+                              "ident": 1,
                               "span": {
-                                "start": 293,
-                                "end": 297
+                                "start": 269,
+                                "end": 273
                               },
                               "id": {
-                                "id": 55
+                                "id": 52
                               }
                             },
                             "generics": {
@@ -839,42 +748,42 @@
                                         {
                                           "kind": "Str",
                                           "span": {
-                                            "start": 300,
-                                            "end": 303
+                                            "start": 276,
+                                            "end": 279
                                           },
                                           "id": {
-                                            "id": 56
+                                            "id": 53
                                           }
                                         },
                                         {
                                           "kind": "I64",
                                           "span": {
-                                            "start": 306,
-                                            "end": 309
+                                            "start": 282,
+                                            "end": 285
                                           },
                                           "id": {
-                                            "id": 57
+                                            "id": 54
                                           }
                                         },
                                         {
                                           "kind": "F64",
                                           "span": {
-                                            "start": 312,
-                                            "end": 315
+                                            "start": 288,
+                                            "end": 291
                                           },
                                           "id": {
-                                            "id": 58
+                                            "id": 55
                                           }
                                         }
                                       ]
                                     }
                                   },
                                   "span": {
-                                    "start": 300,
-                                    "end": 315
+                                    "start": 276,
+                                    "end": 291
                                   },
                                   "id": {
-                                    "id": 59
+                                    "id": 56
                                   }
                                 }
                               ]
@@ -882,15 +791,13 @@
                           },
                           {
                             "ident": {
-                              "ident": {
-                                "str": 6
-                              },
+                              "ident": 6,
                               "span": {
-                                "start": 318,
-                                "end": 321
+                                "start": 294,
+                                "end": 297
                               },
                               "id": {
-                                "id": 60
+                                "id": 57
                               }
                             },
                             "generics": null
@@ -899,11 +806,11 @@
                       }
                     },
                     "span": {
-                      "start": 293,
-                      "end": 321
+                      "start": 269,
+                      "end": 297
                     },
                     "id": {
-                      "id": 61
+                      "id": 58
                     }
                   },
                   "args": {
@@ -912,28 +819,28 @@
                 }
               },
               "span": {
-                "start": 293,
-                "end": 323
+                "start": 269,
+                "end": 299
               },
               "id": {
-                "id": 62
+                "id": 59
               }
             },
             "span": {
-              "start": 280,
-              "end": 324
+              "start": 256,
+              "end": 300
             },
             "id": {
-              "id": 63
+              "id": 60
             }
           }
         },
         "span": {
-          "start": 280,
-          "end": 324
+          "start": 256,
+          "end": 300
         },
         "id": {
-          "id": 64
+          "id": 61
         }
       }
     ],

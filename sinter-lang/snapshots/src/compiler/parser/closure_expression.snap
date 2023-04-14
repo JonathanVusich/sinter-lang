@@ -10,9 +10,7 @@
       "Closure": {
         "params": [
           {
-            "ident": {
-              "str": 1
-            },
+            "ident": 1,
             "span": {
               "start": 1,
               "end": 2
@@ -22,9 +20,7 @@
             }
           },
           {
-            "ident": {
-              "str": 2
-            },
+            "ident": 2,
             "span": {
               "start": 4,
               "end": 5
@@ -46,9 +42,7 @@
                         "segments": [
                           {
                             "ident": {
-                              "ident": {
-                                "str": 1
-                              },
+                              "ident": 1,
                               "span": {
                                 "start": 10,
                                 "end": 11
@@ -76,9 +70,7 @@
                         "segments": [
                           {
                             "ident": {
-                              "ident": {
-                                "str": 2
-                              },
+                              "ident": 2,
                               "span": {
                                 "start": 14,
                                 "end": 15

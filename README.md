@@ -57,7 +57,7 @@ in addition to user defined types.
 ```ignorelang
 class Point {
     x: f64, 
-    y: f64
+    y: f64,
 };
 ref class Node;
 
@@ -192,7 +192,7 @@ Properties of a class are listed in its declaration.
 ```ignorelang
 class Rectangle {
     width: f64, 
-    length: f64
+    length: f64,
 }
 ```
 
@@ -205,8 +205,8 @@ Classes can contain instance and static method declarations. Instance methods ar
 argument in the declaration.
 ```ignorelang
 class Rectangle {
-    width: f64;
-    length: f64;
+    width: f64,
+    length: f64,
     
     fn perimeter(self) => f64 {
         return (self.width * 2) + (self.height * 2);
@@ -222,7 +222,7 @@ Instance fields can only be mutated from instance methods that take `mut self` i
 #### Incorrect:
 ```ignorelang
 class Counter { 
-    num: i64;
+    num: i64,
     
     fn increment(self) {
                  ^^^^  Error: self must be marked as mutable in order to modify the num field.
@@ -272,7 +272,7 @@ enum Planet {
     Saturn,
     Uranus,
     Neptune,
-};
+}
 ```
 
 Enums can also contain a payload and functions that are specific to each member:
@@ -357,8 +357,15 @@ fn maybe<T>(instance: T) => T | None {
     ...
 }
 
-class Point<T>(first: T, second: T);
-class Point<T, U>(first: T, second: U);
+class Point<T> { 
+    first: T, 
+    second: T,
+}
+
+class Point<T, U> {
+    first: T, 
+    second: U,
+}
 ```
 
 Generic type definitions can also be restricted by trait bounds.
@@ -412,7 +419,7 @@ Closures can be sent across thread boundaries if all of their captured variables
 ```ignorelang
 use std::Sync;
 
-ref class ConcurrentMap<K, V>(...) { ... };
+ref class ConcurrentMap<K, V> { ... };
 
 impl Sync for ConcurrentMap<K, V>;
 ```

@@ -19,9 +19,7 @@
         "kind": {
           "Trait": {
             "name": {
-              "ident": {
-                "str": 1
-              },
+              "ident": 1,
               "span": {
                 "start": 6,
                 "end": 14
@@ -37,9 +35,7 @@
               {
                 "sig": {
                   "name": {
-                    "ident": {
-                      "str": 2
-                    },
+                    "ident": 2,
                     "span": {
                       "start": 24,
                       "end": 42
@@ -55,9 +51,7 @@
                     "params": [
                       {
                         "ident": {
-                          "ident": {
-                            "str": 10
-                          },
+                          "ident": 10,
                           "span": {
                             "start": 43,
                             "end": 47
@@ -109,9 +103,7 @@
           "Fn": {
             "sig": {
               "name": {
-                "ident": {
-                  "str": 4
-                },
+                "ident": 4,
                 "span": {
                   "start": 63,
                   "end": 86
@@ -124,9 +116,7 @@
                 "params": [
                   {
                     "ident": {
-                      "ident": {
-                        "str": 5
-                      },
+                      "ident": 5,
                       "span": {
                         "start": 87,
                         "end": 88
@@ -141,9 +131,7 @@
                           "ident": {
                             "idents": [
                               {
-                                "ident": {
-                                  "str": 1
-                                },
+                                "ident": 1,
                                 "span": {
                                   "start": 90,
                                   "end": 98
@@ -162,9 +150,7 @@
                           "ident": {
                             "idents": [
                               {
-                                "ident": {
-                                  "str": 6
-                                },
+                                "ident": 6,
                                 "span": {
                                   "start": 101,
                                   "end": 113
@@ -195,9 +181,7 @@
                 "params": [
                   {
                     "ident": {
-                      "ident": {
-                        "str": 7
-                      },
+                      "ident": 7,
                       "span": {
                         "start": 115,
                         "end": 122
@@ -213,9 +197,7 @@
                             "ident": {
                               "idents": [
                                 {
-                                  "ident": {
-                                    "str": 5
-                                  },
+                                  "ident": 5,
                                   "span": {
                                     "start": 124,
                                     "end": 125
@@ -259,9 +241,7 @@
                                 "segments": [
                                   {
                                     "ident": {
-                                      "ident": {
-                                        "str": 8
-                                      },
+                                      "ident": 8,
                                       "span": {
                                         "start": 133,
                                         "end": 140
@@ -297,9 +277,7 @@
                                                 "segments": [
                                                   {
                                                     "ident": {
-                                                      "ident": {
-                                                        "str": 7
-                                                      },
+                                                      "ident": 7,
                                                       "span": {
                                                         "start": 141,
                                                         "end": 148
@@ -322,9 +300,7 @@
                                             }
                                           },
                                           "ident": {
-                                            "ident": {
-                                              "str": 2
-                                            },
+                                            "ident": 2,
                                             "span": {
                                               "start": 149,
                                               "end": 167
@@ -395,9 +371,7 @@
           "Fn": {
             "sig": {
               "name": {
-                "ident": {
-                  "str": 9
-                },
+                "ident": 9,
                 "span": {
                   "start": 178,
                   "end": 195
@@ -413,9 +387,7 @@
                 "params": [
                   {
                     "ident": {
-                      "ident": {
-                        "str": 7
-                      },
+                      "ident": 7,
                       "span": {
                         "start": 196,
                         "end": 203
@@ -433,9 +405,7 @@
                                 "ident": {
                                   "idents": [
                                     {
-                                      "ident": {
-                                        "str": 1
-                                      },
+                                      "ident": 1,
                                       "span": {
                                         "start": 205,
                                         "end": 213
@@ -454,9 +424,7 @@
                                 "ident": {
                                   "idents": [
                                     {
-                                      "ident": {
-                                        "str": 6
-                                      },
+                                      "ident": 6,
                                       "span": {
                                         "start": 216,
                                         "end": 228
@@ -502,9 +470,7 @@
                                 "segments": [
                                   {
                                     "ident": {
-                                      "ident": {
-                                        "str": 8
-                                      },
+                                      "ident": 8,
                                       "span": {
                                         "start": 236,
                                         "end": 243
@@ -540,9 +506,7 @@
                                                 "segments": [
                                                   {
                                                     "ident": {
-                                                      "ident": {
-                                                        "str": 7
-                                                      },
+                                                      "ident": 7,
                                                       "span": {
                                                         "start": 244,
                                                         "end": 251
@@ -565,9 +529,7 @@
                                             }
                                           },
                                           "ident": {
-                                            "ident": {
-                                              "str": 2
-                                            },
+                                            "ident": 2,
                                             "span": {
                                               "start": 252,
                                               "end": 270

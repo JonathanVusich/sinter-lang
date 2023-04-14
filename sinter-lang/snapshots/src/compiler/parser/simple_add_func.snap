@@ -14,9 +14,7 @@
           "Fn": {
             "sig": {
               "name": {
-                "ident": {
-                  "str": 1
-                },
+                "ident": 1,
                 "span": {
                   "start": 3,
                   "end": 6
@@ -32,9 +30,7 @@
                 "params": [
                   {
                     "ident": {
-                      "ident": {
-                        "str": 2
-                      },
+                      "ident": 2,
                       "span": {
                         "start": 7,
                         "end": 8
@@ -57,9 +53,7 @@
                   },
                   {
                     "ident": {
-                      "ident": {
-                        "str": 4
-                      },
+                      "ident": 4,
                       "span": {
                         "start": 15,
                         "end": 16
@@ -107,9 +101,7 @@
                                 "segments": [
                                   {
                                     "ident": {
-                                      "ident": {
-                                        "str": 2
-                                      },
+                                      "ident": 2,
                                       "span": {
                                         "start": 36,
                                         "end": 37
@@ -137,9 +129,7 @@
                                 "segments": [
                                   {
                                     "ident": {
-                                      "ident": {
-                                        "str": 4
-                                      },
+                                      "ident": 4,
                                       "span": {
                                         "start": 40,
                                         "end": 41

@@ -19,9 +19,7 @@
         "kind": {
           "GlobalLet": {
             "ident": {
-              "ident": {
-                "str": 1
-              },
+              "ident": 1,
               "span": {
                 "start": 4,
                 "end": 18
@@ -40,9 +38,7 @@
                         "segments": [
                           {
                             "ident": {
-                              "ident": {
-                                "str": 2
-                              },
+                              "ident": 2,
                               "span": {
                                 "start": 27,
                                 "end": 34
@@ -78,9 +74,7 @@
                                         "ident": {
                                           "idents": [
                                             {
-                                              "ident": {
-                                                "str": 3
-                                              },
+                                              "ident": 3,
                                               "span": {
                                                 "start": 41,
                                                 "end": 48
@@ -90,9 +84,7 @@
                                               }
                                             },
                                             {
-                                              "ident": {
-                                                "str": 4
-                                              },
+                                              "ident": 4,
                                               "span": {
                                                 "start": 50,
                                                 "end": 54
@@ -120,9 +112,7 @@
                                 "exprs": [
                                   {
                                     "kind": {
-                                      "String": {
-                                        "str": 5
-                                      }
+                                      "String": 5
                                     },
                                     "span": {
                                       "start": 55,
@@ -144,9 +134,7 @@
                                         "ident": {
                                           "idents": [
                                             {
-                                              "ident": {
-                                                "str": 3
-                                              },
+                                              "ident": 3,
                                               "span": {
                                                 "start": 65,
                                                 "end": 72
@@ -156,9 +144,7 @@
                                               }
                                             },
                                             {
-                                              "ident": {
-                                                "str": 6
-                                              },
+                                              "ident": 6,
                                               "span": {
                                                 "start": 74,
                                                 "end": 79
@@ -186,9 +172,7 @@
                                 "exprs": [
                                   {
                                     "kind": {
-                                      "String": {
-                                        "str": 5
-                                      }
+                                      "String": 5
                                     },
                                     "span": {
                                       "start": 80,
@@ -204,9 +188,7 @@
                                         "segments": [
                                           {
                                             "ident": {
-                                              "ident": {
-                                                "str": 7
-                                              },
+                                              "ident": 7,
                                               "span": {
                                                 "start": 88,
                                                 "end": 93
@@ -238,9 +220,7 @@
                         "Expression": {
                           "expr": {
                             "kind": {
-                              "String": {
-                                "str": 8
-                              }
+                              "String": 8
                             },
                             "span": {
                               "start": 98,
@@ -264,9 +244,7 @@
                                   "ident": {
                                     "idents": [
                                       {
-                                        "ident": {
-                                          "str": 3
-                                        },
+                                        "ident": 3,
                                         "span": {
                                           "start": 106,
                                           "end": 113
@@ -276,9 +254,7 @@
                                         }
                                       },
                                       {
-                                        "ident": {
-                                          "str": 4
-                                        },
+                                        "ident": 4,
                                         "span": {
                                           "start": 115,
                                           "end": 119
@@ -310,9 +286,7 @@
                                   "segments": [
                                     {
                                       "ident": {
-                                        "ident": {
-                                          "str": 9
-                                        },
+                                        "ident": 9,
                                         "span": {
                                           "start": 120,
                                           "end": 123
@@ -345,9 +319,7 @@
                                 "segments": [
                                   {
                                     "ident": {
-                                      "ident": {
-                                        "str": 9
-                                      },
+                                      "ident": 9,
                                       "span": {
                                         "start": 128,
                                         "end": 131
@@ -383,9 +355,7 @@
                                   "ident": {
                                     "idents": [
                                       {
-                                        "ident": {
-                                          "str": 3
-                                        },
+                                        "ident": 3,
                                         "span": {
                                           "start": 137,
                                           "end": 144
@@ -395,9 +365,7 @@
                                         }
                                       },
                                       {
-                                        "ident": {
-                                          "str": 6
-                                        },
+                                        "ident": 6,
                                         "span": {
                                           "start": 146,
                                           "end": 151
@@ -429,9 +397,7 @@
                                   "segments": [
                                     {
                                       "ident": {
-                                        "ident": {
-                                          "str": 10
-                                        },
+                                        "ident": 10,
                                         "span": {
                                           "start": 152,
                                           "end": 159
@@ -459,9 +425,7 @@
                                   "segments": [
                                     {
                                       "ident": {
-                                        "ident": {
-                                          "str": 7
-                                        },
+                                        "ident": 7,
                                         "span": {
                                           "start": 161,
                                           "end": 166
@@ -494,9 +458,7 @@
                                 "segments": [
                                   {
                                     "ident": {
-                                      "ident": {
-                                        "str": 10
-                                      },
+                                      "ident": 10,
                                       "span": {
                                         "start": 171,
                                         "end": 178

@@ -5,6 +5,7 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
+use winapi::um::winnt::TokenType;
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
@@ -135,6 +136,8 @@ impl Parser {
                 Ok(item) => items.push(item),
                 Err(err) => {
                     errors.push(err);
+                    // Clear out all currently tracked spans to avoid polluting future parsed items.
+                    self.spans.clear();
                     // Ignore all tokens to the next semicolon since we have a malformed file
                     // TODO: Improve the error handling here
                     loop {
@@ -234,18 +237,37 @@ impl Parser {
         };
         let name = self.identifier()?;
         let generic_types = self.generic_params()?;
-        let fields = self.fields()?;
-        let member_functions = if self.matches(TokenType::LeftBrace) {
-            self.fn_stmts()?
-        } else if self.matches(TokenType::Semicolon) {
-            self.advance();
-            Vec::new()
+        let (fields, fn_stmts) = if self.matches(TokenType::LeftBrace) {
+            self.class_stmt_inner()?
         } else {
-            return self.expected_tokens(vec![TokenType::LeftBrace, TokenType::Semicolon]);
+            self.expect(TokenType::Semicolon)?;
+            (Vec::new(), Vec::new())
         };
 
-        let class_stmt = ClassStmt::new(name, class_type, generic_types, fields, member_functions);
+        let class_stmt = ClassStmt::new(
+            name,
+            class_type,
+            generic_types,
+            Fields::new(fields),
+            fn_stmts,
+        );
         Ok(class_stmt)
+    }
+
+    fn class_stmt_inner(&mut self) -> ParseResult<(Vec<Field>, Vec<FnStmt>)> {
+        self.expect(TokenType::LeftBrace)?;
+        let fields = self.parse_multiple(
+            |parser| {
+                let field = parser.field()?;
+                parser.expect(TokenType::Comma)?;
+                Ok(field)
+            },
+            |token| matches!(token, TokenType::Identifier(_)),
+        )?;
+        let fn_stmts =
+            self.parse_multiple(Self::fn_stmt, |token| matches!(token, TokenType::Fn))?;
+        self.expect(TokenType::RightBrace)?;
+        Ok((fields, fn_stmts))
     }
 
     fn parse_fn_stmt(&mut self) -> ParseResult<Item> {
@@ -339,16 +361,27 @@ impl Parser {
         self.expect(TokenType::Enum)?;
         let name = self.identifier()?;
         let generics = self.generic_params()?;
-        let enum_members = self.enum_members()?;
-
-        let object_fns = if self.matches(TokenType::LeftBrace) {
-            self.fn_stmts()?
+        let (enum_members, fn_stmts) = if self.matches(TokenType::LeftBrace) {
+            self.enum_stmt_inner()?
         } else {
             self.expect(TokenType::Semicolon)?;
-            Vec::new()
+            (Vec::new(), Vec::new())
         };
 
-        Ok(EnumStmt::new(name, generics, enum_members, object_fns))
+        Ok(EnumStmt::new(name, generics, enum_members, fn_stmts))
+    }
+
+    fn enum_stmt_inner(&mut self) -> ParseResult<(Vec<EnumMember>, Vec<FnStmt>)> {
+        self.expect(TokenType::LeftBrace)?;
+
+        let enum_members = self.parse_multiple(Self::enum_member, |token| {
+            matches!(token, TokenType::Identifier(blank_ident))
+        })?;
+        let fn_stmts =
+            self.parse_multiple(Self::fn_stmt, |token| matches!(token, TokenType::Fn))?;
+
+        self.expect(TokenType::RightBrace)?;
+        Ok((enum_members, fn_stmts))
     }
 
     fn parse_trait_stmt(&mut self) -> ParseResult<Item> {
@@ -462,12 +495,7 @@ impl Parser {
 
         self.expect(TokenType::RightArrow)?;
 
-        let stmt = if self.matches(TokenType::LeftBrace) {
-            self.parse_block_stmt()?
-        } else {
-            let expr = self.expr()?;
-            Stmt::Expression(Expression::new(expr, true))
-        };
+        let stmt = self.parse_block_or_expr()?;
 
         Ok(ExprKind::Closure(ClosureExpr::new(closure_params, stmt)))
     }
@@ -584,15 +612,6 @@ impl Parser {
         Ok(trait_bound)
     }
 
-    fn enum_members(&mut self) -> ParseResult<Vec<EnumMember>> {
-        self.parse_multiple_with_scope_delimiter::<EnumMember, 1>(
-            Self::enum_member,
-            TokenType::Comma,
-            TokenType::LeftParentheses,
-            TokenType::RightParentheses,
-        )
-    }
-
     fn enum_member(&mut self) -> ParseResult<EnumMember> {
         self.track_span();
         match self.current() {
@@ -604,6 +623,7 @@ impl Parser {
                 } else {
                     Vec::new()
                 };
+                self.expect(TokenType::Comma)?;
                 let span = self.get_span();
                 let id = self.get_id();
                 Ok(EnumMember::new(ident, fields, fn_stmts, span, id))
@@ -650,10 +670,10 @@ impl Parser {
 
     fn field(&mut self) -> ParseResult<Field> {
         self.track_span();
-        let (mutability, ident, ty) = self.mut_ident_ty()?;
-        let span = self.get_span();
-        let id = self.get_id();
-        Ok(Field::new(ident, ty, mutability, span, id))
+        let ident = self.identifier()?;
+        self.expect(TokenType::Colon)?;
+        let ty = self.parse_ty()?;
+        Ok(Field::new(ident, ty, self.get_span(), self.get_id()))
     }
 
     fn param(&mut self) -> ParseResult<Param> {
@@ -1097,6 +1117,7 @@ impl Parser {
 
                 // Handle match expression
                 TokenType::Match => {
+                    /// TODO: Disallow class constructors, both in the grammar and in the implementation
                     self.advance();
                     let source = self.expr()?;
                     let match_arms = self.parse_multiple_with_scope_delimiter::<MatchArm, 1>(
@@ -1136,6 +1157,17 @@ impl Parser {
                             TokenType::RightParentheses,
                         )?;
                         let expr_kind = ExprKind::Call(CallExpr::new(lhs_expr, Args::new(args)));
+                        Expr::new(expr_kind, self.compute_span(start), self.get_id())
+                    }
+                    PostfixOp::LeftBrace => {
+                        let args = self.parse_multiple_with_scope_delimiter::<Expr, 1>(
+                            Self::expr,
+                            TokenType::Comma,
+                            TokenType::LeftBrace,
+                            TokenType::RightBrace,
+                        )?;
+                        let expr_kind =
+                            ExprKind::Constructor(CallExpr::new(lhs_expr, Args::new(args)));
                         Expr::new(expr_kind, self.compute_span(start), self.get_id())
                     }
                     PostfixOp::LeftBracket => {
@@ -1232,6 +1264,7 @@ impl Parser {
     fn postfix_op(&mut self) -> Option<PostfixOp> {
         match self.current() {
             Some(TokenType::LeftBracket) => Some(PostfixOp::LeftBracket),
+            Some(TokenType::LeftBrace) => Some(PostfixOp::LeftBrace),
             Some(TokenType::LeftParentheses) => Some(PostfixOp::LeftParentheses),
             Some(TokenType::Dot) => Some(PostfixOp::Dot),
             _ => None,
@@ -1248,13 +1281,17 @@ impl Parser {
         };
 
         self.expect(TokenType::RightArrow)?;
-        let stmt = if self.matches(TokenType::LeftBrace) {
-            self.parse_block_stmt()?
-        } else {
-            let expr = self.expr()?;
-            Stmt::Expression(Expression::new(expr, true))
-        };
+        let stmt = self.parse_block_or_expr()?;
         Ok(MatchArm::new(pattern, stmt))
+    }
+
+    fn parse_block_or_expr(&mut self) -> ParseResult<Stmt> {
+        if self.matches(TokenType::LeftBrace) {
+            self.parse_block_stmt()
+        } else {
+            self.expr()
+                .map(|expr| Stmt::Expression(Expression::new(expr, true)))
+        }
     }
 
     fn parse_pattern(&mut self) -> ParseResult<Pattern> {
@@ -1319,6 +1356,22 @@ impl Parser {
         Ok(PathTy::new(ident, Generics::new(generics)))
     }
 
+    fn parse_multiple<T>(
+        &mut self,
+        parse_rule: fn(&mut Parser) -> ParseResult<T>,
+        matcher: fn(&TokenType) -> bool,
+    ) -> ParseResult<Vec<T>> {
+        let mut items = Vec::new();
+        loop {
+            if let Some(current) = self.current() && matcher(&current) {
+                items.push(parse_rule(self)?);
+            } else {
+                break;
+            }
+        }
+        Ok(items)
+    }
+
     fn parse_multiple_with_delimiter<'b, T>(
         &mut self,
         parse_rule: fn(&mut Parser) -> ParseResult<T>,
@@ -1345,7 +1398,6 @@ impl Parser {
         let mut items = Vec::new();
         if self.matches(scope_start) {
             self.advance();
-
             if self.matches(scope_end) {
                 self.advance();
                 return Ok(items);
@@ -1565,7 +1617,7 @@ mod tests {
     use crate::compiler::ast::{Module, NodeId, UseStmt};
     use crate::compiler::compiler::CompilerCtxt;
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
-    use crate::compiler::parser::{ParseError, ParseResult, Parser};
+    use crate::compiler::parser::{parse, ParseError, ParseResult, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::{Identifier, Semicolon};
     use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
@@ -1583,7 +1635,8 @@ mod tests {
     #[cfg(test)]
     fn parse_module<T: AsRef<str>>(code: T) -> (CompilerCtxt, Module) {
         let parser = create_parser(code.as_ref());
-        parser.parse()
+        let (ctxt, module) = parser.parse();
+        (ctxt, module)
     }
 
     #[cfg(test)]
@@ -1599,7 +1652,12 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse {
         ($code:expr) => {{
-            parse_module($code)
+            let (ctxt, module) = parse_module($code);
+            for error in &module.parse_errors {
+                dbg!(error);
+            }
+            assert_eq!(0, module.parse_errors.len());
+            (ctxt, module)
         }};
     }
 
@@ -1792,6 +1850,12 @@ mod tests {
     #[snapshot]
     pub fn bit_operations() -> (CompilerCtxt, Expr) {
         parse_expr!("x + x * x / x - --x + 3 >> 1 | 2")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn class_constructor() -> (CompilerCtxt, Expr) {
+        parse_expr!("Point { 1.0, 2.0 }")
     }
 
     #[test]

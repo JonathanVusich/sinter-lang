@@ -9,9 +9,7 @@
     "segments": [
       {
         "ident": {
-          "ident": {
-            "str": 1
-          },
+          "ident": 1,
           "span": {
             "start": 0,
             "end": 3
@@ -24,9 +22,7 @@
       },
       {
         "ident": {
-          "ident": {
-            "str": 2
-          },
+          "ident": 2,
           "span": {
             "start": 5,
             "end": 12
@@ -44,9 +40,7 @@
                     "ident": {
                       "idents": [
                         {
-                          "ident": {
-                            "str": 3
-                          },
+                          "ident": 3,
                           "span": {
                             "start": 15,
                             "end": 16
@@ -76,9 +70,7 @@
       },
       {
         "ident": {
-          "ident": {
-            "str": 4
-          },
+          "ident": 4,
           "span": {
             "start": 19,
             "end": 22

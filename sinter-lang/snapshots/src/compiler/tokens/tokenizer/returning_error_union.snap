@@ -549,10 +549,10 @@
         }
       },
       {
-        "token_type": "LeftParentheses",
+        "token_type": "LeftBrace",
         "span": {
-          "start": 302,
-          "end": 303
+          "start": 303,
+          "end": 304
         }
       },
       {
@@ -588,7 +588,7 @@
         }
       },
       {
-        "token_type": "RightParentheses",
+        "token_type": "RightBrace",
         "span": {
           "start": 345,
           "end": 346

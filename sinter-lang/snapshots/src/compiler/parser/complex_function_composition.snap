@@ -59,15 +59,13 @@
                     "lhs": {
                       "kind": {
                         "Call": {
-                          "func": {
+                          "target": {
                             "kind": {
                               "Path": {
                                 "segments": [
                                   {
                                     "ident": {
-                                      "ident": {
-                                        "str": 1
-                                      },
+                                      "ident": 1,
                                       "span": {
                                         "start": 8,
                                         "end": 9
@@ -94,15 +92,13 @@
                               {
                                 "kind": {
                                   "Call": {
-                                    "func": {
+                                    "target": {
                                       "kind": {
                                         "Path": {
                                           "segments": [
                                             {
                                               "ident": {
-                                                "ident": {
-                                                  "str": 2
-                                                },
+                                                "ident": 2,
                                                 "span": {
                                                   "start": 10,
                                                   "end": 11
@@ -129,15 +125,13 @@
                                         {
                                           "kind": {
                                             "Call": {
-                                              "func": {
+                                              "target": {
                                                 "kind": {
                                                   "Path": {
                                                     "segments": [
                                                       {
                                                         "ident": {
-                                                          "ident": {
-                                                            "str": 3
-                                                          },
+                                                          "ident": 3,
                                                           "span": {
                                                             "start": 12,
                                                             "end": 13

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct InternedStr {
     str: Spur,
 }

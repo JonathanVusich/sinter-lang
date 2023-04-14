@@ -11,6 +11,7 @@
       "SerializedPhoto",
       "size",
       "u64",
+      "",
       "self"
     ]
   },
@@ -20,9 +21,7 @@
         "kind": {
           "Enum": {
             "name": {
-              "ident": {
-                "str": 1
-              },
+              "ident": 1,
               "span": {
                 "start": 5,
                 "end": 12
@@ -36,19 +35,15 @@
             },
             "members": [
               {
-                "name": {
-                  "str": 2
-                },
+                "name": 2,
                 "fields": {
                   "params": [
                     {
                       "ident": {
-                        "ident": {
-                          "str": 3
-                        },
+                        "ident": 3,
                         "span": {
-                          "start": 23,
-                          "end": 30
+                          "start": 24,
+                          "end": 31
                         },
                         "id": {
                           "id": 1
@@ -57,17 +52,16 @@
                       "ty": {
                         "kind": "Str",
                         "span": {
-                          "start": 32,
-                          "end": 35
+                          "start": 33,
+                          "end": 36
                         },
                         "id": {
                           "id": 2
                         }
                       },
-                      "mutability": "Immutable",
                       "span": {
-                        "start": 32,
-                        "end": 35
+                        "start": 33,
+                        "end": 36
                       },
                       "id": {
                         "id": 3
@@ -77,27 +71,23 @@
                 },
                 "member_fns": [],
                 "span": {
-                  "start": 23,
-                  "end": 36
+                  "start": 24,
+                  "end": 38
                 },
                 "id": {
                   "id": 4
                 }
               },
               {
-                "name": {
-                  "str": 5
-                },
+                "name": 5,
                 "fields": {
                   "params": [
                     {
                       "ident": {
-                        "ident": {
-                          "str": 6
-                        },
+                        "ident": 6,
                         "span": {
-                          "start": 48,
-                          "end": 55
+                          "start": 49,
+                          "end": 56
                         },
                         "id": {
                           "id": 5
@@ -106,17 +96,16 @@
                       "ty": {
                         "kind": "Str",
                         "span": {
-                          "start": 57,
-                          "end": 60
+                          "start": 58,
+                          "end": 61
                         },
                         "id": {
                           "id": 6
                         }
                       },
-                      "mutability": "Immutable",
                       "span": {
-                        "start": 57,
-                        "end": 60
+                        "start": 58,
+                        "end": 61
                       },
                       "id": {
                         "id": 7
@@ -124,12 +113,10 @@
                     },
                     {
                       "ident": {
-                        "ident": {
-                          "str": 7
-                        },
+                        "ident": 7,
                         "span": {
-                          "start": 62,
-                          "end": 67
+                          "start": 63,
+                          "end": 68
                         },
                         "id": {
                           "id": 8
@@ -142,12 +129,10 @@
                               "ident": {
                                 "idents": [
                                   {
-                                    "ident": {
-                                      "str": 8
-                                    },
+                                    "ident": 8,
                                     "span": {
-                                      "start": 69,
-                                      "end": 84
+                                      "start": 70,
+                                      "end": 85
                                     },
                                     "id": {
                                       "id": 9
@@ -162,17 +147,16 @@
                           }
                         },
                         "span": {
-                          "start": 69,
-                          "end": 84
+                          "start": 70,
+                          "end": 85
                         },
                         "id": {
                           "id": 10
                         }
                       },
-                      "mutability": "Immutable",
                       "span": {
-                        "start": 69,
-                        "end": 84
+                        "start": 70,
+                        "end": 85
                       },
                       "id": {
                         "id": 11
@@ -184,12 +168,10 @@
                   {
                     "sig": {
                       "name": {
-                        "ident": {
-                          "str": 9
-                        },
+                        "ident": 9,
                         "span": {
-                          "start": 99,
-                          "end": 103
+                          "start": 100,
+                          "end": 104
                         },
                         "id": {
                           "id": 12
@@ -202,12 +184,10 @@
                         "params": [
                           {
                             "ident": {
-                              "ident": {
-                                "str": 11
-                              },
+                              "ident": 12,
                               "span": {
-                                "start": 104,
-                                "end": 108
+                                "start": 105,
+                                "end": 109
                               },
                               "id": {
                                 "id": 13
@@ -216,8 +196,8 @@
                             "ty": {
                               "kind": "QSelf",
                               "span": {
-                                "start": 104,
-                                "end": 108
+                                "start": 105,
+                                "end": 109
                               },
                               "id": {
                                 "id": 14
@@ -230,8 +210,8 @@
                       "return_type": {
                         "kind": "U64",
                         "span": {
-                          "start": 113,
-                          "end": 116
+                          "start": 114,
+                          "end": 117
                         },
                         "id": {
                           "id": 15
@@ -245,7 +225,7 @@
                             "value": {
                               "kind": {
                                 "Call": {
-                                  "func": {
+                                  "target": {
                                     "kind": {
                                       "Field": {
                                         "lhs": {
@@ -257,12 +237,10 @@
                                                     "segments": [
                                                       {
                                                         "ident": {
-                                                          "ident": {
-                                                            "str": 11
-                                                          },
+                                                          "ident": 12,
                                                           "span": {
-                                                            "start": 138,
-                                                            "end": 142
+                                                            "start": 139,
+                                                            "end": 143
                                                           },
                                                           "id": {
                                                             "id": 16
@@ -274,20 +252,18 @@
                                                   }
                                                 },
                                                 "span": {
-                                                  "start": 138,
-                                                  "end": 142
+                                                  "start": 139,
+                                                  "end": 143
                                                 },
                                                 "id": {
                                                   "id": 17
                                                 }
                                               },
                                               "ident": {
-                                                "ident": {
-                                                  "str": 7
-                                                },
+                                                "ident": 7,
                                                 "span": {
-                                                  "start": 143,
-                                                  "end": 148
+                                                  "start": 144,
+                                                  "end": 149
                                                 },
                                                 "id": {
                                                   "id": 18
@@ -296,20 +272,18 @@
                                             }
                                           },
                                           "span": {
-                                            "start": 138,
-                                            "end": 148
+                                            "start": 139,
+                                            "end": 149
                                           },
                                           "id": {
                                             "id": 19
                                           }
                                         },
                                         "ident": {
-                                          "ident": {
-                                            "str": 9
-                                          },
+                                          "ident": 9,
                                           "span": {
-                                            "start": 149,
-                                            "end": 153
+                                            "start": 150,
+                                            "end": 154
                                           },
                                           "id": {
                                             "id": 20
@@ -318,8 +292,8 @@
                                       }
                                     },
                                     "span": {
-                                      "start": 138,
-                                      "end": 153
+                                      "start": 139,
+                                      "end": 154
                                     },
                                     "id": {
                                       "id": 21
@@ -331,8 +305,8 @@
                                 }
                               },
                               "span": {
-                                "start": 138,
-                                "end": 155
+                                "start": 139,
+                                "end": 156
                               },
                               "id": {
                                 "id": 22
@@ -342,8 +316,8 @@
                         }
                       ],
                       "span": {
-                        "start": 117,
-                        "end": 166
+                        "start": 118,
+                        "end": 167
                       },
                       "id": {
                         "id": 23
@@ -352,8 +326,8 @@
                   }
                 ],
                 "span": {
-                  "start": 113,
-                  "end": 172
+                  "start": 114,
+                  "end": 174
                 },
                 "id": {
                   "id": 24
@@ -364,7 +338,7 @@
           }
         },
         "span": {
-          "start": 62,
+          "start": 63,
           "end": 176
         },
         "id": {

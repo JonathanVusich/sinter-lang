@@ -1,10 +1,11 @@
 [
   [
-    "Vector",
-    "X",
-    "Number",
+    "std",
+    "math",
     "Display",
-    "Y",
+    "Number",
+    "Vector",
+    "N",
     "Normalized",
     "x",
     "y",
@@ -13,16 +14,15 @@
     "normalized",
     "abs",
     "magnitude",
-    "math",
     "sqrt"
   ],
   {
     "tokens": [
       {
-        "token_type": "Enum",
+        "token_type": "Use",
         "span": {
           "start": 0,
-          "end": 4
+          "end": 3
         }
       },
       {
@@ -30,15 +30,22 @@
           "Identifier": 1
         },
         "span": {
-          "start": 5,
-          "end": 11
+          "start": 4,
+          "end": 7
         }
       },
       {
-        "token_type": "Less",
+        "token_type": "Colon",
         "span": {
-          "start": 11,
-          "end": 12
+          "start": 7,
+          "end": 8
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 8,
+          "end": 9
         }
       },
       {
@@ -46,36 +53,50 @@
           "Identifier": 2
         },
         "span": {
-          "start": 12,
+          "start": 9,
           "end": 13
         }
       },
       {
-        "token_type": "Colon",
+        "token_type": "Semicolon",
         "span": {
           "start": 13,
           "end": 14
         }
       },
       {
-        "token_type": {
-          "Identifier": 3
-        },
+        "token_type": "Use",
         "span": {
           "start": 15,
-          "end": 21
+          "end": 18
         }
       },
       {
-        "token_type": "Plus",
+        "token_type": {
+          "Identifier": 1
+        },
+        "span": {
+          "start": 19,
+          "end": 22
+        }
+      },
+      {
+        "token_type": "Colon",
         "span": {
           "start": 22,
           "end": 23
         }
       },
       {
+        "token_type": "Colon",
+        "span": {
+          "start": 23,
+          "end": 24
+        }
+      },
+      {
         "token_type": {
-          "Identifier": 4
+          "Identifier": 3
         },
         "span": {
           "start": 24,
@@ -83,42 +104,40 @@
         }
       },
       {
-        "token_type": "Comma",
+        "token_type": "Semicolon",
         "span": {
           "start": 31,
           "end": 32
         }
       },
       {
-        "token_type": {
-          "Identifier": 5
-        },
+        "token_type": "Use",
         "span": {
           "start": 33,
-          "end": 34
+          "end": 36
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "span": {
+          "start": 37,
+          "end": 40
         }
       },
       {
         "token_type": "Colon",
         "span": {
-          "start": 34,
-          "end": 35
+          "start": 40,
+          "end": 41
         }
       },
       {
-        "token_type": {
-          "Identifier": 3
-        },
+        "token_type": "Colon",
         "span": {
-          "start": 36,
+          "start": 41,
           "end": 42
-        }
-      },
-      {
-        "token_type": "Plus",
-        "span": {
-          "start": 43,
-          "end": 44
         }
       },
       {
@@ -126,86 +145,22 @@
           "Identifier": 4
         },
         "span": {
-          "start": 45,
-          "end": 52
+          "start": 42,
+          "end": 48
         }
       },
       {
-        "token_type": "Greater",
+        "token_type": "Semicolon",
         "span": {
-          "start": 52,
-          "end": 53
+          "start": 48,
+          "end": 49
         }
       },
       {
-        "token_type": "LeftParentheses",
+        "token_type": "Enum",
         "span": {
-          "start": 53,
-          "end": 54
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 6
-        },
-        "span": {
-          "start": 59,
-          "end": 69
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 69,
-          "end": 70
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 7
-        },
-        "span": {
-          "start": 70,
-          "end": 71
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 71,
-          "end": 72
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 2
-        },
-        "span": {
-          "start": 73,
-          "end": 74
-        }
-      },
-      {
-        "token_type": "Comma",
-        "span": {
-          "start": 74,
-          "end": 75
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 8
-        },
-        "span": {
-          "start": 76,
-          "end": 77
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 77,
-          "end": 78
+          "start": 51,
+          "end": 55
         }
       },
       {
@@ -213,38 +168,70 @@
           "Identifier": 5
         },
         "span": {
-          "start": 79,
-          "end": 80
+          "start": 56,
+          "end": 62
         }
       },
       {
-        "token_type": "RightParentheses",
+        "token_type": "Less",
         "span": {
-          "start": 80,
-          "end": 81
-        }
-      },
-      {
-        "token_type": "Comma",
-        "span": {
-          "start": 81,
-          "end": 82
+          "start": 62,
+          "end": 63
         }
       },
       {
         "token_type": {
-          "Identifier": 9
+          "Identifier": 6
         },
         "span": {
-          "start": 87,
-          "end": 95
+          "start": 63,
+          "end": 64
         }
       },
       {
-        "token_type": "LeftParentheses",
+        "token_type": "Colon",
         "span": {
-          "start": 95,
-          "end": 96
+          "start": 64,
+          "end": 65
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 4
+        },
+        "span": {
+          "start": 66,
+          "end": 72
+        }
+      },
+      {
+        "token_type": "Plus",
+        "span": {
+          "start": 73,
+          "end": 74
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 3
+        },
+        "span": {
+          "start": 75,
+          "end": 82
+        }
+      },
+      {
+        "token_type": "Greater",
+        "span": {
+          "start": 82,
+          "end": 83
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 84,
+          "end": 85
         }
       },
       {
@@ -252,28 +239,12 @@
           "Identifier": 7
         },
         "span": {
-          "start": 96,
-          "end": 97
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 97,
-          "end": 98
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 2
-        },
-        "span": {
-          "start": 99,
+          "start": 90,
           "end": 100
         }
       },
       {
-        "token_type": "Comma",
+        "token_type": "LeftParentheses",
         "span": {
           "start": 100,
           "end": 101
@@ -284,133 +255,15 @@
           "Identifier": 8
         },
         "span": {
-          "start": 102,
-          "end": 103
+          "start": 101,
+          "end": 102
         }
       },
       {
         "token_type": "Colon",
         "span": {
-          "start": 103,
-          "end": 104
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 5
-        },
-        "span": {
-          "start": 105,
-          "end": 106
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 106,
-          "end": 107
-        }
-      },
-      {
-        "token_type": "Comma",
-        "span": {
-          "start": 107,
-          "end": 108
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 109,
-          "end": 110
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 111,
-          "end": 112
-        }
-      },
-      {
-        "token_type": "Fn",
-        "span": {
-          "start": 117,
-          "end": 119
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 10
-        },
-        "span": {
-          "start": 120,
-          "end": 133
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 133,
-          "end": 134
-        }
-      },
-      {
-        "token_type": "SelfLowercase",
-        "span": {
-          "start": 134,
-          "end": 138
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 138,
-          "end": 139
-        }
-      },
-      {
-        "token_type": "RightArrow",
-        "span": {
-          "start": 140,
-          "end": 142
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 1
-        },
-        "span": {
-          "start": 143,
-          "end": 149
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 150,
-          "end": 151
-        }
-      },
-      {
-        "token_type": "Match",
-        "span": {
-          "start": 160,
-          "end": 165
-        }
-      },
-      {
-        "token_type": "SelfLowercase",
-        "span": {
-          "start": 166,
-          "end": 170
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 171,
-          "end": 172
+          "start": 102,
+          "end": 103
         }
       },
       {
@@ -418,40 +271,15 @@
           "Identifier": 6
         },
         "span": {
-          "start": 185,
-          "end": 195
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 11
-        },
-        "span": {
-          "start": 196,
-          "end": 206
-        }
-      },
-      {
-        "token_type": "RightArrow",
-        "span": {
-          "start": 207,
-          "end": 209
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 11
-        },
-        "span": {
-          "start": 210,
-          "end": 220
+          "start": 104,
+          "end": 105
         }
       },
       {
         "token_type": "Comma",
         "span": {
-          "start": 220,
-          "end": 221
+          "start": 105,
+          "end": 106
         }
       },
       {
@@ -459,228 +287,15 @@
           "Identifier": 9
         },
         "span": {
-          "start": 234,
-          "end": 242
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 12
-        },
-        "span": {
-          "start": 243,
-          "end": 246
-        }
-      },
-      {
-        "token_type": "RightArrow",
-        "span": {
-          "start": 247,
-          "end": 249
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 250,
-          "end": 251
-        }
-      },
-      {
-        "token_type": "Let",
-        "span": {
-          "start": 268,
-          "end": 271
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 13
-        },
-        "span": {
-          "start": 272,
-          "end": 281
-        }
-      },
-      {
-        "token_type": "Equal",
-        "span": {
-          "start": 282,
-          "end": 283
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 14
-        },
-        "span": {
-          "start": 284,
-          "end": 288
+          "start": 107,
+          "end": 108
         }
       },
       {
         "token_type": "Colon",
         "span": {
-          "start": 288,
-          "end": 289
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 289,
-          "end": 290
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 15
-        },
-        "span": {
-          "start": 290,
-          "end": 294
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 294,
-          "end": 295
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 12
-        },
-        "span": {
-          "start": 295,
-          "end": 298
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 298,
-          "end": 299
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 7
-        },
-        "span": {
-          "start": 299,
-          "end": 300
-        }
-      },
-      {
-        "token_type": "Star",
-        "span": {
-          "start": 301,
-          "end": 302
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 12
-        },
-        "span": {
-          "start": 303,
-          "end": 306
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 306,
-          "end": 307
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 7
-        },
-        "span": {
-          "start": 307,
-          "end": 308
-        }
-      },
-      {
-        "token_type": "Plus",
-        "span": {
-          "start": 309,
-          "end": 310
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 12
-        },
-        "span": {
-          "start": 311,
-          "end": 314
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 314,
-          "end": 315
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 8
-        },
-        "span": {
-          "start": 315,
-          "end": 316
-        }
-      },
-      {
-        "token_type": "Star",
-        "span": {
-          "start": 317,
-          "end": 318
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 12
-        },
-        "span": {
-          "start": 319,
-          "end": 322
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 322,
-          "end": 323
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 8
-        },
-        "span": {
-          "start": 323,
-          "end": 324
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 324,
-          "end": 325
-        }
-      },
-      {
-        "token_type": "Semicolon",
-        "span": {
-          "start": 325,
-          "end": 326
+          "start": 108,
+          "end": 109
         }
       },
       {
@@ -688,79 +303,38 @@
           "Identifier": 6
         },
         "span": {
-          "start": 343,
-          "end": 353
+          "start": 110,
+          "end": 111
         }
       },
       {
-        "token_type": "LeftParentheses",
+        "token_type": "RightParentheses",
         "span": {
-          "start": 353,
-          "end": 354
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 12
-        },
-        "span": {
-          "start": 354,
-          "end": 357
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 357,
-          "end": 358
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 7
-        },
-        "span": {
-          "start": 358,
-          "end": 359
-        }
-      },
-      {
-        "token_type": "Slash",
-        "span": {
-          "start": 360,
-          "end": 361
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 13
-        },
-        "span": {
-          "start": 362,
-          "end": 371
+          "start": 111,
+          "end": 112
         }
       },
       {
         "token_type": "Comma",
         "span": {
-          "start": 371,
-          "end": 372
+          "start": 112,
+          "end": 113
         }
       },
       {
         "token_type": {
-          "Identifier": 12
+          "Identifier": 10
         },
         "span": {
-          "start": 373,
-          "end": 376
+          "start": 118,
+          "end": 126
         }
       },
       {
-        "token_type": "Dot",
+        "token_type": "LeftParentheses",
         "span": {
-          "start": 376,
-          "end": 377
+          "start": 126,
+          "end": 127
         }
       },
       {
@@ -768,15 +342,201 @@
           "Identifier": 8
         },
         "span": {
-          "start": 377,
-          "end": 378
+          "start": 127,
+          "end": 128
         }
       },
       {
-        "token_type": "Slash",
+        "token_type": "Colon",
         "span": {
-          "start": 379,
-          "end": 380
+          "start": 128,
+          "end": 129
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 6
+        },
+        "span": {
+          "start": 130,
+          "end": 131
+        }
+      },
+      {
+        "token_type": "Comma",
+        "span": {
+          "start": 131,
+          "end": 132
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 9
+        },
+        "span": {
+          "start": 133,
+          "end": 134
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 134,
+          "end": 135
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 6
+        },
+        "span": {
+          "start": 136,
+          "end": 137
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 137,
+          "end": 138
+        }
+      },
+      {
+        "token_type": "Comma",
+        "span": {
+          "start": 138,
+          "end": 139
+        }
+      },
+      {
+        "token_type": "Fn",
+        "span": {
+          "start": 145,
+          "end": 147
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 11
+        },
+        "span": {
+          "start": 148,
+          "end": 161
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 161,
+          "end": 162
+        }
+      },
+      {
+        "token_type": "SelfLowercase",
+        "span": {
+          "start": 162,
+          "end": 166
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 166,
+          "end": 167
+        }
+      },
+      {
+        "token_type": "RightArrow",
+        "span": {
+          "start": 168,
+          "end": 170
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 5
+        },
+        "span": {
+          "start": 171,
+          "end": 177
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 178,
+          "end": 179
+        }
+      },
+      {
+        "token_type": "Match",
+        "span": {
+          "start": 188,
+          "end": 193
+        }
+      },
+      {
+        "token_type": "SelfLowercase",
+        "span": {
+          "start": 194,
+          "end": 198
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 199,
+          "end": 200
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 7
+        },
+        "span": {
+          "start": 213,
+          "end": 223
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 12
+        },
+        "span": {
+          "start": 224,
+          "end": 234
+        }
+      },
+      {
+        "token_type": "RightArrow",
+        "span": {
+          "start": 235,
+          "end": 237
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 12
+        },
+        "span": {
+          "start": 238,
+          "end": 248
+        }
+      },
+      {
+        "token_type": "Comma",
+        "span": {
+          "start": 248,
+          "end": 249
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 10
+        },
+        "span": {
+          "start": 262,
+          "end": 270
         }
       },
       {
@@ -784,61 +544,381 @@
           "Identifier": 13
         },
         "span": {
-          "start": 381,
-          "end": 390
+          "start": 271,
+          "end": 274
+        }
+      },
+      {
+        "token_type": "RightArrow",
+        "span": {
+          "start": 275,
+          "end": 277
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 278,
+          "end": 279
+        }
+      },
+      {
+        "token_type": "Let",
+        "span": {
+          "start": 296,
+          "end": 299
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 14
+        },
+        "span": {
+          "start": 300,
+          "end": 309
+        }
+      },
+      {
+        "token_type": "Equal",
+        "span": {
+          "start": 310,
+          "end": 311
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "span": {
+          "start": 312,
+          "end": 316
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 316,
+          "end": 317
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 317,
+          "end": 318
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 15
+        },
+        "span": {
+          "start": 318,
+          "end": 322
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 322,
+          "end": 323
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 13
+        },
+        "span": {
+          "start": 323,
+          "end": 326
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 326,
+          "end": 327
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 8
+        },
+        "span": {
+          "start": 327,
+          "end": 328
+        }
+      },
+      {
+        "token_type": "Star",
+        "span": {
+          "start": 329,
+          "end": 330
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 13
+        },
+        "span": {
+          "start": 331,
+          "end": 334
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 334,
+          "end": 335
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 8
+        },
+        "span": {
+          "start": 335,
+          "end": 336
+        }
+      },
+      {
+        "token_type": "Plus",
+        "span": {
+          "start": 337,
+          "end": 338
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 13
+        },
+        "span": {
+          "start": 339,
+          "end": 342
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 342,
+          "end": 343
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 9
+        },
+        "span": {
+          "start": 343,
+          "end": 344
+        }
+      },
+      {
+        "token_type": "Star",
+        "span": {
+          "start": 345,
+          "end": 346
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 13
+        },
+        "span": {
+          "start": 347,
+          "end": 350
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 350,
+          "end": 351
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 9
+        },
+        "span": {
+          "start": 351,
+          "end": 352
         }
       },
       {
         "token_type": "RightParentheses",
         "span": {
-          "start": 390,
-          "end": 391
+          "start": 352,
+          "end": 353
         }
       },
       {
-        "token_type": "RightBrace",
+        "token_type": "Semicolon",
+        "span": {
+          "start": 353,
+          "end": 354
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 7
+        },
+        "span": {
+          "start": 371,
+          "end": 381
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 381,
+          "end": 382
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 13
+        },
+        "span": {
+          "start": 382,
+          "end": 385
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 385,
+          "end": 386
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 8
+        },
+        "span": {
+          "start": 386,
+          "end": 387
+        }
+      },
+      {
+        "token_type": "Slash",
+        "span": {
+          "start": 388,
+          "end": 389
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 14
+        },
+        "span": {
+          "start": 390,
+          "end": 399
+        }
+      },
+      {
+        "token_type": "Comma",
+        "span": {
+          "start": 399,
+          "end": 400
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 13
+        },
+        "span": {
+          "start": 401,
+          "end": 404
+        }
+      },
+      {
+        "token_type": "Dot",
         "span": {
           "start": 404,
           "end": 405
         }
       },
       {
-        "token_type": "RightBrace",
+        "token_type": {
+          "Identifier": 9
+        },
         "span": {
-          "start": 414,
-          "end": 415
+          "start": 405,
+          "end": 406
+        }
+      },
+      {
+        "token_type": "Slash",
+        "span": {
+          "start": 407,
+          "end": 408
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 14
+        },
+        "span": {
+          "start": 409,
+          "end": 418
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 418,
+          "end": 419
         }
       },
       {
         "token_type": "RightBrace",
         "span": {
-          "start": 420,
-          "end": 421
+          "start": 432,
+          "end": 433
         }
       },
       {
         "token_type": "RightBrace",
         "span": {
-          "start": 422,
-          "end": 423
+          "start": 442,
+          "end": 443
+        }
+      },
+      {
+        "token_type": "RightBrace",
+        "span": {
+          "start": 448,
+          "end": 449
+        }
+      },
+      {
+        "token_type": "RightBrace",
+        "span": {
+          "start": 450,
+          "end": 451
         }
       }
     ],
     "line_map": [
-      54,
-      82,
-      108,
-      112,
-      151,
-      172,
-      221,
-      251,
-      326,
-      391,
-      405,
-      415,
-      421
+      14,
+      32,
+      49,
+      50,
+      85,
+      113,
+      139,
+      140,
+      179,
+      200,
+      249,
+      279,
+      354,
+      419,
+      433,
+      443,
+      449
     ],
-    "line_counter": 13
+    "line_counter": 17
   }
 ]

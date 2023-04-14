@@ -16,15 +16,13 @@
               "expr": {
                 "kind": {
                   "Call": {
-                    "func": {
+                    "target": {
                       "kind": {
                         "Path": {
                           "segments": [
                             {
                               "ident": {
-                                "ident": {
-                                  "str": 1
-                                },
+                                "ident": 1,
                                 "span": {
                                   "start": 2,
                                   "end": 3
@@ -54,9 +52,7 @@
                               "segments": [
                                 {
                                   "ident": {
-                                    "ident": {
-                                      "str": 2
-                                    },
+                                    "ident": 2,
                                     "span": {
                                       "start": 4,
                                       "end": 5

@@ -13,9 +13,7 @@
           "Fn": {
             "sig": {
               "name": {
-                "ident": {
-                  "str": 1
-                },
+                "ident": 1,
                 "span": {
                   "start": 3,
                   "end": 7
@@ -39,15 +37,13 @@
                     "expr": {
                       "kind": {
                         "Call": {
-                          "func": {
+                          "target": {
                             "kind": {
                               "Path": {
                                 "segments": [
                                   {
                                     "ident": {
-                                      "ident": {
-                                        "str": 2
-                                      },
+                                      "ident": 2,
                                       "span": {
                                         "start": 16,
                                         "end": 21
@@ -73,9 +69,7 @@
                             "args": [
                               {
                                 "kind": {
-                                  "String": {
-                                    "str": 3
-                                  }
+                                  "String": 3
                                 },
                                 "span": {
                                   "start": 22,

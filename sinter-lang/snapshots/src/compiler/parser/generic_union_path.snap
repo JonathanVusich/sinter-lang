@@ -10,9 +10,7 @@
     "segments": [
       {
         "ident": {
-          "ident": {
-            "str": 1
-          },
+          "ident": 1,
           "span": {
             "start": 0,
             "end": 4
@@ -73,9 +71,7 @@
       },
       {
         "ident": {
-          "ident": {
-            "str": 5
-          },
+          "ident": 5,
           "span": {
             "start": 25,
             "end": 28

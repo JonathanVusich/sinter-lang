@@ -12,9 +12,7 @@
         "kind": {
           "GlobalLet": {
             "ident": {
-              "ident": {
-                "str": 1
-              },
+              "ident": 1,
               "span": {
                 "start": 4,
                 "end": 5
@@ -66,9 +64,7 @@
         "kind": {
           "GlobalLet": {
             "ident": {
-              "ident": {
-                "str": 3
-              },
+              "ident": 3,
               "span": {
                 "start": 44,
                 "end": 45
