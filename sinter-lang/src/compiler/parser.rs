@@ -440,7 +440,7 @@ impl Parser {
 
     fn expr(&mut self) -> ParseResult<Expr> {
         if self.matches_closure() {
-            return self.parse_node(Self::parse_closure_expr, Expr::new);
+            return self.parse_node(Self::parse_closure, Expr::new);
         }
         self.parse_expr(0)
     }
@@ -481,7 +481,7 @@ impl Parser {
         self.next_type(lookahead) == Some(TokenType::RightArrow)
     }
 
-    fn parse_closure_expr(&mut self) -> ParseResult<ExprKind> {
+    fn parse_closure(&mut self) -> ParseResult<ExprKind> {
         let vars = self.parse_multiple_with_scope_delimiter::<Ident, 1>(
             Self::identifier,
             TokenType::Comma,
@@ -1159,17 +1159,6 @@ impl Parser {
                         let expr_kind = ExprKind::Call(CallExpr::new(lhs_expr, Args::new(args)));
                         Expr::new(expr_kind, self.compute_span(start), self.get_id())
                     }
-                    PostfixOp::LeftBrace => {
-                        let args = self.parse_multiple_with_scope_delimiter::<Expr, 1>(
-                            Self::expr,
-                            TokenType::Comma,
-                            TokenType::LeftBrace,
-                            TokenType::RightBrace,
-                        )?;
-                        let expr_kind =
-                            ExprKind::Constructor(CallExpr::new(lhs_expr, Args::new(args)));
-                        Expr::new(expr_kind, self.compute_span(start), self.get_id())
-                    }
                     PostfixOp::LeftBracket => {
                         self.advance();
                         let rhs = self.expr()?;
@@ -1264,7 +1253,6 @@ impl Parser {
     fn postfix_op(&mut self) -> Option<PostfixOp> {
         match self.current() {
             Some(TokenType::LeftBracket) => Some(PostfixOp::LeftBracket),
-            Some(TokenType::LeftBrace) => Some(PostfixOp::LeftBrace),
             Some(TokenType::LeftParentheses) => Some(PostfixOp::LeftParentheses),
             Some(TokenType::Dot) => Some(PostfixOp::Dot),
             _ => None,
@@ -1855,7 +1843,7 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn class_constructor() -> (CompilerCtxt, Expr) {
-        parse_expr!("Point { 1.0, 2.0 }")
+        parse_expr!("Point(1.0, 2.0)")
     }
 
     #[test]

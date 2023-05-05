@@ -73,11 +73,9 @@ _________________________________
 
 `unary => ( "+" | "-" | "~" | "!" ) unary | call`
 
-`call => primary ( fnCall | index | "." ident | constructor )*`
+`call => primary ( fnCall | index | "." ident )*`
 
 `fnCall => ( "::" genericCallsite )? "(" args? ")"`
-
-`constructor => "{" args? "}" `
 
 `index => "[" expression "]"`
 

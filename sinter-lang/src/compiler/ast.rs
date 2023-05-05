@@ -1096,7 +1096,6 @@ impl UnaryOp {
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum PostfixOp {
-    LeftBrace,
     LeftBracket,
     LeftParentheses,
     Dot,

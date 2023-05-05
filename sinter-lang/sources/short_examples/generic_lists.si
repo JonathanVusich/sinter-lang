@@ -3,7 +3,7 @@ ref class List<T> {
     size: u64,
 
     fn new() => Self {
-        Self { [T; 10], 0 }
+        Self([T; 10], 0)
     }
 }
 
