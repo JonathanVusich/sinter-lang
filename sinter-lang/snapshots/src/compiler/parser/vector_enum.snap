@@ -688,7 +688,7 @@
                                             "initializer": {
                                               "kind": {
                                                 "Call": {
-                                                  "func": {
+                                                  "target": {
                                                     "kind": {
                                                       "Path": {
                                                         "segments": [
@@ -996,7 +996,7 @@
                                             "expr": {
                                               "kind": {
                                                 "Call": {
-                                                  "func": {
+                                                  "target": {
                                                     "kind": {
                                                       "Path": {
                                                         "segments": [

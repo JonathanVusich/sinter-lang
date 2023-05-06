@@ -62,7 +62,7 @@
                     "expr": {
                       "kind": {
                         "Call": {
-                          "func": {
+                          "target": {
                             "kind": {
                               "Path": {
                                 "segments": [

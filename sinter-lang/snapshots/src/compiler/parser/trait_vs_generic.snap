@@ -235,7 +235,7 @@
                     "expr": {
                       "kind": {
                         "Call": {
-                          "func": {
+                          "target": {
                             "kind": {
                               "Path": {
                                 "segments": [
@@ -268,7 +268,7 @@
                               {
                                 "kind": {
                                   "Call": {
-                                    "func": {
+                                    "target": {
                                       "kind": {
                                         "Field": {
                                           "lhs": {
@@ -464,7 +464,7 @@
                     "expr": {
                       "kind": {
                         "Call": {
-                          "func": {
+                          "target": {
                             "kind": {
                               "Path": {
                                 "segments": [
@@ -497,7 +497,7 @@
                               {
                                 "kind": {
                                   "Call": {
-                                    "func": {
+                                    "target": {
                                       "kind": {
                                         "Field": {
                                           "lhs": {

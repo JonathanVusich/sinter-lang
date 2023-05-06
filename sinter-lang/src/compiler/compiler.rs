@@ -1,4 +1,4 @@
-use crate::compiler::ast::{ItemKind, Module, NodeId, QualifiedIdent, Stmt, UseStmt};
+use crate::compiler::ast::{AstModule, ItemKind, NodeId, QualifiedIdent, Stmt, UseStmt};
 use crate::compiler::codegen::code_generator::emit_code;
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::parse;
@@ -18,7 +18,7 @@ use std::num::NonZeroUsize;
 use std::path::Path;
 
 struct Compiler {
-    modules: HashMap<QualifiedIdent, Module>,
+    modules: HashMap<QualifiedIdent, AstModule>,
 }
 
 struct Application {
@@ -30,6 +30,7 @@ pub struct CompiledApplication {}
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct CompilerCtxt {
     string_interner: StringInterner,
+    hir_map: HirMap,
 }
 
 impl CompilerCtxt {
@@ -68,10 +69,14 @@ fn compile(application: Application) -> Result<CompiledApplication> {
 fn import_module(
     compiler_ctxt: CompilerCtxt,
     module_path: &Path,
-) -> Result<(CompilerCtxt, Module)> {
+) -> Result<(CompilerCtxt, AstModule)> {
     let (compiler_ctxt, tokens) = tokenize_file(module_path.as_ref())?;
     let (compiler_ctxt, module) = parse(compiler_ctxt, tokens);
 
+    // TODO: Import transitive modules
+
+    // Generate HIR map
+    let (compiler_ctxt, hir) = generate_hir(compiler_ctxt, module);
     // TODO: Generate HIR
     // TODO: Generate externally visible map
     // TODO: Import transitive modules

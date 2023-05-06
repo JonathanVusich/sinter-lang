@@ -204,7 +204,7 @@
                     "initializer": {
                       "kind": {
                         "Call": {
-                          "func": {
+                          "target": {
                             "kind": {
                               "Field": {
                                 "lhs": {
@@ -282,7 +282,7 @@
                                 "lhs": {
                                   "kind": {
                                     "Call": {
-                                      "func": {
+                                      "target": {
                                         "kind": {
                                           "Field": {
                                             "lhs": {
@@ -349,7 +349,7 @@
                                 "rhs": {
                                   "kind": {
                                     "Call": {
-                                      "func": {
+                                      "target": {
                                         "kind": {
                                           "Field": {
                                             "lhs": {
@@ -514,7 +514,7 @@
                                 "expr": {
                                   "kind": {
                                     "Call": {
-                                      "func": {
+                                      "target": {
                                         "kind": {
                                           "Field": {
                                             "lhs": {
@@ -756,7 +756,7 @@
                 "member_fns": [],
                 "span": {
                   "start": 309,
-                  "end": 323
+                  "end": 324
                 },
                 "id": {
                   "id": 52
@@ -770,7 +770,7 @@
                 "member_fns": [],
                 "span": {
                   "start": 329,
-                  "end": 343
+                  "end": 344
                 },
                 "id": {
                   "id": 53
@@ -782,7 +782,7 @@
         },
         "span": {
           "start": 287,
-          "end": 347
+          "end": 346
         },
         "id": {
           "id": 54

@@ -593,13 +593,6 @@
           "start": 345,
           "end": 346
         }
-      },
-      {
-        "token_type": "Semicolon",
-        "span": {
-          "start": 346,
-          "end": 347
-        }
       }
     ],
     "line_map": [
@@ -617,7 +610,7 @@
       304,
       324,
       344,
-      347
+      346
     ],
     "line_counter": 15
   }

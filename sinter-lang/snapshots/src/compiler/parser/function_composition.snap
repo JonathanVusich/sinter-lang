@@ -9,7 +9,7 @@
   {
     "kind": {
       "Call": {
-        "func": {
+        "target": {
           "kind": {
             "Path": {
               "segments": [
@@ -42,7 +42,7 @@
             {
               "kind": {
                 "Call": {
-                  "func": {
+                  "target": {
                     "kind": {
                       "Path": {
                         "segments": [
@@ -75,7 +75,7 @@
                       {
                         "kind": {
                           "Call": {
-                            "func": {
+                            "target": {
                               "kind": {
                                 "Path": {
                                   "segments": [

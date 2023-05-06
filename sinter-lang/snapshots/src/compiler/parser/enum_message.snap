@@ -11,7 +11,6 @@
       "SerializedPhoto",
       "size",
       "u64",
-      "",
       "self"
     ]
   },
@@ -184,7 +183,7 @@
                         "params": [
                           {
                             "ident": {
-                              "ident": 12,
+                              "ident": 11,
                               "span": {
                                 "start": 105,
                                 "end": 109
@@ -237,7 +236,7 @@
                                                     "segments": [
                                                       {
                                                         "ident": {
-                                                          "ident": 12,
+                                                          "ident": 11,
                                                           "span": {
                                                             "start": 139,
                                                             "end": 143

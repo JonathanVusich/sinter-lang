@@ -10,12 +10,13 @@ pub mod ast;
 pub mod codegen;
 pub mod compiled_module;
 pub mod compiler;
-pub mod hir;
 pub mod interner;
 pub mod parser;
 pub mod tokens;
 pub mod ty_checker;
 pub mod types;
+pub mod hir;
+pub mod path;
 
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;

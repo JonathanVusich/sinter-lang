@@ -49,17 +49,17 @@ _________________________________
 
 `closure => "(" ( ident ( , ident )* )? ")" "=>" ( blockStmt | expression )`
 
-`assignment => logical_or ( ( "=" ) logical_or )*`
+`assignment => logicalOr ( ( "=" ) logicalOr )*`
 
-`logical_or => logical_and ( "||" logical_and )*`
+`logicalOr => logicalAnd ( "||" logicalAnd )*`
 
-`logical_and => bitwise_inclusive_or ( "&&" bitwise_inclusive_or )*`
+`logicalAnd => bitwiseInclusiveOr ( "&&" bitwiseInclusiveOr )*`
 
-`bitwise_inclusive_or => bitwise_exclusive_or ( "|" bitwise_exclusive_or )*`
+`bitwiseInclusiveOr => bitwiseExclusiveOr ( "|" bitwiseExclusiveOr )*`
 
-`bitwise_exclusive_or => bitwise_and ( "^" bitwise_and )*`
+`bitwiseExclusiveOr => bitwiseAnd ( "^" bitwiseAnd )*`
 
-`bitwise_and => equality ( "&" equality)*`
+`bitwiseAnd => equality ( "&" equality)*`
 
 `equality => relational ( ( "==" | "!=" ) relational )*`
 

@@ -6,7 +6,7 @@
   },
   {
     "kind": {
-      "Constructor": {
+      "Call": {
         "target": {
           "kind": {
             "Path": {
@@ -42,8 +42,8 @@
                 "Float": 1.0
               },
               "span": {
-                "start": 8,
-                "end": 11
+                "start": 6,
+                "end": 9
               },
               "id": {
                 "id": 2
@@ -54,8 +54,8 @@
                 "Float": 2.0
               },
               "span": {
-                "start": 13,
-                "end": 16
+                "start": 11,
+                "end": 14
               },
               "id": {
                 "id": 3
@@ -67,7 +67,7 @@
     },
     "span": {
       "start": 0,
-      "end": 18
+      "end": 15
     },
     "id": {
       "id": 4

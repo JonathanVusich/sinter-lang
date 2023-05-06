@@ -1,4 +1,5 @@
 use crate::compiler::parser::{ClassType, ParseError};
+use crate::compiler::path::ModulePath;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::types::InternedStr;
 use crate::traits::traits::Trait;
@@ -131,14 +132,16 @@ pub enum TyKind {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct Module {
+pub struct AstModule {
+    pub(crate) path: ModulePath,
     pub(crate) items: Vec<Item>,
     pub(crate) parse_errors: Vec<ParseError>,
 }
 
-impl Module {
-    pub fn new(items: Vec<Item>, parse_errors: Vec<ParseError>) -> Self {
+impl AstModule {
+    pub fn new(path: ModulePath, items: Vec<Item>, parse_errors: Vec<ParseError>) -> Self {
         Self {
+            path,
             items,
             parse_errors,
         }

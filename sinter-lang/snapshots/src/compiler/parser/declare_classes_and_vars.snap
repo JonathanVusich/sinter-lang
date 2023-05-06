@@ -259,7 +259,7 @@
                   "Initializer": [
                     {
                       "kind": {
-                        "Constructor": {
+                        "Call": {
                           "target": {
                             "kind": {
                               "Path": {
@@ -295,8 +295,8 @@
                                   "Float": 1.0
                                 },
                                 "span": {
-                                  "start": 117,
-                                  "end": 120
+                                  "start": 115,
+                                  "end": 118
                                 },
                                 "id": {
                                   "id": 22
@@ -307,8 +307,8 @@
                                   "Float": 2.0
                                 },
                                 "span": {
-                                  "start": 122,
-                                  "end": 125
+                                  "start": 120,
+                                  "end": 123
                                 },
                                 "id": {
                                   "id": 23
@@ -320,7 +320,7 @@
                       },
                       "span": {
                         "start": 109,
-                        "end": 127
+                        "end": 124
                       },
                       "id": {
                         "id": 24
@@ -328,7 +328,7 @@
                     },
                     {
                       "kind": {
-                        "Constructor": {
+                        "Call": {
                           "target": {
                             "kind": {
                               "Path": {
@@ -337,8 +337,8 @@
                                     "ident": {
                                       "ident": 1,
                                       "span": {
-                                        "start": 129,
-                                        "end": 134
+                                        "start": 126,
+                                        "end": 131
                                       },
                                       "id": {
                                         "id": 25
@@ -350,8 +350,8 @@
                               }
                             },
                             "span": {
-                              "start": 129,
-                              "end": 134
+                              "start": 126,
+                              "end": 131
                             },
                             "id": {
                               "id": 26
@@ -364,8 +364,8 @@
                                   "Float": 1.5
                                 },
                                 "span": {
-                                  "start": 137,
-                                  "end": 140
+                                  "start": 132,
+                                  "end": 135
                                 },
                                 "id": {
                                   "id": 27
@@ -376,8 +376,8 @@
                                   "Float": 2.5
                                 },
                                 "span": {
-                                  "start": 142,
-                                  "end": 145
+                                  "start": 137,
+                                  "end": 140
                                 },
                                 "id": {
                                   "id": 28
@@ -388,8 +388,8 @@
                         }
                       },
                       "span": {
-                        "start": 129,
-                        "end": 147
+                        "start": 126,
+                        "end": 141
                       },
                       "id": {
                         "id": 29
@@ -400,7 +400,7 @@
               },
               "span": {
                 "start": 108,
-                "end": 148
+                "end": 142
               },
               "id": {
                 "id": 30
@@ -408,7 +408,7 @@
             },
             "span": {
               "start": 90,
-              "end": 149
+              "end": 143
             },
             "id": {
               "id": 31
@@ -417,7 +417,7 @@
         },
         "span": {
           "start": 90,
-          "end": 149
+          "end": 143
         },
         "id": {
           "id": 32
@@ -429,8 +429,8 @@
             "ident": {
               "ident": 9,
               "span": {
-                "start": 154,
-                "end": 164
+                "start": 148,
+                "end": 158
               },
               "id": {
                 "id": 33
@@ -443,7 +443,7 @@
                   "Initializer": [
                     {
                       "kind": {
-                        "Constructor": {
+                        "Call": {
                           "target": {
                             "kind": {
                               "Path": {
@@ -452,8 +452,8 @@
                                     "ident": {
                                       "ident": 5,
                                       "span": {
-                                        "start": 168,
-                                        "end": 172
+                                        "start": 162,
+                                        "end": 166
                                       },
                                       "id": {
                                         "id": 34
@@ -465,8 +465,8 @@
                               }
                             },
                             "span": {
-                              "start": 168,
-                              "end": 172
+                              "start": 162,
+                              "end": 166
                             },
                             "id": {
                               "id": 35
@@ -478,8 +478,8 @@
                         }
                       },
                       "span": {
-                        "start": 168,
-                        "end": 176
+                        "start": 162,
+                        "end": 168
                       },
                       "id": {
                         "id": 36
@@ -487,7 +487,7 @@
                     },
                     {
                       "kind": {
-                        "Constructor": {
+                        "Call": {
                           "target": {
                             "kind": {
                               "Path": {
@@ -496,8 +496,8 @@
                                     "ident": {
                                       "ident": 5,
                                       "span": {
-                                        "start": 178,
-                                        "end": 182
+                                        "start": 170,
+                                        "end": 174
                                       },
                                       "id": {
                                         "id": 37
@@ -509,8 +509,8 @@
                               }
                             },
                             "span": {
-                              "start": 178,
-                              "end": 182
+                              "start": 170,
+                              "end": 174
                             },
                             "id": {
                               "id": 38
@@ -522,8 +522,8 @@
                         }
                       },
                       "span": {
-                        "start": 178,
-                        "end": 186
+                        "start": 170,
+                        "end": 176
                       },
                       "id": {
                         "id": 39
@@ -533,16 +533,16 @@
                 }
               },
               "span": {
-                "start": 167,
-                "end": 187
+                "start": 161,
+                "end": 177
               },
               "id": {
                 "id": 40
               }
             },
             "span": {
-              "start": 150,
-              "end": 188
+              "start": 144,
+              "end": 178
             },
             "id": {
               "id": 41
@@ -550,8 +550,8 @@
           }
         },
         "span": {
-          "start": 150,
-          "end": 188
+          "start": 144,
+          "end": 178
         },
         "id": {
           "id": 42
