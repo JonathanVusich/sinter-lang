@@ -1,0 +1,275 @@
+[
+  {
+    "string_interner": [
+      "year"
+    ]
+  },
+  {
+    "kind": {
+      "Infix": {
+        "operator": "Or",
+        "lhs": {
+          "kind": {
+            "Infix": {
+              "operator": "And",
+              "lhs": {
+                "kind": {
+                  "Infix": {
+                    "operator": "Equal",
+                    "lhs": {
+                      "kind": {
+                        "Infix": {
+                          "operator": "Modulo",
+                          "lhs": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": 1,
+                                      "span": {
+                                        "start": 0,
+                                        "end": 4
+                                      },
+                                      "id": {
+                                        "id": 0
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 0,
+                              "end": 4
+                            },
+                            "id": {
+                              "id": 1
+                            }
+                          },
+                          "rhs": {
+                            "kind": {
+                              "Integer": 4
+                            },
+                            "span": {
+                              "start": 7,
+                              "end": 8
+                            },
+                            "id": {
+                              "id": 2
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 0,
+                        "end": 8
+                      },
+                      "id": {
+                        "id": 3
+                      }
+                    },
+                    "rhs": {
+                      "kind": {
+                        "Integer": 0
+                      },
+                      "span": {
+                        "start": 12,
+                        "end": 13
+                      },
+                      "id": {
+                        "id": 4
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 0,
+                  "end": 13
+                },
+                "id": {
+                  "id": 5
+                }
+              },
+              "rhs": {
+                "kind": {
+                  "Infix": {
+                    "operator": "NotEqual",
+                    "lhs": {
+                      "kind": {
+                        "Infix": {
+                          "operator": "Modulo",
+                          "lhs": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": 1,
+                                      "span": {
+                                        "start": 17,
+                                        "end": 21
+                                      },
+                                      "id": {
+                                        "id": 6
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 17,
+                              "end": 21
+                            },
+                            "id": {
+                              "id": 7
+                            }
+                          },
+                          "rhs": {
+                            "kind": {
+                              "Integer": 100
+                            },
+                            "span": {
+                              "start": 24,
+                              "end": 27
+                            },
+                            "id": {
+                              "id": 8
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 17,
+                        "end": 27
+                      },
+                      "id": {
+                        "id": 9
+                      }
+                    },
+                    "rhs": {
+                      "kind": {
+                        "Integer": 0
+                      },
+                      "span": {
+                        "start": 31,
+                        "end": 32
+                      },
+                      "id": {
+                        "id": 10
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 17,
+                  "end": 32
+                },
+                "id": {
+                  "id": 11
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 32
+          },
+          "id": {
+            "id": 12
+          }
+        },
+        "rhs": {
+          "kind": {
+            "Infix": {
+              "operator": "Equal",
+              "lhs": {
+                "kind": {
+                  "Infix": {
+                    "operator": "Modulo",
+                    "lhs": {
+                      "kind": {
+                        "Path": {
+                          "segments": [
+                            {
+                              "ident": {
+                                "ident": 1,
+                                "span": {
+                                  "start": 36,
+                                  "end": 40
+                                },
+                                "id": {
+                                  "id": 13
+                                }
+                              },
+                              "generics": null
+                            }
+                          ]
+                        }
+                      },
+                      "span": {
+                        "start": 36,
+                        "end": 40
+                      },
+                      "id": {
+                        "id": 14
+                      }
+                    },
+                    "rhs": {
+                      "kind": {
+                        "Integer": 400
+                      },
+                      "span": {
+                        "start": 43,
+                        "end": 46
+                      },
+                      "id": {
+                        "id": 15
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 36,
+                  "end": 46
+                },
+                "id": {
+                  "id": 16
+                }
+              },
+              "rhs": {
+                "kind": {
+                  "Integer": 0
+                },
+                "span": {
+                  "start": 50,
+                  "end": 51
+                },
+                "id": {
+                  "id": 17
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 36,
+            "end": 51
+          },
+          "id": {
+            "id": 18
+          }
+        }
+      }
+    },
+    "span": {
+      "start": 0,
+      "end": 51
+    },
+    "id": {
+      "id": 19
+    }
+  }
+]

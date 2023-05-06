@@ -1,0 +1,271 @@
+[
+  {
+    "string_interner": [
+      "number",
+      "print",
+      "One!",
+      "This is a prime",
+      "Unremarkable"
+    ]
+  },
+  {
+    "kind": {
+      "Match": {
+        "source": {
+          "kind": {
+            "Path": {
+              "segments": [
+                {
+                  "ident": {
+                    "ident": 1,
+                    "span": {
+                      "start": 6,
+                      "end": 12
+                    },
+                    "id": {
+                      "id": 0
+                    }
+                  },
+                  "generics": null
+                }
+              ]
+            }
+          },
+          "span": {
+            "start": 6,
+            "end": 12
+          },
+          "id": {
+            "id": 1
+          }
+        },
+        "arms": [
+          {
+            "pattern": {
+              "Integer": 1
+            },
+            "body": {
+              "Expression": {
+                "expr": {
+                  "kind": {
+                    "Call": {
+                      "target": {
+                        "kind": {
+                          "Path": {
+                            "segments": [
+                              {
+                                "ident": {
+                                  "ident": 2,
+                                  "span": {
+                                    "start": 24,
+                                    "end": 29
+                                  },
+                                  "id": {
+                                    "id": 2
+                                  }
+                                },
+                                "generics": null
+                              }
+                            ]
+                          }
+                        },
+                        "span": {
+                          "start": 24,
+                          "end": 29
+                        },
+                        "id": {
+                          "id": 3
+                        }
+                      },
+                      "args": {
+                        "args": [
+                          {
+                            "kind": {
+                              "String": 3
+                            },
+                            "span": {
+                              "start": 30,
+                              "end": 36
+                            },
+                            "id": {
+                              "id": 4
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "span": {
+                    "start": 24,
+                    "end": 37
+                  },
+                  "id": {
+                    "id": 5
+                  }
+                },
+                "implicit_return": true
+              }
+            }
+          },
+          {
+            "pattern": {
+              "Or": {
+                "patterns": [
+                  {
+                    "Integer": 2
+                  },
+                  {
+                    "Integer": 3
+                  },
+                  {
+                    "Integer": 5
+                  },
+                  {
+                    "Integer": 7
+                  },
+                  {
+                    "Integer": 11
+                  }
+                ]
+              }
+            },
+            "body": {
+              "Expression": {
+                "expr": {
+                  "kind": {
+                    "Call": {
+                      "target": {
+                        "kind": {
+                          "Path": {
+                            "segments": [
+                              {
+                                "ident": {
+                                  "ident": 2,
+                                  "span": {
+                                    "start": 65,
+                                    "end": 70
+                                  },
+                                  "id": {
+                                    "id": 6
+                                  }
+                                },
+                                "generics": null
+                              }
+                            ]
+                          }
+                        },
+                        "span": {
+                          "start": 65,
+                          "end": 70
+                        },
+                        "id": {
+                          "id": 7
+                        }
+                      },
+                      "args": {
+                        "args": [
+                          {
+                            "kind": {
+                              "String": 4
+                            },
+                            "span": {
+                              "start": 71,
+                              "end": 88
+                            },
+                            "id": {
+                              "id": 8
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "span": {
+                    "start": 65,
+                    "end": 89
+                  },
+                  "id": {
+                    "id": 9
+                  }
+                },
+                "implicit_return": true
+              }
+            }
+          },
+          {
+            "pattern": "Wildcard",
+            "body": {
+              "Expression": {
+                "expr": {
+                  "kind": {
+                    "Call": {
+                      "target": {
+                        "kind": {
+                          "Path": {
+                            "segments": [
+                              {
+                                "ident": {
+                                  "ident": 2,
+                                  "span": {
+                                    "start": 100,
+                                    "end": 105
+                                  },
+                                  "id": {
+                                    "id": 10
+                                  }
+                                },
+                                "generics": null
+                              }
+                            ]
+                          }
+                        },
+                        "span": {
+                          "start": 100,
+                          "end": 105
+                        },
+                        "id": {
+                          "id": 11
+                        }
+                      },
+                      "args": {
+                        "args": [
+                          {
+                            "kind": {
+                              "String": 5
+                            },
+                            "span": {
+                              "start": 106,
+                              "end": 120
+                            },
+                            "id": {
+                              "id": 12
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "span": {
+                    "start": 100,
+                    "end": 121
+                  },
+                  "id": {
+                    "id": 13
+                  }
+                },
+                "implicit_return": true
+              }
+            }
+          }
+        ]
+      }
+    },
+    "span": {
+      "start": 0,
+      "end": 124
+    },
+    "id": {
+      "id": 14
+    }
+  }
+]

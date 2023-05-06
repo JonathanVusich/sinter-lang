@@ -1,0 +1,109 @@
+[
+  {
+    "string_interner": [
+      "a",
+      "i64",
+      "b"
+    ]
+  },
+  {
+    "items": [
+      {
+        "kind": {
+          "GlobalLet": {
+            "ident": {
+              "ident": 1,
+              "span": {
+                "start": 4,
+                "end": 5
+              },
+              "id": {
+                "id": 0
+              }
+            },
+            "ty": {
+              "kind": "I64",
+              "span": {
+                "start": 7,
+                "end": 10
+              },
+              "id": {
+                "id": 1
+              }
+            },
+            "initializer": {
+              "kind": {
+                "Integer": 1
+              },
+              "span": {
+                "start": 13,
+                "end": 14
+              },
+              "id": {
+                "id": 2
+              }
+            },
+            "span": {
+              "start": 7,
+              "end": 15
+            },
+            "id": {
+              "id": 3
+            }
+          }
+        },
+        "span": {
+          "start": 0,
+          "end": 15
+        },
+        "id": {
+          "id": 4
+        }
+      },
+      {
+        "kind": {
+          "GlobalLet": {
+            "ident": {
+              "ident": 3,
+              "span": {
+                "start": 44,
+                "end": 45
+              },
+              "id": {
+                "id": 5
+              }
+            },
+            "ty": null,
+            "initializer": {
+              "kind": {
+                "Integer": 2
+              },
+              "span": {
+                "start": 48,
+                "end": 49
+              },
+              "id": {
+                "id": 6
+              }
+            },
+            "span": {
+              "start": 40,
+              "end": 50
+            },
+            "id": {
+              "id": 7
+            }
+          }
+        },
+        "span": {
+          "start": 40,
+          "end": 50
+        },
+        "id": {
+          "id": 8
+        }
+      }
+    ],
+    "parse_errors": []
+  }
+]

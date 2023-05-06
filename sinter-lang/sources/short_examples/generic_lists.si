@@ -1,0 +1,13 @@
+ref class List<T> {
+    array: [T],
+    size: u64,
+
+    fn new() => Self {
+        Self([T; 10], 0)
+    }
+}
+
+let list_of_ints = List::<i64>::new();
+let list_of_lists = List::<List<f64>>::new();
+let trait_bounds = List::<Loggable + Serializable>::new();
+let unions = List::<str | i64 | f64>::new();

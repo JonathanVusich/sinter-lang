@@ -1,0 +1,25 @@
+[
+  [],
+  {
+    "tokens": [
+      {
+        "token_type": {
+          "SignedInteger": 123
+        },
+        "span": {
+          "start": 0,
+          "end": 3
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 3,
+          "end": 4
+        }
+      }
+    ],
+    "line_map": [],
+    "line_counter": 0
+  }
+]

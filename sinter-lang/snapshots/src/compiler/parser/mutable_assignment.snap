@@ -1,0 +1,185 @@
+[
+  {
+    "string_interner": [
+      "mut_var",
+      "x"
+    ]
+  },
+  {
+    "items": [
+      {
+        "kind": {
+          "Fn": {
+            "sig": {
+              "name": {
+                "ident": 1,
+                "span": {
+                  "start": 3,
+                  "end": 10
+                },
+                "id": {
+                  "id": 0
+                }
+              },
+              "generic_params": {
+                "params": []
+              },
+              "params": {
+                "params": []
+              },
+              "return_type": null
+            },
+            "body": {
+              "stmts": [
+                {
+                  "Let": {
+                    "ident": {
+                      "ident": 2,
+                      "span": {
+                        "start": 27,
+                        "end": 28
+                      },
+                      "id": {
+                        "id": 1
+                      }
+                    },
+                    "mutability": "Mutable",
+                    "ty": null,
+                    "initializer": {
+                      "kind": {
+                        "Integer": 5
+                      },
+                      "span": {
+                        "start": 31,
+                        "end": 32
+                      },
+                      "id": {
+                        "id": 2
+                      }
+                    }
+                  }
+                },
+                {
+                  "Expression": {
+                    "expr": {
+                      "kind": {
+                        "Infix": {
+                          "operator": "Assign",
+                          "lhs": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": 2,
+                                      "span": {
+                                        "start": 64,
+                                        "end": 65
+                                      },
+                                      "id": {
+                                        "id": 3
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 64,
+                              "end": 65
+                            },
+                            "id": {
+                              "id": 4
+                            }
+                          },
+                          "rhs": {
+                            "kind": {
+                              "Infix": {
+                                "operator": "Add",
+                                "lhs": {
+                                  "kind": {
+                                    "Path": {
+                                      "segments": [
+                                        {
+                                          "ident": {
+                                            "ident": 2,
+                                            "span": {
+                                              "start": 68,
+                                              "end": 69
+                                            },
+                                            "id": {
+                                              "id": 5
+                                            }
+                                          },
+                                          "generics": null
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "span": {
+                                    "start": 68,
+                                    "end": 69
+                                  },
+                                  "id": {
+                                    "id": 6
+                                  }
+                                },
+                                "rhs": {
+                                  "kind": {
+                                    "Integer": 1
+                                  },
+                                  "span": {
+                                    "start": 72,
+                                    "end": 73
+                                  },
+                                  "id": {
+                                    "id": 7
+                                  }
+                                }
+                              }
+                            },
+                            "span": {
+                              "start": 68,
+                              "end": 73
+                            },
+                            "id": {
+                              "id": 8
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 64,
+                        "end": 73
+                      },
+                      "id": {
+                        "id": 9
+                      }
+                    },
+                    "implicit_return": true
+                  }
+                }
+              ],
+              "span": {
+                "start": 13,
+                "end": 76
+              },
+              "id": {
+                "id": 10
+              }
+            }
+          }
+        },
+        "span": {
+          "start": 0,
+          "end": 76
+        },
+        "id": {
+          "id": 11
+        }
+      }
+    ],
+    "parse_errors": []
+  }
+]

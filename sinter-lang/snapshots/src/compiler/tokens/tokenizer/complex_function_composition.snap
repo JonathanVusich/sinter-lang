@@ -1,0 +1,146 @@
+[
+  [
+    "f",
+    "g",
+    "h"
+  ],
+  {
+    "tokens": [
+      {
+        "token_type": {
+          "SignedInteger": 1
+        },
+        "span": {
+          "start": 0,
+          "end": 1
+        }
+      },
+      {
+        "token_type": "Plus",
+        "span": {
+          "start": 2,
+          "end": 3
+        }
+      },
+      {
+        "token_type": {
+          "SignedInteger": 2
+        },
+        "span": {
+          "start": 4,
+          "end": 5
+        }
+      },
+      {
+        "token_type": "Plus",
+        "span": {
+          "start": 6,
+          "end": 7
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "span": {
+          "start": 8,
+          "end": 9
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 9,
+          "end": 10
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "span": {
+          "start": 10,
+          "end": 11
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 11,
+          "end": 12
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 3
+        },
+        "span": {
+          "start": 12,
+          "end": 13
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 13,
+          "end": 14
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 14,
+          "end": 15
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 15,
+          "end": 16
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 16,
+          "end": 17
+        }
+      },
+      {
+        "token_type": "Star",
+        "span": {
+          "start": 18,
+          "end": 19
+        }
+      },
+      {
+        "token_type": {
+          "SignedInteger": 3
+        },
+        "span": {
+          "start": 20,
+          "end": 21
+        }
+      },
+      {
+        "token_type": "Star",
+        "span": {
+          "start": 22,
+          "end": 23
+        }
+      },
+      {
+        "token_type": {
+          "SignedInteger": 4
+        },
+        "span": {
+          "start": 24,
+          "end": 25
+        }
+      }
+    ],
+    "line_map": [],
+    "line_counter": 0
+  }
+]

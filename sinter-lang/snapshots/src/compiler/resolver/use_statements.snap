@@ -1,0 +1,44 @@
+[
+  {
+    "string_interner": [
+      "std",
+      "vector",
+      "array",
+      "map",
+      "HashMap"
+    ],
+    "ty_interner": []
+  },
+  {
+    "used_modules": {
+      "2": {
+        "ident": {
+          "idents": [
+            1,
+            2
+          ]
+        }
+      },
+      "3": {
+        "ident": {
+          "idents": [
+            1,
+            3
+          ]
+        }
+      },
+      "5": {
+        "ident": {
+          "idents": [
+            1,
+            4,
+            5
+          ]
+        }
+      }
+    },
+    "module_tys": {},
+    "module_impls": {},
+    "module_fns": {}
+  }
+]

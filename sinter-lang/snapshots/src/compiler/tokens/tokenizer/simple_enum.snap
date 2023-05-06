@@ -1,0 +1,51 @@
+[
+  [
+    "Reader"
+  ],
+  {
+    "tokens": [
+      {
+        "token_type": "Impl",
+        "span": {
+          "start": 0,
+          "end": 4
+        }
+      },
+      {
+        "token_type": "Enum",
+        "span": {
+          "start": 5,
+          "end": 9
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "span": {
+          "start": 12,
+          "end": 18
+        }
+      },
+      {
+        "token_type": "LeftBracket",
+        "span": {
+          "start": 21,
+          "end": 22
+        }
+      },
+      {
+        "token_type": "RightBracket",
+        "span": {
+          "start": 23,
+          "end": 24
+        }
+      }
+    ],
+    "line_map": [
+      10,
+      19
+    ],
+    "line_counter": 2
+  }
+]

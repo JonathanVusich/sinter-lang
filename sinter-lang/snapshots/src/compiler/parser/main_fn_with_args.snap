@@ -1,0 +1,213 @@
+[
+  {
+    "string_interner": [
+      "main",
+      "args",
+      "str",
+      "print",
+      "to_str"
+    ]
+  },
+  {
+    "items": [
+      {
+        "kind": {
+          "Fn": {
+            "sig": {
+              "name": {
+                "ident": 1,
+                "span": {
+                  "start": 3,
+                  "end": 7
+                },
+                "id": {
+                  "id": 0
+                }
+              },
+              "generic_params": {
+                "params": []
+              },
+              "params": {
+                "params": [
+                  {
+                    "ident": {
+                      "ident": 2,
+                      "span": {
+                        "start": 8,
+                        "end": 12
+                      },
+                      "id": {
+                        "id": 1
+                      }
+                    },
+                    "ty": {
+                      "kind": {
+                        "Array": {
+                          "ty": {
+                            "kind": "Str",
+                            "span": {
+                              "start": 15,
+                              "end": 18
+                            },
+                            "id": {
+                              "id": 2
+                            }
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 15,
+                        "end": 18
+                      },
+                      "id": {
+                        "id": 3
+                      }
+                    },
+                    "mutability": "Immutable"
+                  }
+                ]
+              },
+              "return_type": null
+            },
+            "body": {
+              "stmts": [
+                {
+                  "Expression": {
+                    "expr": {
+                      "kind": {
+                        "Call": {
+                          "target": {
+                            "kind": {
+                              "Path": {
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": 4,
+                                      "span": {
+                                        "start": 27,
+                                        "end": 32
+                                      },
+                                      "id": {
+                                        "id": 4
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 27,
+                              "end": 32
+                            },
+                            "id": {
+                              "id": 5
+                            }
+                          },
+                          "args": {
+                            "args": [
+                              {
+                                "kind": {
+                                  "Call": {
+                                    "target": {
+                                      "kind": {
+                                        "Field": {
+                                          "lhs": {
+                                            "kind": {
+                                              "Path": {
+                                                "segments": [
+                                                  {
+                                                    "ident": {
+                                                      "ident": 2,
+                                                      "span": {
+                                                        "start": 33,
+                                                        "end": 37
+                                                      },
+                                                      "id": {
+                                                        "id": 6
+                                                      }
+                                                    },
+                                                    "generics": null
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "span": {
+                                              "start": 33,
+                                              "end": 37
+                                            },
+                                            "id": {
+                                              "id": 7
+                                            }
+                                          },
+                                          "ident": {
+                                            "ident": 5,
+                                            "span": {
+                                              "start": 38,
+                                              "end": 44
+                                            },
+                                            "id": {
+                                              "id": 8
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "span": {
+                                        "start": 33,
+                                        "end": 44
+                                      },
+                                      "id": {
+                                        "id": 9
+                                      }
+                                    },
+                                    "args": {
+                                      "args": []
+                                    }
+                                  }
+                                },
+                                "span": {
+                                  "start": 33,
+                                  "end": 46
+                                },
+                                "id": {
+                                  "id": 10
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 27,
+                        "end": 47
+                      },
+                      "id": {
+                        "id": 11
+                      }
+                    },
+                    "implicit_return": true
+                  }
+                }
+              ],
+              "span": {
+                "start": 21,
+                "end": 50
+              },
+              "id": {
+                "id": 12
+              }
+            }
+          }
+        },
+        "span": {
+          "start": 14,
+          "end": 50
+        },
+        "id": {
+          "id": 13
+        }
+      }
+    ],
+    "parse_errors": []
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "string_interner": []
+  },
+  {
+    "kind": {
+      "Parentheses": {
+        "expr": {
+          "kind": {
+            "Parentheses": {
+              "expr": {
+                "kind": {
+                  "Parentheses": {
+                    "expr": {
+                      "kind": {
+                        "Integer": 0
+                      },
+                      "span": {
+                        "start": 3,
+                        "end": 4
+                      },
+                      "id": {
+                        "id": 0
+                      }
+                    }
+                  }
+                },
+                "span": {
+                  "start": 2,
+                  "end": 5
+                },
+                "id": {
+                  "id": 1
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 1,
+            "end": 6
+          },
+          "id": {
+            "id": 2
+          }
+        }
+      }
+    },
+    "span": {
+      "start": 0,
+      "end": 7
+    },
+    "id": {
+      "id": 3
+    }
+  }
+]

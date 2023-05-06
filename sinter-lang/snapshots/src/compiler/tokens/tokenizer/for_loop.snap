@@ -1,0 +1,80 @@
+[
+  [
+    "x"
+  ],
+  {
+    "tokens": [
+      {
+        "token_type": "For",
+        "span": {
+          "start": 0,
+          "end": 3
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "span": {
+          "start": 4,
+          "end": 5
+        }
+      },
+      {
+        "token_type": "In",
+        "span": {
+          "start": 6,
+          "end": 8
+        }
+      },
+      {
+        "token_type": {
+          "SignedInteger": 0
+        },
+        "span": {
+          "start": 9,
+          "end": 10
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 10,
+          "end": 11
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 11,
+          "end": 12
+        }
+      },
+      {
+        "token_type": {
+          "SignedInteger": 100
+        },
+        "span": {
+          "start": 12,
+          "end": 15
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 16,
+          "end": 17
+        }
+      },
+      {
+        "token_type": "RightBrace",
+        "span": {
+          "start": 18,
+          "end": 19
+        }
+      }
+    ],
+    "line_map": [],
+    "line_counter": 0
+  }
+]

@@ -1,0 +1,350 @@
+[
+  {
+    "string_interner": [
+      "Message",
+      "Text",
+      "message",
+      "str",
+      "Photo",
+      "caption",
+      "photo",
+      "SerializedPhoto",
+      "size",
+      "u64",
+      "self"
+    ]
+  },
+  {
+    "items": [
+      {
+        "kind": {
+          "Enum": {
+            "name": {
+              "ident": 1,
+              "span": {
+                "start": 5,
+                "end": 12
+              },
+              "id": {
+                "id": 0
+              }
+            },
+            "generic_params": {
+              "params": []
+            },
+            "members": [
+              {
+                "name": 2,
+                "fields": {
+                  "params": [
+                    {
+                      "ident": {
+                        "ident": 3,
+                        "span": {
+                          "start": 24,
+                          "end": 31
+                        },
+                        "id": {
+                          "id": 1
+                        }
+                      },
+                      "ty": {
+                        "kind": "Str",
+                        "span": {
+                          "start": 33,
+                          "end": 36
+                        },
+                        "id": {
+                          "id": 2
+                        }
+                      },
+                      "span": {
+                        "start": 33,
+                        "end": 36
+                      },
+                      "id": {
+                        "id": 3
+                      }
+                    }
+                  ]
+                },
+                "member_fns": [],
+                "span": {
+                  "start": 24,
+                  "end": 38
+                },
+                "id": {
+                  "id": 4
+                }
+              },
+              {
+                "name": 5,
+                "fields": {
+                  "params": [
+                    {
+                      "ident": {
+                        "ident": 6,
+                        "span": {
+                          "start": 49,
+                          "end": 56
+                        },
+                        "id": {
+                          "id": 5
+                        }
+                      },
+                      "ty": {
+                        "kind": "Str",
+                        "span": {
+                          "start": 58,
+                          "end": 61
+                        },
+                        "id": {
+                          "id": 6
+                        }
+                      },
+                      "span": {
+                        "start": 58,
+                        "end": 61
+                      },
+                      "id": {
+                        "id": 7
+                      }
+                    },
+                    {
+                      "ident": {
+                        "ident": 7,
+                        "span": {
+                          "start": 63,
+                          "end": 68
+                        },
+                        "id": {
+                          "id": 8
+                        }
+                      },
+                      "ty": {
+                        "kind": {
+                          "Path": {
+                            "path": {
+                              "ident": {
+                                "idents": [
+                                  {
+                                    "ident": 8,
+                                    "span": {
+                                      "start": 70,
+                                      "end": 85
+                                    },
+                                    "id": {
+                                      "id": 9
+                                    }
+                                  }
+                                ]
+                              },
+                              "generics": {
+                                "generics": []
+                              }
+                            }
+                          }
+                        },
+                        "span": {
+                          "start": 70,
+                          "end": 85
+                        },
+                        "id": {
+                          "id": 10
+                        }
+                      },
+                      "span": {
+                        "start": 70,
+                        "end": 85
+                      },
+                      "id": {
+                        "id": 11
+                      }
+                    }
+                  ]
+                },
+                "member_fns": [
+                  {
+                    "sig": {
+                      "name": {
+                        "ident": 9,
+                        "span": {
+                          "start": 100,
+                          "end": 104
+                        },
+                        "id": {
+                          "id": 12
+                        }
+                      },
+                      "generic_params": {
+                        "params": []
+                      },
+                      "params": {
+                        "params": [
+                          {
+                            "ident": {
+                              "ident": 11,
+                              "span": {
+                                "start": 105,
+                                "end": 109
+                              },
+                              "id": {
+                                "id": 13
+                              }
+                            },
+                            "ty": {
+                              "kind": "QSelf",
+                              "span": {
+                                "start": 105,
+                                "end": 109
+                              },
+                              "id": {
+                                "id": 14
+                              }
+                            },
+                            "mutability": "Immutable"
+                          }
+                        ]
+                      },
+                      "return_type": {
+                        "kind": "U64",
+                        "span": {
+                          "start": 114,
+                          "end": 117
+                        },
+                        "id": {
+                          "id": 15
+                        }
+                      }
+                    },
+                    "body": {
+                      "stmts": [
+                        {
+                          "Return": {
+                            "value": {
+                              "kind": {
+                                "Call": {
+                                  "target": {
+                                    "kind": {
+                                      "Field": {
+                                        "lhs": {
+                                          "kind": {
+                                            "Field": {
+                                              "lhs": {
+                                                "kind": {
+                                                  "Path": {
+                                                    "segments": [
+                                                      {
+                                                        "ident": {
+                                                          "ident": 11,
+                                                          "span": {
+                                                            "start": 139,
+                                                            "end": 143
+                                                          },
+                                                          "id": {
+                                                            "id": 16
+                                                          }
+                                                        },
+                                                        "generics": null
+                                                      }
+                                                    ]
+                                                  }
+                                                },
+                                                "span": {
+                                                  "start": 139,
+                                                  "end": 143
+                                                },
+                                                "id": {
+                                                  "id": 17
+                                                }
+                                              },
+                                              "ident": {
+                                                "ident": 7,
+                                                "span": {
+                                                  "start": 144,
+                                                  "end": 149
+                                                },
+                                                "id": {
+                                                  "id": 18
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "span": {
+                                            "start": 139,
+                                            "end": 149
+                                          },
+                                          "id": {
+                                            "id": 19
+                                          }
+                                        },
+                                        "ident": {
+                                          "ident": 9,
+                                          "span": {
+                                            "start": 150,
+                                            "end": 154
+                                          },
+                                          "id": {
+                                            "id": 20
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "span": {
+                                      "start": 139,
+                                      "end": 154
+                                    },
+                                    "id": {
+                                      "id": 21
+                                    }
+                                  },
+                                  "args": {
+                                    "args": []
+                                  }
+                                }
+                              },
+                              "span": {
+                                "start": 139,
+                                "end": 156
+                              },
+                              "id": {
+                                "id": 22
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "span": {
+                        "start": 118,
+                        "end": 167
+                      },
+                      "id": {
+                        "id": 23
+                      }
+                    }
+                  }
+                ],
+                "span": {
+                  "start": 114,
+                  "end": 174
+                },
+                "id": {
+                  "id": 24
+                }
+              }
+            ],
+            "member_fns": []
+          }
+        },
+        "span": {
+          "start": 63,
+          "end": 176
+        },
+        "id": {
+          "id": 25
+        }
+      }
+    ],
+    "parse_errors": []
+  }
+]

@@ -1,0 +1,18 @@
+use std::math;
+use std::Display;
+use std::Number;
+
+enum Vector<N: Number + Display> {
+    Normalized(x: N, y: N),
+    Absolute(x: N, y: N),
+
+    fn to_normalized(self) => Vector {
+        match self {
+            Normalized normalized => normalized,
+            Absolute abs => {
+                let magnitude = math::sqrt(abs.x * abs.x + abs.y * abs.y);
+                Normalized(abs.x / magnitude, abs.y / magnitude)
+            }
+        }
+    }
+}

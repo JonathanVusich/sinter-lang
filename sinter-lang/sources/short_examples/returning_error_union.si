@@ -1,0 +1,15 @@
+fn write<T: Serializable>(value: T) => None | WriteError {
+    let bytes = value.to_bytes();
+    if (buffer.remaining() < bytes.len()) {
+        WriteError::BufferOverflow
+    } else if (!buffer.write_bytes(bytes)) {
+        WriteError::MalformedBytes
+    } else {
+        None
+    }
+}
+
+enum WriteError {
+    BufferOverflow,
+    MalformedBytes,
+}

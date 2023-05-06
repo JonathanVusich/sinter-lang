@@ -1,0 +1,41 @@
+[
+  [],
+  {
+    "kind": {
+      "Closure": {
+        "params": [],
+        "ret_ty": {
+          "kind": {
+            "Closure": {
+              "params": [],
+              "ret_ty": {
+                "kind": "None",
+                "span": {
+                  "start": 13,
+                  "end": 17
+                },
+                "id": {
+                  "id": 0
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 13,
+            "end": 17
+          },
+          "id": {
+            "id": 1
+          }
+        }
+      }
+    },
+    "span": {
+      "start": 7,
+      "end": 18
+    },
+    "id": {
+      "id": 2
+    }
+  }
+]

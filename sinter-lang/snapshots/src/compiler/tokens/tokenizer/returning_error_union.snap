@@ -1,0 +1,617 @@
+[
+  [
+    "write",
+    "T",
+    "Serializable",
+    "value",
+    "WriteError",
+    "bytes",
+    "to_bytes",
+    "buffer",
+    "remaining",
+    "len",
+    "BufferOverflow",
+    "write_bytes",
+    "MalformedBytes"
+  ],
+  {
+    "tokens": [
+      {
+        "token_type": "Fn",
+        "span": {
+          "start": 0,
+          "end": 2
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "span": {
+          "start": 3,
+          "end": 8
+        }
+      },
+      {
+        "token_type": "Less",
+        "span": {
+          "start": 8,
+          "end": 9
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "span": {
+          "start": 9,
+          "end": 10
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 10,
+          "end": 11
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 3
+        },
+        "span": {
+          "start": 12,
+          "end": 24
+        }
+      },
+      {
+        "token_type": "Greater",
+        "span": {
+          "start": 24,
+          "end": 25
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 25,
+          "end": 26
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 4
+        },
+        "span": {
+          "start": 26,
+          "end": 31
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 31,
+          "end": 32
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 2
+        },
+        "span": {
+          "start": 33,
+          "end": 34
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 34,
+          "end": 35
+        }
+      },
+      {
+        "token_type": "RightArrow",
+        "span": {
+          "start": 36,
+          "end": 38
+        }
+      },
+      {
+        "token_type": "None",
+        "span": {
+          "start": 39,
+          "end": 43
+        }
+      },
+      {
+        "token_type": "BitwiseOr",
+        "span": {
+          "start": 44,
+          "end": 45
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 5
+        },
+        "span": {
+          "start": 46,
+          "end": 56
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 57,
+          "end": 58
+        }
+      },
+      {
+        "token_type": "Let",
+        "span": {
+          "start": 63,
+          "end": 66
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 6
+        },
+        "span": {
+          "start": 67,
+          "end": 72
+        }
+      },
+      {
+        "token_type": "Equal",
+        "span": {
+          "start": 73,
+          "end": 74
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 4
+        },
+        "span": {
+          "start": 75,
+          "end": 80
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 80,
+          "end": 81
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 7
+        },
+        "span": {
+          "start": 81,
+          "end": 89
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 89,
+          "end": 90
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 90,
+          "end": 91
+        }
+      },
+      {
+        "token_type": "Semicolon",
+        "span": {
+          "start": 91,
+          "end": 92
+        }
+      },
+      {
+        "token_type": "If",
+        "span": {
+          "start": 97,
+          "end": 99
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 100,
+          "end": 101
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 8
+        },
+        "span": {
+          "start": 101,
+          "end": 107
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 107,
+          "end": 108
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 9
+        },
+        "span": {
+          "start": 108,
+          "end": 117
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 117,
+          "end": 118
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 118,
+          "end": 119
+        }
+      },
+      {
+        "token_type": "Less",
+        "span": {
+          "start": 120,
+          "end": 121
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 6
+        },
+        "span": {
+          "start": 122,
+          "end": 127
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 127,
+          "end": 128
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 10
+        },
+        "span": {
+          "start": 128,
+          "end": 131
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 131,
+          "end": 132
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 132,
+          "end": 133
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 133,
+          "end": 134
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 135,
+          "end": 136
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 5
+        },
+        "span": {
+          "start": 145,
+          "end": 155
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 155,
+          "end": 156
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 156,
+          "end": 157
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 11
+        },
+        "span": {
+          "start": 157,
+          "end": 171
+        }
+      },
+      {
+        "token_type": "RightBrace",
+        "span": {
+          "start": 176,
+          "end": 177
+        }
+      },
+      {
+        "token_type": "Else",
+        "span": {
+          "start": 178,
+          "end": 182
+        }
+      },
+      {
+        "token_type": "If",
+        "span": {
+          "start": 183,
+          "end": 185
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 186,
+          "end": 187
+        }
+      },
+      {
+        "token_type": "Bang",
+        "span": {
+          "start": 187,
+          "end": 188
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 8
+        },
+        "span": {
+          "start": 188,
+          "end": 194
+        }
+      },
+      {
+        "token_type": "Dot",
+        "span": {
+          "start": 194,
+          "end": 195
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 12
+        },
+        "span": {
+          "start": 195,
+          "end": 206
+        }
+      },
+      {
+        "token_type": "LeftParentheses",
+        "span": {
+          "start": 206,
+          "end": 207
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 6
+        },
+        "span": {
+          "start": 207,
+          "end": 212
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 212,
+          "end": 213
+        }
+      },
+      {
+        "token_type": "RightParentheses",
+        "span": {
+          "start": 213,
+          "end": 214
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 215,
+          "end": 216
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 5
+        },
+        "span": {
+          "start": 225,
+          "end": 235
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 235,
+          "end": 236
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 236,
+          "end": 237
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 13
+        },
+        "span": {
+          "start": 237,
+          "end": 251
+        }
+      },
+      {
+        "token_type": "RightBrace",
+        "span": {
+          "start": 256,
+          "end": 257
+        }
+      },
+      {
+        "token_type": "Else",
+        "span": {
+          "start": 258,
+          "end": 262
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 263,
+          "end": 264
+        }
+      },
+      {
+        "token_type": "None",
+        "span": {
+          "start": 273,
+          "end": 277
+        }
+      },
+      {
+        "token_type": "RightBrace",
+        "span": {
+          "start": 282,
+          "end": 283
+        }
+      },
+      {
+        "token_type": "RightBrace",
+        "span": {
+          "start": 284,
+          "end": 285
+        }
+      },
+      {
+        "token_type": "Enum",
+        "span": {
+          "start": 287,
+          "end": 291
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 5
+        },
+        "span": {
+          "start": 292,
+          "end": 302
+        }
+      },
+      {
+        "token_type": "LeftBrace",
+        "span": {
+          "start": 303,
+          "end": 304
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 11
+        },
+        "span": {
+          "start": 309,
+          "end": 323
+        }
+      },
+      {
+        "token_type": "Comma",
+        "span": {
+          "start": 323,
+          "end": 324
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 13
+        },
+        "span": {
+          "start": 329,
+          "end": 343
+        }
+      },
+      {
+        "token_type": "Comma",
+        "span": {
+          "start": 343,
+          "end": 344
+        }
+      },
+      {
+        "token_type": "RightBrace",
+        "span": {
+          "start": 345,
+          "end": 346
+        }
+      }
+    ],
+    "line_map": [
+      58,
+      92,
+      136,
+      171,
+      216,
+      251,
+      264,
+      277,
+      283,
+      285,
+      286,
+      304,
+      324,
+      344,
+      346
+    ],
+    "line_counter": 15
+  }
+]

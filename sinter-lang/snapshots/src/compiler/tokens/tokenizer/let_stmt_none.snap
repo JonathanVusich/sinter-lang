@@ -1,0 +1,48 @@
+[
+  [
+    "x"
+  ],
+  {
+    "tokens": [
+      {
+        "token_type": "Let",
+        "span": {
+          "start": 0,
+          "end": 3
+        }
+      },
+      {
+        "token_type": {
+          "Identifier": 1
+        },
+        "span": {
+          "start": 4,
+          "end": 5
+        }
+      },
+      {
+        "token_type": "Colon",
+        "span": {
+          "start": 5,
+          "end": 6
+        }
+      },
+      {
+        "token_type": "None",
+        "span": {
+          "start": 7,
+          "end": 11
+        }
+      },
+      {
+        "token_type": "Semicolon",
+        "span": {
+          "start": 11,
+          "end": 12
+        }
+      }
+    ],
+    "line_map": [],
+    "line_counter": 0
+  }
+]
