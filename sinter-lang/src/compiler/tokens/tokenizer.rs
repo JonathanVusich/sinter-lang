@@ -6,12 +6,12 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 
-use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::interner::{Interner, Key};
 use anyhow::Result;
 use phf::phf_map;
 use unicode_segmentation::UnicodeSegmentation;
 
+use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::interner::{Interner, Key};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
 use crate::compiler::types::types::InternedStr;
@@ -111,13 +111,16 @@ impl<'this> Tokenizer<'this> {
                 "." => self.create_token(TokenType::Dot),
                 ":" => self.create_token(TokenType::Colon),
                 ";" => self.create_token(TokenType::Semicolon),
-                "-" => {
-                    if let Some(digit) = self.peek() && is_digit(digit) {
-                        self.parse_num(char);
-                    } else {
-                        self.create_token(TokenType::Minus)
+                "-" => match self.peek() {
+                    Some(digit) => {
+                        if is_digit(digit) {
+                            self.parse_num(char)
+                        } else {
+                            self.create_token(TokenType::Minus)
+                        }
                     }
-                }
+                    _ => self.create_token(TokenType::Minus),
+                },
                 "+" => self.create_token(TokenType::Plus),
                 "/" => self.create_token(TokenType::Slash),
                 "%" => self.create_token(TokenType::Percent),
@@ -171,7 +174,7 @@ impl<'this> Tokenizer<'this> {
 
     fn parse_identifier(&mut self, character: &str) {
         let mut chars = vec![character];
-        while let Some(char) = self.peek() && is_ident(char) {
+        while let Some(char) = self.peek().filter(|char| is_ident(char)) {
             chars.push(char);
             self.next();
         }
@@ -189,28 +192,30 @@ impl<'this> Tokenizer<'this> {
         let negative = char == "-";
         let mut tokens = vec![char];
 
-        while let Some(char) = self.peek() && is_digit(char) {
+        while let Some(char) = self.peek().filter(|char| is_digit(char)) {
             tokens.push(char);
             self.next();
         }
 
-        if let Some(char) = self.peek() && char == "."
-            && let Some(next) = self.peek_next() && is_digit(next) {
-            tokens.push(char);
-            self.next();
-
-            while let Some(char) = self.peek() && is_digit(char) {
+        if let Some(char) = self.peek().filter(|char| *char == ".") {
+            if let Some(next) = self.peek_next().filter(|next| is_digit(next)) {
                 tokens.push(char);
                 self.next();
+
+                while let Some(char) = self.peek().filter(|char| is_digit(char)) {
+                    tokens.push(char);
+                    self.next();
+                }
+
+                let token_type: TokenType = tokens
+                    .join("")
+                    .parse::<f64>()
+                    .map(TokenType::Float)
+                    .unwrap_or_else(|_| TokenType::Unrecognized(self.intern("Invalid float.")));
+
+                self.create_token(token_type);
+                return;
             }
-
-            let token_type: TokenType = tokens.join("")
-                .parse::<f64>()
-                .map(TokenType::Float)
-                .unwrap_or_else(|_| TokenType::Unrecognized(self.intern("Invalid float.")));
-
-            self.create_token(token_type);
-            return;
         }
 
         let token_type = tokens
@@ -223,7 +228,7 @@ impl<'this> Tokenizer<'this> {
 
     fn parse_string(&mut self) {
         let mut tokens = vec![];
-        while let Some(char) = self.peek() && char != "\"" {
+        while let Some(char) = self.peek().filter(|char| *char != "\"") {
             self.next();
             if is_line_break(char) {
                 self.tokenized_file.add_line_break(self.current as u32);
@@ -231,7 +236,7 @@ impl<'this> Tokenizer<'this> {
             tokens.push(char);
         }
 
-        if let Some(char) = self.next() && char == "\"" {
+        if let Some(char) = self.next().filter(|char| *char == "\"") {
             let string = tokens.join("");
             let interned_str = self.intern(&string);
 
@@ -254,7 +259,7 @@ impl<'this> Tokenizer<'this> {
                 }
                 "/" => {
                     if let Some("/") = self.peek_next() {
-                        while let Some(char) = self.peek() && !is_line_break(char) {
+                        while let Some(char) = self.peek().filter(|char| !is_line_break(*char)) {
                             self.next();
                         }
                     } else {
@@ -281,7 +286,7 @@ impl<'this> Tokenizer<'this> {
     }
 
     fn matches(&mut self, expected: &str) -> bool {
-        if let Some(char) = self.peek() && char == expected {
+        if let Some(char) = self.peek().filter(|char| *char == expected) {
             self.next();
             true
         } else {
@@ -369,9 +374,9 @@ mod tests {
     use anyhow::Result;
     use serde::de::Unexpected::Str;
 
-    use crate::compiler::compiler::CompilerCtxt;
     use snap::snapshot;
 
+    use crate::compiler::compiler::CompilerCtxt;
     use crate::compiler::tokens::token::{Token, TokenType};
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};

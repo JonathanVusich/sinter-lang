@@ -5,16 +5,15 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
-use winapi::um::winnt::TokenType;
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
 use crate::compiler::ast::{
-    Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern,
-    EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSig, FnStmt,
-    ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident, IfStmt,
-    IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, AstModule,
+    Args, ArrayExpr, AstModule, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
+    DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields,
+    FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt,
+    Ident, IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr,
     Mutability, NodeId, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern,
     PatternLocal, PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound,
     TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
@@ -1349,12 +1348,8 @@ impl Parser {
         matcher: fn(&TokenType) -> bool,
     ) -> ParseResult<Vec<T>> {
         let mut items = Vec::new();
-        loop {
-            if let Some(current) = self.current() && matcher(&current) {
-                items.push(parse_rule(self)?);
-            } else {
-                break;
-            }
+        while let Some(_) = self.current().filter(|tt| matcher(tt)) {
+            items.push(parse_rule(self)?);
         }
         Ok(items)
     }
@@ -1514,7 +1509,7 @@ impl Parser {
     }
 
     fn matches(&self, token_type: TokenType) -> bool {
-        if let Some(current) = self.current() && current == token_type {
+        if let Some(current) = self.current().filter(|tt| *tt == token_type) {
             true
         } else {
             false

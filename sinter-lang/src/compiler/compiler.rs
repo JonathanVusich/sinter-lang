@@ -1,5 +1,6 @@
 use crate::compiler::ast::{AstModule, ItemKind, NodeId, QualifiedIdent, Stmt, UseStmt};
 use crate::compiler::codegen::code_generator::emit_code;
+use crate::compiler::hir::{generate_hir, HirMap};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::parse;
 use crate::compiler::tokens::tokenized_file::Span;
@@ -30,7 +31,7 @@ pub struct CompiledApplication {}
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct CompilerCtxt {
     string_interner: StringInterner,
-    hir_map: HirMap,
+    // hir_map: HirMap,
 }
 
 impl CompilerCtxt {
@@ -47,6 +48,7 @@ impl Default for CompilerCtxt {
     fn default() -> Self {
         Self {
             string_interner: StringInterner::default(),
+            // hir_map: HirMap::new(),
         }
     }
 }
@@ -73,11 +75,8 @@ fn import_module(
     let (compiler_ctxt, tokens) = tokenize_file(module_path.as_ref())?;
     let (compiler_ctxt, module) = parse(compiler_ctxt, tokens);
 
-    // TODO: Import transitive modules
-
-    // Generate HIR map
     let (compiler_ctxt, hir) = generate_hir(compiler_ctxt, module);
-    // TODO: Generate HIR
+
     // TODO: Generate externally visible map
     // TODO: Import transitive modules
     // TODO: Resolve variables

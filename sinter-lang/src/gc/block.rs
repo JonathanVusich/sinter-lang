@@ -1,4 +1,3 @@
-use std::alloc::AllocError;
 use std::ptr::addr_of;
 use std::ptr::addr_of_mut;
 
@@ -108,8 +107,6 @@ fn end_of_object(start_cursor: *mut u8, object_size: usize) -> *mut u8 {
 }
 
 mod tests {
-
-    extern crate test;
 
     use std::mem::MaybeUninit;
     use std::ptr::addr_of;
