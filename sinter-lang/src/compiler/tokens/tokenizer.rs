@@ -6,13 +6,12 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 
-use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::interner::{Interner, Key};
 use anyhow::Result;
 use phf::phf_map;
 use unicode_segmentation::UnicodeSegmentation;
-use winapi::um::winnt::TokenType;
 
+use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::interner::{Interner, Key};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
 use crate::compiler::types::types::InternedStr;
@@ -375,9 +374,9 @@ mod tests {
     use anyhow::Result;
     use serde::de::Unexpected::Str;
 
-    use crate::compiler::compiler::CompilerCtxt;
     use snap::snapshot;
 
+    use crate::compiler::compiler::CompilerCtxt;
     use crate::compiler::tokens::token::{Token, TokenType};
     use crate::compiler::tokens::tokenized_file::TokenizedInput;
     use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};

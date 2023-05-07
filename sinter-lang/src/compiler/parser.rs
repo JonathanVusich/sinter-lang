@@ -5,7 +5,6 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
-use winapi::um::winnt::TokenType;
 
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
