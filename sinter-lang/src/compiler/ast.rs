@@ -133,15 +133,15 @@ pub enum TyKind {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct AstModule {
-    pub(crate) path: ModulePath,
+    // pub(crate) path: ModulePath,
     pub(crate) items: Vec<Item>,
     pub(crate) parse_errors: Vec<ParseError>,
 }
 
 impl AstModule {
-    pub fn new(path: ModulePath, items: Vec<Item>, parse_errors: Vec<ParseError>) -> Self {
+    pub fn new(items: Vec<Item>, parse_errors: Vec<ParseError>) -> Self {
         Self {
-            path,
+            // path: ModulePath::new(vec![]),
             items,
             parse_errors,
         }

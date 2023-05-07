@@ -1,7 +1,9 @@
 use crate::compiler::ast::{AstModule, Item, ItemKind, Ty};
 use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::path::ModulePath;
 use crate::compiler::tokens::tokenized_file::Span;
 use rustc_hash::FxHashMap;
+use serde::{Deserialize, Serialize};
 use std::num::NonZeroU32;
 
 pub fn generate_hir(compiler_ctxt: CompilerCtxt, modules: AstModule) -> (CompilerCtxt, HirModule) {
@@ -10,7 +12,7 @@ pub fn generate_hir(compiler_ctxt: CompilerCtxt, modules: AstModule) -> (Compile
     todo!()
 }
 
-struct HirModule {
+pub struct HirModule {
     path: ModulePath,
     uses: Vec<Use>,
     lets: Vec<Let>,
@@ -23,7 +25,7 @@ struct HirModule {
 
 /// The identifier for a node in the HIR.
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash, Serialize, Deserialize)]
-struct HirId {
+pub struct HirId {
     crate_id: NonZeroU32,
     local_id: NonZeroU32,
 }
@@ -34,7 +36,8 @@ impl HirId {
     }
 }
 
-struct HirMap {
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct HirMap {
     items: FxHashMap<HirId, HirItem>,
 }
 
@@ -54,13 +57,15 @@ impl HirMap {
     }
 }
 
-struct HirItem {
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct HirItem {
     parent: Option<HirId>,
     id: HirId,
     item: HirItemKind,
     span: Span,
 }
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 enum HirItemKind {
     Use(Use),
     Let(Let),
@@ -71,16 +76,23 @@ enum HirItemKind {
     Fn(Fn),
 }
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct Use {}
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct Let {}
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct Class {}
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct Enum {}
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct Trait {}
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct TraitImpl {}
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 struct Fn {}

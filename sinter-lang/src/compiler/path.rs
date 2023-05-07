@@ -1,6 +1,6 @@
 use crate::compiler::ast::{Ident, Segment};
 use crate::compiler::types::types::InternedStr;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Eq, PartialEq, Hash, Debug, Serialize, Deserialize)]
 pub struct ModulePath {
