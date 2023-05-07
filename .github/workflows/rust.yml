@@ -15,17 +15,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build Sinter
-      run: cargo build --verbose
-      working-directory: sinter-lang
-    - name: Test Sinter
-      run: cargo test --verbose
-      working-directory: snap
-    - name: Build Snap
-      run: cargo build --verbose
-      working-directory: ./snap
-    - name: Test Snap
-      run: cargo test --verbose
-      working-directory: ./snap
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          components: clippy, rustfmt
+          override: true
+      - name: Build Sinter
+        run: cargo build --verbose
+        working-directory: sinter-lang
+      - name: Test Sinter
+        run: cargo test --verbose
+        working-directory: snap
+      - name: Build Snap
+        run: cargo build --verbose
+        working-directory: ./snap
+      - name: Test Snap
+        run: cargo test --verbose
+        working-directory: ./snap
       
