@@ -1,5 +1,7 @@
 # The Sinter programming language
 
+[![Rust](https://github.com/JonathanVusich/sinter-lang/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/JonathanVusich/sinter-lang/actions/workflows/rust.yml)
+
 Sinter is a statically-typed and garbage collected language that is designed around user ergonomics and productivity.
 It features advanced garbage collection, message-based concurrency and generic types to allow users to develop systems
 quickly, scalably, and correctly.
