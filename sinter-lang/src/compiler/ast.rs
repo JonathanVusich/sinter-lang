@@ -33,6 +33,18 @@ pub trait AstVisitor<T> {
     fn visit_expr(&mut self, expr: &Expr);
 }
 
+/// This trait describes a visitor that can traverse the AST and collect information.
+pub trait AstPass {
+    fn visit(&mut self, ast: &mut Ast) {
+        for item in &mut ast.items {
+            self.visit_item(item);
+        }
+    }
+
+    fn visit_item(&mut self, node: &mut Item);
+    fn visit_expr(&mut self, expr: &mut Expr);
+}
+
 /// This enum represents the various types of nodes in the AST.
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum ItemKind {
@@ -48,9 +60,9 @@ pub enum ItemKind {
 /// This struct represents the node plus diagnostic information.
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Item {
-    kind: ItemKind,
-    span: Span,
-    id: NodeId,
+    pub(crate) kind: ItemKind,
+    pub(crate) span: Span,
+    pub(crate) id: NodeId,
 }
 
 impl Item {
@@ -132,19 +144,31 @@ pub enum TyKind {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct AstModule {
-    // pub(crate) path: ModulePath,
+pub struct Ast {
     pub(crate) items: Vec<Item>,
-    pub(crate) parse_errors: Vec<ParseError>,
 }
 
-impl AstModule {
-    pub fn new(items: Vec<Item>, parse_errors: Vec<ParseError>) -> Self {
-        Self {
-            // path: ModulePath::new(vec![]),
-            items,
-            parse_errors,
-        }
+impl Ast {
+    pub fn new(items: Vec<Item>) -> Self {
+        Self { items }
+    }
+}
+
+pub struct AstMap {
+    asts: Vec<Ast>,
+}
+
+impl AstMap {
+    pub fn add_ast(&mut self, ast: Ast) -> usize {
+        let id = self.asts.len();
+        self.asts.push(ast);
+        id
+    }
+}
+
+impl Default for AstMap {
+    fn default() -> Self {
+        Self { asts: Vec::new() }
     }
 }
 
@@ -675,18 +699,14 @@ pub struct GlobalLetStmt {
     pub ident: Ident,
     pub ty: Option<Ty>,
     pub initializer: Expr,
-    pub span: Span,
-    pub id: NodeId,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: Ident, ty: Option<Ty>, initializer: Expr, span: Span, id: NodeId) -> Self {
+    pub fn new(ident: Ident, ty: Option<Ty>, initializer: Expr) -> Self {
         Self {
             ident,
             ty,
             initializer,
-            span,
-            id,
         }
     }
 }

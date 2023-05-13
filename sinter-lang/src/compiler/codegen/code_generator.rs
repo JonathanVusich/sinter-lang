@@ -1,8 +1,7 @@
-use crate::compiler::ast::AstModule;
-use crate::compiler::compiler::{CompiledApplication, CompilerCtxt};
+use crate::compiler::ast::Ast;
+use crate::compiler::compiler::{CompileError, CompiledApplication, CompilerCtxt};
 use crate::compiler::ty_checker::TyCheckedModule;
-use anyhow::Result;
 
-pub fn emit_code(ctxt: CompilerCtxt, module: AstModule) -> Result<CompiledApplication> {
+pub fn emit_code(ctxt: CompilerCtxt, module: Ast) -> Result<CompiledApplication, CompileError> {
     todo!()
 }

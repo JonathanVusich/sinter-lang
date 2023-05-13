@@ -1,37 +1,52 @@
-use crate::compiler::ast::{AstModule, ItemKind, NodeId, QualifiedIdent, Stmt, UseStmt};
+use crate::compiler::ast::{
+    Ast, AstMap, AstPass, Item, ItemKind, NodeId, QualifiedIdent, Stmt, UseStmt,
+};
+use crate::compiler::ast_passes::{UsedModuleCollector, VisibilityCollector};
 use crate::compiler::codegen::code_generator::emit_code;
-use crate::compiler::hir::{generate_hir, HirMap};
 use crate::compiler::interner::{Interner, Key};
-use crate::compiler::parser::parse;
+use crate::compiler::parser::{parse, ParseError};
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::tokens::tokenizer::tokenize_file;
 use crate::compiler::ty_checker::ty_check;
 use crate::compiler::types::types::InternedStr;
 use crate::compiler::StringInterner;
-use anyhow::Result;
 use lasso::{Key as K, LargeSpur, Rodeo};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::{HashMap, VecDeque};
+use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::mem::discriminant;
 use std::num::NonZeroUsize;
 use std::path::Path;
 
 struct Compiler {
-    modules: HashMap<QualifiedIdent, AstModule>,
+    modules: HashMap<QualifiedIdent, Ast>,
 }
 
 struct Application {
     entry_point: Box<Path>,
+    module_paths: Vec<Box<Path>>,
 }
 
 pub struct CompiledApplication {}
 
+#[derive(Debug)]
+pub enum CompileError {
+    Generic(Box<dyn Error>),
+    ParseErrors(Vec<ParseError>),
+}
+
+impl Display for CompileError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct CompilerCtxt {
     string_interner: StringInterner,
-    // hir_map: HirMap,
 }
 
 impl CompilerCtxt {
@@ -48,7 +63,6 @@ impl Default for CompilerCtxt {
     fn default() -> Self {
         Self {
             string_interner: StringInterner::default(),
-            // hir_map: HirMap::new(),
         }
     }
 }
@@ -59,28 +73,29 @@ impl From<CompilerCtxt> for StringInterner {
     }
 }
 
-fn compile(application: Application) -> Result<CompiledApplication> {
-    let compiler_ctxt = CompilerCtxt::default();
+fn compile(application: Application) -> Result<CompiledApplication, CompileError> {
+    let mut compiler_ctxt = CompilerCtxt::default();
 
-    let (compiler_ctxt, module) = import_module(compiler_ctxt, &application.entry_point)?;
-    let (compiler_ctxt, tychecked_module) = ty_check(compiler_ctxt, module)?;
+    let main_ast = parse_ast(&mut compiler_ctxt, &application.entry_point)?;
+
+    let used_modules = collect_used_modules(&mut compiler_ctxt, &main_ast);
+
+    // TODO: Import transitive modules
+    // TODO: Generate externally visible map
+    // TODO: Resolve variables
+    // TODO: Type check module
+    // TODO: Generate bytecode
+    let (compiler_ctxt, tychecked_module) = ty_check(compiler_ctxt, main_ast)?;
 
     emit_code(compiler_ctxt, tychecked_module)
 }
 
-fn import_module(
-    compiler_ctxt: CompilerCtxt,
-    module_path: &Path,
-) -> Result<(CompilerCtxt, AstModule)> {
-    let (compiler_ctxt, tokens) = tokenize_file(module_path.as_ref())?;
-    let (compiler_ctxt, module) = parse(compiler_ctxt, tokens);
+fn parse_ast(compiler_ctxt: &mut CompilerCtxt, module_path: &Path) -> Result<Ast, CompileError> {
+    let tokens = tokenize_file(compiler_ctxt, module_path)?;
+    parse(compiler_ctxt, tokens)
+}
 
-    let (compiler_ctxt, hir) = generate_hir(compiler_ctxt, module);
-
-    // TODO: Generate externally visible map
-    // TODO: Import transitive modules
-    // TODO: Resolve variables
-    // TODO: Type check module
-    // TODO: Generate bytecode
-    todo!()
+fn collect_used_modules(compiler_ctxt: &mut CompilerCtxt, ast: &Ast) -> Vec<Ast> {
+    let asts = Vec::new();
+    asts
 }

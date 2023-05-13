@@ -1,5 +1,3 @@
-use crate::opcode::inner::CONSTANT;
-
 #[repr(u8)]
 #[derive(PartialOrd, PartialEq, Eq, Debug)]
 pub(crate) enum OpCode {
@@ -59,25 +57,6 @@ impl From<OpCode> for u8 {
     }
 }
 
-pub fn constant_checking() {
-    use inner::CONSTANT;
-    // let CONSTANT = 145;
-
-    use inner::gen;
-
-    let gen = || { 123 };
-
-    println!("{}", gen())
-}
-
-mod inner {
-    pub const CONSTANT: usize = 123;
-
-    pub fn gen() -> usize {
-        123
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -119,10 +98,5 @@ mod tests {
         check_transmution!(Jump);
         check_transmution!(JumpBack);
         check_transmution!(Call);
-    }
-
-    #[test]
-    fn test_constant_checking() {
-        constant_checking()
     }
 }

@@ -10,7 +10,7 @@ use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
 use crate::compiler::ast::{
-    Args, ArrayExpr, AstModule, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
+    Args, ArrayExpr, Ast, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
     DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields,
     FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt,
     Ident, IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr,
@@ -18,7 +18,7 @@ use crate::compiler::ast::{
     PatternLocal, PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound,
     TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
 };
-use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::compiler::{CompileError, CompilerCtxt};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
@@ -28,13 +28,13 @@ use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInp
 use crate::compiler::types::types::{InternedStr, InternedTy};
 use crate::compiler::StringInterner;
 
-pub fn parse(ctxt: CompilerCtxt, input: TokenizedInput) -> (CompilerCtxt, AstModule) {
+pub fn parse(ctxt: &mut CompilerCtxt, input: TokenizedInput) -> Result<Ast, CompileError> {
     let parser = Parser::new(ctxt, input);
     parser.parse()
 }
 
-struct Parser {
-    compiler_ctxt: CompilerCtxt,
+struct Parser<'ctxt> {
+    compiler_ctxt: &'ctxt mut CompilerCtxt,
     tokenized_input: TokenizedInput,
 
     pos: usize,
@@ -50,6 +50,11 @@ pub enum ParseError {
     ExpectedToken(TokenType, NormalizedSpan),
     ExpectedTokens(TokenTypes, NormalizedSpan),
     UnexpectedToken(TokenType, NormalizedSpan),
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct ParseErrors {
+    errors: Vec<ParseError>,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -79,8 +84,8 @@ pub enum ClassType {
     Inline,
 }
 
-impl Parser {
-    fn new(ctxt: CompilerCtxt, tokenized_input: TokenizedInput) -> Self {
+impl<'ctxt> Parser<'ctxt> {
+    fn new(ctxt: &'ctxt mut CompilerCtxt, tokenized_input: TokenizedInput) -> Self {
         Self {
             compiler_ctxt: ctxt,
             tokenized_input,
@@ -90,9 +95,8 @@ impl Parser {
         }
     }
 
-    fn parse(mut self) -> (CompilerCtxt, AstModule) {
-        let module = self.parse_module();
-        (self.compiler_ctxt, module)
+    fn parse(mut self) -> Result<Ast, CompileError> {
+        Ok(self.parse_module()?)
     }
 
     fn get_id(&mut self) -> NodeId {
@@ -126,7 +130,7 @@ impl Parser {
         start_token.span.to(end_token.span)
     }
 
-    fn parse_module(&mut self) -> AstModule {
+    fn parse_module(&mut self) -> Result<Ast, CompileError> {
         let mut items = Vec::new();
         let mut errors = Vec::new();
 
@@ -155,12 +159,16 @@ impl Parser {
             }
         }
 
-        AstModule::new(items, errors)
+        if errors.is_empty() {
+            Ok(Ast::new(items))
+        } else {
+            Err(CompileError::ParseErrors(errors))
+        }
     }
 
     fn parse_node<T, I>(
         &mut self,
-        parse_fn: fn(&mut Parser) -> ParseResult<T>,
+        parse_fn: for<'rf> fn(&'rf mut Parser<'ctxt>) -> ParseResult<T>,
         constructor: fn(T, Span, NodeId) -> I,
     ) -> ParseResult<I> {
         self.track_span();
@@ -170,7 +178,7 @@ impl Parser {
 
     fn parse_item<U>(
         &mut self,
-        parse_fn: fn(&mut Parser) -> ParseResult<U>,
+        parse_fn: fn(&mut Parser<'_>) -> ParseResult<U>,
         kind: fn(U) -> ItemKind,
     ) -> ParseResult<Item> {
         self.track_span();
@@ -211,7 +219,7 @@ impl Parser {
     }
 
     fn parse_use_stmt(&mut self) -> ParseResult<Item> {
-        self.parse_item(Self::use_stmt, ItemKind::Use)
+        self.parse_item(|parser| parser.use_stmt(), ItemKind::Use)
     }
 
     fn use_stmt(&mut self) -> ParseResult<UseStmt> {
@@ -222,7 +230,7 @@ impl Parser {
     }
 
     fn parse_class_stmt(&mut self) -> ParseResult<Item> {
-        self.parse_item(Self::class_stmt, ItemKind::Class)
+        self.parse_item(|parser| parser.class_stmt(), ItemKind::Class)
     }
 
     fn class_stmt(&mut self) -> ParseResult<ClassStmt> {
@@ -263,14 +271,16 @@ impl Parser {
             },
             |token| matches!(token, TokenType::Identifier(_)),
         )?;
-        let fn_stmts =
-            self.parse_multiple(Self::fn_stmt, |token| matches!(token, TokenType::Fn))?;
+        let fn_stmts = self.parse_multiple(
+            |parser| parser.fn_stmt(),
+            |token| matches!(token, TokenType::Fn),
+        )?;
         self.expect(TokenType::RightBrace)?;
         Ok((fields, fn_stmts))
     }
 
     fn parse_fn_stmt(&mut self) -> ParseResult<Item> {
-        self.parse_item(Self::fn_stmt, ItemKind::Fn)
+        self.parse_item(|parser| parser.fn_stmt(), ItemKind::Fn)
     }
 
     fn fn_stmt(&mut self) -> ParseResult<FnStmt> {
@@ -298,7 +308,7 @@ impl Parser {
     }
 
     fn parse_global_let_stmt(&mut self) -> ParseResult<Item> {
-        self.parse_item(Self::global_let_stmt, ItemKind::GlobalLet)
+        self.parse_item(|parser| parser.global_let_stmt(), ItemKind::GlobalLet)
     }
 
     fn parse_let_stmt(&mut self) -> ParseResult<Stmt> {
@@ -306,7 +316,6 @@ impl Parser {
     }
 
     fn global_let_stmt(&mut self) -> ParseResult<GlobalLetStmt> {
-        self.track_span();
         self.expect(TokenType::Let)?;
         let identifier = self.identifier()?;
         let mut ty = None;
@@ -316,9 +325,8 @@ impl Parser {
         }
         self.expect(TokenType::Equal)?;
         let initializer = self.expr()?;
-        let end = self.expect(TokenType::Semicolon)?;
-        let global_let_stmt =
-            GlobalLetStmt::new(identifier, ty, initializer, self.get_span(), self.get_id());
+        self.expect(TokenType::Semicolon)?;
+        let global_let_stmt = GlobalLetStmt::new(identifier, ty, initializer);
         Ok(global_let_stmt)
     }
 
@@ -353,7 +361,7 @@ impl Parser {
     }
 
     fn parse_enum_stmt(&mut self) -> ParseResult<Item> {
-        self.parse_item(Self::enum_stmt, ItemKind::Enum)
+        self.parse_item(|parser| parser.enum_stmt(), ItemKind::Enum)
     }
 
     fn enum_stmt(&mut self) -> ParseResult<EnumStmt> {
@@ -373,18 +381,21 @@ impl Parser {
     fn enum_stmt_inner(&mut self) -> ParseResult<(Vec<EnumMember>, Vec<FnStmt>)> {
         self.expect(TokenType::LeftBrace)?;
 
-        let enum_members = self.parse_multiple(Self::enum_member, |token| {
-            matches!(token, TokenType::Identifier(blank_ident))
-        })?;
-        let fn_stmts =
-            self.parse_multiple(Self::fn_stmt, |token| matches!(token, TokenType::Fn))?;
+        let enum_members = self.parse_multiple(
+            |parser| parser.enum_member(),
+            |token| matches!(token, TokenType::Identifier(blank_ident)),
+        )?;
+        let fn_stmts = self.parse_multiple(
+            |parser| parser.fn_stmt(),
+            |token| matches!(token, TokenType::Fn),
+        )?;
 
         self.expect(TokenType::RightBrace)?;
         Ok((enum_members, fn_stmts))
     }
 
     fn parse_trait_stmt(&mut self) -> ParseResult<Item> {
-        self.parse_item(Self::trait_stmt, ItemKind::Trait)
+        self.parse_item(|parser| parser.trait_stmt(), ItemKind::Trait)
     }
 
     fn trait_stmt(&mut self) -> ParseResult<TraitStmt> {
@@ -402,7 +413,7 @@ impl Parser {
     }
 
     fn parse_trait_impl_stmt(&mut self) -> ParseResult<Item> {
-        self.parse_item(Self::trait_impl_stmt, ItemKind::TraitImpl)
+        self.parse_item(|parser| parser.trait_impl_stmt(), ItemKind::TraitImpl)
     }
 
     fn trait_impl_stmt(&mut self) -> ParseResult<TraitImplStmt> {
@@ -482,7 +493,7 @@ impl Parser {
 
     fn parse_closure(&mut self) -> ParseResult<ExprKind> {
         let vars = self.parse_multiple_with_scope_delimiter::<Ident, 1>(
-            Self::identifier,
+            |parser| parser.identifier(),
             TokenType::Comma,
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
@@ -554,7 +565,7 @@ impl Parser {
 
     fn generic_call_site(&mut self) -> ParseResult<GenericCallSite> {
         let generic_tys = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
-            Self::parse_ty,
+            |parser| parser.parse_ty(),
             TokenType::Comma,
             TokenType::Less,
             TokenType::Greater,
@@ -564,7 +575,7 @@ impl Parser {
 
     fn generic_params(&mut self) -> ParseResult<GenericParams> {
         let generic_tys = self.parse_multiple_with_scope_delimiter::<GenericParam, 1>(
-            Self::generic_param,
+            |parser| parser.generic_param(),
             TokenType::Comma,
             TokenType::Less,
             TokenType::Greater,
@@ -589,12 +600,16 @@ impl Parser {
     }
 
     fn fn_stmts(&mut self) -> ParseResult<Vec<FnStmt>> {
-        self.parse_multiple_with_scope(Self::fn_stmt, TokenType::LeftBrace, TokenType::RightBrace)
+        self.parse_multiple_with_scope(
+            |parser| parser.fn_stmt(),
+            TokenType::LeftBrace,
+            TokenType::RightBrace,
+        )
     }
 
     fn fn_trait_stmts(&mut self) -> ParseResult<Vec<FnStmt>> {
         self.parse_multiple_with_scope(
-            Self::fn_trait_stmt,
+            |parser| parser.fn_trait_stmt(),
             TokenType::LeftBrace,
             TokenType::RightBrace,
         )
@@ -637,7 +652,7 @@ impl Parser {
 
     fn fields(&mut self) -> ParseResult<Fields> {
         let fields = self.parse_multiple_with_scope_delimiter::<Field, 1>(
-            Self::field,
+            |parser| parser.field(),
             TokenType::Comma,
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
@@ -647,7 +662,7 @@ impl Parser {
 
     fn params(&mut self) -> ParseResult<Params> {
         let params = self.parse_multiple_with_scope_delimiter::<Param, 1>(
-            Self::param,
+            |parser| parser.param(),
             TokenType::Comma,
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
@@ -661,7 +676,9 @@ impl Parser {
         params.push(self.self_param()?);
         if self.matches(TokenType::Comma) {
             self.advance();
-            params.extend(self.parse_multiple_with_delimiter(Self::param, TokenType::Comma)?);
+            params.extend(
+                self.parse_multiple_with_delimiter(|parser| parser.param(), TokenType::Comma)?,
+            );
         }
         self.expect(TokenType::RightParentheses)?;
         Ok(Params::new(params))
@@ -742,7 +759,7 @@ impl Parser {
     fn block_stmt(&mut self) -> ParseResult<Block> {
         self.track_span();
         let stmts = self.parse_multiple_with_scope(
-            Self::parse_inner_stmt,
+            |parser| parser.parse_inner_stmt(),
             TokenType::LeftBrace,
             TokenType::RightBrace,
         )?;
@@ -765,8 +782,8 @@ impl Parser {
 
     fn parse_ty(&mut self) -> ParseResult<Ty> {
         self.track_span();
-        let mut tys =
-            self.parse_multiple_with_delimiter(Self::parse_any_ty, TokenType::BitwiseOr)?;
+        let mut tys = self
+            .parse_multiple_with_delimiter(|parser| parser.parse_any_ty(), TokenType::BitwiseOr)?;
         if tys.len() > 1 {
             let span = self.get_span();
             let ty = Ty::new(TyKind::Union { tys }, span, self.get_id());
@@ -865,7 +882,7 @@ impl Parser {
     fn parse_closure_ty(&mut self) -> ParseResult<Ty> {
         self.track_span();
         let params = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
-            Self::parse_ty,
+            |parser| parser.parse_ty(),
             TokenType::Comma,
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
@@ -911,8 +928,8 @@ impl Parser {
 
         if let Some(TokenType::Plus) = self.current() {
             self.advance();
-            let mut paths =
-                self.parse_multiple_with_delimiter(Self::parse_path_ty, TokenType::Plus)?;
+            let mut paths = self
+                .parse_multiple_with_delimiter(|parser| parser.parse_path_ty(), TokenType::Plus)?;
             paths.insert(0, path);
 
             let span = self.get_span();
@@ -992,7 +1009,7 @@ impl Parser {
                         ..
                     }) => {
                         let generic_paths = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
-                            Self::parse_ty,
+                            |parser| parser.parse_ty(),
                             TokenType::Comma,
                             TokenType::Less,
                             TokenType::Greater,
@@ -1098,9 +1115,10 @@ impl Parser {
                         Some(TokenType::Comma) => {
                             self.advance();
                             let mut exprs = vec![expr];
-                            exprs.extend(
-                                self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?,
-                            );
+                            exprs.extend(self.parse_multiple_with_delimiter(
+                                |parser| parser.expr(),
+                                TokenType::Comma,
+                            )?);
                             self.expect(TokenType::RightBracket)?;
                             ExprKind::Array(ArrayExpr::Initializer(exprs))
                         }
@@ -1119,7 +1137,7 @@ impl Parser {
                     self.advance();
                     let source = self.expr()?;
                     let match_arms = self.parse_multiple_with_scope_delimiter::<MatchArm, 1>(
-                        Self::parse_match_arm,
+                        |parser| parser.parse_match_arm(),
                         TokenType::Comma,
                         TokenType::LeftBrace,
                         TokenType::RightBrace,
@@ -1149,7 +1167,7 @@ impl Parser {
                 lhs_expr = match postfix_op {
                     PostfixOp::LeftParentheses => {
                         let args = self.parse_multiple_with_scope_delimiter::<Expr, 1>(
-                            Self::expr,
+                            |parser| parser.expr(),
                             TokenType::Comma,
                             TokenType::LeftParentheses,
                             TokenType::RightParentheses,
@@ -1258,8 +1276,8 @@ impl Parser {
     }
 
     fn parse_match_arm(&mut self) -> ParseResult<MatchArm> {
-        let mut patterns =
-            self.parse_multiple_with_delimiter(Self::parse_pattern, TokenType::BitwiseOr)?;
+        let mut patterns = self
+            .parse_multiple_with_delimiter(|parser| parser.parse_pattern(), TokenType::BitwiseOr)?;
         let pattern = if patterns.len() > 1 {
             Pattern::Or(OrPattern::new(patterns))
         } else {
@@ -1308,8 +1326,10 @@ impl Parser {
                 match self.current() {
                     Some(TokenType::LeftParentheses) => {
                         self.advance();
-                        let exprs =
-                            self.parse_multiple_with_delimiter(Self::expr, TokenType::Comma)?;
+                        let exprs = self.parse_multiple_with_delimiter(
+                            |parser| parser.expr(),
+                            TokenType::Comma,
+                        )?;
                         self.expect(TokenType::RightParentheses)?;
                         let destructure_pat = DestructurePattern::new(ty, exprs);
                         Ok(Pattern::Destructure(destructure_pat))
@@ -1334,7 +1354,7 @@ impl Parser {
     fn parse_path_ty(&mut self) -> ParseResult<PathTy> {
         let ident = self.qualified_ident()?;
         let generics = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
-            Self::parse_ty,
+            |parser| parser.parse_ty(),
             TokenType::Comma,
             TokenType::Less,
             TokenType::Greater,
@@ -1344,19 +1364,19 @@ impl Parser {
 
     fn parse_multiple<T>(
         &mut self,
-        parse_rule: fn(&mut Parser) -> ParseResult<T>,
+        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
         matcher: fn(&TokenType) -> bool,
     ) -> ParseResult<Vec<T>> {
         let mut items = Vec::new();
-        while let Some(_) = self.current().filter(|tt| matcher(tt)) {
+        while self.current().filter(|tt| matcher(tt)).is_some() {
             items.push(parse_rule(self)?);
         }
         Ok(items)
     }
 
-    fn parse_multiple_with_delimiter<'b, T>(
+    fn parse_multiple_with_delimiter<T>(
         &mut self,
-        parse_rule: fn(&mut Parser) -> ParseResult<T>,
+        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
         delimiter: TokenType,
     ) -> ParseResult<Vec<T>> {
         let mut items = Vec::new();
@@ -1373,7 +1393,7 @@ impl Parser {
 
     fn parse_multiple_with_scope<T>(
         &mut self,
-        parse_rule: fn(&mut Parser) -> ParseResult<T>,
+        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
         scope_start: TokenType,
         scope_end: TokenType,
     ) -> ParseResult<Vec<T>> {
@@ -1398,7 +1418,7 @@ impl Parser {
 
     fn parse_multiple_with_scope_delimiter<T, const N: usize>(
         &mut self,
-        parse_rule: fn(&mut Parser) -> ParseResult<T>,
+        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
         delimiter: TokenType,
         scope_start: TokenType,
         scope_end: TokenType,
@@ -1444,21 +1464,21 @@ impl Parser {
 
     fn expected_token<T>(&mut self, token_type: TokenType) -> ParseResult<T> {
         let token_position = self.current_position().unwrap_or(self.last_position());
-        Err(ExpectedToken(token_type, token_position).into())
+        Err(ExpectedToken(token_type, token_position))
     }
 
     fn expected_tokens<T>(&mut self, token_types: Vec<TokenType>) -> ParseResult<T> {
         let token_position = self.current_position().unwrap_or(self.last_position());
-        Err(ExpectedTokens(TokenTypes::new(token_types), token_position).into())
+        Err(ExpectedTokens(TokenTypes::new(token_types), token_position))
     }
 
     fn unexpected_token<T>(&mut self, token_type: TokenType) -> ParseResult<T> {
         let token_position = self.current_position().unwrap_or(self.last_position());
-        Err(UnexpectedToken(token_type, token_position).into())
+        Err(UnexpectedToken(token_type, token_position))
     }
 
     fn unexpected_end<T>(&mut self) -> ParseResult<T> {
-        Err(UnexpectedEof(self.last_position()).into())
+        Err(UnexpectedEof(self.last_position()))
     }
 
     fn current_token(&self) -> Option<Token> {
@@ -1579,6 +1599,7 @@ unsafe impl Sync for ParseError {}
 
 mod tests {
     use std::any::Any;
+    use std::assert_matches::assert_matches;
     use std::error::Error;
     use std::fmt::Debug;
     use std::fs::File;
@@ -1596,8 +1617,8 @@ mod tests {
         Args, Block, CallExpr, EnumMember, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
         Param, Params, PathExpr, QualifiedIdent, Stmt, Ty, TyKind,
     };
-    use crate::compiler::ast::{AstModule, NodeId, UseStmt};
-    use crate::compiler::compiler::CompilerCtxt;
+    use crate::compiler::ast::{Ast, NodeId, UseStmt};
+    use crate::compiler::compiler::{CompileError, CompilerCtxt};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{parse, ParseError, ParseResult, Parser};
     use crate::compiler::tokens::token::TokenType;
@@ -1609,16 +1630,16 @@ mod tests {
     use crate::util::utils;
 
     #[cfg(test)]
-    fn create_parser(code: &str) -> Parser {
-        let (ctxt, tokens) = tokenize(code).unwrap();
-        Parser::new(ctxt, tokens)
+    fn create_parser<'ctxt>(compiler_ctxt: &'ctxt mut CompilerCtxt, code: &str) -> Parser<'ctxt> {
+        let tokens = tokenize(compiler_ctxt, code);
+        Parser::new(compiler_ctxt, tokens)
     }
 
     #[cfg(test)]
-    fn parse_module<T: AsRef<str>>(code: T) -> (CompilerCtxt, AstModule) {
-        let parser = create_parser(code.as_ref());
-        let (ctxt, module) = parser.parse();
-        (ctxt, module)
+    fn parse_module<T: AsRef<str>>(code: T) -> Result<(CompilerCtxt, Ast), CompileError> {
+        let mut compiler_ctxt = CompilerCtxt::default();
+        let parser = create_parser(&mut compiler_ctxt, code.as_ref());
+        parser.parse().map(|ast| (compiler_ctxt, ast))
     }
 
     #[cfg(test)]
@@ -1626,27 +1647,24 @@ mod tests {
         code: I,
         parser_func: fn(&mut Parser) -> ParseResult<T>,
     ) -> ParseResult<(CompilerCtxt, T)> {
-        let mut parser = create_parser(code.as_ref());
+        let mut compiler_ctxt = CompilerCtxt::default();
+        let mut parser = create_parser(&mut compiler_ctxt, code.as_ref());
         let parsed_val = parser_func(&mut parser)?;
-        Ok((parser.compiler_ctxt, parsed_val))
+        Ok((compiler_ctxt, parsed_val))
     }
 
     #[cfg(test)]
     macro_rules! parse {
         ($code:expr) => {{
-            let (ctxt, module) = parse_module($code);
-            for error in &module.parse_errors {
-                dbg!(error);
-            }
-            assert_eq!(0, module.parse_errors.len());
-            (ctxt, module)
+            let (ctxt, ast) = parse_module($code).unwrap();
+            (ctxt, ast)
         }};
     }
 
     #[cfg(test)]
     macro_rules! parse_ty {
         ($code:expr) => {{
-            let (ctxt, ty) = parse_code($code, Parser::parse_ty).unwrap();
+            let (ctxt, ty) = parse_code($code, |parser| parser.parse_ty()).unwrap();
             (StringInterner::from(ctxt), ty)
         }};
     }
@@ -1654,7 +1672,7 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse_path {
         ($code:expr) => {{
-            let (ctxt, path) = parse_code($code, Parser::parse_path_expr).unwrap();
+            let (ctxt, path) = parse_code($code, |parser| parser.parse_path_expr()).unwrap();
             (StringInterner::from(ctxt), path)
         }};
     }
@@ -1662,62 +1680,20 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse_expr {
         ($code:expr) => {{
-            parse_code($code, Parser::expr).unwrap()
+            parse_code($code, |parser| parser.expr()).unwrap()
         }};
     }
 
     #[test]
     pub fn invalid_use_stmts() {
-        let (mut ctxt, module) = parse_module("use std::vector::");
-        let mut errors = &module.parse_errors;
-
-        assert_eq!(1, errors.len());
-
-        let error = &errors[0];
-        let expected_ident = ctxt.intern_str("");
-        assert_eq!(
-            std::mem::discriminant(error),
-            std::mem::discriminant(&ExpectedToken(
-                Identifier(expected_ident),
-                NormalizedSpan::default()
-            ))
-        );
-
-        let (ctxt, module) = parse_module("use std::vector::Vector");
-        errors = &module.parse_errors;
-
-        assert_eq!(1, errors.len());
-        let error = &errors[0];
-        assert_eq!(
-            std::mem::discriminant(error),
-            std::mem::discriminant(&ExpectedToken(Semicolon, NormalizedSpan::default()))
-        );
-
-        let (ctxt, module) = parse_module("use;");
-        errors = &module.parse_errors;
-
-        assert_eq!(1, errors.len());
-        let error = &errors[0];
-        assert_eq!(
-            std::mem::discriminant(error),
-            std::mem::discriminant(&ExpectedToken(
-                Identifier(expected_ident),
-                NormalizedSpan::default()
-            ))
-        );
-
-        let (ctxt, module) = parse_module("use");
-        errors = &module.parse_errors;
-
-        assert_eq!(1, errors.len());
-        let error = &errors[0];
-        assert_eq!(
-            std::mem::discriminant(error),
-            std::mem::discriminant(&ExpectedToken(
-                Identifier(expected_ident),
-                NormalizedSpan::default()
-            ))
-        );
+        let result = parse_module("use std::vector::");
+        assert_matches!(result, Err(CompileError::ParseErrors(_)));
+        let result = parse_module("use std::vector::Vector");
+        assert_matches!(result, Err(CompileError::ParseErrors(_)));
+        let result = parse_module("use;");
+        assert_matches!(result, Err(CompileError::ParseErrors(_)));
+        let result = parse_module("use");
+        assert_matches!(result, Err(CompileError::ParseErrors(_)));
     }
 
     #[test]
@@ -1901,55 +1877,55 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn use_statements() -> (CompilerCtxt, AstModule) {
+    pub fn use_statements() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "use_stmts.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn basic_enum() -> (CompilerCtxt, AstModule) {
+    pub fn basic_enum() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "basic_enum.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn vector_enum() -> (CompilerCtxt, AstModule) {
+    pub fn vector_enum() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "vector_enum.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn main_fn() -> (CompilerCtxt, AstModule) {
+    pub fn main_fn() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "hello_world_fn.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn main_fn_with_args() -> (CompilerCtxt, AstModule) {
+    pub fn main_fn_with_args() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "main_fn.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn declare_classes_and_vars() -> (CompilerCtxt, AstModule) {
+    pub fn declare_classes_and_vars() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "classes_and_vars.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_add_func() -> (CompilerCtxt, AstModule) {
+    pub fn simple_add_func() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "sum_fn.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn var_declarations() -> (CompilerCtxt, AstModule) {
+    pub fn var_declarations() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "var_declarations.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn mutable_assignment() -> (CompilerCtxt, AstModule) {
+    pub fn mutable_assignment() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file([
             "short_examples",
             "mutable_assignment.si"
@@ -1958,13 +1934,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn print_fn() -> (CompilerCtxt, AstModule) {
+    pub fn print_fn() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "print_fn.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn returning_error_union() -> (CompilerCtxt, AstModule) {
+    pub fn returning_error_union() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file([
             "short_examples",
             "returning_error_union.si"
@@ -1973,25 +1949,25 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn trait_vs_generic() -> (CompilerCtxt, AstModule) {
+    pub fn trait_vs_generic() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "trait_vs_generic.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_lists() -> (CompilerCtxt, AstModule) {
+    pub fn generic_lists() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "generic_lists.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn rectangle_class() -> (CompilerCtxt, AstModule) {
+    pub fn rectangle_class() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "rectangle_class.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_message() -> (CompilerCtxt, AstModule) {
+    pub fn enum_message() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "enum_message.si"]))
     }
 
@@ -2003,13 +1979,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn enum_match() -> (CompilerCtxt, AstModule) {
+    pub fn enum_match() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "enum_match.si"]))
     }
 
     #[test]
     #[snapshot]
-    pub fn impl_trait() -> (CompilerCtxt, AstModule) {
+    pub fn impl_trait() -> (CompilerCtxt, Ast) {
         parse!(utils::read_file(["short_examples", "impl_trait.si"]))
     }
 }
