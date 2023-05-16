@@ -1,0 +1,385 @@
+[
+  {
+    "string_interner": [
+      "core",
+      "tweet",
+      "Tweet",
+      "Summary",
+      "summarize",
+      "str",
+      "username",
+      "content",
+      "self"
+    ]
+  },
+  {
+    "items": [
+      {
+        "kind": {
+          "Use": {
+            "ident": {
+              "idents": [
+                {
+                  "ident": 1,
+                  "span": {
+                    "start": 4,
+                    "end": 8
+                  },
+                  "id": {
+                    "id": 0
+                  }
+                },
+                {
+                  "ident": 2,
+                  "span": {
+                    "start": 10,
+                    "end": 15
+                  },
+                  "id": {
+                    "id": 1
+                  }
+                },
+                {
+                  "ident": 3,
+                  "span": {
+                    "start": 17,
+                    "end": 22
+                  },
+                  "id": {
+                    "id": 2
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "span": {
+          "start": 0,
+          "end": 23
+        },
+        "id": {
+          "id": 3
+        }
+      },
+      {
+        "kind": {
+          "Trait": {
+            "name": {
+              "ident": 4,
+              "span": {
+                "start": 31,
+                "end": 38
+              },
+              "id": {
+                "id": 4
+              }
+            },
+            "generic_params": {
+              "params": []
+            },
+            "member_fns": [
+              {
+                "sig": {
+                  "name": {
+                    "ident": 5,
+                    "span": {
+                      "start": 48,
+                      "end": 57
+                    },
+                    "id": {
+                      "id": 5
+                    }
+                  },
+                  "generic_params": {
+                    "params": []
+                  },
+                  "params": {
+                    "params": [
+                      {
+                        "ident": {
+                          "ident": 9,
+                          "span": {
+                            "start": 58,
+                            "end": 62
+                          },
+                          "id": {
+                            "id": 6
+                          }
+                        },
+                        "ty": {
+                          "kind": "QSelf",
+                          "span": {
+                            "start": 58,
+                            "end": 62
+                          },
+                          "id": {
+                            "id": 7
+                          }
+                        },
+                        "mutability": "Immutable"
+                      }
+                    ]
+                  },
+                  "return_type": {
+                    "kind": "Str",
+                    "span": {
+                      "start": 67,
+                      "end": 70
+                    },
+                    "id": {
+                      "id": 8
+                    }
+                  }
+                },
+                "body": null
+              }
+            ]
+          }
+        },
+        "span": {
+          "start": 67,
+          "end": 73
+        },
+        "id": {
+          "id": 9
+        }
+      },
+      {
+        "kind": {
+          "TraitImpl": {
+            "trait_to_impl": {
+              "ident": {
+                "idents": [
+                  {
+                    "ident": 4,
+                    "span": {
+                      "start": 80,
+                      "end": 87
+                    },
+                    "id": {
+                      "id": 10
+                    }
+                  }
+                ]
+              },
+              "generics": {
+                "generics": []
+              }
+            },
+            "target_ty": {
+              "idents": [
+                {
+                  "ident": 3,
+                  "span": {
+                    "start": 92,
+                    "end": 97
+                  },
+                  "id": {
+                    "id": 11
+                  }
+                }
+              ]
+            },
+            "member_fns": [
+              {
+                "sig": {
+                  "name": {
+                    "ident": 5,
+                    "span": {
+                      "start": 107,
+                      "end": 116
+                    },
+                    "id": {
+                      "id": 12
+                    }
+                  },
+                  "generic_params": {
+                    "params": []
+                  },
+                  "params": {
+                    "params": [
+                      {
+                        "ident": {
+                          "ident": 9,
+                          "span": {
+                            "start": 117,
+                            "end": 121
+                          },
+                          "id": {
+                            "id": 13
+                          }
+                        },
+                        "ty": {
+                          "kind": "QSelf",
+                          "span": {
+                            "start": 117,
+                            "end": 121
+                          },
+                          "id": {
+                            "id": 14
+                          }
+                        },
+                        "mutability": "Immutable"
+                      }
+                    ]
+                  },
+                  "return_type": {
+                    "kind": "Str",
+                    "span": {
+                      "start": 126,
+                      "end": 129
+                    },
+                    "id": {
+                      "id": 15
+                    }
+                  }
+                },
+                "body": {
+                  "stmts": [
+                    {
+                      "Return": {
+                        "value": {
+                          "kind": {
+                            "Infix": {
+                              "operator": "Add",
+                              "lhs": {
+                                "kind": {
+                                  "Field": {
+                                    "lhs": {
+                                      "kind": {
+                                        "Path": {
+                                          "segments": [
+                                            {
+                                              "ident": {
+                                                "ident": 9,
+                                                "span": {
+                                                  "start": 147,
+                                                  "end": 151
+                                                },
+                                                "id": {
+                                                  "id": 16
+                                                }
+                                              },
+                                              "generics": null
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "span": {
+                                        "start": 147,
+                                        "end": 151
+                                      },
+                                      "id": {
+                                        "id": 17
+                                      }
+                                    },
+                                    "ident": {
+                                      "ident": 7,
+                                      "span": {
+                                        "start": 152,
+                                        "end": 160
+                                      },
+                                      "id": {
+                                        "id": 18
+                                      }
+                                    }
+                                  }
+                                },
+                                "span": {
+                                  "start": 147,
+                                  "end": 160
+                                },
+                                "id": {
+                                  "id": 19
+                                }
+                              },
+                              "rhs": {
+                                "kind": {
+                                  "Field": {
+                                    "lhs": {
+                                      "kind": {
+                                        "Path": {
+                                          "segments": [
+                                            {
+                                              "ident": {
+                                                "ident": 9,
+                                                "span": {
+                                                  "start": 163,
+                                                  "end": 167
+                                                },
+                                                "id": {
+                                                  "id": 20
+                                                }
+                                              },
+                                              "generics": null
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "span": {
+                                        "start": 163,
+                                        "end": 167
+                                      },
+                                      "id": {
+                                        "id": 21
+                                      }
+                                    },
+                                    "ident": {
+                                      "ident": 8,
+                                      "span": {
+                                        "start": 168,
+                                        "end": 175
+                                      },
+                                      "id": {
+                                        "id": 22
+                                      }
+                                    }
+                                  }
+                                },
+                                "span": {
+                                  "start": 163,
+                                  "end": 175
+                                },
+                                "id": {
+                                  "id": 23
+                                }
+                              }
+                            }
+                          },
+                          "span": {
+                            "start": 147,
+                            "end": 175
+                          },
+                          "id": {
+                            "id": 24
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "span": {
+                    "start": 130,
+                    "end": 182
+                  },
+                  "id": {
+                    "id": 25
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "span": {
+          "start": 126,
+          "end": 184
+        },
+        "id": {
+          "id": 26
+        }
+      }
+    ],
+    "ast_id": {
+      "id": 0
+    }
+  }
+]
