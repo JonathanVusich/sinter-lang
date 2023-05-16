@@ -1,5 +1,5 @@
 use crate::compiler::ast::{
-    Ast, AstMap, AstPass, Item, ItemKind, NodeId, QualifiedIdent, Stmt, UseStmt,
+    Ast, AstId, AstMap, AstPass, Item, ItemKind, NodeId, QualifiedIdent, Stmt, UseStmt,
 };
 use crate::compiler::ast_passes::{UsedModuleCollector, VisibilityCollector};
 use crate::compiler::codegen::code_generator::emit_code;
@@ -19,7 +19,7 @@ use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::mem::discriminant;
 use std::num::NonZeroUsize;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 struct Compiler {
     modules: HashMap<QualifiedIdent, Ast>,
@@ -27,7 +27,7 @@ struct Compiler {
 
 struct Application {
     entry_point: Box<Path>,
-    module_paths: Vec<Box<Path>>,
+    module_path: Box<Path>,
 }
 
 pub struct CompiledApplication {}
@@ -75,12 +75,19 @@ impl From<CompilerCtxt> for StringInterner {
 
 fn compile(application: Application) -> Result<CompiledApplication, CompileError> {
     let mut compiler_ctxt = CompilerCtxt::default();
+    let mut ast_id = 1;
 
-    let main_ast = parse_ast(&mut compiler_ctxt, &application.entry_point)?;
+    let mut main_ast = parse_ast(&mut compiler_ctxt, &application.entry_point)?;
 
-    let used_modules = collect_used_modules(&mut compiler_ctxt, &main_ast);
+    let mut used_modules =
+        collect_used_modules(&mut compiler_ctxt, &application.module_path, &mut main_ast)?;
 
-    // TODO: Import transitive modules
+    // Assign AST ids
+    for ast in &mut used_modules {
+        ast.ast_id = AstId::new(ast_id);
+        ast_id += 1;
+    }
+
     // TODO: Generate externally visible map
     // TODO: Resolve variables
     // TODO: Type check module
@@ -90,12 +97,28 @@ fn compile(application: Application) -> Result<CompiledApplication, CompileError
     emit_code(compiler_ctxt, tychecked_module)
 }
 
-fn parse_ast(compiler_ctxt: &mut CompilerCtxt, module_path: &Path) -> Result<Ast, CompileError> {
-    let tokens = tokenize_file(compiler_ctxt, module_path)?;
+fn parse_ast(compiler_ctxt: &mut CompilerCtxt, main_path: &Path) -> Result<Ast, CompileError> {
+    let tokens = tokenize_file(compiler_ctxt, main_path)?;
     parse(compiler_ctxt, tokens)
 }
 
-fn collect_used_modules(compiler_ctxt: &mut CompilerCtxt, ast: &Ast) -> Vec<Ast> {
-    let asts = Vec::new();
-    asts
+fn collect_used_modules(
+    compiler_ctxt: &mut CompilerCtxt,
+    module_path: &Path,
+    ast: &mut Ast,
+) -> Result<Vec<Ast>, CompileError> {
+    // TODO: Add cycle checks
+    let mut asts: HashMap<QualifiedIdent, Ast> = HashMap::default();
+    let modules = UsedModuleCollector::visit(ast);
+    for module in &modules {
+        if !asts.contains_key(module) {
+            let mut path = PathBuf::from(module_path);
+            for name in module.iter() {
+                path.push(compiler_ctxt.resolve_str(name.ident))
+            }
+            let ast = parse_ast(compiler_ctxt, path.as_path())?;
+            asts.insert(module.clone(), ast);
+        }
+    }
+    Ok(asts.into_values().collect())
 }

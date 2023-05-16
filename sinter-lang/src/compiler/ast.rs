@@ -28,17 +28,16 @@ impl From<u32> for NodeId {
 }
 
 /// This trait describes a visitor that can traverse the AST and collect information.
-pub trait AstVisitor<T> {
-    fn visit_node(&mut self, node: &Item);
-    fn visit_expr(&mut self, expr: &Expr);
-}
-
-/// This trait describes a visitor that can traverse the AST and collect information.
-pub trait AstPass {
-    fn visit(&mut self, ast: &mut Ast) {
+pub trait AstPass<T>: Default
+where
+    T: From<Self>,
+{
+    fn visit(ast: &mut Ast) -> T {
+        let mut pass = Self::default();
         for item in &mut ast.items {
-            self.visit_item(item);
+            pass.visit_item(item);
         }
+        pass.into()
     }
 
     fn visit_item(&mut self, node: &mut Item);
@@ -143,14 +142,29 @@ pub enum TyKind {
     None,
 }
 
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct AstId {
+    id: u32,
+}
+
+impl AstId {
+    pub fn new(id: u32) -> Self {
+        Self { id }
+    }
+}
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Ast {
     pub(crate) items: Vec<Item>,
+    pub(crate) ast_id: AstId,
 }
 
 impl Ast {
     pub fn new(items: Vec<Item>) -> Self {
-        Self { items }
+        Self {
+            items,
+            ast_id: AstId::new(0),
+        }
     }
 }
 
@@ -206,6 +220,14 @@ impl QualifiedIdent {
     pub fn last(&self) -> Ident {
         // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
         self.idents.last().copied().unwrap()
+    }
+}
+
+impl Deref for QualifiedIdent {
+    type Target = Vec<Ident>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.idents
     }
 }
 
