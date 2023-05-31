@@ -1,3 +1,4 @@
+use crate::compiler::krate::KrateId;
 use crate::compiler::parser::{ClassType, ParseError};
 use crate::compiler::path::ModulePath;
 use crate::compiler::tokens::tokenized_file::Span;
@@ -142,28 +143,29 @@ pub enum TyKind {
     None,
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Hash, Debug, Default, Copy, Clone, Serialize, Deserialize)]
 pub struct AstId {
-    id: u32,
+    pub(crate) krate: usize,
+    pub(crate) ast: usize,
 }
 
 impl AstId {
-    pub fn new(id: u32) -> Self {
-        Self { id }
+    pub fn new(krate: usize, ast: usize) -> Self {
+        Self { krate, ast }
     }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Ast {
+    pub(crate) id: AstId,
     pub(crate) items: Vec<Item>,
-    pub(crate) ast_id: AstId,
 }
 
 impl Ast {
     pub fn new(items: Vec<Item>) -> Self {
         Self {
+            id: AstId::default(),
             items,
-            ast_id: AstId::new(0),
         }
     }
 }
@@ -289,14 +291,9 @@ impl PathTy {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct UseStmt {
-    pub ident: QualifiedIdent,
-}
-
-impl UseStmt {
-    pub fn new(ident: QualifiedIdent) -> Self {
-        Self { ident }
-    }
+pub enum UseStmt {
+    Crate(QualifiedIdent),
+    Global(QualifiedIdent),
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]

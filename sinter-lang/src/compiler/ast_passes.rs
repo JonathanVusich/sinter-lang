@@ -1,21 +1,48 @@
-use crate::compiler::ast::{AstPass, Expr, Ident, Item, ItemKind, NodeId, QualifiedIdent};
+use crate::compiler::ast::{AstPass, Expr, Ident, Item, ItemKind, NodeId, QualifiedIdent, UseStmt};
+use crate::compiler::path::ModulePath;
+use crate::compiler::types::types::InternedStr;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-#[derive(Default)]
-pub struct UsedModuleCollector {
-    pub(crate) modules: HashSet<QualifiedIdent>,
+#[derive(PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct UsedCrate {
+    pub(crate) crate_name: InternedStr,
+    pub(crate) module_path: Vec<InternedStr>,
 }
 
-impl From<UsedModuleCollector> for HashSet<QualifiedIdent> {
-    fn from(collector: UsedModuleCollector) -> Self {
-        collector.modules
+impl UsedCrate {
+    pub fn new(crate_name: InternedStr, module_path: Vec<InternedStr>) -> Self {
+        Self {
+            crate_name,
+            module_path,
+        }
     }
 }
 
-impl AstPass<HashSet<QualifiedIdent>> for UsedModuleCollector {
+#[derive(Default)]
+pub struct UsedCrateCollector {
+    pub(crate) used_crates: HashSet<UsedCrate>,
+}
+
+impl From<UsedCrateCollector> for HashSet<UsedCrate> {
+    fn from(collector: UsedCrateCollector) -> Self {
+        collector.used_crates
+    }
+}
+
+impl AstPass<HashSet<UsedCrate>> for UsedCrateCollector {
     fn visit_item(&mut self, node: &mut Item) {
         if let ItemKind::Use(use_stmt) = &node.kind {
-            self.modules.insert(use_stmt.ident.clone());
+            match use_stmt {
+                UseStmt::Global(ident) => {
+                    let mut ident = ident.clone();
+                    let crate_name = ident.remove(0).ident;
+                    let module_path = ident.iter().map(|ident| ident.ident).collect();
+                    self.used_crates
+                        .insert(UsedCrate::new(crate_name, module_path));
+                }
+                _ => {}
+            };
         }
     }
 

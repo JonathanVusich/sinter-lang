@@ -29,6 +29,7 @@ typed-arena = "2.0.2"
 hashbrown = "0.13.2"
 
 snap = { path = "../snap" }
+walkdir = "2.3.3"
 
 
 [dev-dependencies]

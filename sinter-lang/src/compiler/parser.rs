@@ -224,9 +224,18 @@ impl<'ctxt> Parser<'ctxt> {
 
     fn use_stmt(&mut self) -> ParseResult<UseStmt> {
         self.expect(TokenType::Use)?;
-        let identifier = self.qualified_ident()?;
+
+        let mut qualified_ident = self.qualified_ident()?;
         self.expect(TokenType::Semicolon)?;
-        Ok(UseStmt::new(identifier))
+
+        // Check for crate qualifier
+        let crate_ident = self.compiler_ctxt.intern_str("crate");
+        if qualified_ident.first().ident == crate_ident {
+            qualified_ident.remove(0);
+            Ok(UseStmt::Crate(qualified_ident))
+        } else {
+            Ok(UseStmt::Global(qualified_ident))
+        }
     }
 
     fn parse_class_stmt(&mut self) -> ParseResult<Item> {
