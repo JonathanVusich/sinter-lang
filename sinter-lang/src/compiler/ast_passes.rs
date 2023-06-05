@@ -1,4 +1,5 @@
-use crate::compiler::ast::{AstPass, Expr, Ident, Item, ItemKind, NodeId, QualifiedIdent, UseStmt};
+use crate::compiler::ast::{AstPass, Expr, Ident, Item, ItemKind, QualifiedIdent, UseStmt};
+use crate::compiler::hir::{HirItem, LocalDefId};
 use crate::compiler::path::ModulePath;
 use crate::compiler::types::types::InternedStr;
 use serde::{Deserialize, Serialize};
@@ -31,7 +32,7 @@ impl From<UsedCrateCollector> for HashSet<UsedCrate> {
 }
 
 impl AstPass<HashSet<UsedCrate>> for UsedCrateCollector {
-    fn visit_item(&mut self, node: &mut Item) {
+    fn visit_item(&mut self, node: &Item) {
         if let ItemKind::Use(use_stmt) = &node.kind {
             match use_stmt {
                 UseStmt::Global(ident) => {
@@ -45,19 +46,22 @@ impl AstPass<HashSet<UsedCrate>> for UsedCrateCollector {
             };
         }
     }
-
-    fn visit_expr(&mut self, expr: &mut Expr) {}
 }
 
 #[derive(Default)]
-pub struct VisibilityCollector {
-    constants: HashMap<Ident, NodeId>,
-    fns: HashMap<Ident, NodeId>,
-    types: HashMap<Ident, NodeId>,
+pub struct HirVisitor {
+    ast: Vec<HirItem>,
 }
 
-impl AstPass<VisibilityCollector> for VisibilityCollector {
-    fn visit_item(&mut self, node: &mut Item) {
+#[derive(Default)]
+pub struct NameCollector {
+    constants: HashMap<Ident, LocalDefId>,
+    fns: HashMap<Ident, LocalDefId>,
+    types: HashMap<Ident, LocalDefId>,
+}
+
+impl AstPass<NameCollector> for NameCollector {
+    fn visit_item(&mut self, node: &Item) {
         match &node.kind {
             ItemKind::GlobalLet(let_stmt) => {
                 self.constants.insert(let_stmt.ident, node.id);
@@ -77,8 +81,6 @@ impl AstPass<VisibilityCollector> for VisibilityCollector {
             _ => {}
         }
     }
-
-    fn visit_expr(&mut self, expr: &mut Expr) {}
 }
 
 mod tests {}

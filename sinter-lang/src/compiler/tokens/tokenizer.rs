@@ -643,57 +643,54 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn returning_error_union() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file([
-            "short_examples",
-            "returning_error_union.si",
-        ]))
+        tokenize_str(utils::read_code_example("returning_error_union.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn vector_enum() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "vector_enum.si"]))
+        tokenize_str(utils::read_code_example("vector_enum.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn trait_vs_generic() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "trait_vs_generic.si"]))
+        tokenize_str(utils::read_code_example("trait_vs_generic.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn generic_lists() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "generic_lists.si"]))
+        tokenize_str(utils::read_code_example("generic_lists.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn rectangle_class() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "rectangle_class.si"]))
+        tokenize_str(utils::read_code_example("rectangle_class.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn enum_message() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "enum_message.si"]))
+        tokenize_str(utils::read_code_example("enum_message.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn int_match() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "int_match.si"]))
+        tokenize_str(utils::read_code_example("int_match.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn enum_match() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "enum_match.si"]))
+        tokenize_str(utils::read_code_example("enum_match.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn impl_trait() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "impl_trait.si"]))
+        tokenize_str(utils::read_code_example("impl_trait.si"))
     }
 }

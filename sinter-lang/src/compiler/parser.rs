@@ -10,15 +10,16 @@ use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
 use crate::compiler::ast::{
-    Args, ArrayExpr, Ast, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields,
-    FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt,
-    Ident, IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr,
-    Mutability, NodeId, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern,
-    PatternLocal, PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound,
-    TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
+    Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern,
+    EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSig, FnStmt,
+    ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident, IfStmt,
+    IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module,
+    Mutability, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal,
+    PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt,
+    TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
 };
 use crate::compiler::compiler::{CompileError, CompilerCtxt};
+use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
@@ -28,7 +29,7 @@ use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInp
 use crate::compiler::types::types::{InternedStr, InternedTy};
 use crate::compiler::StringInterner;
 
-pub fn parse(ctxt: &mut CompilerCtxt, input: TokenizedInput) -> Result<Ast, CompileError> {
+pub fn parse(ctxt: &mut CompilerCtxt, input: TokenizedInput) -> Result<Module, CompileError> {
     let parser = Parser::new(ctxt, input);
     parser.parse()
 }
@@ -38,7 +39,6 @@ struct Parser<'ctxt> {
     tokenized_input: TokenizedInput,
 
     pos: usize,
-    current_id: u32,
     spans: Vec<usize>,
 }
 
@@ -91,18 +91,15 @@ impl<'ctxt> Parser<'ctxt> {
             tokenized_input,
             pos: 0,
             spans: Vec::new(),
-            current_id: 0,
         }
     }
 
-    fn parse(mut self) -> Result<Ast, CompileError> {
+    fn parse(mut self) -> Result<Module, CompileError> {
         Ok(self.parse_module()?)
     }
 
-    fn get_id(&mut self) -> NodeId {
-        let id = self.current_id.into();
-        self.current_id += 1;
-        id
+    fn get_id(&mut self) -> LocalDefId {
+        self.compiler_ctxt.local_def_id()
     }
 
     fn track_span(&mut self) {
@@ -130,7 +127,7 @@ impl<'ctxt> Parser<'ctxt> {
         start_token.span.to(end_token.span)
     }
 
-    fn parse_module(&mut self) -> Result<Ast, CompileError> {
+    fn parse_module(&mut self) -> Result<Module, CompileError> {
         let mut items = Vec::new();
         let mut errors = Vec::new();
 
@@ -160,7 +157,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
 
         if errors.is_empty() {
-            Ok(Ast::new(items))
+            Ok(Module::new(items))
         } else {
             Err(CompileError::ParseErrors(errors))
         }
@@ -169,7 +166,7 @@ impl<'ctxt> Parser<'ctxt> {
     fn parse_node<T, I>(
         &mut self,
         parse_fn: for<'rf> fn(&'rf mut Parser<'ctxt>) -> ParseResult<T>,
-        constructor: fn(T, Span, NodeId) -> I,
+        constructor: fn(T, Span, LocalDefId) -> I,
     ) -> ParseResult<I> {
         self.track_span();
         let value = parse_fn(self)?;
@@ -1626,8 +1623,9 @@ mod tests {
         Args, Block, CallExpr, EnumMember, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
         Param, Params, PathExpr, QualifiedIdent, Stmt, Ty, TyKind,
     };
-    use crate::compiler::ast::{Ast, NodeId, UseStmt};
+    use crate::compiler::ast::{Module, UseStmt};
     use crate::compiler::compiler::{CompileError, CompilerCtxt};
+    use crate::compiler::hir::LocalDefId;
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
     use crate::compiler::parser::{parse, ParseError, ParseResult, Parser};
     use crate::compiler::tokens::token::TokenType;
@@ -1645,7 +1643,7 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn parse_module<T: AsRef<str>>(code: T) -> Result<(CompilerCtxt, Ast), CompileError> {
+    fn parse_module<T: AsRef<str>>(code: T) -> Result<(CompilerCtxt, Module), CompileError> {
         let mut compiler_ctxt = CompilerCtxt::default();
         let parser = create_parser(&mut compiler_ctxt, code.as_ref());
         parser.parse().map(|ast| (compiler_ctxt, ast))
@@ -1864,7 +1862,7 @@ mod tests {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]
             pub fn $fn_name() {
-                let actual_ty = Ty::new($typ, Span::new(0, $code.len() as u32), NodeId::new(0));
+                let actual_ty = Ty::new($typ, Span::new(0, $code.len() as u32), LocalDefId::new(0));
                 let (ctxt, ty) = parse_ty!($code);
                 assert_eq!(actual_ty, ty);
             }
@@ -1886,115 +1884,109 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn use_statements() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "use_stmts.si"]))
+    pub fn use_statements() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("use_stmts.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn basic_enum() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "basic_enum.si"]))
+    pub fn basic_enum() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("basic_enum.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn vector_enum() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "vector_enum.si"]))
+    pub fn vector_enum() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("vector_enum.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn main_fn() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "hello_world_fn.si"]))
+    pub fn main_fn() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("hello_world_fn.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn main_fn_with_args() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "main_fn.si"]))
+    pub fn main_fn_with_args() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("main_fn.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn declare_classes_and_vars() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "classes_and_vars.si"]))
+    pub fn declare_classes_and_vars() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("classes_and_vars.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_add_func() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "sum_fn.si"]))
+    pub fn simple_add_func() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("sum_fn.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn var_declarations() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "var_declarations.si"]))
+    pub fn var_declarations() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("var_declarations.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn mutable_assignment() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file([
-            "short_examples",
-            "mutable_assignment.si"
-        ]))
+    pub fn mutable_assignment() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("mutable_assignment.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn print_fn() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "print_fn.si"]))
+    pub fn print_fn() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("print_fn.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn returning_error_union() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file([
-            "short_examples",
-            "returning_error_union.si"
-        ]))
+    pub fn returning_error_union() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("returning_error_union.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn trait_vs_generic() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "trait_vs_generic.si"]))
+    pub fn trait_vs_generic() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("trait_vs_generic.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_lists() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "generic_lists.si"]))
+    pub fn generic_lists() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("generic_lists.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn rectangle_class() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "rectangle_class.si"]))
+    pub fn rectangle_class() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("rectangle_class.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_message() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "enum_message.si"]))
+    pub fn enum_message() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("enum_message.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn int_match() -> (CompilerCtxt, Expr) {
-        parse_expr!(utils::read_file(["short_examples", "int_match.si"]))
+        parse_expr!(utils::read_code_example("int_match.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_match() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "enum_match.si"]))
+    pub fn enum_match() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("enum_match.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn impl_trait() -> (CompilerCtxt, Ast) {
-        parse!(utils::read_file(["short_examples", "impl_trait.si"]))
+    pub fn impl_trait() -> (CompilerCtxt, Module) {
+        parse!(utils::read_code_example("impl_trait.si"))
     }
 }

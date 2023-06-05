@@ -1,4 +1,5 @@
-use crate::compiler::krate::KrateId;
+use crate::compiler::hir::LocalDefId;
+use crate::compiler::krate::CrateId;
 use crate::compiler::parser::{ClassType, ParseError};
 use crate::compiler::path::ModulePath;
 use crate::compiler::tokens::tokenized_file::Span;
@@ -10,39 +11,20 @@ use std::ops::{Deref, DerefMut};
 use std::path::{Path, Prefix};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-/// This is a unique identifier for a parsed module.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash, Serialize, Deserialize)]
-pub struct NodeId {
-    id: u32,
-}
-
-impl NodeId {
-    pub fn new(id: u32) -> Self {
-        Self { id }
-    }
-}
-
-impl From<u32> for NodeId {
-    fn from(value: u32) -> Self {
-        NodeId { id: value }
-    }
-}
-
 /// This trait describes a visitor that can traverse the AST and collect information.
 pub trait AstPass<T>: Default
 where
     T: From<Self>,
 {
-    fn visit(ast: &mut Ast) -> T {
+    fn visit(ast: &Module) -> T {
         let mut pass = Self::default();
-        for item in &mut ast.items {
+        for item in &ast.items {
             pass.visit_item(item);
         }
         pass.into()
     }
 
-    fn visit_item(&mut self, node: &mut Item);
-    fn visit_expr(&mut self, expr: &mut Expr);
+    fn visit_item(&mut self, node: &Item);
 }
 
 /// This enum represents the various types of nodes in the AST.
@@ -62,11 +44,11 @@ pub enum ItemKind {
 pub struct Item {
     pub(crate) kind: ItemKind,
     pub(crate) span: Span,
-    pub(crate) id: NodeId,
+    pub(crate) id: LocalDefId,
 }
 
 impl Item {
-    pub fn new(kind: ItemKind, span: Span, id: NodeId) -> Self {
+    pub fn new(kind: ItemKind, span: Span, id: LocalDefId) -> Self {
         Self { kind, span, id }
     }
 }
@@ -98,11 +80,11 @@ pub enum ExprKind {
 pub struct Expr {
     kind: ExprKind,
     span: Span,
-    id: NodeId,
+    id: LocalDefId,
 }
 
 impl Expr {
-    pub fn new(kind: ExprKind, span: Span, id: NodeId) -> Self {
+    pub fn new(kind: ExprKind, span: Span, id: LocalDefId) -> Self {
         Self { kind, span, id }
     }
 }
@@ -111,11 +93,11 @@ impl Expr {
 pub struct Ty {
     kind: TyKind,
     span: Span,
-    id: NodeId,
+    id: LocalDefId,
 }
 
 impl Ty {
-    pub fn new(kind: TyKind, span: Span, id: NodeId) -> Self {
+    pub fn new(kind: TyKind, span: Span, id: LocalDefId) -> Self {
         Self { kind, span, id }
     }
 }
@@ -143,48 +125,18 @@ pub enum TyKind {
     None,
 }
 
-#[derive(PartialEq, Eq, Hash, Debug, Default, Copy, Clone, Serialize, Deserialize)]
-pub struct AstId {
-    pub(crate) krate: usize,
-    pub(crate) ast: usize,
-}
-
-impl AstId {
-    pub fn new(krate: usize, ast: usize) -> Self {
-        Self { krate, ast }
-    }
-}
-
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct Ast {
-    pub(crate) id: AstId,
+pub struct Module {
+    pub(crate) path: ModulePath,
     pub(crate) items: Vec<Item>,
 }
 
-impl Ast {
+impl Module {
     pub fn new(items: Vec<Item>) -> Self {
         Self {
-            id: AstId::default(),
+            path: Default::default(),
             items,
         }
-    }
-}
-
-pub struct AstMap {
-    asts: Vec<Ast>,
-}
-
-impl AstMap {
-    pub fn add_ast(&mut self, ast: Ast) -> usize {
-        let id = self.asts.len();
-        self.asts.push(ast);
-        id
-    }
-}
-
-impl Default for AstMap {
-    fn default() -> Self {
-        Self { asts: Vec::new() }
     }
 }
 
@@ -192,11 +144,11 @@ impl Default for AstMap {
 pub struct Ident {
     pub ident: InternedStr,
     pub span: Span,
-    pub id: NodeId,
+    pub id: LocalDefId,
 }
 
 impl Ident {
-    pub fn new(ident: InternedStr, span: Span, id: NodeId) -> Self {
+    pub fn new(ident: InternedStr, span: Span, id: LocalDefId) -> Self {
         Self { ident, span, id }
     }
 }
@@ -208,7 +160,7 @@ pub struct QualifiedIdent {
 
 impl QualifiedIdent {
     pub fn new(idents: Vec<Ident>) -> Self {
-        if idents.len() < 1 {
+        if idents.is_empty() {
             panic!("QualifiedIdent must have at least one identifier!")
         }
         Self { idents }
@@ -230,6 +182,12 @@ impl Deref for QualifiedIdent {
 
     fn deref(&self) -> &Self::Target {
         &self.idents
+    }
+}
+
+impl DerefMut for QualifiedIdent {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.idents
     }
 }
 
@@ -268,7 +226,7 @@ impl Deref for Generics {
     type Target = [Ty];
 
     fn deref(&self) -> &Self::Target {
-        &self.generics.as_slice()
+        self.generics.as_slice()
     }
 }
 
@@ -320,7 +278,7 @@ impl Deref for GenericParams {
     type Target = [GenericParam];
 
     fn deref(&self) -> &Self::Target {
-        &self.params.as_slice()
+        self.params.as_slice()
     }
 }
 
@@ -335,11 +293,11 @@ pub struct GenericParam {
     pub(crate) ident: Ident,
     pub(crate) trait_bound: Option<TraitBound>,
     pub(crate) span: Span,
-    pub(crate) id: NodeId,
+    pub(crate) id: LocalDefId,
 }
 
 impl GenericParam {
-    pub fn new(ident: Ident, trait_bound: Option<TraitBound>, span: Span, id: NodeId) -> Self {
+    pub fn new(ident: Ident, trait_bound: Option<TraitBound>, span: Span, id: LocalDefId) -> Self {
         Self {
             ident,
             trait_bound,
@@ -604,7 +562,7 @@ pub struct ReturnStmt {
 impl ReturnStmt {
     pub fn new(value: Option<Expr>) -> Self {
         Self {
-            value: value.map(|expr| Box::new(expr)),
+            value: value.map(Box::new),
         }
     }
 }
@@ -632,7 +590,7 @@ pub struct EnumMember {
     pub fields: Fields,
     pub member_fns: Vec<FnStmt>,
     pub span: Span,
-    pub id: NodeId,
+    pub id: LocalDefId,
 }
 
 impl EnumMember {
@@ -641,7 +599,7 @@ impl EnumMember {
         parameters: Fields,
         member_functions: Vec<FnStmt>,
         span: Span,
-        id: NodeId,
+        id: LocalDefId,
     ) -> Self {
         Self {
             name,
@@ -699,11 +657,11 @@ pub struct Field {
     pub(crate) ident: Ident,
     pub(crate) ty: Ty,
     pub(crate) span: Span,
-    pub(crate) id: NodeId,
+    pub(crate) id: LocalDefId,
 }
 
 impl Field {
-    pub fn new(ident: Ident, ty: Ty, span: Span, id: NodeId) -> Self {
+    pub fn new(ident: Ident, ty: Ty, span: Span, id: LocalDefId) -> Self {
         Self {
             ident,
             ty,
@@ -749,7 +707,7 @@ impl LetStmt {
             ident,
             mutability,
             ty,
-            initializer: initializer.map(|expr| Box::new(expr)),
+            initializer: initializer.map(Box::new),
         }
     }
 }
@@ -1088,11 +1046,11 @@ impl WhileStmt {
 pub struct Block {
     pub stmts: Vec<Stmt>,
     pub span: Span,
-    pub id: NodeId,
+    pub id: LocalDefId,
 }
 
 impl Block {
-    pub fn new(stmts: Vec<Stmt>, span: Span, id: NodeId) -> Self {
+    pub fn new(stmts: Vec<Stmt>, span: Span, id: LocalDefId) -> Self {
         Self { stmts, span, id }
     }
 }

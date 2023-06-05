@@ -1,0 +1,3 @@
+fn multiply<T: Number>(x: T, y: T) -> T {
+    x * y
+}
