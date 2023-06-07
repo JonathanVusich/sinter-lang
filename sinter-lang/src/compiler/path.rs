@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use crate::compiler::ast::{Ident, QualifiedIdent, Segment};
 use crate::compiler::types::types::InternedStr;
 use serde::{Deserialize, Serialize};
@@ -19,6 +20,14 @@ impl From<QualifiedIdent> for ModulePath {
         Self {
             krate_path: value.iter().map(|ident| ident.ident).collect()
         }
+    }
+}
+
+impl Deref for ModulePath {
+    type Target = Vec<InternedStr>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.krate_path
     }
 }
 

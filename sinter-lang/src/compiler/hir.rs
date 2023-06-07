@@ -24,6 +24,13 @@ impl LocalDefId {
     pub fn new(local_id: u32) -> Self {
         Self { local_id }
     }
+    
+    pub fn to_def_id(&self, crate_id: u32) -> DefId {
+        DefId {
+            crate_id,
+            local_id: self.local_id,
+        }
+    }
 }
 
 impl From<u32> for LocalDefId {
@@ -34,13 +41,23 @@ impl From<u32> for LocalDefId {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct HirItem {
-    pub(crate) kind: ItemKind,
+    pub(crate) kind: HirItemKind,
     pub(crate) span: Span,
     pub(crate) id: LocalDefId,
 }
 
+impl HirItem {
+    pub fn new(kind: HirItemKind, span: Span, id: LocalDefId) -> Self {
+        Self {
+            kind,
+            span,
+            id,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub enum ItemKind {
+pub enum HirItemKind {
     GlobalLet(GlobalLetStmt),
     Class(ClassStmt),
     Enum(EnumStmt),

@@ -250,8 +250,15 @@ impl PathTy {
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum UseStmt {
-    Crate(QualifiedIdent),
-    Global(QualifiedIdent),
+    Crate {
+        mod_path: QualifiedIdent,
+        item: Ident,
+    },
+    Global {
+        krate: Ident,
+        mod_path: QualifiedIdent,
+        item: Ident,
+    },
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]

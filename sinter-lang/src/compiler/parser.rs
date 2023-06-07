@@ -50,6 +50,14 @@ pub enum ParseError {
     ExpectedToken(TokenType, NormalizedSpan),
     ExpectedTokens(TokenTypes, NormalizedSpan),
     UnexpectedToken(TokenType, NormalizedSpan),
+
+    /// Use statement with less than three segments (crate, module, item).
+    InvalidUseStmt(NormalizedSpan),
+
+    /// Duplicate definition in module
+    DuplicateDefinition,
+    /// Duplicate module name
+    DuplicateModuleName,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -223,15 +231,29 @@ impl<'ctxt> Parser<'ctxt> {
         self.expect(TokenType::Use)?;
 
         let mut qualified_ident = self.qualified_ident()?;
+        if qualified_ident.len() < 3 {
+            let span = self.get_span();
+            return Err(ParseError::InvalidUseStmt(
+                self.tokenized_input.token_position(span),
+            ))?;
+        }
         self.expect(TokenType::Semicolon)?;
 
         // Check for crate qualifier
+        let krate = qualified_ident.remove(0);
+        let item = qualified_ident.pop().unwrap();
         let crate_ident = self.compiler_ctxt.intern_str("crate");
         if qualified_ident.first().ident == crate_ident {
-            qualified_ident.remove(0);
-            Ok(UseStmt::Crate(qualified_ident))
+            Ok(UseStmt::Crate {
+                mod_path: qualified_ident,
+                item,
+            })
         } else {
-            Ok(UseStmt::Global(qualified_ident))
+            Ok(UseStmt::Global {
+                krate,
+                mod_path: qualified_ident,
+                item,
+            })
         }
     }
 
@@ -1593,6 +1615,13 @@ impl Display for ParseError {
                 "unrecognized token {} at {}:{}!",
                 token_type, span.start_line, span.start_pos
             ),
+            ParseError::InvalidUseStmt(span) => write!(
+                f,
+                "invalid use stmt at {}:{}!",
+                span.start_line, span.start_pos
+            ),
+            ParseError::DuplicateDefinition => write!(f, "duplicate definition!"),
+            ParseError::DuplicateModuleName => write!(f, "duplicate module name!"),
         }
     }
 }

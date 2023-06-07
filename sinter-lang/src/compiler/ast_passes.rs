@@ -8,11 +8,11 @@ use std::collections::{HashMap, HashSet};
 #[derive(PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct UsedCrate {
     pub(crate) crate_name: InternedStr,
-    pub(crate) module_path: Vec<InternedStr>,
+    pub(crate) module_path: ModulePath,
 }
 
 impl UsedCrate {
-    pub fn new(crate_name: InternedStr, module_path: Vec<InternedStr>) -> Self {
+    pub fn new(crate_name: InternedStr, module_path: ModulePath) -> Self {
         Self {
             crate_name,
             module_path,
@@ -35,12 +35,15 @@ impl AstPass<HashSet<UsedCrate>> for UsedCrateCollector {
     fn visit_item(&mut self, node: &Item) {
         if let ItemKind::Use(use_stmt) = &node.kind {
             match use_stmt {
-                UseStmt::Global(ident) => {
-                    let mut ident = ident.clone();
-                    let crate_name = ident.remove(0).ident;
-                    let module_path = ident.iter().map(|ident| ident.ident).collect();
+                UseStmt::Global {
+                    krate,
+                    mod_path,
+                    item,
+                } => {
+                    let module_path =
+                        ModulePath::new(mod_path.iter().map(|path| path.ident).collect());
                     self.used_crates
-                        .insert(UsedCrate::new(crate_name, module_path));
+                        .insert(UsedCrate::new(krate.ident, module_path));
                 }
                 _ => {}
             };

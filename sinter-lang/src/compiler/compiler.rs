@@ -51,6 +51,9 @@ pub enum CompileError {
 
     /// Errors found while parsing
     ParseErrors(Vec<ParseError>),
+
+    /// Duplicate definition found while parsing
+    DuplicateDefinition,
 }
 
 impl Display for CompileError {
@@ -88,7 +91,7 @@ impl CompilerCtxt {
         let id = self.crate_id;
         self.local_def_id = 0;
         self.crate_id += 1;
-        (id as u32).into()
+        CrateId::new(id as u32)
     }
 
     pub(crate) fn local_def_id(&mut self) -> LocalDefId {
@@ -157,22 +160,17 @@ impl Compiler {
             let krate = crates.get(&crate_name).unwrap();
 
             let mut new_crates = Vec::new();
+            for used_crate in krate.get_used_crates() {
+                if !crates_visited.contains(&used_crate.crate_name) {
+                    let crate_name = self.compiler_ctxt.resolve_str(used_crate.crate_name);
+                    let mut crate_path = application.crate_path.to_path_buf();
+                    crate_path.push(crate_name);
 
-            for module in krate.module_lookup.iter().map(|entry| entry.1) {
-                let used_crates = UsedCrateCollector::visit(module);
+                    let krate = self.parse_crate(crate_path.as_path())?;
+                    crates_to_visit.push_back(krate.name);
 
-                for used_crate in &used_crates {
-                    if !crates_visited.contains(&used_crate.crate_name) {
-                        let crate_name = self.compiler_ctxt.resolve_str(used_crate.crate_name);
-                        let mut crate_path = application.crate_path.to_path_buf();
-                        crate_path.push(crate_name);
-
-                        let krate = self.parse_crate(crate_path.as_path())?;
-                        crates_to_visit.push_back(krate.name);
-
-                        // Insert krate into lookup maps
-                        new_crates.push(krate);
-                    }
+                    // Insert krate into lookup maps
+                    new_crates.push(krate);
                 }
             }
 
@@ -213,8 +211,7 @@ impl Compiler {
             })
             .collect();
 
-        let mut krate = Crate::new(krate_name);
-        let crate_id = self.compiler_ctxt.crate_id();
+        let mut krate = Crate::new(krate_name, self.compiler_ctxt.crate_id());
 
         for file in code_files {
             let local_path = local_to_root(file.path(), path)?;
@@ -223,7 +220,7 @@ impl Compiler {
             let mut ast = self.parse_ast(file.path())?;
 
             ast.path = module_path.clone();
-            krate.module_lookup.insert(module_path, ast);
+            krate.add_module(module_path, ast)?;
         }
 
         Ok(krate)
@@ -259,7 +256,8 @@ mod tests {
     use crate::util::utils::resolve_test_krate_path;
 
     #[test]
-    pub fn simple_arithmetic() {
+    #[snapshot]
+    pub fn simple_arithmetic() -> Crate {
         let krate_path = resolve_test_krate_path("simple_arithmetic");
         let mut compiler = Compiler::default();
         let krate = compiler.parse_crate(&krate_path).unwrap();
@@ -268,26 +266,12 @@ mod tests {
             "simple_arithmetic",
             compiler.compiler_ctxt.resolve_str(krate.name)
         );
-        assert_eq!(CrateId::new(0), krate.id);
-        assert_eq!(2, krate.module_lookup.len());
-
-        let first_module_path =
-            ModulePath::new(vec![compiler.compiler_ctxt.intern_str("addition")]);
-        let second_module_path =
-            ModulePath::new(vec![compiler.compiler_ctxt.intern_str("subtraction")]);
-
-        let first_module = krate.module_lookup.get(&first_module_path).unwrap();
-        let second_module = krate.module_lookup.get(&second_module_path).unwrap();
-
-        assert_eq!(1, first_module.items.len());
-        assert_matches!(first_module.items[0].kind, ItemKind::Fn(_));
-
-        assert_eq!(1, second_module.items.len());
-        assert_matches!(second_module.items[0].kind, ItemKind::Fn(_));
+        krate
     }
 
     #[test]
-    pub fn complex_arithmetic() {
+    #[snapshot]
+    pub fn complex_arithmetic() -> Crate {
         let krate_path = resolve_test_krate_path("complex_arithmetic");
         let mut compiler = Compiler::new();
         let krate = compiler.parse_crate(&krate_path).unwrap();
@@ -296,7 +280,6 @@ mod tests {
             "simple_arithmetic",
             compiler.compiler_ctxt.resolve_str(krate.name)
         );
-        assert_eq!(CrateId::new(0), krate.id);
-        assert_eq!(2, krate.module_lookup.len());
+        krate
     }
 }
