@@ -70,9 +70,16 @@ where
     }
 }
 
-#[derive(Default)]
 struct ModuleMapVisitor<T> {
     marker: PhantomData<T>,
+}
+
+impl<T> Default for ModuleMapVisitor<T> {
+    fn default() -> Self {
+        Self {
+            marker: PhantomData::default(),
+        }
+    }
 }
 
 impl<'de, T> Visitor<'de> for ModuleMapVisitor<T>
@@ -97,7 +104,7 @@ where
     }
 }
 
-impl<'de, T> Deserialize<'de> for ModuleMap<T> {
+impl<'de, T> Deserialize<'de> for ModuleMap<T> where T: Deserialize<'de> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -115,6 +122,7 @@ struct ModuleNamespace {
 pub struct Crate {
     pub(crate) name: InternedStr,
     pub(crate) id: CrateId,
+    pub(crate) local_def_id: u32,
     pub(crate) module_lookup: ModuleMap<Module>,
     pub(crate) namespace: ModuleMap<ModuleNamespace>,
 }
@@ -124,6 +132,7 @@ impl Crate {
         Self {
             name,
             id,
+            local_def_id: 0,
             module_lookup: Default::default(),
             namespace: Default::default(),
         }
@@ -170,7 +179,7 @@ impl Crate {
     ) -> Option<DefId> {
         self.namespace
             .get(definition)
-            .map(|namespace| namespace.items.get(item))
+            .map(|namespace| namespace.items.get(&item))
             .flatten()
             .copied()
             .map(|local_id| local_id.to_def_id(self.id.into()))

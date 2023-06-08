@@ -99,6 +99,10 @@ impl CompilerCtxt {
         self.local_def_id += 1;
         (id as u32).into()
     }
+    
+    pub(crate) fn crate_local_def_id(&self) -> u32 {
+        self.local_def_id as u32
+    }
 
     fn module_path(&mut self, path: &Path) -> Result<ModulePath, CompileError> {
         let mut segments = Vec::new();
@@ -222,6 +226,9 @@ impl Compiler {
             ast.path = module_path.clone();
             krate.add_module(module_path, ast)?;
         }
+        
+        // Assign the last used local def id to the crate
+        krate.local_def_id = self.compiler_ctxt.crate_local_def_id();
 
         Ok(krate)
     }
