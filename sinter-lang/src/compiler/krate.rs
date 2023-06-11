@@ -182,7 +182,7 @@ impl Crate {
             .map(|namespace| namespace.items.get(&item))
             .flatten()
             .copied()
-            .map(|local_id| local_id.to_def_id(self.id.into()))
+            .map(|local_id| local_id.to_def_id(self.id))
     }
 }
 

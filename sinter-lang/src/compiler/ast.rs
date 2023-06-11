@@ -6,6 +6,7 @@ use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::types::InternedStr;
 use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
+use std::alloc::Global;
 use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, Prefix};
@@ -78,9 +79,9 @@ pub enum ExprKind {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expr {
-    kind: ExprKind,
-    span: Span,
-    id: LocalDefId,
+    pub(crate) kind: ExprKind,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
 }
 
 impl Expr {
@@ -125,7 +126,7 @@ pub enum TyKind {
     None,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Module {
     pub(crate) path: ModulePath,
     pub(crate) items: Vec<Item>,
