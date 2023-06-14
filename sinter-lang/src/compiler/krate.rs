@@ -104,7 +104,10 @@ where
     }
 }
 
-impl<'de, T> Deserialize<'de> for ModuleMap<T> where T: Deserialize<'de> {
+impl<'de, T> Deserialize<'de> for ModuleMap<T>
+where
+    T: Deserialize<'de>,
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -172,33 +175,12 @@ impl Crate {
         used_crates
     }
 
-    pub fn find_definition(
-        &self,
-        definition: &ModulePath,
-        item: InternedStr,
-    ) -> Option<DefId> {
+    pub fn find_definition(&self, definition: &ModulePath, item: InternedStr) -> Option<DefId> {
         self.namespace
             .get(definition)
             .map(|namespace| namespace.items.get(&item))
             .flatten()
             .copied()
             .map(|local_id| local_id.to_def_id(self.id))
-    }
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct ResolvedCrate {
-    pub(crate) name: InternedStr,
-    pub(crate) id: CrateId,
-    pub(crate) items: Vec<HirItem>,
-}
-
-impl ResolvedCrate {
-    pub fn new(name: InternedStr, id: CrateId, items: Vec<HirItem>) -> Self {
-        Self {
-            name,
-            id,
-            items,
-        }
     }
 }

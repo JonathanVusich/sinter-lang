@@ -99,7 +99,7 @@ impl CompilerCtxt {
         self.local_def_id += 1;
         (id as u32).into()
     }
-    
+
     pub(crate) fn crate_local_def_id(&self) -> u32 {
         self.local_def_id as u32
     }
@@ -133,8 +133,10 @@ impl Compiler {
 
     fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
         let crates = self.parse_crates(&application)?;
+
+        // TODO: Validate crate contents (i.e. class fns have bodies, etc)
+
         let resolved_crates = self.resolve_crates(crates)?;
-        let hir = self.lower_to_hir(resolved_crates)?;
 
         // TODO: Generate externally visible map
         // TODO: Resolve types, variables
@@ -186,10 +188,6 @@ impl Compiler {
         Ok(crates)
     }
 
-    fn lower_to_hir(&mut self, crates: Vec<Crate>) -> Result<HirCrate, CompileError> {
-        todo!()
-    }
-
     fn parse_crate(&mut self, path: &Path) -> Result<Crate, CompileError> {
         let krate_name = path
             .file_name()
@@ -226,7 +224,7 @@ impl Compiler {
             ast.path = module_path.clone();
             krate.add_module(module_path, ast)?;
         }
-        
+
         // Assign the last used local def id to the crate
         krate.local_def_id = self.compiler_ctxt.crate_local_def_id();
 
@@ -241,7 +239,7 @@ impl Compiler {
     fn resolve_crates(
         &mut self,
         crates: HashMap<InternedStr, Crate>,
-    ) -> Result<Vec<Crate>, CompileError> {
+    ) -> Result<Vec<HirCrate>, CompileError> {
         todo!()
     }
 }

@@ -446,7 +446,7 @@ pub struct ClassStmt {
     pub(crate) class_type: ClassType,
     pub(crate) generic_params: GenericParams,
     pub(crate) fields: Fields,
-    pub(crate) fn_stmts: Vec<FnStmt>,
+    pub(crate) fn_stmts: Vec<FnSelfStmt>,
 }
 
 impl ClassStmt {
@@ -455,7 +455,7 @@ impl ClassStmt {
         class_type: ClassType,
         generic_params: GenericParams,
         fields: Fields,
-        fn_stmts: Vec<FnStmt>,
+        fn_stmts: Vec<FnSelfStmt>,
     ) -> Self {
         Self {
             name,
@@ -472,7 +472,7 @@ pub struct EnumStmt {
     pub name: Ident,
     pub generic_params: GenericParams,
     pub members: Vec<EnumMember>,
-    pub member_fns: Vec<FnStmt>,
+    pub member_fns: Vec<FnSelfStmt>,
 }
 
 impl EnumStmt {
@@ -480,13 +480,13 @@ impl EnumStmt {
         name: Ident,
         generic_params: GenericParams,
         members: Vec<EnumMember>,
-        fn_stmts: Vec<FnStmt>,
+        member_fns: Vec<FnSelfStmt>,
     ) -> Self {
         Self {
             name,
             generic_params,
             members,
-            member_fns: fn_stmts,
+            member_fns,
         }
     }
 
@@ -503,15 +503,15 @@ impl EnumStmt {
 pub struct TraitStmt {
     pub name: Ident,
     pub generic_params: GenericParams,
-    pub member_fns: Vec<FnStmt>,
+    pub member_fns: Vec<FnSelfStmt>,
 }
 
 impl TraitStmt {
-    pub fn new(ident: Ident, generic_params: GenericParams, functions: Vec<FnStmt>) -> Self {
+    pub fn new(ident: Ident, generic_params: GenericParams, member_fns: Vec<FnSelfStmt>) -> Self {
         Self {
             name: ident,
             generic_params,
-            member_fns: functions,
+            member_fns,
         }
     }
 }
@@ -520,15 +520,15 @@ impl TraitStmt {
 pub struct TraitImplStmt {
     pub trait_to_impl: PathTy,
     pub target_ty: QualifiedIdent,
-    pub member_fns: Vec<FnStmt>,
+    pub member_fns: Vec<FnSelfStmt>,
 }
 
 impl TraitImplStmt {
-    pub fn new(trait_to_impl: PathTy, target_ty: QualifiedIdent, fns: Vec<FnStmt>) -> Self {
+    pub fn new(trait_to_impl: PathTy, target_ty: QualifiedIdent, member_fns: Vec<FnSelfStmt>) -> Self {
         Self {
             trait_to_impl,
             target_ty,
-            member_fns: fns,
+            member_fns,
         }
     }
 }
@@ -542,6 +542,25 @@ pub struct FnStmt {
 impl FnStmt {
     pub fn new(sig: FnSig, body: Option<Block>) -> Self {
         Self { sig, body }
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct FnSelfStmt {
+    pub(crate) sig: FnSig,
+    pub(crate) body: Option<Block>,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
+}
+
+impl FnSelfStmt {
+    pub fn new(sig: FnSig, body: Option<Block>, span: Span, id: LocalDefId) -> Self {
+        Self {
+            sig,
+            body,
+            span,
+            id,
+        }
     }
 }
 

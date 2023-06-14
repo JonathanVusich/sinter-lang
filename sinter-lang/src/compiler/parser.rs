@@ -9,15 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
-use crate::compiler::ast::{
-    Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern,
-    EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSig, FnStmt,
-    ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident, IfStmt,
-    IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module,
-    Mutability, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal,
-    PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt,
-    TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
-};
+use crate::compiler::ast::{Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident, IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal, PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt, FnSelfStmt};
 use crate::compiler::compiler::{CompileError, CompilerCtxt};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::{Interner, Key};
@@ -289,7 +281,7 @@ impl<'ctxt> Parser<'ctxt> {
         Ok(class_stmt)
     }
 
-    fn class_stmt_inner(&mut self) -> ParseResult<(Vec<Field>, Vec<FnStmt>)> {
+    fn class_stmt_inner(&mut self) -> ParseResult<(Vec<Field>, Vec<FnSelfStmt>)> {
         self.expect(TokenType::LeftBrace)?;
         let fields = self.parse_multiple(
             |parser| {
@@ -300,7 +292,7 @@ impl<'ctxt> Parser<'ctxt> {
             |token| matches!(token, TokenType::Identifier(_)),
         )?;
         let fn_stmts = self.parse_multiple(
-            |parser| parser.fn_stmt(),
+            |parser| parser.fn_self_stmt(),
             |token| matches!(token, TokenType::Fn),
         )?;
         self.expect(TokenType::RightBrace)?;
@@ -310,25 +302,46 @@ impl<'ctxt> Parser<'ctxt> {
     fn parse_fn_stmt(&mut self) -> ParseResult<Item> {
         self.parse_item(|parser| parser.fn_stmt(), ItemKind::Fn)
     }
+    
+    fn fn_self_stmt(&mut self) -> ParseResult<FnSelfStmt> {
+        self.track_span();
+        let signature = self.fn_signature(false)?;
+        let stmt = self.block_stmt()?;
+
+        Ok(FnSelfStmt::new(
+            signature,
+            Some(stmt),
+            self.get_span(),
+            self.get_id(),
+        ))
+    }
 
     fn fn_stmt(&mut self) -> ParseResult<FnStmt> {
         let signature = self.fn_signature(false)?;
-
         let stmt = self.block_stmt()?;
 
-        Ok(FnStmt::new(signature, Some(stmt)))
+        Ok(FnStmt::new(
+            signature,
+            Some(stmt),
+        ))
     }
 
-    fn fn_trait_stmt(&mut self) -> ParseResult<FnStmt> {
+    fn fn_trait_stmt(&mut self) -> ParseResult<FnSelfStmt> {
+        self.track_span();
         let signature = self.fn_signature(true)?;
         match self.current() {
             Some(TokenType::Semicolon) => {
                 self.advance();
-                Ok(FnStmt::new(signature, None))
+                Ok(FnSelfStmt::new(signature, None, self.get_span(), self.get_id()))
             }
             Some(TokenType::LeftBrace) => {
                 let stmt = self.block_stmt()?;
-                Ok(FnStmt::new(signature, Some(stmt)))
+                Ok(FnSelfStmt::new(
+                    signature,
+                    Some(stmt),
+                    self.get_span(),
+                    self.get_id(),
+                ))
             }
             Some(token) => self.unexpected_token(token),
             None => self.unexpected_end(),
@@ -406,7 +419,7 @@ impl<'ctxt> Parser<'ctxt> {
         Ok(EnumStmt::new(name, generics, enum_members, fn_stmts))
     }
 
-    fn enum_stmt_inner(&mut self) -> ParseResult<(Vec<EnumMember>, Vec<FnStmt>)> {
+    fn enum_stmt_inner(&mut self) -> ParseResult<(Vec<EnumMember>, Vec<FnSelfStmt>)> {
         self.expect(TokenType::LeftBrace)?;
 
         let enum_members = self.parse_multiple(
@@ -414,7 +427,7 @@ impl<'ctxt> Parser<'ctxt> {
             |token| matches!(token, TokenType::Identifier(blank_ident)),
         )?;
         let fn_stmts = self.parse_multiple(
-            |parser| parser.fn_stmt(),
+            |parser| parser.fn_self_stmt(),
             |token| matches!(token, TokenType::Fn),
         )?;
 
@@ -635,7 +648,7 @@ impl<'ctxt> Parser<'ctxt> {
         )
     }
 
-    fn fn_trait_stmts(&mut self) -> ParseResult<Vec<FnStmt>> {
+    fn fn_trait_stmts(&mut self) -> ParseResult<Vec<FnSelfStmt>> {
         self.parse_multiple_with_scope(
             |parser| parser.fn_trait_stmt(),
             TokenType::LeftBrace,
