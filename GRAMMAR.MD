@@ -156,9 +156,7 @@ _________________________________
 
 `boolean => "true" | "false"`
 
-`ty => anyType ("|" anyType)*`
-
-`anyType => basicType | arrayType | traitBoundType | closureType`
+`ty => basicType | arrayType | traitBoundType | closureType`
 
 `basicType => "bool" | "None" | "u8" | "u16" | "u64" | 
               "i8" | "i16" | "i32" | i64" | "f32" | "f64"`
@@ -169,7 +167,7 @@ _________________________________
 
 `pathType => qualifiedIdent generics?`
 
-`closureType => "(" (ty ( , ty )* )? ")" "=>" ( "(" closureType ")" | (basicType | arrayType | path) )`
+`closureType => "(" (ty ( , ty )* )? ")" "=>" ( "(" closureType ")" | (basicType | arrayType | pathType) )`
 
 
 _________________________________

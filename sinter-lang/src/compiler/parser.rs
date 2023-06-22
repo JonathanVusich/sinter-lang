@@ -9,7 +9,15 @@ use serde::{Deserialize, Serialize};
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::Stmt::{For, If, Return, While};
-use crate::compiler::ast::{Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident, IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal, PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt, FnSelfStmt};
+use crate::compiler::ast::{
+    Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern,
+    EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSelfStmt, FnSig,
+    FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident,
+    IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module,
+    Mutability, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal,
+    PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt,
+    TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
+};
 use crate::compiler::compiler::{CompileError, CompilerCtxt};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::{Interner, Key};
@@ -302,7 +310,7 @@ impl<'ctxt> Parser<'ctxt> {
     fn parse_fn_stmt(&mut self) -> ParseResult<Item> {
         self.parse_item(|parser| parser.fn_stmt(), ItemKind::Fn)
     }
-    
+
     fn fn_self_stmt(&mut self) -> ParseResult<FnSelfStmt> {
         self.track_span();
         let signature = self.fn_signature(false)?;
@@ -320,10 +328,7 @@ impl<'ctxt> Parser<'ctxt> {
         let signature = self.fn_signature(false)?;
         let stmt = self.block_stmt()?;
 
-        Ok(FnStmt::new(
-            signature,
-            Some(stmt),
-        ))
+        Ok(FnStmt::new(signature, Some(stmt)))
     }
 
     fn fn_trait_stmt(&mut self) -> ParseResult<FnSelfStmt> {
@@ -332,7 +337,12 @@ impl<'ctxt> Parser<'ctxt> {
         match self.current() {
             Some(TokenType::Semicolon) => {
                 self.advance();
-                Ok(FnSelfStmt::new(signature, None, self.get_span(), self.get_id()))
+                Ok(FnSelfStmt::new(
+                    signature,
+                    None,
+                    self.get_span(),
+                    self.get_id(),
+                ))
             }
             Some(TokenType::LeftBrace) => {
                 let stmt = self.block_stmt()?;
@@ -822,19 +832,6 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_ty(&mut self) -> ParseResult<Ty> {
-        self.track_span();
-        let mut tys = self
-            .parse_multiple_with_delimiter(|parser| parser.parse_any_ty(), TokenType::BitwiseOr)?;
-        if tys.len() > 1 {
-            let span = self.get_span();
-            let ty = Ty::new(TyKind::Union { tys }, span, self.get_id());
-            Ok(ty)
-        } else {
-            Ok(tys.remove(0))
-        }
-    }
-
-    fn parse_any_ty(&mut self) -> ParseResult<Ty> {
         match self.current_token() {
             Some(Token {
                 token_type: TokenType::LeftParentheses,
@@ -1363,7 +1360,7 @@ impl<'ctxt> Parser<'ctxt> {
                 Ok(Pattern::Wildcard)
             }
             Some(token_type) => {
-                let ty = self.parse_any_ty()?;
+                let ty = self.parse_ty()?;
                 match self.current() {
                     Some(TokenType::LeftParentheses) => {
                         self.advance();

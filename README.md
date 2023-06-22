@@ -64,8 +64,8 @@ class Point {
 ref class Node;
 
 let i32_array: [i32] = [1, 2, 3];
-let point_array = [Point { 1.0, 2.0 }, Point { 1.5, 2.5 }];
-let node_array = [Node { }, Node { }];
+let point_array = [Point(1.0, 2.0), Point(1.5, 2.5)];
+let node_array = [Node(), Node()];
 ```
 
 ### Functions
@@ -115,10 +115,10 @@ fn print(text: str) {
 }
 ```
 
-Functions may return alternative values such as an error or empty value by using the `|` operator to denote a union type.
+Functions may return errors by using the builtin `Result` type. 
 
 ```ignorelang
-fn write<T: Serializable>(value: T) => None | WriteError {
+fn write<T: Serializable>(value: T) => Result<None> {
     let bytes = value.to_bytes();
     if (buffer.remaining() < bytes.len()) {
         WriteError::BufferOverflow
@@ -129,10 +129,24 @@ fn write<T: Serializable>(value: T) => None | WriteError {
     }
 }
 
-enum WriteError( 
+enum WriteError {
     BufferOverflow,
     MalformedBytes,
-);
+}
+
+impl Error for WriteError {
+
+    fn message(self) => str {
+        match self {
+            BufferOverFlow => "BufferOverFlow",
+            MalformedBytes => "MalformedBytes",
+        }
+    }
+   
+    fn source(self) => Option<Error> {
+        None
+    }
+}
 ```
 
 Functions can operate on types that implement traits through either the use of generic types
@@ -178,7 +192,6 @@ ref class List<T> {
 let list_of_ints = List::<i64>::new();
 let list_of_lists = List::<List<f64>>::new();
 let trait_bounds = List::<Loggable + Serializable>::new();
-let unions = List::<str | i64 | f64>::new();
 ```
 
 ### Defining classes and instances
@@ -200,7 +213,7 @@ class Rectangle {
 
 Classes can be constructed by calling the qualified path with values for each class field.
 ```ignorelang
-let rectangle = Rectangle { 10, 20 };
+let rectangle = Rectangle(10, 20);
 ```
 
 Classes can contain instance and static method declarations. Instance methods are marked by providing a `self`
@@ -248,14 +261,14 @@ Likewise, classes cannot be mutated if the mutator does not have a mutable refer
 This is done in order to ensure strong immutability by default.
 #### Incorrect:
 ```ignorelang
-let counter = Counter { 0 };
+let counter = Counter(0);
 
 counter.increment();
        ^^^^^^^^^^^^  Error: Attempted to call a mutable method on an immutable variable.
 ```
 #### Correct:
 ```ignorelang
-let mut counter = Counter { 0 };
+let mut counter = Counter(0);
 
 counter.increment();
 ```
@@ -355,7 +368,7 @@ Functions and class can use generic type definitions in order to allow usability
 many concrete types. 
 
 ```ignorelang
-fn maybe<T>(instance: T) => T | None {
+fn maybe<T>(instance: T) => Option<T> {
     ...
 }
 

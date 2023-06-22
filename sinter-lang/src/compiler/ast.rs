@@ -107,7 +107,6 @@ impl Ty {
 pub enum TyKind {
     Array { ty: Box<Ty> },
     Path { path: PathTy },
-    Union { tys: Vec<Ty> },
     TraitBound { trait_bound: TraitBound },
     Closure { params: Vec<Ty>, ret_ty: Box<Ty> },
     Infer,
@@ -524,7 +523,11 @@ pub struct TraitImplStmt {
 }
 
 impl TraitImplStmt {
-    pub fn new(trait_to_impl: PathTy, target_ty: QualifiedIdent, member_fns: Vec<FnSelfStmt>) -> Self {
+    pub fn new(
+        trait_to_impl: PathTy,
+        target_ty: QualifiedIdent,
+        member_fns: Vec<FnSelfStmt>,
+    ) -> Self {
         Self {
             trait_to_impl,
             target_ty,

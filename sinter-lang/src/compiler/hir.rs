@@ -124,6 +124,22 @@ pub struct EnumStmt {
     pub member_fns: FnStmts,
 }
 
+impl EnumStmt {
+    pub fn new(
+        name: Ident,
+        generic_params: GenericParams,
+        members: EnumMembers,
+        member_fns: FnStmts,
+    ) -> Self {
+        Self {
+            name,
+            generic_params,
+            members,
+            member_fns,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct EnumMember {
     pub name: InternedStr,
@@ -133,9 +149,17 @@ pub struct EnumMember {
     pub id: LocalDefId,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct EnumMembers {
     members: HashMap<InternedStr, LocalDefId>,
+}
+
+impl Deref for EnumMembers {
+    type Target = HashMap<InternedStr, LocalDefId>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.members
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -174,8 +198,18 @@ pub struct FnSig {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Param {
     pub(crate) ident: Ident,
-    pub(crate) ty: Ty,
+    pub(crate) ty: LocalDefId,
     pub(crate) mutability: Mutability,
+}
+
+impl Param {
+    pub fn new(ident: Ident, ty: LocalDefId, mutability: Mutability) -> Self {
+        Self {
+            ident,
+            ty,
+            mutability,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -532,7 +566,7 @@ impl ClosureParam {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Params {
     fields: HashMap<InternedStr, LocalDefId>,
 }
@@ -556,15 +590,29 @@ impl Deref for ClosureParams {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct GenericParams {
     fields: HashMap<InternedStr, LocalDefId>,
+}
+
+impl Deref for GenericParams {
+    type Target = HashMap<InternedStr, LocalDefId>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.fields
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GenericParam {
     pub(crate) ident: Ident,
-    pub(crate) trait_bound: Option<TraitBound>,
+    pub(crate) trait_bound: Option<LocalDefId>,
+}
+
+impl GenericParam {
+    pub fn new(ident: Ident, trait_bound: Option<LocalDefId>) -> Self {
+        Self { ident, trait_bound }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
