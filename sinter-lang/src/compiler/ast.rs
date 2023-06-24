@@ -92,9 +92,9 @@ impl Expr {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Ty {
-    kind: TyKind,
-    span: Span,
-    id: LocalDefId,
+    pub(crate) kind: TyKind,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
 }
 
 impl Ty {
@@ -193,7 +193,7 @@ impl DerefMut for QualifiedIdent {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TraitBound {
-    bounds: Vec<PathTy>,
+    pub(crate) bounds: Vec<PathTy>,
 }
 
 impl TraitBound {

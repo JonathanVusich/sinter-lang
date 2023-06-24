@@ -4,19 +4,20 @@ use crate::compiler::ast::{
     ExprKind as AstExprKind, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
     FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt,
     Ident, Item as AstItem, ItemKind as AstItemKind, MatchArm as AstMatchArm, Module,
-    Pattern as AstPattern, Stmt as AstStmt, TraitBound as AstTraitBound, TraitBound, TraitImplStmt,
-    TraitStmt, Ty, UseStmt,
+    Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt, TraitBound as AstTraitBound,
+    TraitImplStmt, TraitStmt, Ty as AstTy, TyKind, UseStmt,
 };
 use crate::compiler::ast::{Expr as AstExpr, Field as AstField};
 use crate::compiler::ast_passes::NameCollector;
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir;
+use crate::compiler::hir::HirItem::Trait;
 use crate::compiler::hir::{
     Args, ArrayExpr, AssignExpr, CallExpr, ClassStmt, ClosureExpr, ClosureParam, ClosureParams,
     DefId, EnumMembers, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts,
     GenericParam, GenericParams, Generics, HirCrate, HirItem, HirNode, HirNodeKind, IndexExpr,
-    InfixExpr, LocalDefId, MatchArm, MatchExpr, Param, Params, PathExpr, Pattern, Segment, Stmt,
-    UnaryExpr,
+    InfixExpr, LocalDefId, MatchArm, MatchExpr, Param, Params, PathExpr, PathTy, Pattern, Segment,
+    Stmt, TraitBound, Ty, UnaryExpr,
 };
 use crate::compiler::krate::Crate;
 use crate::compiler::path::ModulePath;
@@ -32,24 +33,7 @@ pub fn resolve(crates: HashMap<InternedStr, Crate>) -> Result<Vec<HirCrate>, Com
     resolver.resolve()
 }
 
-#[derive(Default)]
-struct CrateTys {
-    tys: HashMap<InternedStr, DefId>,
-}
-
-impl CrateTys {
-    pub fn insert(&mut self, name: InternedStr, definition: DefId) -> ResolveResult {
-        match self.tys.insert(name, definition) {
-            None => Ok(()),
-            Some(existing) => Err(ResolveError::DuplicateDefinition {
-                existing,
-                new: definition,
-            }),
-        }
-    }
-}
-
-enum Scope {
+pub enum Scope {
     Crate {
         ty_definitions: HashMap<InternedStr, DefId>,
         constants: HashMap<InternedStr, LocalDefId>,
@@ -57,13 +41,17 @@ enum Scope {
     },
     Class {
         fields: HashMap<InternedStr, LocalDefId>,
-        member_fns: HashMap<InternedStr, LocalDefId>,
+        self_fns: HashMap<InternedStr, LocalDefId>,
         generics: HashMap<InternedStr, LocalDefId>,
     },
     Enum {
         members: HashMap<InternedStr, LocalDefId>,
-        member_fns: HashMap<InternedStr, LocalDefId>,
+        self_fns: HashMap<InternedStr, LocalDefId>,
         generics: HashMap<InternedStr, LocalDefId>,
+    },
+    EnumMember {
+        fields: HashMap<InternedStr, LocalDefId>,
+        self_fns: HashMap<InternedStr, LocalDefId>,
     },
     SelfFn {
         params: HashMap<InternedStr, LocalDefId>,
@@ -75,7 +63,21 @@ enum Scope {
     },
 }
 
-impl Scope {}
+impl Scope {
+    pub fn contains_generic(&self, ident: InternedStr) -> Option<LocalDefId> {
+        match self {
+            Scope::Class { generics, .. } => generics.get(&ident).copied(),
+            Scope::Enum { generics, .. } => generics.get(&ident).copied(),
+            Scope::SelfFn { generics, .. } => generics.get(&ident).copied(),
+            Scope::Fn { generics, .. } => generics.get(&ident).copied(),
+            _ => None,
+        }
+    }
+
+    pub fn insert_generic(&self, ident: InternedStr, id: LocalDefId) {
+        todo!()
+    }
+}
 
 #[derive(Debug)]
 pub enum ResolveError {
@@ -139,13 +141,19 @@ struct CrateResolver<'a> {
 
 impl<'a> CrateResolver<'a> {
     fn new(krate: &'a Crate, krates: &'a HashMap<InternedStr, Crate>) -> Self {
-        Self {
+        let mut this = Self {
             krate,
             krates,
             items: Default::default(),
             nodes: Default::default(),
             scopes: Default::default(),
-        }
+        };
+        this.scopes.push(Scope::Crate {
+            ty_definitions: Default::default(),
+            constants: Default::default(),
+            fns: Default::default(),
+        });
+        this
     }
 
     fn resolve(mut self) -> Result<HirCrate, Vec<ResolveError>> {
@@ -193,7 +201,7 @@ impl<'a> CrateResolver<'a> {
         self.scopes.push(scope);
     }
 
-    fn end_scope(&mut self) {
+    fn destroy_scope(&mut self) {
         self.scopes.pop();
     }
 
@@ -217,11 +225,7 @@ impl<'a> CrateResolver<'a> {
     ) -> ResolveResult {
         match map.insert(ident, id) {
             None => Ok(()),
-            Some(existing) => {
-                let existing = existing.to_def_id(self.krate.id);
-                let new = id.to_def_id(self.krate.id);
-                Err(ResolveError::DuplicateDefinition { existing, new })
-            }
+            Some(existing) => self.duplicate_definition(existing, id),
         }
     }
 
@@ -235,6 +239,13 @@ impl<'a> CrateResolver<'a> {
             None => Ok(()),
             Some(existing) => Err(ResolveError::DuplicateDefinition { existing, new: id }),
         }
+    }
+
+    fn duplicate_definition(&mut self, existing: LocalDefId, new: LocalDefId) -> ResolveResult {
+        Err(ResolveError::DuplicateDefinition {
+            existing: existing.to_def_id(self.krate.id),
+            new: new.to_def_id(self.krate.id),
+        })
     }
 
     fn resolve_use_stmt(&mut self, use_stmt: UseStmt, span: Span, id: LocalDefId) -> ResolveResult {
@@ -296,6 +307,14 @@ impl<'a> CrateResolver<'a> {
         Ok(())
     }
 
+    fn resolve_generics(&mut self, generics: AstGenerics) -> Result<Generics, ResolveError> {
+        let mut hir_generics = Generics::with_capacity(generics.len());
+        for generic in generics {
+            hir_generics.push(self.resolve_ty(generic)?);
+        }
+        Ok(hir_generics)
+    }
+
     fn resolve_generic_params(
         &mut self,
         generic_params: AstGenericParams,
@@ -306,6 +325,9 @@ impl<'a> CrateResolver<'a> {
                 None => None,
                 Some(trait_bound) => Some(self.resolve_trait_bound(trait_bound)?),
             };
+
+            self.insert_generic_param(param.ident.ident, param.id)?;
+
             /*
                 We always want to insert the node, even if it clashes with another generic param.
                 Otherwise we can't look it up later when handling errors.
@@ -318,14 +340,43 @@ impl<'a> CrateResolver<'a> {
                     param.id,
                 ),
             );
-            if let Some(existing) = generics.insert(param.ident.ident, param.id) {
-                return Err(ResolveError::DuplicateDefinition {
-                    existing: existing.to_def_id(self.krate.id),
-                    new: param.id.to_def_id(self.krate.id),
-                });
-            }
+            self.insert_local_def_id(&mut generics, param.ident.ident, param.id)?;
         }
         Ok(generics)
+    }
+
+    fn insert_field(&mut self, field_name: InternedStr, id: LocalDefId) -> ResolveResult {
+        let mut fields = match self.scopes.last_mut().unwrap() {
+            Scope::Class { fields, .. } => fields,
+            Scope::EnumMember { fields, .. } => fields,
+            _ => panic!("Invalid field location!"),
+        };
+        self.insert_local_def_id(fields, field_name, id)
+    }
+
+    fn insert_fn_self(&mut self, fn_name: InternedStr, id: LocalDefId) -> ResolveResult {
+        let mut fns = match self.scopes.last_mut().unwrap() {
+            Scope::Class { self_fns, .. } => self_fns,
+            Scope::Enum { self_fns, .. } => self_fns,
+            Scope::EnumMember { self_fns, .. } => self_fns,
+            _ => panic!("Invalid self fn location!"),
+        };
+        self.insert_local_def_id(fns, fn_name, id)
+    }
+
+    fn insert_generic_param(&mut self, ident: InternedStr, id: LocalDefId) -> ResolveResult {
+        // Don't need to check in reverse order since we are checking for existence, not last declared.
+        if let Some(existing) = self
+            .scopes
+            .iter()
+            .find_map(|scope| scope.contains_generic(ident))
+        {
+            return self.duplicate_definition(existing, id);
+        }
+
+        // Insert generic into last scope (will return error if this is not a valid scope)
+        self.scopes.last().unwrap().insert_generic(ident, id);
+        Ok(())
     }
 
     fn resolve_fields(&mut self, class_stmt: &AstClassStmt) -> Result<Fields, ResolveError> {
@@ -337,6 +388,9 @@ impl<'a> CrateResolver<'a> {
                 span,
                 id,
             } = field;
+
+            self.insert_field(ident.ident, id)?;
+
             let resolved_ty = self.resolve_ty(ty)?;
             /*
                 We always want to insert the node, even if it clashes with another field.
@@ -346,13 +400,7 @@ impl<'a> CrateResolver<'a> {
                 id,
                 HirNode::new(HirNodeKind::Field(Field::new(ident, resolved_ty)), span, id),
             );
-
-            if let Some(existing) = fields.insert(ident.ident, id) {
-                return Err(ResolveError::DuplicateDefinition {
-                    existing: existing.to_def_id(self.krate.id),
-                    new: id.to_def_id(self.krate.id),
-                });
-            }
+            self.insert_local_def_id(&mut fields, ident.ident, id)?;
         }
         Ok(fields)
     }
@@ -365,9 +413,17 @@ impl<'a> CrateResolver<'a> {
     ) -> ResolveResult {
         self.insert_crate_scope(enum_stmt.name.ident, id.to_def_id(self.krate.id))?;
 
+        self.create_scope(Scope::Enum {
+            members: Default::default(),
+            self_fns: Default::default(),
+            generics: Default::default(),
+        });
+
         let generic_params = self.resolve_generic_params(enum_stmt.generic_params)?;
         let enum_members = self.resolve_enum_members(enum_stmt.members)?;
         let member_fns = self.resolve_fn_self_stmts(enum_stmt.member_fns)?;
+
+        self.destroy_scope();
 
         let item = HirItem::Enum(EnumStmt::new(
             enum_stmt.name,
@@ -412,7 +468,7 @@ impl<'a> CrateResolver<'a> {
         todo!()
     }
 
-    fn resolve_fn_self_stmt(
+    fn resolve_self_fn_stmt(
         &mut self,
         fn_stmt: AstFnSelfStmt,
     ) -> Result<(InternedStr, LocalDefId), ResolveError> {
@@ -440,16 +496,14 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_fn_self_stmts(&mut self, stmts: Vec<FnSelfStmt>) -> Result<FnStmts, ResolveError> {
-        // TODO: Need to gather all fn stmt names first so that we can properly resolve them.
+        for fn_stmt in stmts {
+            self.insert_fn_self(fn_stmt.sig.name.ident, fn_stmt.id)?;
+        }
+        // This is safe because we have already checked to ensure that there are no name collisions.
         let mut fn_stmts = FnStmts::default();
         for fn_stmt in stmts {
-            let (name, stmt) = self.resolve_fn_self_stmt(fn_stmt)?;
-            if let Some(existing) = fn_stmts.insert(name, stmt) {
-                return Err(ResolveError::DuplicateDefinition {
-                    existing: existing.to_def_id(self.krate.id),
-                    new: stmt.to_def_id(self.krate.id),
-                });
-            }
+            let (name, stmt) = self.resolve_self_fn_stmt(fn_stmt)?;
+            fn_stmts.insert(name, stmt);
         }
         Ok(fn_stmts)
     }
@@ -581,8 +635,58 @@ impl<'a> CrateResolver<'a> {
         Ok(id)
     }
 
-    fn resolve_ty(&mut self, ty: Ty) -> Result<LocalDefId, ResolveError> {
-        todo!()
+    fn resolve_ty(&mut self, ty: AstTy) -> Result<LocalDefId, ResolveError> {
+        let span = ty.span;
+        let id = ty.id;
+        let hir_ty = match ty.kind {
+            TyKind::Array { ty } => Ty::Array {
+                ty: self.resolve_ty(*ty)?,
+            },
+            TyKind::Path { path } => {
+                let def = self.resolve_qualified_ident(path.ident)?;
+                let generics = self.resolve_generics(path.generics)?;
+                Ty::Path {
+                    path: PathTy::new(def, generics),
+                }
+            }
+            TyKind::TraitBound { trait_bound } => {
+                let mut paths = Vec::with_capacity(trait_bound.bounds.len());
+                for path in trait_bound.bounds {
+                    let def = self.resolve_qualified_ident(path.ident)?;
+                    let generics = self.resolve_generics(path.generics)?;
+                    paths.push(PathTy::new(def, generics));
+                }
+                Ty::TraitBound {
+                    trait_bound: TraitBound::new(paths),
+                }
+            }
+            TyKind::Closure { params, ret_ty } => {
+                let params = params
+                    .into_iter()
+                    .map(|param| self.resolve_ty(param))
+                    .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
+                let ret_ty = self.resolve_ty(*ret_ty)?;
+                Ty::Closure { params, ret_ty }
+            }
+            TyKind::Infer => Ty::Infer,
+            TyKind::QSelf => Ty::QSelf,
+            TyKind::U8 => Ty::U8,
+            TyKind::U16 => Ty::U16,
+            TyKind::U32 => Ty::U32,
+            TyKind::U64 => Ty::U64,
+            TyKind::I8 => Ty::I8,
+            TyKind::I16 => Ty::I16,
+            TyKind::I32 => Ty::I32,
+            TyKind::I64 => Ty::I64,
+            TyKind::F32 => Ty::F32,
+            TyKind::F64 => Ty::F64,
+            TyKind::Str => Ty::Str,
+            TyKind::None => Ty::None,
+        };
+
+        self.nodes
+            .insert(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id));
+        Ok(id)
     }
 
     fn resolve_trait_bound(
@@ -617,6 +721,10 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_pattern(&mut self, pattern: AstPattern) -> Result<LocalDefId, ResolveError> {
+        todo!()
+    }
+
+    fn resolve_qualified_ident(&mut self, ident: QualifiedIdent) -> Result<DefId, ResolveError> {
         todo!()
     }
 

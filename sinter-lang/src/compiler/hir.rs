@@ -3,6 +3,7 @@ use crate::compiler::krate::CrateId;
 use crate::compiler::parser::ClassType;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::types::InternedStr;
+use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::marker::PhantomData;
@@ -226,11 +227,22 @@ pub struct Expression {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 //noinspection DuplicatedCode
 pub enum Ty {
-    Array { ty: Box<Ty> },
-    Path { path: PathTy },
-    Union { tys: Vec<Ty> },
-    TraitBound { trait_bound: TraitBound },
-    Closure { params: Vec<Ty>, ret_ty: Box<Ty> },
+    Array {
+        ty: LocalDefId,
+    },
+    Path {
+        path: PathTy,
+    },
+    Union {
+        tys: Vec<LocalDefId>,
+    },
+    TraitBound {
+        trait_bound: TraitBound,
+    },
+    Closure {
+        params: Vec<LocalDefId>,
+        ret_ty: LocalDefId,
+    },
     Infer,
     QSelf,
     U8,
@@ -260,13 +272,28 @@ pub enum Stmt {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct PathTy {
-    pub ident: QualifiedIdent,
+    pub definition: DefId,
     pub generics: Generics,
+}
+
+impl PathTy {
+    pub fn new(definition: DefId, generics: Generics) -> Self {
+        Self {
+            definition,
+            generics,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitBound {
     bounds: Vec<PathTy>,
+}
+
+impl TraitBound {
+    pub fn new(bounds: Vec<PathTy>) -> Self {
+        Self { bounds }
+    }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
