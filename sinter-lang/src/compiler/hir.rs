@@ -7,7 +7,7 @@ use crate::traits::traits::Trait;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::marker::PhantomData;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 #[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct DefId {
@@ -41,7 +41,7 @@ impl From<u32> for LocalDefId {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct HirNode {
     pub(crate) kind: HirNodeKind,
     pub(crate) span: Span,
@@ -54,7 +54,7 @@ impl HirNode {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum HirNodeKind {
     Item(HirItem),
 
@@ -73,7 +73,7 @@ pub enum HirNodeKind {
     MatchArm(MatchArm),
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum HirItem {
     GlobalLet(GlobalLetStmt),
     Class(ClassStmt),
@@ -83,14 +83,14 @@ pub enum HirItem {
     Fn(FnStmt),
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
     pub ident: InternedStr,
     pub ty: Option<LocalDefId>,
     pub initializer: LocalDefId,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ClassStmt {
     pub(crate) name: Ident,
     pub(crate) class_type: ClassType,
@@ -117,7 +117,7 @@ impl ClassStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct EnumStmt {
     pub name: Ident,
     pub generic_params: GenericParams,
@@ -141,7 +141,7 @@ impl EnumStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct EnumMember {
     pub name: InternedStr,
     pub fields: Fields,
@@ -150,7 +150,7 @@ pub struct EnumMember {
     pub id: LocalDefId,
 }
 
-#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EnumMembers {
     members: HashMap<InternedStr, LocalDefId>,
 }
@@ -163,20 +163,20 @@ impl Deref for EnumMembers {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitStmt {
     pub name: Ident,
     pub generic_params: GenericParams,
     pub member_fns: FnStmts,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitImplStmt {
     pub trait_to_impl: DefId,
     pub target_ty: DefId,
     pub member_fns: FnStmts,
 }
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct FnStmt {
     pub(crate) sig: FnSig,
     pub(crate) body: Option<LocalDefId>,
@@ -188,7 +188,7 @@ impl FnStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct FnSig {
     pub(crate) name: Ident,
     pub(crate) generic_params: GenericParams,
@@ -213,7 +213,7 @@ impl Param {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Block {
     pub stmts: Stmts,
 }
@@ -259,7 +259,7 @@ pub enum Ty {
     None,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Stmt {
     Let(LetStmt),
     For(ForStmt),
@@ -296,7 +296,7 @@ impl TraitBound {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Expr {
     Array(ArrayExpr),
     Call(CallExpr),
@@ -318,7 +318,7 @@ pub enum Expr {
     Continue,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum ArrayExpr {
     Sized {
         initializer: LocalDefId,
@@ -328,7 +328,7 @@ pub enum ArrayExpr {
         initializers: Vec<LocalDefId>,
     },
 }
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct CallExpr {
     pub target: LocalDefId,
     pub args: Args,
@@ -340,7 +340,7 @@ impl CallExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct UnaryExpr {
     pub operator: UnaryOp,
     pub expr: LocalDefId,
@@ -352,7 +352,7 @@ impl UnaryExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct InfixExpr {
     pub operator: InfixOp,
     pub lhs: LocalDefId,
@@ -365,7 +365,7 @@ impl InfixExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct MatchExpr {
     pub source: LocalDefId,
     pub arms: Vec<MatchArm>,
@@ -377,7 +377,7 @@ impl MatchExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct MatchArm {
     pub pattern: LocalDefId,
     pub body: LocalDefId,
@@ -389,7 +389,7 @@ impl MatchArm {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Pattern {
     Wildcard,
     // _
@@ -406,12 +406,12 @@ pub enum Pattern {
     Destructure(DestructurePattern), // Logical(1, true, 100) => { }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct OrPattern {
     patterns: Vec<LocalDefId>,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TyPattern {
     pub ty: LocalDefId,
     pub ident: Option<PatternLocal>,
@@ -424,13 +424,13 @@ pub struct PatternLocal {
     pub ident: InternedStr,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct DestructurePattern {
     pub ty: LocalDefId,
     pub exprs: Vec<LocalDefId>,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ClosureExpr {
     pub params: ClosureParams,
     pub stmt: LocalDefId,
@@ -442,7 +442,7 @@ impl ClosureExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct AssignExpr {
     pub lhs: LocalDefId,
     pub rhs: LocalDefId,
@@ -454,7 +454,7 @@ impl AssignExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct FieldExpr {
     pub lhs: LocalDefId,
     pub ident: Ident,
@@ -466,7 +466,7 @@ impl FieldExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct IndexExpr {
     pub expr: LocalDefId,
     pub key: LocalDefId,
@@ -478,7 +478,7 @@ impl IndexExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct PathExpr {
     pub segments: Vec<Segment>,
 }
@@ -489,7 +489,7 @@ impl PathExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Segment {
     pub ident: Ident,
     pub generics: Option<Generics>,
@@ -501,7 +501,7 @@ impl Segment {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Field {
     pub(crate) ident: Ident,
     pub(crate) ty: LocalDefId,
@@ -513,7 +513,7 @@ impl Field {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct LetStmt {
     pub ident: Ident,
     pub mutability: Mutability,
@@ -521,24 +521,24 @@ pub struct LetStmt {
     pub initializer: Option<LocalDefId>,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ReturnStmt {
     pub value: Option<LocalDefId>,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct WhileStmt {
     pub condition: LocalDefId,
     pub block_stmt: LocalDefId,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ForStmt {}
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct IfStmt {}
 
-#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct FnStmts {
     fields: HashMap<InternedStr, LocalDefId>,
 }
@@ -551,23 +551,29 @@ impl Deref for FnStmts {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+impl DerefMut for FnStmts {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.fields
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Stmts {
     fields: Vec<LocalDefId>,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Args {
-    fields: HashMap<InternedStr, LocalDefId>,
+    args: Vec<LocalDefId>,
 }
 
 impl Args {
-    pub fn new(fields: Hashmap<InternedStr, LocalDefId>) -> Self {
-        Self { fields }
+    pub fn new(args: Vec<LocalDefId>) -> Self {
+        Self { args }
     }
 }
 
-#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Fields {
     fields: HashMap<InternedStr, LocalDefId>,
 }
@@ -580,7 +586,13 @@ impl Deref for Fields {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+impl DerefMut for Fields {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.fields
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct ClosureParam {
@@ -593,12 +605,12 @@ impl ClosureParam {
     }
 }
 
-#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Params {
     fields: HashMap<InternedStr, LocalDefId>,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ClosureParams {
     fields: HashMap<InternedStr, ClosureParam>,
 }
@@ -617,7 +629,7 @@ impl Deref for ClosureParams {
     }
 }
 
-#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct GenericParams {
     fields: HashMap<InternedStr, LocalDefId>,
 }
@@ -630,7 +642,13 @@ impl Deref for GenericParams {
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+impl DerefMut for GenericParams {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.fields
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericParam {
     pub(crate) ident: Ident,
     pub(crate) trait_bound: Option<LocalDefId>,
@@ -663,6 +681,13 @@ impl Deref for Generics {
     }
 }
 
+impl DerefMut for Generics {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.generics
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct HirCrate {
     pub(crate) name: InternedStr,
     pub(crate) id: CrateId,

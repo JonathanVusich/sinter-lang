@@ -26,7 +26,7 @@ use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
 #[derive(Default)]
-struct Compiler {
+pub struct Compiler {
     compiler_ctxt: CompilerCtxt,
 }
 
@@ -188,7 +188,7 @@ impl Compiler {
         Ok(crates)
     }
 
-    fn parse_crate(&mut self, path: &Path) -> Result<Crate, CompileError> {
+    pub(crate) fn parse_crate(&mut self, path: &Path) -> Result<Crate, CompileError> {
         let krate_name = path
             .file_name()
             .ok_or_else(|| CompileError::InvalidCrateName(path.as_os_str().to_os_string()))

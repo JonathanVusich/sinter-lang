@@ -1,7 +1,8 @@
-use std::ops::Deref;
 use crate::compiler::ast::{Ident, QualifiedIdent, Segment};
 use crate::compiler::types::types::InternedStr;
 use serde::{Deserialize, Serialize};
+use std::borrow::Borrow;
+use std::ops::Deref;
 use std::path::Path;
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Default, Serialize, Deserialize)]
@@ -15,10 +16,13 @@ impl ModulePath {
     }
 }
 
-impl From<QualifiedIdent> for ModulePath {
-    fn from(value: QualifiedIdent) -> Self {
+impl<T> From<T> for ModulePath
+where
+    T: Borrow<QualifiedIdent>,
+{
+    fn from(value: T) -> Self {
         Self {
-            krate_path: value.iter().map(|ident| ident.ident).collect()
+            krate_path: value.borrow().iter().map(|ident| ident.ident).collect(),
         }
     }
 }
@@ -30,4 +34,3 @@ impl Deref for ModulePath {
         &self.krate_path
     }
 }
-
