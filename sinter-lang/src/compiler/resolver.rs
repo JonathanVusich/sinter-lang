@@ -1,5 +1,11 @@
+use std::collections::{HashMap, HashSet};
+use std::error::Error;
+use std::fmt::{Debug, Display, Formatter};
+use std::hash::Hash;
+use std::ops::Deref;
+
 use crate::compiler::ast::{
-    ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, Block, ClassStmt as AstClassStmt,
+    ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt,
     ClosureParam as AstClosureParam, EnumMember as AstEnumMember, EnumStmt as AstEnumStmt,
     ExprKind as AstExprKind, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
     FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt,
@@ -13,30 +19,39 @@ use crate::compiler::compiler::CompileError;
 use crate::compiler::hir;
 use crate::compiler::hir::HirItem::Trait;
 use crate::compiler::hir::{
-    Args, ArrayExpr, AssignExpr, CallExpr, ClassStmt, ClosureExpr, ClosureParam, ClosureParams,
-    DefId, EnumMembers, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts,
-    GenericParam, GenericParams, Generics, HirCrate, HirItem, HirNode, HirNodeKind, IndexExpr,
-    InfixExpr, LocalDefId, MatchArm, MatchExpr, Param, Params, PathExpr, PathTy, Pattern, Segment,
-    Stmt, TraitBound, Ty, UnaryExpr,
+    Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
+    ClosureParams, DefId, EnumMembers, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt,
+    FnStmts, GenericParam, GenericParams, Generics, HirCrate, HirItem, HirNode, HirNodeKind,
+    IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, Param, Params, PathExpr,
+    PathTy, Pattern, Segment, Stmt, Stmts, TraitBound, Ty, UnaryExpr,
 };
 use crate::compiler::krate::Crate;
 use crate::compiler::path::ModulePath;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::types::InternedStr;
-use std::collections::{HashMap, HashSet};
-use std::error::Error;
-use std::fmt::{Debug, Display, Formatter};
-use std::ops::Deref;
 
 pub fn resolve(crates: HashMap<InternedStr, Crate>) -> Result<Vec<HirCrate>, CompileError> {
-    let mut resolver = Resolver::new(crates);
+    let resolver = Resolver::new(crates);
     resolver.resolve()
 }
 
+#[derive(Default)]
+struct ModuleScope {
+    items: HashMap<InternedStr, DefId>,
+}
+
+impl ModuleScope {
+    pub(crate) fn insert(&mut self, ident: InternedStr, id: DefId) -> ResolveResult {
+        match self.items.insert(ident, id) {
+            None => Ok(()),
+            Some(existing) => Err(ResolveError::DuplicateDefinition { existing, new: id }),
+        }
+    }
+}
+
 pub enum Scope {
-    Crate {
-        ty_definitions: HashMap<InternedStr, DefId>,
-        constants: HashMap<InternedStr, LocalDefId>,
+    Module {
+        imported_items: HashMap<InternedStr, DefId>,
         fns: HashMap<InternedStr, LocalDefId>,
     },
     Class {
@@ -56,12 +71,16 @@ pub enum Scope {
     SelfFn {
         params: HashMap<InternedStr, LocalDefId>,
         generics: HashMap<InternedStr, LocalDefId>,
+        vars: HashMap<InternedStr, LocalDefId>,
     },
     Fn {
         params: HashMap<InternedStr, LocalDefId>,
         generics: HashMap<InternedStr, LocalDefId>,
+        vars: HashMap<InternedStr, LocalDefId>,
     },
-    // TODO: Add traits
+    For {
+        iteration_var: (InternedStr, LocalDefId),
+    }, // TODO: Add traits
 }
 
 impl Scope {
@@ -82,6 +101,31 @@ impl Scope {
             _ => panic!("Cannot insert field into this scope!"),
         };
         fields.insert(ident, id)
+    }
+
+    pub fn insert_var(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
+        match self {
+            Scope::SelfFn { vars, .. } => vars.insert(ident, id),
+            Scope::Fn { vars, .. } => vars.insert(ident, id),
+            _ => panic!("Cannot insert var into this scope!"),
+        }
+    }
+
+    pub fn insert_fn(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
+        match self {
+            Scope::Module { fns, .. } => fns.insert(ident, id),
+            _ => panic!("Cannot insert function into this scope!"),
+        }
+    }
+
+    pub fn insert_self_fn(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
+        let self_fns = match self {
+            Scope::Class { self_fns, .. } => self_fns,
+            Scope::Enum { self_fns, .. } => self_fns,
+            Scope::EnumMember { self_fns, .. } => self_fns,
+            _ => panic!("Cannot insert self fn into this scope!"),
+        };
+        self_fns.insert(ident, id)
     }
 
     pub fn insert_generic(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
@@ -130,7 +174,7 @@ impl Resolver {
         }
     }
 
-    fn resolve(mut self) -> Result<Vec<HirCrate>, CompileError> {
+    fn resolve(self) -> Result<Vec<HirCrate>, CompileError> {
         let mut krates = Vec::new();
         let mut resolve_errors = Vec::new();
         for krate in self.crates.values() {
@@ -156,30 +200,25 @@ struct CrateResolver<'a> {
     krates: &'a HashMap<InternedStr, Crate>,
     items: Vec<LocalDefId>,
     nodes: HashMap<LocalDefId, HirNode>,
+    module_scope: ModuleScope,
     scopes: Vec<Scope>,
 }
 
 impl<'a> CrateResolver<'a> {
     fn new(krate: &'a Crate, krates: &'a HashMap<InternedStr, Crate>) -> Self {
-        let mut this = Self {
+        Self {
             krate,
             krates,
             items: Default::default(),
             nodes: Default::default(),
+            module_scope: ModuleScope::default(),
             scopes: Default::default(),
-        };
-        this.scopes.push(Scope::Crate {
-            ty_definitions: Default::default(),
-            constants: Default::default(),
-            fns: Default::default(),
-        });
-        this
+        }
     }
 
     fn resolve(mut self) -> Result<HirCrate, CompileError> {
         let mut errors = Vec::new();
         for module in self.krate.module_lookup.values() {
-            // TODO: Do we need an individual module resolver???????
             // First need to populate the module scope (from used items + module items)
 
             for item in &module.items {
@@ -207,6 +246,10 @@ impl<'a> CrateResolver<'a> {
                     _ => {}
                 }
             }
+
+            // We have to remember to clear out all scopes and reset the module scope
+            self.module_scope = ModuleScope::default();
+            self.scopes.clear();
         }
         if !errors.is_empty() {
             Err(CompileError::ResolveErrors(errors))
@@ -218,26 +261,6 @@ impl<'a> CrateResolver<'a> {
                 self.nodes,
             ))
         }
-    }
-
-    fn create_scope(&mut self, scope: Scope) {
-        self.scopes.push(scope);
-    }
-
-    fn destroy_scope(&mut self) {
-        self.scopes.pop();
-    }
-
-    fn insert_crate_scope(&mut self, ident: InternedStr, id: DefId) -> ResolveResult {
-        if let Some(Scope::Crate {
-            ty_definitions,
-            constants,
-            fns,
-        }) = self.scopes.get_mut(0)
-        {
-            return self.insert_def_id(ty_definitions, ident, id);
-        }
-        panic!("No crate scope was found!")
     }
 
     fn insert_local_def_id(
@@ -264,7 +287,7 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn duplicate_definition(&mut self, existing: LocalDefId, new: LocalDefId) -> ResolveResult {
+    fn duplicate_definition(&self, existing: LocalDefId, new: LocalDefId) -> ResolveResult {
         Err(ResolveError::DuplicateDefinition {
             existing: existing.to_def_id(self.krate.id),
             new: new.to_def_id(self.krate.id),
@@ -280,7 +303,7 @@ impl<'a> CrateResolver<'a> {
         match use_stmt {
             UseStmt::Crate { mod_path, item } => {
                 let def_id = id.to_def_id(self.krate.id);
-                self.insert_crate_scope(item.ident, def_id)?;
+                self.module_scope.insert(item.ident, def_id)?;
             }
             UseStmt::Global {
                 krate,
@@ -290,8 +313,8 @@ impl<'a> CrateResolver<'a> {
                 let krate = self.krates.get(&krate.ident).unwrap(); // Should be safe, if crate isn't found it will throw an error earlier
                 let def_id = krate
                     .find_definition(&mod_path.into(), item.ident)
-                    .ok_or_else(|| ResolveError::DefinitionNotFound)?;
-                self.insert_crate_scope(item.ident, def_id)?;
+                    .ok_or(ResolveError::DefinitionNotFound)?;
+                self.module_scope.insert(item.ident, def_id)?;
             }
         };
         Ok(())
@@ -305,8 +328,6 @@ impl<'a> CrateResolver<'a> {
     ) -> ResolveResult {
         // Lower expression
         let expr_id = self.resolve_expr(&let_stmt.initializer)?;
-
-        self.insert_crate_scope(let_stmt.ident.ident, expr_id.to_def_id(self.krate.id))?;
         Ok(())
     }
 
@@ -316,11 +337,9 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
-        self.insert_crate_scope(class_stmt.name.ident, id.to_def_id(self.krate.id))?;
-
         // We have to resolve generics params, fields, and fns in that order.
         let generic_params = self.resolve_generic_params(&class_stmt.generic_params)?;
-        let fields = self.resolve_fields(&class_stmt)?;
+        let fields = self.resolve_fields(class_stmt)?;
         let fn_stmts = self.resolve_fn_self_stmts(&class_stmt.fn_stmts)?;
 
         let item = HirItem::Class(ClassStmt::new(
@@ -375,22 +394,31 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn insert_field(&mut self, field_name: InternedStr, id: LocalDefId) -> ResolveResult {
-        let fields = match self.scopes.last_mut().unwrap() {
-            Scope::Class { fields, .. } => fields,
-            Scope::EnumMember { fields, .. } => fields,
-            _ => panic!("Invalid field location!"),
-        };
-        self.insert_local_def_id(fields, field_name, id)
+        match self.scopes.last_mut().unwrap().insert_field(field_name, id) {
+            None => Ok(()),
+            Some(existing) => self.duplicate_definition(existing, id),
+        }
+    }
+
+    fn insert_var(&mut self, var_name: InternedStr, id: LocalDefId) -> ResolveResult {
+        match self.scopes.last_mut().unwrap().insert_var(var_name, id) {
+            None => Ok(()),
+            Some(existing) => self.duplicate_definition(existing, id),
+        }
+    }
+
+    fn insert_fn(&mut self, fn_name: InternedStr, id: LocalDefId) -> ResolveResult {
+        match self.scopes.first_mut().unwrap().insert_fn(fn_name, id) {
+            None => Ok(()),
+            Some(existing) => self.duplicate_definition(existing, id),
+        }
     }
 
     fn insert_self_fn(&mut self, fn_name: InternedStr, id: LocalDefId) -> ResolveResult {
-        let mut fns = match self.scopes.last_mut().unwrap() {
-            Scope::Class { self_fns, .. } => self_fns,
-            Scope::Enum { self_fns, .. } => self_fns,
-            Scope::EnumMember { self_fns, .. } => self_fns,
-            _ => panic!("Invalid self fn location!"),
-        };
-        self.insert_local_def_id(fns, fn_name, id)
+        match self.scopes.last_mut().unwrap().insert_self_fn(fn_name, id) {
+            None => Ok(()),
+            Some(existing) => self.duplicate_definition(existing, id),
+        }
     }
 
     fn insert_generic_param(&mut self, ident: InternedStr, id: LocalDefId) -> ResolveResult {
@@ -404,7 +432,7 @@ impl<'a> CrateResolver<'a> {
         }
 
         // Insert generic into last scope (will return error if this is not a valid scope)
-        self.scopes.last().unwrap().insert_generic(ident, id);
+        self.insert_generic_param(ident, id)?;
         Ok(())
     }
 
@@ -418,9 +446,11 @@ impl<'a> CrateResolver<'a> {
                 id,
             } = field;
 
+            // ?? self.current_scope().insert_field(ident.ident, *id)?;
+
             self.insert_field(ident.ident, *id)?;
 
-            let resolved_ty = self.resolve_ty(&ty)?;
+            let resolved_ty = self.resolve_ty(ty)?;
             /*
                 We always want to insert the node, even if it clashes with another field.
                 Otherwise we can't look it up later when handling errors.
@@ -428,7 +458,7 @@ impl<'a> CrateResolver<'a> {
             self.nodes.insert(
                 *id,
                 HirNode::new(
-                    HirNodeKind::Field(Field::new(ident.clone(), resolved_ty)),
+                    HirNodeKind::Field(Field::new(*ident, resolved_ty)),
                     *span,
                     *id,
                 ),
@@ -444,9 +474,10 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
-        self.insert_crate_scope(enum_stmt.name.ident, id.to_def_id(self.krate.id))?;
+        self.module_scope
+            .insert(enum_stmt.name.ident, id.to_def_id(self.krate.id))?;
 
-        self.create_scope(Scope::Enum {
+        self.scopes.push(Scope::Enum {
             members: Default::default(),
             self_fns: Default::default(),
             generics: Default::default(),
@@ -456,7 +487,7 @@ impl<'a> CrateResolver<'a> {
         let enum_members = self.resolve_enum_members(&enum_stmt.members)?;
         let member_fns = self.resolve_fn_self_stmts(&enum_stmt.member_fns)?;
 
-        self.destroy_scope();
+        self.scopes.pop();
 
         let item = HirItem::Enum(EnumStmt::new(
             enum_stmt.name,
@@ -474,7 +505,7 @@ impl<'a> CrateResolver<'a> {
         &mut self,
         enum_stmt_members: &Vec<AstEnumMember>,
     ) -> Result<EnumMembers, ResolveError> {
-        let mut enum_members = EnumMembers::default();
+        let enum_members = EnumMembers::default();
         for member in enum_stmt_members {}
         todo!()
     }
@@ -503,7 +534,22 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
-        todo!()
+        let resolved_body = self.maybe_resolve_block(&fn_stmt.body)?;
+        let resolved_sig = self.resolve_fn_sig(&fn_stmt.sig)?;
+
+        let name = resolved_sig.name.ident;
+
+        self.insert_fn(name, id)?;
+
+        self.nodes.insert(
+            id,
+            HirNode::new(
+                HirNodeKind::Fn(FnStmt::new(resolved_sig, resolved_body)),
+                span,
+                id,
+            ),
+        );
+        Ok(())
     }
 
     fn resolve_self_fn_stmt(
@@ -516,10 +562,7 @@ impl<'a> CrateResolver<'a> {
             span,
             id,
         } = fn_stmt;
-        let resolved_body = match body {
-            None => None,
-            Some(block) => Some(self.resolve_block(block)?),
-        };
+        let resolved_body = self.maybe_resolve_block(body)?;
         let resolved_sig = self.resolve_fn_sig(sig)?;
         let name = resolved_sig.name.ident;
         self.nodes.insert(
@@ -540,7 +583,7 @@ impl<'a> CrateResolver<'a> {
         // This is safe because we have already checked to ensure that there are no name collisions.
         let mut fn_stmts = FnStmts::default();
         for fn_stmt in stmts {
-            let (name, stmt) = self.resolve_self_fn_stmt(&fn_stmt)?;
+            let (name, stmt) = self.resolve_self_fn_stmt(fn_stmt)?;
             fn_stmts.insert(name, stmt);
         }
         Ok(fn_stmts)
@@ -556,20 +599,31 @@ impl<'a> CrateResolver<'a> {
         todo!()
     }
 
+    fn maybe_resolve_expr(
+        &mut self,
+        expr: &Option<Box<AstExpr>>,
+    ) -> Result<Option<LocalDefId>, ResolveError> {
+        if let Some(expr) = expr {
+            self.resolve_expr(expr).map(|expr| Some(expr))
+        } else {
+            Ok(None)
+        }
+    }
+
     fn resolve_expr(&mut self, expr: &AstExpr) -> Result<LocalDefId, ResolveError> {
         let span = expr.span;
         let id = expr.id;
         let resolved_expr = match &expr.kind {
             AstExprKind::Array(array_expr) => match array_expr {
                 AstArrayExpr::SizedInitializer(initializer, size) => {
-                    let initializer = self.resolve_expr(&*initializer)?;
-                    let size = self.resolve_expr(&*size)?;
+                    let initializer = self.resolve_expr(initializer)?;
+                    let size = self.resolve_expr(size)?;
 
                     Expr::Array(ArrayExpr::Sized { initializer, size })
                 }
                 AstArrayExpr::Initializer(initializers) => {
                     let initializers = initializers
-                        .into_iter()
+                        .iter()
                         .map(|expr| self.resolve_expr(expr))
                         .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
 
@@ -582,7 +636,7 @@ impl<'a> CrateResolver<'a> {
                     .iter()
                     .map(|expr| self.resolve_expr(expr))
                     .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
-                let target = self.resolve_expr(&*call.target)?;
+                let target = self.resolve_expr(&call.target)?;
 
                 Expr::Call(CallExpr::new(target, Args::new(args)))
             }
@@ -592,18 +646,18 @@ impl<'a> CrateResolver<'a> {
                     .iter()
                     .map(|expr| self.resolve_expr(expr))
                     .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
-                let target = self.resolve_expr(&*constructor.target)?;
+                let target = self.resolve_expr(&constructor.target)?;
 
                 Expr::Constructor(CallExpr::new(target, Args::new(args)))
             }
             AstExprKind::Infix(infix) => {
-                let lhs = self.resolve_expr(&*infix.lhs)?;
-                let rhs = self.resolve_expr(&*infix.rhs)?;
+                let lhs = self.resolve_expr(&infix.lhs)?;
+                let rhs = self.resolve_expr(&infix.rhs)?;
 
                 Expr::Infix(InfixExpr::new(infix.operator, lhs, rhs))
             }
             AstExprKind::Unary(unary) => {
-                let expr = self.resolve_expr(&*unary.expr)?;
+                let expr = self.resolve_expr(&unary.expr)?;
 
                 Expr::Unary(UnaryExpr::new(unary.operator, expr))
             }
@@ -613,7 +667,7 @@ impl<'a> CrateResolver<'a> {
             AstExprKind::Float(float) => Expr::Float(*float),
             AstExprKind::String(string) => Expr::String(*string),
             AstExprKind::Match(match_expr) => {
-                let source = self.resolve_expr(&*match_expr.source)?;
+                let source = self.resolve_expr(&match_expr.source)?;
                 let arms = match_expr
                     .arms
                     .iter()
@@ -628,17 +682,17 @@ impl<'a> CrateResolver<'a> {
                 Expr::Closure(ClosureExpr::new(params, stmt))
             }
             AstExprKind::Assign(assign) => {
-                let lhs = self.resolve_expr(&*assign.lhs)?;
-                let rhs = self.resolve_expr(&*assign.rhs)?;
+                let lhs = self.resolve_expr(&assign.lhs)?;
+                let rhs = self.resolve_expr(&assign.rhs)?;
                 Expr::Assign(AssignExpr::new(lhs, rhs))
             }
             AstExprKind::Field(field) => {
-                let lhs = self.resolve_expr(&*field.lhs)?;
+                let lhs = self.resolve_expr(&field.lhs)?;
                 Expr::Field(FieldExpr::new(lhs, field.ident))
             }
             AstExprKind::Index(index) => {
-                let expr = self.resolve_expr(&*index.expr)?;
-                let key = self.resolve_expr(&*index.key)?;
+                let expr = self.resolve_expr(&index.expr)?;
+                let key = self.resolve_expr(&index.key)?;
                 Expr::Index(IndexExpr::new(expr, key))
             }
             AstExprKind::Path(path) => {
@@ -661,7 +715,7 @@ impl<'a> CrateResolver<'a> {
             }
             AstExprKind::Parentheses(parentheses) => {
                 // Special logic for stripping parenthese (since they are just for pretty printing)
-                let resolved_expr = self.resolve_expr(&*parentheses.expr)?;
+                let resolved_expr = self.resolve_expr(&parentheses.expr)?;
                 return Ok(id);
             }
             AstExprKind::Break => Expr::Break,
@@ -673,12 +727,20 @@ impl<'a> CrateResolver<'a> {
         Ok(id)
     }
 
+    fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Result<Option<LocalDefId>, ResolveError> {
+        if let Some(ty) = ty {
+            self.resolve_ty(ty).map(|ty| Some(ty))
+        } else {
+            Ok(None)
+        }
+    }
+
     fn resolve_ty(&mut self, ty: &AstTy) -> Result<LocalDefId, ResolveError> {
         let span = ty.span;
         let id = ty.id;
         let hir_ty = match &ty.kind {
             TyKind::Array { ty } => Ty::Array {
-                ty: self.resolve_ty(&*ty)?,
+                ty: self.resolve_ty(ty)?,
             },
             TyKind::Path { path } => {
                 let def = self.resolve_qualified_ident(&path.ident)?;
@@ -700,10 +762,10 @@ impl<'a> CrateResolver<'a> {
             }
             TyKind::Closure { params, ret_ty } => {
                 let params = params
-                    .into_iter()
+                    .iter()
                     .map(|param| self.resolve_ty(param))
                     .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
-                let ret_ty = self.resolve_ty(&*ret_ty)?;
+                let ret_ty = self.resolve_ty(ret_ty)?;
                 Ty::Closure { params, ret_ty }
             }
             TyKind::Infer => Ty::Infer,
@@ -735,20 +797,72 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_stmt(&mut self, stmt: &AstStmt) -> Result<LocalDefId, ResolveError> {
-        match stmt {
-            AstStmt::Let(_) => {}
-            AstStmt::For(_) => {}
-            AstStmt::If(_) => {}
-            AstStmt::Return(_) => {}
-            AstStmt::While(_) => {}
-            AstStmt::Block(_) => {}
-            AstStmt::Expression(_) => {}
-        }
-        todo!()
+        let (hir_stmt, span, id) = match stmt {
+            AstStmt::Let(let_stmt) => {
+                self.insert_var(let_stmt.ident.ident, let_stmt.id)?;
+
+                let resolved_ty = self.maybe_resolve_ty(&let_stmt.ty)?;
+                let resolved_initializer = self.maybe_resolve_expr(&let_stmt.initializer)?;
+
+                let stmt = Stmt::Let(LetStmt::new(
+                    let_stmt.ident,
+                    let_stmt.mutability,
+                    resolved_ty,
+                    resolved_initializer,
+                ));
+                (stmt, let_stmt.span, let_stmt.id)
+            }
+            AstStmt::For(for_stmt) => {
+                self.scopes.push(Scope::For {
+                    iteration_var: (for_stmt.ident.ident, for_stmt.ident.id),
+                });
+
+                self.scopes.pop();
+                todo!()
+            }
+            AstStmt::If(if_stmt) => {
+                todo!()
+            }
+            AstStmt::Return(return_stmt) => {
+                todo!()
+            }
+            AstStmt::While(while_stmt) => {
+                todo!()
+            }
+            AstStmt::Block(block) => {
+                todo!()
+            }
+            AstStmt::Expression(expression) => {
+                todo!()
+            }
+        };
+
+        self.nodes
+            .insert(id, HirNode::new(HirNodeKind::Stmt(hir_stmt), span, id));
+
+        Ok(id)
     }
 
-    fn resolve_block(&mut self, block: &AstBlock) -> Result<LocalDefId, ResolveError> {
-        todo!()
+    fn maybe_resolve_block(
+        &mut self,
+        block: &Option<AstBlock>,
+    ) -> Result<Option<LocalDefId>, ResolveError> {
+        match block {
+            None => Ok(None),
+            Some(block) => {
+                let mut stmts = Stmts::default();
+                for stmt in &block.stmts {
+                    stmts.push(self.resolve_stmt(stmt)?);
+                }
+
+                self.nodes.insert(
+                    block.id,
+                    HirNode::new(HirNodeKind::Block(Block::new(stmts)), block.span, block.id),
+                );
+
+                Ok(Some(block.id))
+            }
+        }
     }
 
     fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Result<MatchArm, ResolveError> {
@@ -768,11 +882,11 @@ impl<'a> CrateResolver<'a> {
 
     fn resolve_closure_params(
         &mut self,
-        params: &Vec<AstClosureParam>,
+        params: &[AstClosureParam],
     ) -> Result<ClosureParams, ResolveError> {
         // TODO: Add vars to scope
-        let mut params = params
-            .into_iter()
+        let params = params
+            .iter()
             .map(|param| (param.ident.ident, ClosureParam::new(param.ident)))
             .collect();
         Ok(ClosureParams::new(params))
@@ -780,19 +894,24 @@ impl<'a> CrateResolver<'a> {
 }
 
 mod tests {
+    use std::collections::HashMap;
+
+    use snap::snapshot;
+
     use crate::compiler::compiler::{CompileError, Compiler};
     use crate::compiler::hir::HirCrate;
     use crate::compiler::resolver::{CrateResolver, Resolver};
     use crate::util::utils;
-    use snap::snapshot;
-    use std::collections::HashMap;
 
     #[test]
     #[snapshot]
     pub fn resolve_class_stmt() -> HirCrate {
         let mut compiler = Compiler::default();
-        let krate = compiler.parse_crate(&utils::resolve_test_krate_path("complex_arithmetic"));
-        let mut crate_resolver = CrateResolver::new(&krate, &HashMap::default());
-        crate_resolver.resolve()
+        let krate = compiler
+            .parse_crate(&utils::resolve_test_krate_path("complex_arithmetic"))
+            .unwrap();
+        let map = HashMap::default();
+        let crate_resolver = CrateResolver::new(&krate, &map);
+        crate_resolver.resolve().unwrap()
     }
 }

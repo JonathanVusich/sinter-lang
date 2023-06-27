@@ -117,7 +117,7 @@ where
 }
 
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
-struct ModuleNamespace {
+pub struct ModuleNamespace {
     items: HashMap<InternedStr, LocalDefId>,
 }
 

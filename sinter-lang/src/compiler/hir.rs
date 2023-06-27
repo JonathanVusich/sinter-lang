@@ -218,6 +218,14 @@ pub struct Block {
     pub stmts: Stmts,
 }
 
+impl Block {
+    pub fn new(stmts: Stmts) -> Self {
+        Self {
+            stmts,
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expression {
     expr: LocalDefId,
@@ -521,6 +529,17 @@ pub struct LetStmt {
     pub initializer: Option<LocalDefId>,
 }
 
+impl LetStmt {
+    pub fn new(ident: Ident, mutability: Mutability, ty: Option<LocalDefId>, initializer: Option<LocalDefId>) -> Self {
+        Self {
+            ident,
+            mutability,
+            ty,
+            initializer,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ReturnStmt {
     pub value: Option<LocalDefId>,
@@ -557,9 +576,23 @@ impl DerefMut for FnStmts {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
 pub struct Stmts {
     fields: Vec<LocalDefId>,
+}
+
+impl Deref for Stmts {
+    type Target = Vec<LocalDefId>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.fields
+    }
+}
+
+impl DerefMut for Stmts {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.fields
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

@@ -382,6 +382,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn let_stmt(&mut self) -> ParseResult<LetStmt> {
+        self.track_span();
         self.expect(TokenType::Let)?;
         let mutability: Mutability = match self.current() {
             Some(TokenType::Mut) => {
@@ -406,7 +407,8 @@ impl<'ctxt> Parser<'ctxt> {
             initializer = Some(self.expr()?);
         }
         self.expect(TokenType::Semicolon)?;
-        let let_stmt = LetStmt::new(identifier, mutability, ty, initializer);
+        
+        let let_stmt = LetStmt::new(identifier, mutability, ty, initializer, self.get_span(), self.get_id());
 
         Ok(let_stmt)
     }
@@ -985,6 +987,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_if_stmt(&mut self) -> ParseResult<Stmt> {
+        self.track_span();
         self.expect(TokenType::If)?;
         let condition = self.expr()?;
         let block_stmt = self.block_stmt()?;
@@ -995,7 +998,7 @@ impl<'ctxt> Parser<'ctxt> {
             None
         };
 
-        Ok(If(IfStmt::new(condition, block_stmt, optional_stmt)))
+        Ok(If(IfStmt::new(condition, block_stmt, optional_stmt, self.get_span(), self.get_id())))
     }
 
     fn parse_while_stmt(&mut self) -> ParseResult<Stmt> {
@@ -1003,33 +1006,36 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn while_stmt(&mut self) -> ParseResult<WhileStmt> {
+        self.track_span();
         self.expect(TokenType::While)?;
         let condition = self.expr()?;
         let block_stmt = self.block_stmt()?;
 
-        Ok(WhileStmt::new(condition, block_stmt))
+        Ok(WhileStmt::new(condition, block_stmt, self.get_span(), self.get_id()))
     }
 
     fn parse_for_stmt(&mut self) -> ParseResult<Stmt> {
+        self.track_span();
         self.expect(TokenType::For)?;
         let identifier = self.identifier()?;
         self.expect(TokenType::In)?;
 
         let range_expr = self.expr()?;
         let body = self.block_stmt()?;
-        Ok(For(ForStmt::new(identifier, range_expr, body)))
+        Ok(For(ForStmt::new(identifier, range_expr, body, self.get_span(), self.get_id())))
     }
 
     fn parse_return_stmt(&mut self) -> ParseResult<Stmt> {
+        self.track_span();
         self.expect(TokenType::Return)?;
         if self.matches(TokenType::Semicolon) {
             self.advance();
-            Ok(Return(ReturnStmt::new(None)))
+            Ok(Return(ReturnStmt::new(None, self.get_span(), self.get_id())))
         } else {
             let expression = self.expr()?;
             self.expect(TokenType::Semicolon)?;
 
-            Ok(Return(ReturnStmt::new(Some(expression))))
+            Ok(Return(ReturnStmt::new(Some(expression), self.get_span(), self.get_id())))
         }
     }
 

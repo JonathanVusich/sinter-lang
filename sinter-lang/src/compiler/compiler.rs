@@ -159,7 +159,7 @@ impl Compiler {
         crates.insert(main_name, main_crate);
 
         // Collect all used crates from the main crate
-        let mut crates_visited = HashSet::from([main_name]);
+        let crates_visited = HashSet::from([main_name]);
         let mut crates_to_visit: VecDeque<InternedStr> = VecDeque::from([main_name]);
 
         while let Some(crate_name) = crates_to_visit.pop_front() {

@@ -572,14 +572,18 @@ pub struct ForStmt {
     pub ident: Ident,
     pub range: Box<Expr>,
     pub body: Block,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 impl ForStmt {
-    pub fn new(ident: Ident, range: Expr, body: Block) -> Self {
+    pub fn new(ident: Ident, range: Expr, body: Block, span: Span, id: LocalDefId) -> Self {
         Self {
             ident,
             range: Box::new(range),
             body,
+            span,
+            id,
         }
     }
 }
@@ -587,12 +591,16 @@ impl ForStmt {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ReturnStmt {
     pub value: Option<Box<Expr>>,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 impl ReturnStmt {
-    pub fn new(value: Option<Expr>) -> Self {
+    pub fn new(value: Option<Expr>, span: Span, id: LocalDefId) -> Self {
         Self {
             value: value.map(Box::new),
+            span, 
+            id,
         }
     }
 }
@@ -602,14 +610,18 @@ pub struct IfStmt {
     pub condition: Box<Expr>,
     pub if_true: Block,
     pub if_false: Option<Block>,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 impl IfStmt {
-    pub fn new(condition: Expr, if_true: Block, if_false: Option<Block>) -> Self {
+    pub fn new(condition: Expr, if_true: Block, if_false: Option<Block>, span: Span, id: LocalDefId) -> Self {
         Self {
             condition: Box::new(condition),
             if_true,
             if_false,
+            span,
+            id,
         }
     }
 }
@@ -724,6 +736,8 @@ pub struct LetStmt {
     pub mutability: Mutability,
     pub ty: Option<Ty>,
     pub initializer: Option<Box<Expr>>,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 impl LetStmt {
@@ -732,12 +746,16 @@ impl LetStmt {
         mutability: Mutability,
         ty: Option<Ty>,
         initializer: Option<Expr>,
+        span: Span,
+        id: LocalDefId,
     ) -> Self {
         Self {
             ident,
             mutability,
             ty,
             initializer: initializer.map(Box::new),
+            span,
+            id,
         }
     }
 }
@@ -1061,13 +1079,17 @@ impl DestructurePattern {
 pub struct WhileStmt {
     pub condition: Box<Expr>,
     pub block_stmt: Block,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 impl WhileStmt {
-    pub fn new(condition: Expr, block_stmt: Block) -> Self {
+    pub fn new(condition: Expr, block_stmt: Block, span: Span, id: LocalDefId) -> Self {
         Self {
             condition: Box::new(condition),
             block_stmt,
+            span,
+            id,
         }
     }
 }
