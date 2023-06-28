@@ -220,9 +220,7 @@ pub struct Block {
 
 impl Block {
     pub fn new(stmts: Stmts) -> Self {
-        Self {
-            stmts,
-        }
+        Self { stmts }
     }
 }
 
@@ -230,6 +228,15 @@ impl Block {
 pub struct Expression {
     expr: LocalDefId,
     implicit_return: bool,
+}
+
+impl Expression {
+    pub fn new(expr: LocalDefId, implicit_return: bool) -> Self {
+        Self {
+            expr,
+            implicit_return,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -293,7 +300,7 @@ impl PathTy {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
 pub struct TraitBound {
     bounds: Vec<PathTy>,
 }
@@ -301,6 +308,20 @@ pub struct TraitBound {
 impl TraitBound {
     pub fn new(bounds: Vec<PathTy>) -> Self {
         Self { bounds }
+    }
+}
+
+impl Deref for TraitBound {
+    type Target = Vec<PathTy>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.bounds
+    }
+}
+
+impl DerefMut for TraitBound {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.bounds
     }
 }
 
@@ -530,7 +551,12 @@ pub struct LetStmt {
 }
 
 impl LetStmt {
-    pub fn new(ident: Ident, mutability: Mutability, ty: Option<LocalDefId>, initializer: Option<LocalDefId>) -> Self {
+    pub fn new(
+        ident: Ident,
+        mutability: Mutability,
+        ty: Option<LocalDefId>,
+        initializer: Option<LocalDefId>,
+    ) -> Self {
         Self {
             ident,
             mutability,
@@ -552,7 +578,17 @@ pub struct WhileStmt {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct ForStmt {}
+pub struct ForStmt {
+    pub ident: Ident,
+    pub range: LocalDefId,
+    pub body: LocalDefId,
+}
+
+impl ForStmt {
+    pub fn new(ident: Ident, range: LocalDefId, body: LocalDefId) -> Self {
+        Self { ident, range, body }
+    }
+}
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct IfStmt {}
@@ -641,6 +677,20 @@ impl ClosureParam {
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Params {
     fields: HashMap<InternedStr, LocalDefId>,
+}
+
+impl Deref for Params {
+    type Target = HashMap<InternedStr, LocalDefId>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.fields
+    }
+}
+
+impl DerefMut for Params {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.fields
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]

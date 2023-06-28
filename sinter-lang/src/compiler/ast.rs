@@ -1,3 +1,11 @@
+use std::alloc::Global;
+use std::collections::{HashMap, HashSet};
+use std::ops::{Deref, DerefMut};
+use std::path::{Path, Prefix};
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+use serde::{Deserialize, Serialize};
+
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::{ClassType, ParseError};
@@ -5,12 +13,6 @@ use crate::compiler::path::ModulePath;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::types::InternedStr;
 use crate::traits::traits::Trait;
-use serde::{Deserialize, Serialize};
-use std::alloc::Global;
-use std::collections::{HashMap, HashSet};
-use std::ops::{Deref, DerefMut};
-use std::path::{Path, Prefix};
-use std::sync::atomic::{AtomicUsize, Ordering};
 
 /// This trait describes a visitor that can traverse the AST and collect information.
 pub trait AstPass<T>: Default
@@ -298,13 +300,14 @@ impl DerefMut for GenericParams {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GenericParam {
     pub(crate) ident: Ident,
-    pub(crate) trait_bound: Option<TraitBound>,
+    // Must be of type TraitBound, but need the entire Ty to store span + id.
+    pub(crate) trait_bound: Option<Ty>,
     pub(crate) span: Span,
     pub(crate) id: LocalDefId,
 }
 
 impl GenericParam {
-    pub fn new(ident: Ident, trait_bound: Option<TraitBound>, span: Span, id: LocalDefId) -> Self {
+    pub fn new(ident: Ident, trait_bound: Option<Ty>, span: Span, id: LocalDefId) -> Self {
         Self {
             ident,
             trait_bound,
@@ -572,18 +575,14 @@ pub struct ForStmt {
     pub ident: Ident,
     pub range: Box<Expr>,
     pub body: Block,
-    pub span: Span,
-    pub id: LocalDefId,
 }
 
 impl ForStmt {
-    pub fn new(ident: Ident, range: Expr, body: Block, span: Span, id: LocalDefId) -> Self {
+    pub fn new(ident: Ident, range: Expr, body: Block) -> Self {
         Self {
             ident,
             range: Box::new(range),
             body,
-            span,
-            id,
         }
     }
 }
@@ -591,16 +590,12 @@ impl ForStmt {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ReturnStmt {
     pub value: Option<Box<Expr>>,
-    pub span: Span,
-    pub id: LocalDefId,
 }
 
 impl ReturnStmt {
-    pub fn new(value: Option<Expr>, span: Span, id: LocalDefId) -> Self {
+    pub fn new(value: Option<Expr>) -> Self {
         Self {
             value: value.map(Box::new),
-            span, 
-            id,
         }
     }
 }
@@ -610,18 +605,14 @@ pub struct IfStmt {
     pub condition: Box<Expr>,
     pub if_true: Block,
     pub if_false: Option<Block>,
-    pub span: Span,
-    pub id: LocalDefId,
 }
 
 impl IfStmt {
-    pub fn new(condition: Expr, if_true: Block, if_false: Option<Block>, span: Span, id: LocalDefId) -> Self {
+    pub fn new(condition: Expr, if_true: Block, if_false: Option<Block>) -> Self {
         Self {
             condition: Box::new(condition),
             if_true,
             if_false,
-            span,
-            id,
         }
     }
 }
@@ -682,14 +673,18 @@ pub struct Param {
     pub(crate) ident: Ident,
     pub(crate) ty: Ty,
     pub(crate) mutability: Mutability,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
 }
 
 impl Param {
-    pub fn new(ident: Ident, ty: Ty, mutability: Mutability) -> Self {
+    pub fn new(ident: Ident, ty: Ty, mutability: Mutability, span: Span, id: LocalDefId) -> Self {
         Self {
             ident,
             ty,
             mutability,
+            span,
+            id,
         }
     }
 }
@@ -736,8 +731,6 @@ pub struct LetStmt {
     pub mutability: Mutability,
     pub ty: Option<Ty>,
     pub initializer: Option<Box<Expr>>,
-    pub span: Span,
-    pub id: LocalDefId,
 }
 
 impl LetStmt {
@@ -746,16 +739,12 @@ impl LetStmt {
         mutability: Mutability,
         ty: Option<Ty>,
         initializer: Option<Expr>,
-        span: Span,
-        id: LocalDefId,
     ) -> Self {
         Self {
             ident,
             mutability,
             ty,
             initializer: initializer.map(Box::new),
-            span,
-            id,
         }
     }
 }
@@ -1079,17 +1068,13 @@ impl DestructurePattern {
 pub struct WhileStmt {
     pub condition: Box<Expr>,
     pub block_stmt: Block,
-    pub span: Span,
-    pub id: LocalDefId,
 }
 
 impl WhileStmt {
-    pub fn new(condition: Expr, block_stmt: Block, span: Span, id: LocalDefId) -> Self {
+    pub fn new(condition: Expr, block_stmt: Block) -> Self {
         Self {
             condition: Box::new(condition),
             block_stmt,
-            span,
-            id,
         }
     }
 }
@@ -1109,8 +1094,8 @@ impl Block {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expression {
-    expr: Box<Expr>,
-    implicit_return: bool,
+    pub(crate) expr: Box<Expr>,
+    pub(crate) implicit_return: bool,
 }
 
 impl Expression {
@@ -1215,7 +1200,20 @@ impl InfixOp {
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub enum Stmt {
+pub struct Stmt {
+    pub(crate) kind: StmtKind,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
+}
+
+impl Stmt {
+    pub fn new(kind: StmtKind, span: Span, id: LocalDefId) -> Self {
+        Self { kind, span, id }
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub enum StmtKind {
     Let(LetStmt),
     For(ForStmt),
     If(IfStmt),

@@ -10,8 +10,9 @@ use crate::compiler::ast::{
     ExprKind as AstExprKind, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
     FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt,
     Ident, Item as AstItem, ItemKind as AstItemKind, MatchArm as AstMatchArm, Module,
-    Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt, TraitBound as AstTraitBound,
-    TraitImplStmt, TraitStmt, Ty as AstTy, TyKind, UseStmt,
+    Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
+    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitImplStmt,
+    TraitStmt, Ty as AstTy, TyKind, TyKind as AstTyKind, UseStmt,
 };
 use crate::compiler::ast::{Expr as AstExpr, Field as AstField};
 use crate::compiler::ast_passes::NameCollector;
@@ -20,10 +21,10 @@ use crate::compiler::hir;
 use crate::compiler::hir::HirItem::Trait;
 use crate::compiler::hir::{
     Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, EnumMembers, EnumStmt, Expr, Field, FieldExpr, Fields, FnSig, FnStmt,
-    FnStmts, GenericParam, GenericParams, Generics, HirCrate, HirItem, HirNode, HirNodeKind,
-    IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, Param, Params, PathExpr,
-    PathTy, Pattern, Segment, Stmt, Stmts, TraitBound, Ty, UnaryExpr,
+    ClosureParams, DefId, EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig,
+    FnStmt, FnStmts, ForStmt, GenericParam, GenericParams, Generics, HirCrate, HirItem, HirNode,
+    HirNodeKind, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, Param, Params,
+    PathExpr, PathTy, Pattern, Segment, Stmt, Stmts, TraitBound, Ty, UnaryExpr,
 };
 use crate::compiler::krate::Crate;
 use crate::compiler::path::ModulePath;
@@ -68,18 +69,13 @@ pub enum Scope {
         fields: HashMap<InternedStr, LocalDefId>,
         self_fns: HashMap<InternedStr, LocalDefId>,
     },
-    SelfFn {
-        params: HashMap<InternedStr, LocalDefId>,
-        generics: HashMap<InternedStr, LocalDefId>,
-        vars: HashMap<InternedStr, LocalDefId>,
-    },
     Fn {
         params: HashMap<InternedStr, LocalDefId>,
         generics: HashMap<InternedStr, LocalDefId>,
         vars: HashMap<InternedStr, LocalDefId>,
     },
-    For {
-        iteration_var: (InternedStr, LocalDefId),
+    Block {
+        vars: HashMap<InternedStr, LocalDefId>,
     }, // TODO: Add traits
 }
 
@@ -88,7 +84,6 @@ impl Scope {
         match self {
             Scope::Class { generics, .. } => generics.get(&ident).copied(),
             Scope::Enum { generics, .. } => generics.get(&ident).copied(),
-            Scope::SelfFn { generics, .. } => generics.get(&ident).copied(),
             Scope::Fn { generics, .. } => generics.get(&ident).copied(),
             _ => None,
         }
@@ -105,7 +100,6 @@ impl Scope {
 
     pub fn insert_var(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
         match self {
-            Scope::SelfFn { vars, .. } => vars.insert(ident, id),
             Scope::Fn { vars, .. } => vars.insert(ident, id),
             _ => panic!("Cannot insert var into this scope!"),
         }
@@ -128,11 +122,22 @@ impl Scope {
         self_fns.insert(ident, id)
     }
 
-    pub fn insert_generic(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
+    pub fn insert_param(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
+        let params = match self {
+            Scope::Fn { params, .. } => params,
+            _ => panic!("Cannot insert param into this scope!"),
+        };
+        params.insert(ident, id)
+    }
+
+    pub fn insert_generic_param(
+        &mut self,
+        ident: InternedStr,
+        id: LocalDefId,
+    ) -> Option<LocalDefId> {
         let generics = match self {
             Scope::Class { generics, .. } => generics,
             Scope::Enum { generics, .. } => generics,
-            Scope::SelfFn { generics, .. } => generics,
             Scope::Fn { generics, .. } => generics,
             _ => panic!("Cannot insert generic into this scope!"),
         };
@@ -263,30 +268,6 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn insert_local_def_id(
-        &mut self,
-        map: &mut HashMap<InternedStr, LocalDefId>,
-        ident: InternedStr,
-        id: LocalDefId,
-    ) -> ResolveResult {
-        match map.insert(ident, id) {
-            None => Ok(()),
-            Some(existing) => self.duplicate_definition(existing, id),
-        }
-    }
-
-    fn insert_def_id(
-        &mut self,
-        map: &mut HashMap<InternedStr, DefId>,
-        ident: InternedStr,
-        id: DefId,
-    ) -> ResolveResult {
-        match map.insert(ident, id) {
-            None => Ok(()),
-            Some(existing) => Err(ResolveError::DuplicateDefinition { existing, new: id }),
-        }
-    }
-
     fn duplicate_definition(&self, existing: LocalDefId, new: LocalDefId) -> ResolveResult {
         Err(ResolveError::DuplicateDefinition {
             existing: existing.to_def_id(self.krate.id),
@@ -363,19 +344,43 @@ impl<'a> CrateResolver<'a> {
         Ok(hir_generics)
     }
 
+    fn resolve_params(&mut self, params: &AstParams) -> Result<Params, ResolveError> {
+        let mut hir_params = Params::default();
+        for param in params.iter() {
+            self.insert_param(param.ident.ident, param.id)?;
+
+            let ty = self.resolve_ty(&param.ty)?;
+
+            self.nodes.insert(
+                param.id,
+                HirNode::new(
+                    HirNodeKind::Param(Param::new(param.ident, ty, param.mutability)),
+                    param.span,
+                    param.id,
+                ),
+            );
+            hir_params.insert(param.ident.ident, param.id);
+        }
+        Ok(hir_params)
+    }
+
     fn resolve_generic_params(
         &mut self,
         generic_params: &AstGenericParams,
     ) -> Result<GenericParams, ResolveError> {
         let mut generics = GenericParams::default();
         for param in generic_params.iter() {
-            let trait_bound = match &param.trait_bound {
-                None => None,
-                Some(trait_bound) => Some(self.resolve_trait_bound(trait_bound)?),
-            };
-
             self.insert_generic_param(param.ident.ident, param.id)?;
 
+            let trait_bound = match &param.trait_bound {
+                None => None,
+                Some(AstTy {
+                    kind: AstTyKind::TraitBound { trait_bound },
+                    span,
+                    id,
+                }) => Some(self.resolve_trait_bound(trait_bound, *span, *id)?),
+                _ => panic!("Only trait bound should be present!"),
+            };
             /*
                 We always want to insert the node, even if it clashes with another generic param.
                 Otherwise we can't look it up later when handling errors.
@@ -388,7 +393,7 @@ impl<'a> CrateResolver<'a> {
                     param.id,
                 ),
             );
-            self.insert_local_def_id(&mut generics, param.ident.ident, param.id)?;
+            generics.insert(param.ident.ident, param.id);
         }
         Ok(generics)
     }
@@ -421,6 +426,13 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
+    fn insert_param(&mut self, ident: InternedStr, id: LocalDefId) -> ResolveResult {
+        match self.scopes.last_mut().unwrap().insert_param(ident, id) {
+            None => Ok(()),
+            Some(existing) => self.duplicate_definition(existing, id),
+        }
+    }
+
     fn insert_generic_param(&mut self, ident: InternedStr, id: LocalDefId) -> ResolveResult {
         // Don't need to check in reverse order since we are checking for existence, not last declared.
         if let Some(existing) = self
@@ -432,8 +444,15 @@ impl<'a> CrateResolver<'a> {
         }
 
         // Insert generic into last scope (will return error if this is not a valid scope)
-        self.insert_generic_param(ident, id)?;
-        Ok(())
+        match self
+            .scopes
+            .last_mut()
+            .unwrap()
+            .insert_generic_param(ident, id)
+        {
+            None => Ok(()),
+            Some(existing) => self.duplicate_definition(existing, id),
+        }
     }
 
     fn resolve_fields(&mut self, class_stmt: &AstClassStmt) -> Result<Fields, ResolveError> {
@@ -463,7 +482,7 @@ impl<'a> CrateResolver<'a> {
                     *id,
                 ),
             );
-            self.insert_local_def_id(&mut fields, ident.ident, *id)?;
+            fields.insert(ident.ident, *id);
         }
         Ok(fields)
     }
@@ -590,6 +609,31 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_fn_sig(&mut self, fn_sig: &AstFnSig) -> Result<FnSig, ResolveError> {
+        self.scopes.push(Scope::Fn {
+            params: Default::default(),
+            generics: Default::default(),
+            vars: Default::default(),
+        });
+
+        let generic_params = self.resolve_generic_params(&fn_sig.generic_params)?;
+        let params = self.resolve_params(&fn_sig.params)?;
+        let mut params = Params::default();
+        for param in fn_sig.params.iter() {
+            self.insert_param(param.ident.ident, param.id)?;
+
+            let ty = self.resolve_ty(&param.ty)?;
+            let hir_param = Param::new(param.ident, ty, param.mutability);
+
+            self.nodes.insert(
+                param.id,
+                HirNode::new(HirNodeKind::Param(hir_param), param.span, param.id),
+            );
+
+            params.insert(param.ident.ident, param.id);
+        }
+
+        let return_ty = self.maybe_resolve_ty(&fn_sig.return_type)?;
+
         todo!()
     }
 
@@ -604,7 +648,7 @@ impl<'a> CrateResolver<'a> {
         expr: &Option<Box<AstExpr>>,
     ) -> Result<Option<LocalDefId>, ResolveError> {
         if let Some(expr) = expr {
-            self.resolve_expr(expr).map(|expr| Some(expr))
+            self.resolve_expr(expr).map(Some)
         } else {
             Ok(None)
         }
@@ -729,7 +773,7 @@ impl<'a> CrateResolver<'a> {
 
     fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Result<Option<LocalDefId>, ResolveError> {
         if let Some(ty) = ty {
-            self.resolve_ty(ty).map(|ty| Some(ty))
+            self.resolve_ty(ty).map(Some)
         } else {
             Ok(None)
         }
@@ -742,13 +786,9 @@ impl<'a> CrateResolver<'a> {
             TyKind::Array { ty } => Ty::Array {
                 ty: self.resolve_ty(ty)?,
             },
-            TyKind::Path { path } => {
-                let def = self.resolve_qualified_ident(&path.ident)?;
-                let generics = self.resolve_generics(&path.generics)?;
-                Ty::Path {
-                    path: PathTy::new(def, generics),
-                }
-            }
+            TyKind::Path { path } => Ty::Path {
+                path: self.resolve_path_ty(path)?,
+            },
             TyKind::TraitBound { trait_bound } => {
                 let mut paths = Vec::with_capacity(trait_bound.bounds.len());
                 for path in trait_bound.bounds.iter() {
@@ -789,17 +829,42 @@ impl<'a> CrateResolver<'a> {
         Ok(id)
     }
 
+    fn resolve_path_ty(&mut self, path_ty: &AstPathTy) -> Result<PathTy, ResolveError> {
+        let def = self.resolve_qualified_ident(&path_ty.ident)?;
+        let generics = self.resolve_generics(&path_ty.generics)?;
+        Ok(PathTy::new(def, generics))
+    }
+
     fn resolve_trait_bound(
         &mut self,
         trait_bound: &AstTraitBound,
+        span: Span,
+        id: LocalDefId,
     ) -> Result<LocalDefId, ResolveError> {
-        todo!()
+        let mut hir_bound = TraitBound::default();
+        for ty in trait_bound.bounds.iter() {
+            let resolved_ty = self.resolve_path_ty(ty)?;
+            hir_bound.push(resolved_ty);
+        }
+
+        self.nodes.insert(
+            id,
+            HirNode::new(
+                HirNodeKind::Ty(Ty::TraitBound {
+                    trait_bound: hir_bound,
+                }),
+                span,
+                id,
+            ),
+        );
+
+        Ok(id)
     }
 
     fn resolve_stmt(&mut self, stmt: &AstStmt) -> Result<LocalDefId, ResolveError> {
-        let (hir_stmt, span, id) = match stmt {
-            AstStmt::Let(let_stmt) => {
-                self.insert_var(let_stmt.ident.ident, let_stmt.id)?;
+        let hir_stmt = match &stmt.kind {
+            AstStmtKind::Let(let_stmt) => {
+                self.insert_var(let_stmt.ident.ident, let_stmt.ident.id)?;
 
                 let resolved_ty = self.maybe_resolve_ty(&let_stmt.ty)?;
                 let resolved_initializer = self.maybe_resolve_expr(&let_stmt.initializer)?;
@@ -810,37 +875,46 @@ impl<'a> CrateResolver<'a> {
                     resolved_ty,
                     resolved_initializer,
                 ));
-                (stmt, let_stmt.span, let_stmt.id)
+                stmt
             }
-            AstStmt::For(for_stmt) => {
-                self.scopes.push(Scope::For {
-                    iteration_var: (for_stmt.ident.ident, for_stmt.ident.id),
+            AstStmtKind::For(for_stmt) => {
+                self.scopes.push(Scope::Block {
+                    vars: HashMap::default(),
                 });
+                self.insert_var(for_stmt.ident.ident, for_stmt.ident.id)?;
+
+                let range = self.resolve_expr(&for_stmt.range)?;
+                let body = self.resolve_block(&for_stmt.body)?;
+                let stmt = Stmt::For(ForStmt::new(for_stmt.ident, range, body));
 
                 self.scopes.pop();
+                stmt
+            }
+            AstStmtKind::If(if_stmt) => {
                 todo!()
             }
-            AstStmt::If(if_stmt) => {
+            AstStmtKind::Return(return_stmt) => {
                 todo!()
             }
-            AstStmt::Return(return_stmt) => {
+            AstStmtKind::While(while_stmt) => {
                 todo!()
             }
-            AstStmt::While(while_stmt) => {
+            AstStmtKind::Block(block) => {
                 todo!()
             }
-            AstStmt::Block(block) => {
-                todo!()
-            }
-            AstStmt::Expression(expression) => {
-                todo!()
+            AstStmtKind::Expression(expression) => {
+                let expr = self.resolve_expr(&expression.expr)?;
+
+                Stmt::Expression(Expression::new(expr, expression.implicit_return))
             }
         };
 
-        self.nodes
-            .insert(id, HirNode::new(HirNodeKind::Stmt(hir_stmt), span, id));
+        self.nodes.insert(
+            stmt.id,
+            HirNode::new(HirNodeKind::Stmt(hir_stmt), stmt.span, stmt.id),
+        );
 
-        Ok(id)
+        Ok(stmt.id)
     }
 
     fn maybe_resolve_block(
@@ -849,20 +923,22 @@ impl<'a> CrateResolver<'a> {
     ) -> Result<Option<LocalDefId>, ResolveError> {
         match block {
             None => Ok(None),
-            Some(block) => {
-                let mut stmts = Stmts::default();
-                for stmt in &block.stmts {
-                    stmts.push(self.resolve_stmt(stmt)?);
-                }
-
-                self.nodes.insert(
-                    block.id,
-                    HirNode::new(HirNodeKind::Block(Block::new(stmts)), block.span, block.id),
-                );
-
-                Ok(Some(block.id))
-            }
+            Some(block) => Ok(Some(self.resolve_block(block)?)),
         }
+    }
+
+    fn resolve_block(&mut self, block: &AstBlock) -> Result<LocalDefId, ResolveError> {
+        let mut stmts = Stmts::default();
+        for stmt in &block.stmts {
+            stmts.push(self.resolve_stmt(stmt)?);
+        }
+
+        self.nodes.insert(
+            block.id,
+            HirNode::new(HirNodeKind::Block(Block::new(stmts)), block.span, block.id),
+        );
+
+        Ok(block.id)
     }
 
     fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Result<MatchArm, ResolveError> {

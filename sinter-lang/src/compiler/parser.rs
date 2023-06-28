@@ -1,33 +1,32 @@
 use std::error::Error;
-use std::fmt::Alignment::Right;
 use std::fmt::{Display, Formatter};
+use std::fmt::Alignment::Right;
 use std::ops::Deref;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
-use crate::compiler::ast::Mutability::{Immutable, Mutable};
-use crate::compiler::ast::Stmt::{For, If, Return, While};
 use crate::compiler::ast::{
     Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern,
-    EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSelfStmt, FnSig,
+    EnumMember, EnumStmt, Expr, Expression, ExprKind, Field, FieldExpr, Fields, FnSelfStmt, FnSig,
     FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident,
     IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module,
     Mutability, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal,
-    PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt,
-    TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
+    PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, StmtKind, TraitBound,
+    TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
 };
+use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::compiler::{CompileError, CompilerCtxt};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
 };
+use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
 use crate::compiler::types::types::{InternedStr, InternedTy};
-use crate::compiler::StringInterner;
 
 pub fn parse(ctxt: &mut CompilerCtxt, input: TokenizedInput) -> Result<Module, CompileError> {
     let parser = Parser::new(ctxt, input);
@@ -363,7 +362,12 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_let_stmt(&mut self) -> ParseResult<Stmt> {
-        Ok(Stmt::Let(self.let_stmt()?))
+        self.track_span();
+        Ok(Stmt::new(
+            StmtKind::Let(self.let_stmt()?),
+            self.get_span(),
+            self.get_id(),
+        ))
     }
 
     fn global_let_stmt(&mut self) -> ParseResult<GlobalLetStmt> {
@@ -382,7 +386,6 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn let_stmt(&mut self) -> ParseResult<LetStmt> {
-        self.track_span();
         self.expect(TokenType::Let)?;
         let mutability: Mutability = match self.current() {
             Some(TokenType::Mut) => {
@@ -407,8 +410,8 @@ impl<'ctxt> Parser<'ctxt> {
             initializer = Some(self.expr()?);
         }
         self.expect(TokenType::Semicolon)?;
-        
-        let let_stmt = LetStmt::new(identifier, mutability, ty, initializer, self.get_span(), self.get_id());
+
+        let let_stmt = LetStmt::new(identifier, mutability, ty, initializer);
 
         Ok(let_stmt)
     }
@@ -491,6 +494,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_expression(&mut self) -> ParseResult<Stmt> {
+        self.track_span();
         let expr = self.expr()?;
         let implicit_return = if self.matches(TokenType::Semicolon) {
             self.advance();
@@ -498,7 +502,11 @@ impl<'ctxt> Parser<'ctxt> {
         } else {
             false
         };
-        Ok(Stmt::Expression(Expression::new(expr, implicit_return)))
+        Ok(Stmt::new(
+            StmtKind::Expression(Expression::new(expr, implicit_return)),
+            self.get_span(),
+            self.get_id(),
+        ))
     }
 
     fn expr(&mut self) -> ParseResult<Expr> {
@@ -639,10 +647,15 @@ impl<'ctxt> Parser<'ctxt> {
     fn generic_param(&mut self) -> ParseResult<GenericParam> {
         self.track_span();
         let ident = self.identifier()?;
-        let mut trait_bound: Option<TraitBound> = None;
+        let mut trait_bound: Option<Ty> = None;
         if self.matches(TokenType::Colon) {
             self.advance();
-            trait_bound = Some(self.trait_bound()?);
+            self.track_span();
+            trait_bound = Some(Ty::new(
+                TyKind::TraitBound { trait_bound: self.trait_bound()? },
+                self.get_span(),
+                self.get_id(),
+            ));
         }
         Ok(GenericParam::new(
             ident,
@@ -746,8 +759,15 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn param(&mut self) -> ParseResult<Param> {
+        self.track_span();
         let (mutability, ident, ty) = self.mut_ident_ty()?;
-        Ok(Param::new(ident, ty, mutability))
+        Ok(Param::new(
+            ident,
+            ty,
+            mutability,
+            self.get_span(),
+            self.get_id(),
+        ))
     }
 
     fn mut_ident_ty(&mut self) -> ParseResult<(Mutability, Ident, Ty)> {
@@ -784,7 +804,13 @@ impl<'ctxt> Parser<'ctxt> {
                 let ident = Ident::new(self.intern_str("self"), span, self.get_id());
                 let ty = Ty::new(TyKind::QSelf, span, self.get_id());
 
-                Ok(Param::new(ident, ty, mutability))
+                Ok(Param::new(
+                    ident,
+                    ty,
+                    mutability,
+                    self.get_span(),
+                    self.get_id(),
+                ))
             }
             Some(token) => self.expected_token(TokenType::SelfLowercase),
             None => self.unexpected_end(),
@@ -820,7 +846,12 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_block_stmt(&mut self) -> ParseResult<Stmt> {
-        Ok(Stmt::Block(self.block_stmt()?))
+        self.track_span();
+        Ok(Stmt::new(
+            StmtKind::Block(self.block_stmt()?),
+            self.get_span(),
+            self.get_id(),
+        ))
     }
 
     /// This function returns whether the following attribute is
@@ -997,21 +1028,28 @@ impl<'ctxt> Parser<'ctxt> {
         } else {
             None
         };
-
-        Ok(If(IfStmt::new(condition, block_stmt, optional_stmt, self.get_span(), self.get_id())))
+        Ok(Stmt::new(
+            StmtKind::If(IfStmt::new(condition, block_stmt, optional_stmt)),
+            self.get_span(),
+            self.get_id(),
+        ))
     }
 
     fn parse_while_stmt(&mut self) -> ParseResult<Stmt> {
-        Ok(While(self.while_stmt()?))
+        self.track_span();
+        Ok(Stmt::new(
+            StmtKind::While(self.while_stmt()?),
+            self.get_span(),
+            self.get_id(),
+        ))
     }
 
     fn while_stmt(&mut self) -> ParseResult<WhileStmt> {
-        self.track_span();
         self.expect(TokenType::While)?;
         let condition = self.expr()?;
         let block_stmt = self.block_stmt()?;
 
-        Ok(WhileStmt::new(condition, block_stmt, self.get_span(), self.get_id()))
+        Ok(WhileStmt::new(condition, block_stmt))
     }
 
     fn parse_for_stmt(&mut self) -> ParseResult<Stmt> {
@@ -1022,21 +1060,29 @@ impl<'ctxt> Parser<'ctxt> {
 
         let range_expr = self.expr()?;
         let body = self.block_stmt()?;
-        Ok(For(ForStmt::new(identifier, range_expr, body, self.get_span(), self.get_id())))
+        Ok(Stmt::new(
+            StmtKind::For(ForStmt::new(identifier, range_expr, body)),
+            self.get_span(),
+            self.get_id(),
+        ))
     }
 
     fn parse_return_stmt(&mut self) -> ParseResult<Stmt> {
         self.track_span();
         self.expect(TokenType::Return)?;
-        if self.matches(TokenType::Semicolon) {
+        let expr = if self.matches(TokenType::Semicolon) {
             self.advance();
-            Ok(Return(ReturnStmt::new(None, self.get_span(), self.get_id())))
+            None
         } else {
             let expression = self.expr()?;
             self.expect(TokenType::Semicolon)?;
-
-            Ok(Return(ReturnStmt::new(Some(expression), self.get_span(), self.get_id())))
-        }
+            Some(expression)
+        };
+        Ok(Stmt::new(
+            StmtKind::Return(ReturnStmt::new(expr)),
+            self.get_span(),
+            self.get_id(),
+        ))
     }
 
     fn parse_path_expr(&mut self) -> ParseResult<PathExpr> {
@@ -1337,8 +1383,14 @@ impl<'ctxt> Parser<'ctxt> {
         if self.matches(TokenType::LeftBrace) {
             self.parse_block_stmt()
         } else {
-            self.expr()
-                .map(|expr| Stmt::Expression(Expression::new(expr, true)))
+            self.track_span();
+            self.expr().map(|expr| {
+                Stmt::new(
+                    StmtKind::Expression(Expression::new(expr, true)),
+                    self.get_span(),
+                    self.get_id(),
+                )
+            })
         }
     }
 
@@ -1663,22 +1715,22 @@ mod tests {
 
     use snap::snapshot;
 
-    use crate::compiler::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::{
         Args, Block, CallExpr, EnumMember, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
         Param, Params, PathExpr, QualifiedIdent, Stmt, Ty, TyKind,
     };
     use crate::compiler::ast::{Module, UseStmt};
+    use crate::compiler::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::compiler::{CompileError, CompilerCtxt};
     use crate::compiler::hir::LocalDefId;
+    use crate::compiler::parser::{parse, ParseError, Parser, ParseResult};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
-    use crate::compiler::parser::{parse, ParseError, ParseResult, Parser};
+    use crate::compiler::StringInterner;
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::{Identifier, Semicolon};
     use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::InternedStr;
-    use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
