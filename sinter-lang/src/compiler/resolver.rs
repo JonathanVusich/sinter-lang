@@ -958,9 +958,17 @@ impl<'a> CrateResolver<'a> {
         match ident.ident_type {
             IdentType::Crate => self.krate.find_definition(ident).ok_or(DefinitionNotFound),
             IdentType::LocalOrUse => {
-                let krate_ident = ident.first().ident;
-                let krate = self.krates.get(&krate_ident).unwrap();
-                krate.find_definition(ident).ok_or(DefinitionNotFound)
+                if ident.is_local() {
+                    self.module_scope
+                        .items
+                        .get(&ident.first().ident)
+                        .copied()
+                        .ok_or(DefinitionNotFound)
+                } else {
+                    let krate_ident = ident.first().ident;
+                    let krate = self.krates.get(&krate_ident).unwrap();
+                    krate.find_definition(ident).ok_or(DefinitionNotFound)
+                }
             }
         }
     }

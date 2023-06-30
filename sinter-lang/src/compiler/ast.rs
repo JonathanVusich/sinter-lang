@@ -184,6 +184,15 @@ impl QualifiedIdent {
         self.idents.first().copied().unwrap()
     }
 
+    pub fn last(&self) -> Ident {
+        // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
+        self.idents.last().copied().unwrap()
+    }
+
+    pub fn is_local(&self) -> bool {
+        self.idents.len() == 1
+    }
+
     pub fn module_path(&self) -> Option<ModulePath> {
         if self.idents.len() < 3 {
             None
@@ -193,11 +202,6 @@ impl QualifiedIdent {
                 ModulePath::new(inner_paths.iter().map(|ident| ident.ident).collect());
             Some(module_path)
         }
-    }
-
-    pub fn last(&self) -> Ident {
-        // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
-        self.idents.last().copied().unwrap()
     }
 }
 

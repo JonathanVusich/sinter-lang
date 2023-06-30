@@ -1,0 +1,203 @@
+[
+  {
+    "string_interner": [
+      "main",
+      "args",
+      "str",
+      "print",
+      "to_str"
+    ],
+    "crate_id": 0,
+    "local_def_id": 16
+  },
+  {
+    "path": {
+      "krate_path": []
+    },
+    "items": [
+      {
+        "kind": {
+          "Fn": {
+            "sig": {
+              "name": {
+                "ident": 1,
+                "span": {
+                  "start": 3,
+                  "end": 7
+                },
+                "id": 0
+              },
+              "generic_params": {
+                "params": []
+              },
+              "params": {
+                "params": [
+                  {
+                    "ident": {
+                      "ident": 2,
+                      "span": {
+                        "start": 8,
+                        "end": 12
+                      },
+                      "id": 1
+                    },
+                    "ty": {
+                      "kind": {
+                        "Array": {
+                          "ty": {
+                            "kind": "Str",
+                            "span": {
+                              "start": 15,
+                              "end": 18
+                            },
+                            "id": 2
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 14,
+                        "end": 18
+                      },
+                      "id": 3
+                    },
+                    "mutability": "Immutable",
+                    "span": {
+                      "start": 8,
+                      "end": 19
+                    },
+                    "id": 4
+                  }
+                ]
+              },
+              "return_type": null
+            },
+            "body": {
+              "stmts": [
+                {
+                  "kind": {
+                    "Expression": {
+                      "expr": {
+                        "kind": {
+                          "Call": {
+                            "target": {
+                              "kind": {
+                                "Path": {
+                                  "ident_type": "LocalOrUse",
+                                  "segments": [
+                                    {
+                                      "ident": {
+                                        "ident": 4,
+                                        "span": {
+                                          "start": 27,
+                                          "end": 32
+                                        },
+                                        "id": 5
+                                      },
+                                      "generics": null
+                                    }
+                                  ]
+                                }
+                              },
+                              "span": {
+                                "start": 27,
+                                "end": 32
+                              },
+                              "id": 6
+                            },
+                            "args": {
+                              "args": [
+                                {
+                                  "kind": {
+                                    "Call": {
+                                      "target": {
+                                        "kind": {
+                                          "Field": {
+                                            "lhs": {
+                                              "kind": {
+                                                "Path": {
+                                                  "ident_type": "LocalOrUse",
+                                                  "segments": [
+                                                    {
+                                                      "ident": {
+                                                        "ident": 2,
+                                                        "span": {
+                                                          "start": 33,
+                                                          "end": 37
+                                                        },
+                                                        "id": 7
+                                                      },
+                                                      "generics": null
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              "span": {
+                                                "start": 33,
+                                                "end": 37
+                                              },
+                                              "id": 8
+                                            },
+                                            "ident": {
+                                              "ident": 5,
+                                              "span": {
+                                                "start": 38,
+                                                "end": 44
+                                              },
+                                              "id": 9
+                                            }
+                                          }
+                                        },
+                                        "span": {
+                                          "start": 33,
+                                          "end": 44
+                                        },
+                                        "id": 10
+                                      },
+                                      "args": {
+                                        "args": []
+                                      }
+                                    }
+                                  },
+                                  "span": {
+                                    "start": 33,
+                                    "end": 46
+                                  },
+                                  "id": 11
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "span": {
+                          "start": 27,
+                          "end": 47
+                        },
+                        "id": 12
+                      },
+                      "implicit_return": true
+                    }
+                  },
+                  "span": {
+                    "start": 27,
+                    "end": 48
+                  },
+                  "id": 13
+                }
+              ],
+              "span": {
+                "start": 21,
+                "end": 50
+              },
+              "id": 14
+            }
+          }
+        },
+        "span": {
+          "start": 0,
+          "end": 50
+        },
+        "id": 15
+      }
+    ]
+  }
+]

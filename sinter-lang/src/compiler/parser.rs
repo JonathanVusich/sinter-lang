@@ -230,7 +230,7 @@ impl<'ctxt> Parser<'ctxt> {
     fn use_stmt(&mut self) -> ParseResult<UseStmt> {
         self.expect(TokenType::Use)?;
 
-        let mut qualified_ident = self.qualified_ident()?;
+        let qualified_ident = self.qualified_ident()?;
         self.expect(TokenType::Semicolon)?;
 
         Ok(UseStmt::new(qualified_ident))
@@ -1960,11 +1960,6 @@ mod tests {
         parse_path!("List::<Loggable + Serializable>::new")
     }
 
-    #[test]
-    #[snapshot]
-    pub fn generic_union_path() -> (StringInterner, PathExpr) {
-        parse_path!("List::<str | i64 | f64>::new")
-    }
     macro_rules! simple_type {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]

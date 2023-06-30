@@ -1,0 +1,69 @@
+[
+  {
+    "string_interner": [
+      "Point"
+    ],
+    "crate_id": 0,
+    "local_def_id": 5
+  },
+  {
+    "kind": {
+      "Call": {
+        "target": {
+          "kind": {
+            "Path": {
+              "ident_type": "LocalOrUse",
+              "segments": [
+                {
+                  "ident": {
+                    "ident": 1,
+                    "span": {
+                      "start": 0,
+                      "end": 5
+                    },
+                    "id": 0
+                  },
+                  "generics": null
+                }
+              ]
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 5
+          },
+          "id": 1
+        },
+        "args": {
+          "args": [
+            {
+              "kind": {
+                "Float": 1.0
+              },
+              "span": {
+                "start": 6,
+                "end": 9
+              },
+              "id": 2
+            },
+            {
+              "kind": {
+                "Float": 2.0
+              },
+              "span": {
+                "start": 11,
+                "end": 14
+              },
+              "id": 3
+            }
+          ]
+        }
+      }
+    },
+    "span": {
+      "start": 0,
+      "end": 15
+    },
+    "id": 4
+  }
+]

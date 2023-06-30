@@ -1,0 +1,33 @@
+[
+  [
+    "std",
+    "Clone"
+  ],
+  {
+    "ident_type": "LocalOrUse",
+    "segments": [
+      {
+        "ident": {
+          "ident": 1,
+          "span": {
+            "start": 0,
+            "end": 3
+          },
+          "id": 0
+        },
+        "generics": null
+      },
+      {
+        "ident": {
+          "ident": 2,
+          "span": {
+            "start": 5,
+            "end": 10
+          },
+          "id": 1
+        },
+        "generics": null
+      }
+    ]
+  }
+]

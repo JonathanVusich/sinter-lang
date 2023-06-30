@@ -282,7 +282,7 @@ mod tests {
         let krate = compiler.parse_crate(&krate_path).unwrap();
 
         assert_eq!(
-            "simple_arithmetic",
+            "complex_arithmetic",
             compiler.compiler_ctxt.resolve_str(krate.name)
         );
         krate

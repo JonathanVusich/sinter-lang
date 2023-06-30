@@ -1,0 +1,50 @@
+[
+  {
+    "string_interner": [],
+    "crate_id": 0,
+    "local_def_id": 4
+  },
+  {
+    "kind": {
+      "Parentheses": {
+        "expr": {
+          "kind": {
+            "Parentheses": {
+              "expr": {
+                "kind": {
+                  "Parentheses": {
+                    "expr": {
+                      "kind": {
+                        "Integer": 0
+                      },
+                      "span": {
+                        "start": 3,
+                        "end": 4
+                      },
+                      "id": 0
+                    }
+                  }
+                },
+                "span": {
+                  "start": 2,
+                  "end": 5
+                },
+                "id": 1
+              }
+            }
+          },
+          "span": {
+            "start": 1,
+            "end": 6
+          },
+          "id": 2
+        }
+      }
+    },
+    "span": {
+      "start": 0,
+      "end": 7
+    },
+    "id": 3
+  }
+]

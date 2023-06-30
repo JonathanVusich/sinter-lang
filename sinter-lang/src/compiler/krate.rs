@@ -181,8 +181,7 @@ impl Crate {
             return self
                 .namespace
                 .get(&module_path)
-                .map(|namespace| namespace.items.get(&item))
-                .flatten()
+                .and_then(|namespace| namespace.items.get(&item))
                 .copied()
                 .map(|local_id| local_id.to_def_id(self.id));
         }
