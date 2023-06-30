@@ -1,9 +1,13 @@
-use crate::compiler::ast::{AstPass, Expr, Ident, Item, ItemKind, QualifiedIdent, UseStmt};
+use std::collections::{HashMap, HashSet};
+
+use serde::{Deserialize, Serialize};
+
+use crate::compiler::ast::{
+    AstPass, Expr, Ident, IdentType, Item, ItemKind, QualifiedIdent, UseStmt,
+};
 use crate::compiler::hir::{HirItem, LocalDefId};
 use crate::compiler::path::ModulePath;
 use crate::compiler::types::types::InternedStr;
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
 
 #[derive(PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct UsedCrate {
@@ -34,19 +38,15 @@ impl From<UsedCrateCollector> for HashSet<UsedCrate> {
 impl AstPass<HashSet<UsedCrate>> for UsedCrateCollector {
     fn visit_item(&mut self, node: &Item) {
         if let ItemKind::Use(use_stmt) = &node.kind {
-            match use_stmt {
-                UseStmt::Global {
-                    krate,
-                    mod_path,
-                    item,
-                } => {
-                    let module_path =
-                        ModulePath::new(mod_path.iter().map(|path| path.ident).collect());
+            match use_stmt.path.ident_type {
+                IdentType::Crate => {}
+                IdentType::LocalOrUse => {
+                    let krate = use_stmt.path.first();
+                    let module_path = Into::<ModulePath>::into(&use_stmt.path);
                     self.used_crates
                         .insert(UsedCrate::new(krate.ident, module_path));
                 }
-                _ => {}
-            };
+            }
         }
     }
 }

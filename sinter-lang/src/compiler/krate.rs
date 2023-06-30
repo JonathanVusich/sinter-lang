@@ -1,4 +1,4 @@
-use crate::compiler::ast::{AstPass, ItemKind, Module};
+use crate::compiler::ast::{AstPass, ItemKind, Module, QualifiedIdent};
 use crate::compiler::ast_passes::{UsedCrate, UsedCrateCollector};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::{DefId, HirItem, LocalDefId};
@@ -175,12 +175,17 @@ impl Crate {
         used_crates
     }
 
-    pub fn find_definition(&self, definition: &ModulePath, item: InternedStr) -> Option<DefId> {
-        self.namespace
-            .get(definition)
-            .map(|namespace| namespace.items.get(&item))
-            .flatten()
-            .copied()
-            .map(|local_id| local_id.to_def_id(self.id))
+    pub fn find_definition(&self, qualified_ident: &QualifiedIdent) -> Option<DefId> {
+        if let Some(module_path) = qualified_ident.module_path() {
+            let item = qualified_ident.last().ident;
+            return self
+                .namespace
+                .get(&module_path)
+                .map(|namespace| namespace.items.get(&item))
+                .flatten()
+                .copied()
+                .map(|local_id| local_id.to_def_id(self.id));
+        }
+        None
     }
 }

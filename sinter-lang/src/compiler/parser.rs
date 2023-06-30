@@ -1,32 +1,33 @@
 use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::fmt::Alignment::Right;
+use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
 use crate::class::compiled_class::CompiledClass;
+use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::{
     Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern,
-    EnumMember, EnumStmt, Expr, Expression, ExprKind, Field, FieldExpr, Fields, FnSelfStmt, FnSig,
+    EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSelfStmt, FnSig,
     FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident,
-    IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module,
-    Mutability, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal,
-    PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, StmtKind, TraitBound,
-    TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
+    IdentType, IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr,
+    Module, Mutability, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern,
+    PatternLocal, PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, StmtKind,
+    TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt,
+    WhileStmt,
 };
-use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::compiler::{CompileError, CompilerCtxt};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseError::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
 };
-use crate::compiler::StringInterner;
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
 use crate::compiler::types::types::{InternedStr, InternedTy};
+use crate::compiler::StringInterner;
 
 pub fn parse(ctxt: &mut CompilerCtxt, input: TokenizedInput) -> Result<Module, CompileError> {
     let parser = Parser::new(ctxt, input);
@@ -230,30 +231,9 @@ impl<'ctxt> Parser<'ctxt> {
         self.expect(TokenType::Use)?;
 
         let mut qualified_ident = self.qualified_ident()?;
-        if qualified_ident.len() < 3 {
-            let span = self.get_span();
-            return Err(ParseError::InvalidUseStmt(
-                self.tokenized_input.token_position(span),
-            ))?;
-        }
         self.expect(TokenType::Semicolon)?;
 
-        // Check for crate qualifier
-        let krate = qualified_ident.remove(0);
-        let item = qualified_ident.pop().unwrap();
-        let crate_ident = self.compiler_ctxt.intern_str("crate");
-        if qualified_ident.first().ident == crate_ident {
-            Ok(UseStmt::Crate {
-                mod_path: qualified_ident,
-                item,
-            })
-        } else {
-            Ok(UseStmt::Global {
-                krate,
-                mod_path: qualified_ident,
-                item,
-            })
-        }
+        Ok(UseStmt::new(qualified_ident))
     }
 
     fn parse_class_stmt(&mut self) -> ParseResult<Item> {
@@ -620,7 +600,15 @@ impl<'ctxt> Parser<'ctxt> {
             let ident = self.intern_str("");
             self.expected_token(TokenType::Identifier(ident))
         } else {
-            Ok(QualifiedIdent::new(idents))
+            let first = idents.first().unwrap();
+            let ident_type = if self.compiler_ctxt.resolve_str(first.ident) == "crate" {
+                idents.remove(0);
+                IdentType::Crate
+            } else {
+                IdentType::LocalOrUse
+            };
+
+            Ok(QualifiedIdent::new(ident_type, idents))
         }
     }
 
@@ -652,7 +640,9 @@ impl<'ctxt> Parser<'ctxt> {
             self.advance();
             self.track_span();
             trait_bound = Some(Ty::new(
-                TyKind::TraitBound { trait_bound: self.trait_bound()? },
+                TyKind::TraitBound {
+                    trait_bound: self.trait_bound()?,
+                },
                 self.get_span(),
                 self.get_id(),
             ));
@@ -1106,9 +1096,13 @@ impl<'ctxt> Parser<'ctxt> {
                         )?;
                         path_segments.last_mut().unwrap().generics =
                             Some(Generics::new(generic_paths));
-                        if !self.matches_multiple([TokenType::Colon, TokenType::Colon]) {
-                            return self.expected_token(TokenType::Colon);
-                        }
+                        self.expect(TokenType::Colon)?;
+                        self.expect(TokenType::Colon)?;
+
+                        let last = self.identifier()?;
+
+                        path_segments.push(Segment::new(last, None));
+                        break;
                     }
                     Some(Token {
                         token_type: TokenType::Identifier(ident),
@@ -1130,7 +1124,13 @@ impl<'ctxt> Parser<'ctxt> {
             }
         }
 
-        Ok(PathExpr::new(path_segments))
+        let ident_type = if self.matches_str(first_ident.ident, "crate") {
+            path_segments.remove(0);
+            IdentType::Crate
+        } else {
+            IdentType::LocalOrUse
+        };
+        Ok(PathExpr::new(ident_type, path_segments))
     }
 
     fn parse_expr(&mut self, min_bp: u8) -> ParseResult<Expr> {
@@ -1147,7 +1147,10 @@ impl<'ctxt> Parser<'ctxt> {
                 TokenType::SelfLowercase => {
                     self.advance();
                     let ident = Ident::new(self.intern_str("self"), current.span, self.get_id());
-                    ExprKind::Path(PathExpr::new(vec![Segment::new(ident, None)]))
+                    ExprKind::Path(PathExpr::new(
+                        IdentType::LocalOrUse,
+                        vec![Segment::new(ident, None)],
+                    ))
                 }
                 TokenType::True => {
                     self.advance();
@@ -1173,7 +1176,10 @@ impl<'ctxt> Parser<'ctxt> {
                 TokenType::SelfCapitalized => {
                     self.advance();
                     let ident = Ident::new(self.intern_str("Self"), current.span, self.get_id());
-                    ExprKind::Path(PathExpr::new(vec![Segment::new(ident, None)]))
+                    ExprKind::Path(PathExpr::new(
+                        IdentType::LocalOrUse,
+                        vec![Segment::new(ident, None)],
+                    ))
                 }
                 TokenType::None => {
                     self.advance();
@@ -1558,6 +1564,10 @@ impl<'ctxt> Parser<'ctxt> {
         self.compiler_ctxt.resolve_str(key)
     }
 
+    fn matches_str(&mut self, key: InternedStr, string: &str) -> bool {
+        self.compiler_ctxt.resolve_str(key) == string
+    }
+
     fn expected_token<T>(&mut self, token_type: TokenType) -> ParseResult<T> {
         let token_position = self.current_position().unwrap_or(self.last_position());
         Err(ExpectedToken(token_type, token_position))
@@ -1715,22 +1725,22 @@ mod tests {
 
     use snap::snapshot;
 
+    use crate::compiler::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::ast::{
         Args, Block, CallExpr, EnumMember, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
         Param, Params, PathExpr, QualifiedIdent, Stmt, Ty, TyKind,
     };
     use crate::compiler::ast::{Module, UseStmt};
-    use crate::compiler::ast::Mutability::{Immutable, Mutable};
     use crate::compiler::compiler::{CompileError, CompilerCtxt};
     use crate::compiler::hir::LocalDefId;
-    use crate::compiler::parser::{parse, ParseError, Parser, ParseResult};
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
-    use crate::compiler::StringInterner;
+    use crate::compiler::parser::{parse, ParseError, ParseResult, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::{Identifier, Semicolon};
     use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::types::InternedStr;
+    use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]

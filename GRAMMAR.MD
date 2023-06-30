@@ -173,7 +173,7 @@ _________________________________
 _________________________________
 ### General Definitions
 
-`path => ident ( "::" ( genericCallsite "::" ident | ident ) )*`
+`path => ident ( "::" ident )* ( "::" generics "::" ident )`
 
 `qualifiedIdent => ident ("::" ident)*`
 

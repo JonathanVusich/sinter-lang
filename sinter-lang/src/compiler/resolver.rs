@@ -9,8 +9,8 @@ use crate::compiler::ast::{
     ClosureParam as AstClosureParam, EnumMember as AstEnumMember, EnumStmt as AstEnumStmt,
     ExprKind as AstExprKind, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
     FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt,
-    Ident, Item as AstItem, ItemKind as AstItemKind, MatchArm as AstMatchArm, Module,
-    Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
+    Ident, IdentType, Item as AstItem, ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm,
+    Module, Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
     Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitImplStmt,
     TraitStmt, Ty as AstTy, TyKind, TyKind as AstTyKind, UseStmt,
 };
@@ -28,6 +28,7 @@ use crate::compiler::hir::{
 };
 use crate::compiler::krate::Crate;
 use crate::compiler::path::ModulePath;
+use crate::compiler::resolver::ResolveError::DefinitionNotFound;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::types::InternedStr;
 
@@ -48,13 +49,12 @@ impl ModuleScope {
             Some(existing) => Err(ResolveError::DuplicateDefinition { existing, new: id }),
         }
     }
+    pub(crate) fn resolve(&self, ident: InternedStr) -> Option<DefId> {
+        self.items.get(&ident).copied()
+    }
 }
 
 pub enum Scope {
-    Module {
-        imported_items: HashMap<InternedStr, DefId>,
-        fns: HashMap<InternedStr, LocalDefId>,
-    },
     Class {
         fields: HashMap<InternedStr, LocalDefId>,
         self_fns: HashMap<InternedStr, LocalDefId>,
@@ -102,13 +102,6 @@ impl Scope {
         match self {
             Scope::Fn { vars, .. } => vars.insert(ident, id),
             _ => panic!("Cannot insert var into this scope!"),
-        }
-    }
-
-    pub fn insert_fn(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
-        match self {
-            Scope::Module { fns, .. } => fns.insert(ident, id),
-            _ => panic!("Cannot insert function into this scope!"),
         }
     }
 
@@ -225,13 +218,14 @@ impl<'a> CrateResolver<'a> {
         let mut errors = Vec::new();
         for module in self.krate.module_lookup.values() {
             // First need to populate the module scope (from used items + module items)
+            self.populate_module_scope(module)?;
 
             for item in &module.items {
                 let span = item.span;
                 let id = item.id;
 
                 let result = match &item.kind {
-                    AstItemKind::Use(use_stmt) => self.resolve_use_stmt(use_stmt, span, id),
+                    AstItemKind::Use(use_stmt) => Ok(()),
                     AstItemKind::GlobalLet(let_stmt) => {
                         self.resolve_global_let_stmt(let_stmt, span, id)
                     }
@@ -275,29 +269,43 @@ impl<'a> CrateResolver<'a> {
         })
     }
 
-    fn resolve_use_stmt(
-        &mut self,
-        use_stmt: &UseStmt,
-        span: Span,
-        id: LocalDefId,
-    ) -> ResolveResult {
-        match use_stmt {
-            UseStmt::Crate { mod_path, item } => {
-                let def_id = id.to_def_id(self.krate.id);
-                self.module_scope.insert(item.ident, def_id)?;
+    fn populate_module_scope(&mut self, module: &Module) -> ResolveResult {
+        for item in &module.items {
+            if let Some((ident, id)) = match &item.kind {
+                ItemKind::Use(use_stmt) => {
+                    let item = use_stmt.path.last();
+                    match use_stmt.path.ident_type {
+                        IdentType::Crate => Some((item.ident, item.id.to_def_id(self.krate.id))),
+                        IdentType::LocalOrUse => {
+                            let krate_ident = use_stmt.path.first();
+                            let krate = self.krates.get(&krate_ident.ident).unwrap(); // Should be safe, if crate isn't found it will throw an error earlier
+                            let def_id = krate
+                                .find_definition(&use_stmt.path)
+                                .ok_or(ResolveError::DefinitionNotFound)?;
+                            Some((item.ident, def_id))
+                        }
+                    }
+                }
+                ItemKind::GlobalLet(let_stmt) => {
+                    Some((let_stmt.ident.ident, item.id.to_def_id(self.krate.id)))
+                }
+                ItemKind::Class(class_stmt) => {
+                    Some((class_stmt.name.ident, item.id.to_def_id(self.krate.id)))
+                }
+                ItemKind::Enum(enum_stmt) => {
+                    Some((enum_stmt.name.ident, item.id.to_def_id(self.krate.id)))
+                }
+                ItemKind::Trait(trait_stmt) => {
+                    Some((trait_stmt.name.ident, item.id.to_def_id(self.krate.id)))
+                }
+                ItemKind::TraitImpl(trait_impl_stmt) => None,
+                ItemKind::Fn(fn_stmt) => {
+                    Some((fn_stmt.sig.name.ident, item.id.to_def_id(self.krate.id)))
+                }
+            } {
+                self.module_scope.insert(ident, id)?;
             }
-            UseStmt::Global {
-                krate,
-                mod_path,
-                item,
-            } => {
-                let krate = self.krates.get(&krate.ident).unwrap(); // Should be safe, if crate isn't found it will throw an error earlier
-                let def_id = krate
-                    .find_definition(&mod_path.into(), item.ident)
-                    .ok_or(ResolveError::DefinitionNotFound)?;
-                self.module_scope.insert(item.ident, def_id)?;
-            }
-        };
+        }
         Ok(())
     }
 
@@ -407,13 +415,6 @@ impl<'a> CrateResolver<'a> {
 
     fn insert_var(&mut self, var_name: InternedStr, id: LocalDefId) -> ResolveResult {
         match self.scopes.last_mut().unwrap().insert_var(var_name, id) {
-            None => Ok(()),
-            Some(existing) => self.duplicate_definition(existing, id),
-        }
-    }
-
-    fn insert_fn(&mut self, fn_name: InternedStr, id: LocalDefId) -> ResolveResult {
-        match self.scopes.first_mut().unwrap().insert_fn(fn_name, id) {
             None => Ok(()),
             Some(existing) => self.duplicate_definition(existing, id),
         }
@@ -558,7 +559,8 @@ impl<'a> CrateResolver<'a> {
 
         let name = resolved_sig.name.ident;
 
-        self.insert_fn(name, id)?;
+        self.module_scope
+            .insert(name, id.to_def_id(self.krate.id))?;
 
         self.nodes.insert(
             id,
@@ -953,7 +955,14 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_qualified_ident(&mut self, ident: &QualifiedIdent) -> Result<DefId, ResolveError> {
-        todo!()
+        match ident.ident_type {
+            IdentType::Crate => self.krate.find_definition(ident).ok_or(DefinitionNotFound),
+            IdentType::LocalOrUse => {
+                let krate_ident = ident.first().ident;
+                let krate = self.krates.get(&krate_ident).unwrap();
+                krate.find_definition(ident).ok_or(DefinitionNotFound)
+            }
+        }
     }
 
     fn resolve_closure_params(

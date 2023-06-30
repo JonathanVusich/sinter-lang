@@ -157,15 +157,26 @@ impl Ident {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QualifiedIdent {
-    idents: Vec<Ident>,
+    pub(crate) ident_type: IdentType,
+    pub(crate) idents: Vec<Ident>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum IdentType {
+    Crate,
+    LocalOrUse,
 }
 
 impl QualifiedIdent {
-    pub fn new(idents: Vec<Ident>) -> Self {
+    pub fn new(ident_type: IdentType, idents: Vec<Ident>) -> Self {
         if idents.is_empty() {
             panic!("QualifiedIdent must have at least one identifier!")
         }
-        Self { idents }
+        Self { ident_type, idents }
+    }
+
+    pub fn len(&self) -> usize {
+        self.idents.len()
     }
 
     pub fn first(&self) -> Ident {
@@ -173,23 +184,20 @@ impl QualifiedIdent {
         self.idents.first().copied().unwrap()
     }
 
+    pub fn module_path(&self) -> Option<ModulePath> {
+        if self.idents.len() < 3 {
+            None
+        } else {
+            let inner_paths = &self.idents[1..self.idents.len() - 1];
+            let module_path =
+                ModulePath::new(inner_paths.iter().map(|ident| ident.ident).collect());
+            Some(module_path)
+        }
+    }
+
     pub fn last(&self) -> Ident {
         // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
         self.idents.last().copied().unwrap()
-    }
-}
-
-impl Deref for QualifiedIdent {
-    type Target = Vec<Ident>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.idents
-    }
-}
-
-impl DerefMut for QualifiedIdent {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.idents
     }
 }
 
@@ -251,16 +259,15 @@ impl PathTy {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub enum UseStmt {
-    Crate {
-        mod_path: QualifiedIdent,
-        item: Ident,
-    },
-    Global {
-        krate: Ident,
-        mod_path: QualifiedIdent,
-        item: Ident,
-    },
+#[serde(transparent)]
+pub struct UseStmt {
+    pub(crate) path: QualifiedIdent,
+}
+
+impl UseStmt {
+    pub fn new(path: QualifiedIdent) -> Self {
+        Self { path }
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -910,35 +917,21 @@ impl Segment {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PathExpr {
+    pub ident_type: IdentType,
     pub segments: Vec<Segment>,
 }
 
 impl PathExpr {
-    pub fn new(segments: Vec<Segment>) -> Self {
-        Self { segments }
-    }
-
-    pub fn prefix(self, module: &QualifiedIdent) -> Self {
-        // Verify that this is an appropriate module to prefix
-        debug_assert_eq!(module.last(), self.first());
-        let mut segments = Vec::with_capacity(module.idents.len() - 1 + self.segments.len());
-        for ident in &module.idents {
-            segments.push(Segment::new(*ident, None));
+    pub fn new(ident_type: IdentType, segments: Vec<Segment>) -> Self {
+        Self {
+            ident_type,
+            segments,
         }
-        segments.pop();
-        for segment in self.segments {
-            segments.push(segment);
-        }
-        Self { segments }
-    }
-
-    pub fn first(&self) -> Ident {
-        self.segments.first().unwrap().ident
     }
 
     pub fn var_identifier(&self) -> Option<Ident> {
         if self.segments.len() == 1 {
-            Some(self.first())
+            Some(self.segments.first().unwrap().ident)
         } else {
             None
         }
@@ -952,7 +945,7 @@ impl PathExpr {
             .collect::<Vec<Ident>>();
         // Remove the last ident because it is not part of the module path.
         idents.pop();
-        QualifiedIdent::new(idents)
+        QualifiedIdent::new(self.ident_type, idents)
     }
 }
 

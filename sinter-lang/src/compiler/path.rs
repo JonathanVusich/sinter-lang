@@ -1,11 +1,13 @@
-use crate::compiler::ast::{Ident, QualifiedIdent, Segment};
-use crate::compiler::types::types::InternedStr;
-use serde::{Deserialize, Serialize};
 use std::borrow::Borrow;
 use std::ops::Deref;
 use std::path::Path;
 
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Default, Serialize, Deserialize)]
+use serde::{Deserialize, Serialize};
+
+use crate::compiler::ast::{Ident, IdentType, QualifiedIdent, Segment};
+use crate::compiler::types::types::InternedStr;
+
+#[derive(PartialEq, Eq, Hash, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ModulePath {
     krate_path: Vec<InternedStr>,
 }
@@ -21,16 +23,13 @@ where
     T: Borrow<QualifiedIdent>,
 {
     fn from(value: T) -> Self {
+        let qualified_ident = value.borrow();
         Self {
-            krate_path: value.borrow().iter().map(|ident| ident.ident).collect(),
+            krate_path: qualified_ident
+                .idents
+                .iter()
+                .map(|ident| ident.ident)
+                .collect(),
         }
-    }
-}
-
-impl Deref for ModulePath {
-    type Target = Vec<InternedStr>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.krate_path
     }
 }
