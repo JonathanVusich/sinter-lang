@@ -632,7 +632,7 @@ impl IfStmt {
 pub struct EnumMember {
     pub name: InternedStr,
     pub fields: Fields,
-    pub member_fns: Vec<FnStmt>,
+    pub self_fns: Vec<FnSelfStmt>,
     pub span: Span,
     pub id: LocalDefId,
 }
@@ -641,14 +641,14 @@ impl EnumMember {
     pub fn new(
         name: InternedStr,
         parameters: Fields,
-        member_functions: Vec<FnStmt>,
+        member_functions: Vec<FnSelfStmt>,
         span: Span,
         id: LocalDefId,
     ) -> Self {
         Self {
             name,
             fields: parameters,
-            member_fns: member_functions,
+            self_fns: member_functions,
             id,
             span,
         }

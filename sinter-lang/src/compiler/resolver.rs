@@ -4,17 +4,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
 
-use crate::compiler::ast::{
-    ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt,
-    ClosureParam as AstClosureParam, EnumMember as AstEnumMember, EnumStmt as AstEnumStmt,
-    ExprKind as AstExprKind, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
-    FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt,
-    Ident, IdentType, Item as AstItem, ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm,
-    Module, Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
-    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
-    TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
-    TyKind as AstTyKind, UseStmt,
-};
+use crate::compiler::ast::{ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt, ClosureParam as AstClosureParam, EnumMember as AstEnumMember, EnumStmt as AstEnumStmt, ExprKind as AstExprKind, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig, FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt, Ident, IdentType, Item as AstItem, ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm, Module, Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind, TyKind as AstTyKind, UseStmt, Fields as AstFields, Item};
 use crate::compiler::ast::{Expr as AstExpr, Field as AstField};
 use crate::compiler::ast_passes::NameCollector;
 use crate::compiler::compiler::CompileError;
@@ -28,7 +18,7 @@ use crate::compiler::hir::{
     PathExpr, PathTy, Pattern, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty,
     UnaryExpr,
 };
-use crate::compiler::krate::Crate;
+use crate::compiler::krate::{Crate, ModuleMap, ModuleNamespace};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError::{DefinitionNotFound, DuplicateLocalDefIds};
 use crate::compiler::tokens::tokenized_file::Span;
@@ -165,28 +155,36 @@ impl Error for ResolveError {}
 type ResolveResult = Result<(), ResolveError>;
 
 #[derive(Default)]
-struct Resolver {
+struct Resolver<'a> {
     crates: HashMap<InternedStr, Crate>,
-    hir_crates: Vec<HirCrate>,
+    crate_items: HashMap<InternedStr, ModuleMap<ModuleNamespace<'a>>>,
     errors: Vec<ResolveError>,
 }
 
-impl Resolver {
+impl<'a> Resolver<'a> {
     fn new(crates: HashMap<InternedStr, Crate>) -> Self {
+        // Generate crate items
+        let mut crate_items = HashMap::default();
+        for (krate_name, krate) in crates.iter() {
+            crate_items.insert(*krate_name, create_namespace(krate));
+        }
         Self {
             crates,
-            hir_crates: Default::default(),
+            crate_items,
             errors: Default::default(),
         }
     }
 
     fn resolve(self) -> Result<Vec<HirCrate>, CompileError> {
-        let mut krates = Vec::new();
         let mut resolve_errors = Vec::new();
+        let mut crates = Vec::new();
+
         for krate in self.crates.values() {
             let crate_resolver = CrateResolver::new(krate, &self.crates);
             match crate_resolver.resolve() {
-                Ok(krate) => krates.push(krate),
+                Ok(crate_map) => {
+                    crates.push(crate_map);
+                }
                 Err(errors) => match errors {
                     CompileError::ResolveErrors(errors) => resolve_errors.extend(errors),
                     _ => panic!("Invalid error type!"),
@@ -196,10 +194,20 @@ impl Resolver {
         if !resolve_errors.is_empty() {
             Err(CompileError::ResolveErrors(resolve_errors))
         } else {
-            Ok(krates)
+            Ok(crates)
         }
     }
 }
+
+fn create_namespace(krate: &Crate) -> ModuleMap<ModuleNamespace> {
+    todo!()
+}
+
+#[derive(Default)]
+struct CrateMap<'a> {
+    items: HashMap<LocalDefId, &'a AstItem>,
+}
+
 
 struct CrateResolver<'a> {
     krate: &'a Crate,
@@ -359,7 +367,7 @@ impl<'a> CrateResolver<'a> {
 
         // We have to resolve generics params, fields, and fns in that order.
         let generic_params = self.resolve_generic_params(&class_stmt.generic_params)?;
-        let fields = self.resolve_fields(class_stmt)?;
+        let fields = self.resolve_fields(&class_stmt.fields)?;
         let fn_stmts = self.resolve_self_fn_stmts(&class_stmt.fn_stmts)?;
 
         let item = HirItem::Class(ClassStmt::new(
@@ -503,17 +511,15 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve_fields(&mut self, class_stmt: &AstClassStmt) -> Result<Fields, ResolveError> {
+    fn resolve_fields(&mut self, ast_fields: &AstFields) -> Result<Fields, ResolveError> {
         let mut fields = Fields::default();
-        for field in class_stmt.fields.iter() {
+        for field in ast_fields.iter() {
             let AstField {
                 ident,
                 ty,
                 span,
                 id,
             } = field;
-
-            // ?? self.current_scope().insert_field(ident.ident, *id)?;
 
             self.insert_field(ident.ident, *id)?;
 
@@ -570,7 +576,21 @@ impl<'a> CrateResolver<'a> {
         enum_stmt_members: &Vec<AstEnumMember>,
     ) -> Result<EnumMembers, ResolveError> {
         let enum_members = EnumMembers::default();
-        for member in enum_stmt_members {}
+        for member in enum_stmt_members {
+            self.scopes.push(Scope::EnumMember {
+                fields: Default::default(),
+                self_fns: Default::default(),
+            });
+
+            let self_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
+            let fields = self.resolve_fields(&member.fields)?;
+
+
+
+            // TODO: Continue implementing this
+
+            self.scopes.pop();
+        }
         todo!()
     }
 

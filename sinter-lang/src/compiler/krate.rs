@@ -1,4 +1,4 @@
-use crate::compiler::ast::{AstPass, ItemKind, Module, QualifiedIdent};
+use crate::compiler::ast::{AstPass, ItemKind, Module, QualifiedIdent, Item};
 use crate::compiler::ast_passes::{UsedCrate, UsedCrateCollector};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::{DefId, HirItem, LocalDefId};
@@ -116,9 +116,9 @@ where
     }
 }
 
-#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
-pub struct ModuleNamespace {
-    items: HashMap<InternedStr, LocalDefId>,
+#[derive(PartialEq, Debug, Default)]
+pub struct ModuleNamespace<'a> {
+    items: HashMap<InternedStr, &'a Item>,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -127,7 +127,6 @@ pub struct Crate {
     pub(crate) id: CrateId,
     pub(crate) local_def_id: u32,
     pub(crate) module_lookup: ModuleMap<Module>,
-    pub(crate) namespace: ModuleMap<ModuleNamespace>,
 }
 
 impl Crate {
@@ -137,7 +136,6 @@ impl Crate {
             id,
             local_def_id: 0,
             module_lookup: Default::default(),
-            namespace: Default::default(),
         }
     }
 
@@ -146,23 +144,6 @@ impl Crate {
         module_path: ModulePath,
         module: Module,
     ) -> Result<(), ParseError> {
-        let mut namespace = ModuleNamespace::default();
-        for item in &module.items {
-            let name = match &item.kind {
-                ItemKind::GlobalLet(global_let_stmt) => Some(global_let_stmt.ident.ident),
-                ItemKind::Class(class_stmt) => Some(class_stmt.name.ident),
-                ItemKind::Enum(enum_stmt) => Some(enum_stmt.name.ident),
-                ItemKind::Trait(trait_stmt) => Some(trait_stmt.name.ident),
-                ItemKind::Fn(fn_stmt) => Some(fn_stmt.sig.name.ident),
-                _ => None,
-            };
-            if let Some(name) = name {
-                if namespace.items.insert(name, item.id).is_some() {
-                    return Err(ParseError::DuplicateDefinition);
-                }
-            }
-        }
-        self.namespace.insert(module_path.clone(), namespace);
         self.module_lookup.insert(module_path, module);
         Ok(())
     }

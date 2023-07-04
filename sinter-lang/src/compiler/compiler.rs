@@ -222,7 +222,7 @@ impl Compiler {
             let mut ast = self.parse_ast(file.path())?;
 
             ast.path = module_path.clone();
-            krate.add_module(module_path, ast)?;
+            krate.module_lookup.insert(module_path, ast);
         }
 
         // Assign the last used local def id to the crate
