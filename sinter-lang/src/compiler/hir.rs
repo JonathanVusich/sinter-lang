@@ -179,6 +179,16 @@ pub struct TraitStmt {
     pub member_fns: FnStmts,
 }
 
+impl TraitStmt {
+    pub fn new(name: Ident, generic_params: GenericParams, member_fns: FnStmts) -> Self {
+        Self {
+            name,
+            generic_params,
+            member_fns,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitImplStmt {
     pub trait_to_impl: DefId,

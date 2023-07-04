@@ -11,8 +11,9 @@ use crate::compiler::ast::{
     FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt,
     Ident, IdentType, Item as AstItem, ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm,
     Module, Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
-    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitImplStmt,
-    TraitStmt, Ty as AstTy, TyKind, TyKind as AstTyKind, UseStmt,
+    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
+    TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
+    TyKind as AstTyKind, UseStmt,
 };
 use crate::compiler::ast::{Expr as AstExpr, Field as AstField};
 use crate::compiler::ast_passes::NameCollector;
@@ -24,7 +25,8 @@ use crate::compiler::hir::{
     ClosureParams, DefId, EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig,
     FnStmt, FnStmts, ForStmt, GenericParam, GenericParams, Generics, HirCrate, HirItem, HirNode,
     HirNodeKind, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, Param, Params,
-    PathExpr, PathTy, Pattern, ReturnStmt, Segment, Stmt, Stmts, TraitBound, Ty, UnaryExpr,
+    PathExpr, PathTy, Pattern, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty,
+    UnaryExpr,
 };
 use crate::compiler::krate::Crate;
 use crate::compiler::path::ModulePath;
@@ -76,6 +78,10 @@ pub enum Scope {
     },
     Block {
         vars: HashMap<InternedStr, LocalDefId>,
+    },
+    Trait {
+        generics: HashMap<InternedStr, LocalDefId>,
+        self_fns: HashMap<InternedStr, LocalDefId>,
     }, // TODO: Add traits
 }
 
@@ -220,33 +226,9 @@ impl<'a> CrateResolver<'a> {
         let mut errors = Vec::new();
         for module in self.krate.module_lookup.values() {
             // First need to populate the module scope (from used items + module items)
-            self.populate_module_scope(module)?;
-
-            for item in &module.items {
-                let span = item.span;
-                let id = item.id;
-
-                let result = match &item.kind {
-                    AstItemKind::Use(use_stmt) => Ok(()),
-                    AstItemKind::GlobalLet(let_stmt) => {
-                        self.resolve_global_let_stmt(let_stmt, span, id)
-                    }
-                    AstItemKind::Class(class_stmt) => self.resolve_class_stmt(class_stmt, span, id),
-                    AstItemKind::Enum(enum_stmt) => self.resolve_enum_stmt(enum_stmt, span, id),
-                    AstItemKind::Trait(trait_stmt) => self.resolve_trait_stmt(trait_stmt, span, id),
-                    AstItemKind::TraitImpl(trait_impl_stmt) => {
-                        self.resolve_trait_impl_stmt(trait_impl_stmt, span, id)
-                    }
-                    AstItemKind::Fn(fn_stmt) => self.resolve_fn_stmt(fn_stmt, span, id),
-                };
-
-                match result {
-                    Err(error) => {
-                        errors.push(error);
-                    }
-                    _ => {}
-                }
-            }
+            errors.extend(self.populate_module_scope(module));
+            errors.extend(self.initial_module_resolution(module));
+            // TODO: Impl trait resolution
 
             // We have to remember to clear out all scopes and reset the module scope
             self.module_scope = ModuleScope::default();
@@ -264,6 +246,35 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
+    fn initial_module_resolution(mut self, module: &Module) -> Vec<ResolveError> {
+        let mut errors = Vec::new();
+        for item in &module.items {
+            let span = item.span;
+            let id = item.id;
+
+            let result = match &item.kind {
+                AstItemKind::Use(use_stmt) => Ok(()),
+                AstItemKind::GlobalLet(let_stmt) => {
+                    self.resolve_global_let_stmt(let_stmt, span, id)
+                }
+                AstItemKind::Class(class_stmt) => self.resolve_class_stmt(class_stmt, span, id),
+                AstItemKind::Enum(enum_stmt) => self.resolve_enum_stmt(enum_stmt, span, id),
+                AstItemKind::Trait(trait_stmt) => self.resolve_trait_stmt(trait_stmt, span, id),
+                /// Purposefully empty because we have to wait until all types are resolved before we can check trait impl bodies.
+                AstItemKind::TraitImpl(trait_impl_stmt) => Ok(()),
+                AstItemKind::Fn(fn_stmt) => self.resolve_fn_stmt(fn_stmt, span, id),
+            };
+
+            match result {
+                Err(error) => {
+                    errors.push(error);
+                }
+                _ => {}
+            }
+        }
+        errors
+    }
+
     fn duplicate_definition(&self, existing: LocalDefId, new: LocalDefId) -> ResolveResult {
         Err(ResolveError::DuplicateDefinition {
             existing: existing.to_def_id(self.krate.id),
@@ -271,7 +282,8 @@ impl<'a> CrateResolver<'a> {
         })
     }
 
-    fn populate_module_scope(&mut self, module: &Module) -> ResolveResult {
+    fn populate_module_scope(&mut self, module: &Module) -> Vec<ResolveError> {
+        let mut errors = Vec::new();
         for item in &module.items {
             if let Some((ident, id)) = match &item.kind {
                 ItemKind::Use(use_stmt) => {
@@ -283,8 +295,14 @@ impl<'a> CrateResolver<'a> {
                             let krate = self.krates.get(&krate_ident.ident).unwrap(); // Should be safe, if crate isn't found it will throw an error earlier
                             let def_id = krate
                                 .find_definition(&use_stmt.path)
-                                .ok_or(DefinitionNotFound)?;
-                            Some((item.ident, def_id))
+                                .ok_or(DefinitionNotFound);
+                            match def_id {
+                                Ok(def_id) => Some((item.ident, def_id)),
+                                Err(err) => {
+                                    errors.push(err);
+                                    None
+                                }
+                            }
                         }
                     }
                 }
@@ -305,10 +323,15 @@ impl<'a> CrateResolver<'a> {
                     Some((fn_stmt.sig.name.ident, item.id.to_def_id(self.krate.id)))
                 }
             } {
-                self.module_scope.insert(ident, id)?;
+                match self.module_scope.insert(ident, id) {
+                    Ok(_) => {}
+                    Err(err) => {
+                        errors.push(err);
+                    }
+                };
             }
         }
-        Ok(())
+        errors
     }
 
     fn resolve_global_let_stmt(
@@ -337,7 +360,7 @@ impl<'a> CrateResolver<'a> {
         // We have to resolve generics params, fields, and fns in that order.
         let generic_params = self.resolve_generic_params(&class_stmt.generic_params)?;
         let fields = self.resolve_fields(class_stmt)?;
-        let fn_stmts = self.resolve_fn_self_stmts(&class_stmt.fn_stmts)?;
+        let fn_stmts = self.resolve_self_fn_stmts(&class_stmt.fn_stmts)?;
 
         let item = HirItem::Class(ClassStmt::new(
             class_stmt.name,
@@ -518,9 +541,6 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
-        self.module_scope
-            .insert(enum_stmt.name.ident, id.to_def_id(self.krate.id))?;
-
         self.scopes.push(Scope::Enum {
             members: Default::default(),
             self_fns: Default::default(),
@@ -529,7 +549,7 @@ impl<'a> CrateResolver<'a> {
 
         let generic_params = self.resolve_generic_params(&enum_stmt.generic_params)?;
         let enum_members = self.resolve_enum_members(&enum_stmt.members)?;
-        let member_fns = self.resolve_fn_self_stmts(&enum_stmt.member_fns)?;
+        let member_fns = self.resolve_self_fn_stmts(&enum_stmt.member_fns)?;
 
         self.scopes.pop();
 
@@ -556,19 +576,37 @@ impl<'a> CrateResolver<'a> {
 
     fn resolve_trait_stmt(
         &mut self,
-        trait_stmt: &TraitStmt,
+        trait_stmt: &AstTraitStmt,
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
-        todo!()
+        let generic_params = self.resolve_generic_params(&trait_stmt.generic_params)?;
+        let member_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
+
+        self.scopes.push(Scope::Trait {
+            self_fns: Default::default(),
+            generics: Default::default(),
+        });
+
+        self.scopes.pop();
+
+        let item = Trait(TraitStmt::new(trait_stmt.name, generic_params, member_fns));
+        let hir_node = HirNode::new(HirNodeKind::Item(item), span, id);
+        self.items.push(id);
+        self.insert_node(id, hir_node)?;
+        Ok(())
     }
 
     fn resolve_trait_impl_stmt(
         &mut self,
-        trait_stmt: &TraitImplStmt,
+        trait_stmt: &AstTraitImplStmt,
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
+        let trait_to_impl = self.resolve_path_ty(&trait_stmt.trait_to_impl)?;
+        let target_ty = self.resolve_qualified_ident(&trait_stmt.target_ty)?;
+        let self_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
+
         todo!()
     }
 
@@ -618,7 +656,7 @@ impl<'a> CrateResolver<'a> {
         Ok((name, *id))
     }
 
-    fn resolve_fn_self_stmts(&mut self, stmts: &Vec<FnSelfStmt>) -> Result<FnStmts, ResolveError> {
+    fn resolve_self_fn_stmts(&mut self, stmts: &Vec<FnSelfStmt>) -> Result<FnStmts, ResolveError> {
         for fn_stmt in stmts {
             self.insert_self_fn(fn_stmt.sig.name.ident, fn_stmt.id)?;
         }

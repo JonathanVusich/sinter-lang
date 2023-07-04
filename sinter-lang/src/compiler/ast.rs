@@ -516,7 +516,7 @@ impl EnumStmt {
 pub struct TraitStmt {
     pub name: Ident,
     pub generic_params: GenericParams,
-    pub member_fns: Vec<FnSelfStmt>,
+    pub self_fns: Vec<FnSelfStmt>,
 }
 
 impl TraitStmt {
@@ -524,7 +524,7 @@ impl TraitStmt {
         Self {
             name: ident,
             generic_params,
-            member_fns,
+            self_fns: member_fns,
         }
     }
 }
@@ -533,7 +533,7 @@ impl TraitStmt {
 pub struct TraitImplStmt {
     pub trait_to_impl: PathTy,
     pub target_ty: QualifiedIdent,
-    pub member_fns: Vec<FnSelfStmt>,
+    pub self_fns: Vec<FnSelfStmt>,
 }
 
 impl TraitImplStmt {
@@ -545,7 +545,7 @@ impl TraitImplStmt {
         Self {
             trait_to_impl,
             target_ty,
-            member_fns,
+            self_fns: member_fns,
         }
     }
 }
