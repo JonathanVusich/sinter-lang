@@ -1,0 +1,5 @@
+use crate::multiplication::multiply;
+
+fn square<T>(x: T, y: T) => T {
+    multiply(x, x)
+}

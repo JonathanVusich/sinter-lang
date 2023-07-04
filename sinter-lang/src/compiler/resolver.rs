@@ -24,11 +24,11 @@ use crate::compiler::hir::{
     ClosureParams, DefId, EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig,
     FnStmt, FnStmts, ForStmt, GenericParam, GenericParams, Generics, HirCrate, HirItem, HirNode,
     HirNodeKind, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, Param, Params,
-    PathExpr, PathTy, Pattern, Segment, Stmt, Stmts, TraitBound, Ty, UnaryExpr,
+    PathExpr, PathTy, Pattern, ReturnStmt, Segment, Stmt, Stmts, TraitBound, Ty, UnaryExpr,
 };
 use crate::compiler::krate::Crate;
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::ResolveError::DefinitionNotFound;
+use crate::compiler::resolver::ResolveError::{DefinitionNotFound, DuplicateLocalDefIds};
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::types::InternedStr;
 
@@ -142,6 +142,8 @@ impl Scope {
 pub enum ResolveError {
     /// Error from looking up definition in crate
     DefinitionNotFound,
+    /// Duplicate nodes created for a single local definition.
+    DuplicateLocalDefIds,
     /// Error for duplicate definitions
     DuplicateDefinition { existing: DefId, new: DefId },
 }
@@ -281,7 +283,7 @@ impl<'a> CrateResolver<'a> {
                             let krate = self.krates.get(&krate_ident.ident).unwrap(); // Should be safe, if crate isn't found it will throw an error earlier
                             let def_id = krate
                                 .find_definition(&use_stmt.path)
-                                .ok_or(ResolveError::DefinitionNotFound)?;
+                                .ok_or(DefinitionNotFound)?;
                             Some((item.ident, def_id))
                         }
                     }
@@ -326,6 +328,12 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
+        self.scopes.push(Scope::Class {
+            fields: Default::default(),
+            self_fns: Default::default(),
+            generics: Default::default(),
+        });
+
         // We have to resolve generics params, fields, and fns in that order.
         let generic_params = self.resolve_generic_params(&class_stmt.generic_params)?;
         let fields = self.resolve_fields(class_stmt)?;
@@ -340,7 +348,7 @@ impl<'a> CrateResolver<'a> {
         ));
         let hir_node = HirNode::new(HirNodeKind::Item(item), span, id);
         self.items.push(id);
-        self.nodes.insert(id, hir_node);
+        self.insert_node(id, hir_node)?;
         Ok(())
     }
 
@@ -359,14 +367,15 @@ impl<'a> CrateResolver<'a> {
 
             let ty = self.resolve_ty(&param.ty)?;
 
-            self.nodes.insert(
+            self.insert_node(
                 param.id,
                 HirNode::new(
                     HirNodeKind::Param(Param::new(param.ident, ty, param.mutability)),
                     param.span,
                     param.id,
                 ),
-            );
+            )?;
+
             hir_params.insert(param.ident.ident, param.id);
         }
         Ok(hir_params)
@@ -393,14 +402,15 @@ impl<'a> CrateResolver<'a> {
                 We always want to insert the node, even if it clashes with another generic param.
                 Otherwise we can't look it up later when handling errors.
             */
-            self.nodes.insert(
+            self.insert_node(
                 param.id,
                 HirNode::new(
                     HirNodeKind::GenericParam(GenericParam::new(param.ident, trait_bound)),
                     param.span,
                     param.id,
                 ),
-            );
+            )?;
+
             generics.insert(param.ident.ident, param.id);
         }
         Ok(generics)
@@ -432,6 +442,20 @@ impl<'a> CrateResolver<'a> {
             None => Ok(()),
             Some(existing) => self.duplicate_definition(existing, id),
         }
+    }
+
+    fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) -> ResolveResult {
+        let index: usize = id.into();
+        match self.nodes.insert(id, hir_node) {
+            None => Ok(()),
+            Some(_) => Err(DuplicateLocalDefIds),
+        }
+    }
+
+    fn find_generic_param(&mut self, ident: InternedStr) -> Option<LocalDefId> {
+        self.scopes
+            .iter()
+            .find_map(|scope| scope.contains_generic(ident))
     }
 
     fn insert_generic_param(&mut self, ident: InternedStr, id: LocalDefId) -> ResolveResult {
@@ -475,14 +499,14 @@ impl<'a> CrateResolver<'a> {
                 We always want to insert the node, even if it clashes with another field.
                 Otherwise we can't look it up later when handling errors.
             */
-            self.nodes.insert(
+            self.insert_node(
                 *id,
                 HirNode::new(
                     HirNodeKind::Field(Field::new(*ident, resolved_ty)),
                     *span,
                     *id,
                 ),
-            );
+            )?;
             fields.insert(ident.ident, *id);
         }
         Ok(fields)
@@ -517,7 +541,7 @@ impl<'a> CrateResolver<'a> {
         ));
         let hir_node = HirNode::new(HirNodeKind::Item(item), span, id);
         self.items.push(id);
-        self.nodes.insert(id, hir_node);
+        self.insert_node(id, hir_node)?;
         Ok(())
     }
 
@@ -554,22 +578,19 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
-        let resolved_body = self.maybe_resolve_block(&fn_stmt.body)?;
         let resolved_sig = self.resolve_fn_sig(&fn_stmt.sig)?;
+        let resolved_body = self.maybe_resolve_block(&fn_stmt.body)?;
 
         let name = resolved_sig.name.ident;
 
-        self.module_scope
-            .insert(name, id.to_def_id(self.krate.id))?;
-
-        self.nodes.insert(
+        self.insert_node(
             id,
             HirNode::new(
                 HirNodeKind::Fn(FnStmt::new(resolved_sig, resolved_body)),
                 span,
                 id,
             ),
-        );
+        )?;
         Ok(())
     }
 
@@ -586,14 +607,14 @@ impl<'a> CrateResolver<'a> {
         let resolved_body = self.maybe_resolve_block(body)?;
         let resolved_sig = self.resolve_fn_sig(sig)?;
         let name = resolved_sig.name.ident;
-        self.nodes.insert(
+        self.insert_node(
             *id,
             HirNode::new(
                 HirNodeKind::Fn(FnStmt::new(resolved_sig, resolved_body)),
                 *span,
                 *id,
             ),
-        );
+        )?;
         Ok((name, *id))
     }
 
@@ -619,24 +640,10 @@ impl<'a> CrateResolver<'a> {
 
         let generic_params = self.resolve_generic_params(&fn_sig.generic_params)?;
         let params = self.resolve_params(&fn_sig.params)?;
-        let mut params = Params::default();
-        for param in fn_sig.params.iter() {
-            self.insert_param(param.ident.ident, param.id)?;
-
-            let ty = self.resolve_ty(&param.ty)?;
-            let hir_param = Param::new(param.ident, ty, param.mutability);
-
-            self.nodes.insert(
-                param.id,
-                HirNode::new(HirNodeKind::Param(hir_param), param.span, param.id),
-            );
-
-            params.insert(param.ident.ident, param.id);
-        }
 
         let return_ty = self.maybe_resolve_ty(&fn_sig.return_type)?;
 
-        todo!()
+        Ok(FnSig::new(fn_sig.name, generic_params, params, return_ty))
     }
 
     fn resolve_field(&mut self, field: &AstField) -> Result<LocalDefId, ResolveError> {
@@ -768,8 +775,7 @@ impl<'a> CrateResolver<'a> {
             AstExprKind::Continue => Expr::Continue,
         };
 
-        self.nodes
-            .insert(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id));
+        self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id))?;
         Ok(id)
     }
 
@@ -826,8 +832,7 @@ impl<'a> CrateResolver<'a> {
             TyKind::None => Ty::None,
         };
 
-        self.nodes
-            .insert(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id));
+        self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id))?;
         Ok(id)
     }
 
@@ -849,7 +854,7 @@ impl<'a> CrateResolver<'a> {
             hir_bound.push(resolved_ty);
         }
 
-        self.nodes.insert(
+        self.insert_node(
             id,
             HirNode::new(
                 HirNodeKind::Ty(Ty::TraitBound {
@@ -858,7 +863,7 @@ impl<'a> CrateResolver<'a> {
                 span,
                 id,
             ),
-        );
+        )?;
 
         Ok(id)
     }
@@ -896,7 +901,8 @@ impl<'a> CrateResolver<'a> {
                 todo!()
             }
             AstStmtKind::Return(return_stmt) => {
-                todo!()
+                let maybe_expr = self.maybe_resolve_expr(&return_stmt.value)?;
+                Stmt::Return(ReturnStmt::new(maybe_expr))
             }
             AstStmtKind::While(while_stmt) => {
                 todo!()
@@ -911,10 +917,10 @@ impl<'a> CrateResolver<'a> {
             }
         };
 
-        self.nodes.insert(
+        self.insert_node(
             stmt.id,
             HirNode::new(HirNodeKind::Stmt(hir_stmt), stmt.span, stmt.id),
-        );
+        )?;
 
         Ok(stmt.id)
     }
@@ -935,10 +941,10 @@ impl<'a> CrateResolver<'a> {
             stmts.push(self.resolve_stmt(stmt)?);
         }
 
-        self.nodes.insert(
+        self.insert_node(
             block.id,
             HirNode::new(HirNodeKind::Block(Block::new(stmts)), block.span, block.id),
-        );
+        )?;
 
         Ok(block.id)
     }
@@ -963,6 +969,10 @@ impl<'a> CrateResolver<'a> {
                         .items
                         .get(&ident.first().ident)
                         .copied()
+                        .or_else(|| {
+                            self.find_generic_param(ident.first().ident)
+                                .map(|id| id.to_def_id(self.krate.id))
+                        })
                         .ok_or(DefinitionNotFound)
                 } else {
                     let krate_ident = ident.first().ident;
@@ -996,15 +1006,26 @@ mod tests {
     use crate::compiler::resolver::{CrateResolver, Resolver};
     use crate::util::utils;
 
-    #[test]
-    #[snapshot]
-    pub fn resolve_class_stmt() -> HirCrate {
+    #[cfg(test)]
+    fn compile_crate(name: &str) -> HirCrate {
         let mut compiler = Compiler::default();
         let krate = compiler
-            .parse_crate(&utils::resolve_test_krate_path("complex_arithmetic"))
+            .parse_crate(&utils::resolve_test_krate_path(name))
             .unwrap();
         let map = HashMap::default();
         let crate_resolver = CrateResolver::new(&krate, &map);
         crate_resolver.resolve().unwrap()
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn import_function_from_crate() -> HirCrate {
+        compile_crate("complex_arithmetic")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn compile_simple_class() -> HirCrate {
+        compile_crate("compile_simple_class")
     }
 }

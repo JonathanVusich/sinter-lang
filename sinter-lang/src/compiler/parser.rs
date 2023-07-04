@@ -61,11 +61,6 @@ pub enum ParseError {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct ParseErrors {
-    errors: Vec<ParseError>,
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TokenTypes {
     token_types: Vec<TokenType>,
 }
@@ -1734,7 +1729,7 @@ mod tests {
     use crate::compiler::compiler::{CompileError, CompilerCtxt};
     use crate::compiler::hir::LocalDefId;
     use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
-    use crate::compiler::parser::{parse, ParseError, ParseResult, Parser};
+    use crate::compiler::parser::{ParseError, ParseResult, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::{Identifier, Semicolon};
     use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
@@ -1747,6 +1742,18 @@ mod tests {
     fn create_parser<'ctxt>(compiler_ctxt: &'ctxt mut CompilerCtxt, code: &str) -> Parser<'ctxt> {
         let tokens = tokenize(compiler_ctxt, code);
         Parser::new(compiler_ctxt, tokens)
+    }
+
+    #[cfg(test)]
+    fn parse_errors<T: AsRef<str>>(code: T) -> (StringInterner, Vec<ParseError>) {
+        let mut compiler_ctxt = CompilerCtxt::default();
+        let parser = create_parser(&mut compiler_ctxt, code.as_ref());
+
+        if let Some(CompileError::ParseErrors(parse_errors)) = parser.parse().err() {
+            (StringInterner::from(compiler_ctxt), parse_errors)
+        } else {
+            panic!("Expected parsing to fail!")
+        }
     }
 
     #[cfg(test)]
@@ -1768,11 +1775,9 @@ mod tests {
     }
 
     #[cfg(test)]
-    macro_rules! parse {
-        ($code:expr) => {{
-            let (ctxt, ast) = parse_module($code).unwrap();
-            (ctxt, ast)
-        }};
+    fn parse<T: AsRef<str>>(code: T) -> (CompilerCtxt, Module) {
+        let (ctxt, ast) = parse_module(code).unwrap();
+        (ctxt, ast)
     }
 
     #[cfg(test)]
@@ -1784,11 +1789,15 @@ mod tests {
     }
 
     #[cfg(test)]
-    macro_rules! parse_path {
-        ($code:expr) => {{
-            let (ctxt, path) = parse_code($code, |parser| parser.parse_path_expr()).unwrap();
-            (StringInterner::from(ctxt), path)
-        }};
+    fn parse_path(code: &str) -> (StringInterner, PathExpr) {
+        let (ctxt, path) = parse_code(code, |parser| parser.parse_path_expr()).unwrap();
+        (StringInterner::from(ctxt), path)
+    }
+
+    #[cfg(test)]
+    fn parse_stmt(code: &str) -> (StringInterner, Stmt) {
+        let (ctxt, path) = parse_code(code, |parser| parser.parse_inner_stmt()).unwrap();
+        (StringInterner::from(ctxt), path)
     }
 
     #[cfg(test)]
@@ -1933,31 +1942,55 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn single_path_expr() -> (StringInterner, PathExpr) {
-        parse_path!("std")
+        parse_path("std")
     }
 
     #[test]
     #[snapshot]
     pub fn simple_path_expr() -> (StringInterner, PathExpr) {
-        parse_path!("std::Clone")
+        parse_path("std::Clone")
     }
 
     #[test]
     #[snapshot]
     pub fn generic_path_expr() -> (StringInterner, PathExpr) {
-        parse_path!("std::HashMap::<T>::new")
+        parse_path("std::HashMap::<T>::new")
     }
 
     #[test]
     #[snapshot]
     pub fn nested_generic_path() -> (StringInterner, PathExpr) {
-        parse_path!("List::<List<f64>>::new")
+        parse_path("List::<List<f64>>::new")
     }
 
     #[test]
     #[snapshot]
     pub fn generic_trait_bound_path() -> (StringInterner, PathExpr) {
-        parse_path!("List::<Loggable + Serializable>::new")
+        parse_path("List::<Loggable + Serializable>::new")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn while_stmt() -> (StringInterner, Stmt) {
+        parse_stmt("while x < 100 { }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn for_stmt() -> (StringInterner, Stmt) {
+        parse_stmt("for index in range(0, 100) { }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn if_stmt() -> (StringInterner, Stmt) {
+        parse_stmt("if x < 100 { let y = 30; print(y); }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn block_stmt() -> (StringInterner, Stmt) {
+        parse_stmt("{ let y = 30; } ")
     }
 
     macro_rules! simple_type {
@@ -1987,91 +2020,91 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn use_statements() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("use_stmts.si"))
+        parse(utils::read_code_example("use_stmts.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn basic_enum() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("basic_enum.si"))
+        parse(utils::read_code_example("basic_enum.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn vector_enum() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("vector_enum.si"))
+        parse(utils::read_code_example("vector_enum.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn main_fn() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("hello_world_fn.si"))
+        parse(utils::read_code_example("hello_world_fn.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn main_fn_with_args() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("main_fn.si"))
+        parse(utils::read_code_example("main_fn.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn declare_classes_and_vars() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("classes_and_vars.si"))
+        parse(utils::read_code_example("classes_and_vars.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn simple_add_func() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("sum_fn.si"))
+        parse(utils::read_code_example("sum_fn.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn var_declarations() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("var_declarations.si"))
+        parse(utils::read_code_example("var_declarations.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn mutable_assignment() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("mutable_assignment.si"))
+        parse(utils::read_code_example("mutable_assignment.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn print_fn() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("print_fn.si"))
+        parse(utils::read_code_example("print_fn.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn returning_error_union() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("returning_error_union.si"))
+        parse(utils::read_code_example("returning_error_union.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn trait_vs_generic() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("trait_vs_generic.si"))
+        parse(utils::read_code_example("trait_vs_generic.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn generic_lists() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("generic_lists.si"))
+        parse(utils::read_code_example("generic_lists.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn rectangle_class() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("rectangle_class.si"))
+        parse(utils::read_code_example("rectangle_class.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn enum_message() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("enum_message.si"))
+        parse(utils::read_code_example("enum_message.si"))
     }
 
     #[test]
@@ -2083,12 +2116,18 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn enum_match() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("enum_match.si"))
+        parse(utils::read_code_example("enum_match.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn impl_trait() -> (CompilerCtxt, Module) {
-        parse!(utils::read_code_example("impl_trait.si"))
+        parse(utils::read_code_example("impl_trait.si"))
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn unexpected_outer_stmt_token() -> (StringInterner, Vec<ParseError>) {
+        parse_errors("enum Stmt { } aflatoxin")
     }
 }
