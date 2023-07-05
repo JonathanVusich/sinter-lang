@@ -683,15 +683,18 @@ impl<'ctxt> Parser<'ctxt> {
             Some(TokenType::Identifier(ident)) => {
                 self.advance();
                 let fields = self.fields()?;
-                let fn_stmts = if self.matches(TokenType::LeftBrace) {
-                    self.fn_stmts()?
+                let fn_self_stmts = if self.matches(TokenType::LeftBrace) {
+                    self.parse_multiple(
+                        |parser| parser.fn_self_stmt(),
+                        |token| matches!(token, TokenType::Fn),
+                    )?
                 } else {
                     Vec::new()
                 };
                 self.expect(TokenType::Comma)?;
                 let span = self.get_span();
                 let id = self.get_id();
-                Ok(EnumMember::new(ident, fields, fn_stmts, span, id))
+                Ok(EnumMember::new(ident, fields, fn_self_stmts, span, id))
             }
             Some(token) => {
                 let ident = self.intern_str("");

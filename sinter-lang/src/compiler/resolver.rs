@@ -4,7 +4,17 @@ use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
 
-use crate::compiler::ast::{ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt, ClosureParam as AstClosureParam, EnumMember as AstEnumMember, EnumStmt as AstEnumStmt, ExprKind as AstExprKind, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig, FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt, Ident, IdentType, Item as AstItem, ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm, Module, Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind, TyKind as AstTyKind, UseStmt, Fields as AstFields, Item};
+use crate::compiler::ast::{
+    ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt,
+    ClosureParam as AstClosureParam, EnumMember as AstEnumMember, EnumStmt as AstEnumStmt,
+    ExprKind as AstExprKind, Fields as AstFields, FnSelfStmt as AstFnSelfStmt, FnSelfStmt,
+    FnSig as AstFnSig, FnStmt as AstFnStmt, GenericParams as AstGenericParams,
+    Generics as AstGenerics, GlobalLetStmt, Ident, IdentType, Item as AstItem, Item,
+    ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm, Module, Params as AstParams,
+    PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt,
+    StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitImplStmt as AstTraitImplStmt,
+    TraitStmt as AstTraitStmt, Ty as AstTy, TyKind, TyKind as AstTyKind, UseStmt,
+};
 use crate::compiler::ast::{Expr as AstExpr, Field as AstField};
 use crate::compiler::ast_passes::NameCollector;
 use crate::compiler::compiler::CompileError;
@@ -18,7 +28,7 @@ use crate::compiler::hir::{
     PathExpr, PathTy, Pattern, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty,
     UnaryExpr,
 };
-use crate::compiler::krate::{Crate, ModuleMap, ModuleNamespace};
+use crate::compiler::krate::{Crate, CrateAttributes, CrateNamespace, ModuleMap, ModuleNamespace};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError::{DefinitionNotFound, DuplicateLocalDefIds};
 use crate::compiler::tokens::tokenized_file::Span;
@@ -155,32 +165,35 @@ impl Error for ResolveError {}
 type ResolveResult = Result<(), ResolveError>;
 
 #[derive(Default)]
-struct Resolver<'a> {
+struct Resolver {
     crates: HashMap<InternedStr, Crate>,
-    crate_items: HashMap<InternedStr, ModuleMap<ModuleNamespace<'a>>>,
-    errors: Vec<ResolveError>,
 }
 
-impl<'a> Resolver<'a> {
+impl Resolver {
     fn new(crates: HashMap<InternedStr, Crate>) -> Self {
-        // Generate crate items
-        let mut crate_items = HashMap::default();
-        for (krate_name, krate) in crates.iter() {
-            crate_items.insert(*krate_name, create_namespace(krate));
-        }
-        Self {
-            crates,
-            crate_items,
-            errors: Default::default(),
-        }
+        Self { crates }
     }
 
     fn resolve(self) -> Result<Vec<HirCrate>, CompileError> {
         let mut resolve_errors = Vec::new();
         let mut crates = Vec::new();
 
+        // Generate crate item attributes to enable fast lookups for all items and their properties.
+        let mut crate_item_attributes = HashMap::default();
         for krate in self.crates.values() {
-            let crate_resolver = CrateResolver::new(krate, &self.crates);
+            let crate_attrs = generate_crate_attrs(krate);
+            match crate_attrs {
+                Ok(crate_attrs) => {
+                    crate_item_attributes.insert(krate.name, crate_attrs);
+                }
+                Err(errors) => {
+                    resolve_errors.extend(errors);
+                }
+            }
+        }
+
+        for krate in self.crates.values() {
+            let crate_resolver = CrateResolver::new(krate, &crate_item_attributes);
             match crate_resolver.resolve() {
                 Ok(crate_map) => {
                     crates.push(crate_map);
@@ -199,8 +212,29 @@ impl<'a> Resolver<'a> {
     }
 }
 
-fn create_namespace(krate: &Crate) -> ModuleMap<ModuleNamespace> {
-    todo!()
+fn generate_crate_attrs(krate: &Crate) -> Result<CrateAttributes, Vec<ResolveError>> {
+    let mut errors = Vec::new();
+    let mut crate_attrs = CrateAttributes::default();
+
+    for (path, module) in krate.module_lookup.iter() {
+        for item in &module.items {
+            match &item.kind {
+                ItemKind::Use(use_stmt) => {}
+                ItemKind::GlobalLet(_) => {}
+                ItemKind::Class(_) => {}
+                ItemKind::Enum(_) => {}
+                ItemKind::Trait(_) => {}
+                ItemKind::TraitImpl(_) => {}
+                ItemKind::Fn(_) => {}
+            }
+        }
+    }
+
+    if !errors.is_empty() {
+        Err(errors)
+    } else {
+        Ok(crate_attrs)
+    }
 }
 
 #[derive(Default)]
@@ -208,10 +242,9 @@ struct CrateMap<'a> {
     items: HashMap<LocalDefId, &'a AstItem>,
 }
 
-
 struct CrateResolver<'a> {
     krate: &'a Crate,
-    krates: &'a HashMap<InternedStr, Crate>,
+    krate_attrs: &'a HashMap<InternedStr, CrateAttributes>,
     items: Vec<LocalDefId>,
     nodes: HashMap<LocalDefId, HirNode>,
     module_scope: ModuleScope,
@@ -219,10 +252,10 @@ struct CrateResolver<'a> {
 }
 
 impl<'a> CrateResolver<'a> {
-    fn new(krate: &'a Crate, krates: &'a HashMap<InternedStr, Crate>) -> Self {
+    fn new(krate: &'a Crate, krate_attrs: &'a HashMap<InternedStr, CrateAttributes>) -> Self {
         Self {
             krate,
-            krates,
+            krate_attrs,
             items: Default::default(),
             nodes: Default::default(),
             module_scope: ModuleScope::default(),
@@ -300,12 +333,15 @@ impl<'a> CrateResolver<'a> {
                         IdentType::Crate => Some((item.ident, item.id.to_def_id(self.krate.id))),
                         IdentType::LocalOrUse => {
                             let krate_ident = use_stmt.path.first();
-                            let krate = self.krates.get(&krate_ident.ident).unwrap(); // Should be safe, if crate isn't found it will throw an error earlier
-                            let def_id = krate
+                            let krate_namespace = self.krate_attrs.get(&krate_ident.ident).unwrap(); // Should be safe since the crate should exist
+
+                            let definition = krate_namespace
                                 .find_definition(&use_stmt.path)
                                 .ok_or(DefinitionNotFound);
-                            match def_id {
-                                Ok(def_id) => Some((item.ident, def_id)),
+                            match definition {
+                                Ok(def_id) => {
+                                    Some((item.ident, def_id.id.to_def_id(self.krate.id)))
+                                }
                                 Err(err) => {
                                     errors.push(err);
                                     None
@@ -315,7 +351,7 @@ impl<'a> CrateResolver<'a> {
                     }
                 }
                 ItemKind::GlobalLet(let_stmt) => {
-                    Some((let_stmt.ident.ident, item.id.to_def_id(self.krate.id)))
+                    Some((let_stmt.name.ident, item.id.to_def_id(self.krate.id)))
                 }
                 ItemKind::Class(class_stmt) => {
                     Some((class_stmt.name.ident, item.id.to_def_id(self.krate.id)))
@@ -368,7 +404,7 @@ impl<'a> CrateResolver<'a> {
         // We have to resolve generics params, fields, and fns in that order.
         let generic_params = self.resolve_generic_params(&class_stmt.generic_params)?;
         let fields = self.resolve_fields(&class_stmt.fields)?;
-        let fn_stmts = self.resolve_self_fn_stmts(&class_stmt.fn_stmts)?;
+        let fn_stmts = self.resolve_self_fn_stmts(&class_stmt.self_fns)?;
 
         let item = HirItem::Class(ClassStmt::new(
             class_stmt.name,
@@ -555,7 +591,7 @@ impl<'a> CrateResolver<'a> {
 
         let generic_params = self.resolve_generic_params(&enum_stmt.generic_params)?;
         let enum_members = self.resolve_enum_members(&enum_stmt.members)?;
-        let member_fns = self.resolve_self_fn_stmts(&enum_stmt.member_fns)?;
+        let member_fns = self.resolve_self_fn_stmts(&enum_stmt.self_fns)?;
 
         self.scopes.pop();
 
@@ -584,8 +620,6 @@ impl<'a> CrateResolver<'a> {
 
             let self_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
             let fields = self.resolve_fields(&member.fields)?;
-
-
 
             // TODO: Continue implementing this
 
@@ -1034,8 +1068,8 @@ impl<'a> CrateResolver<'a> {
                         .ok_or(DefinitionNotFound)
                 } else {
                     let krate_ident = ident.first().ident;
-                    let krate = self.krates.get(&krate_ident).unwrap();
-                    krate.find_definition(ident).ok_or(DefinitionNotFound)
+                    let namespace = self.krate_attrs.get(&krate_ident).unwrap();
+                    namespace.find_definition(ident).ok_or(DefinitionNotFound)
                 }
             }
         }

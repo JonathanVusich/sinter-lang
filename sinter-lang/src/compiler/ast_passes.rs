@@ -67,7 +67,7 @@ impl AstPass<NameCollector> for NameCollector {
     fn visit_item(&mut self, node: &Item) {
         match &node.kind {
             ItemKind::GlobalLet(let_stmt) => {
-                self.constants.insert(let_stmt.ident, node.id);
+                self.constants.insert(let_stmt.name, node.id);
             }
             ItemKind::Class(class_stmt) => {
                 self.types.insert(class_stmt.name, node.id);

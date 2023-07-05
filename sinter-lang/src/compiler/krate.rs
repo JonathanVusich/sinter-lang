@@ -1,4 +1,13 @@
-use crate::compiler::ast::{AstPass, ItemKind, Module, QualifiedIdent, Item};
+use std::collections::{HashMap, HashSet};
+use std::fmt::{format, Formatter};
+use std::marker::PhantomData;
+use std::ops::Deref;
+
+use serde::de::{DeserializeOwned, SeqAccess, Visitor};
+use serde::ser::{SerializeSeq, SerializeStruct};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+use crate::compiler::ast::{AstPass, Field, Item, ItemKind, Module, QualifiedIdent};
 use crate::compiler::ast_passes::{UsedCrate, UsedCrateCollector};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::{DefId, HirItem, LocalDefId};
@@ -6,13 +15,6 @@ use crate::compiler::parser::ParseError;
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError;
 use crate::compiler::types::types::InternedStr;
-use serde::de::{DeserializeOwned, SeqAccess, Visitor};
-use serde::ser::{SerializeSeq, SerializeStruct};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::collections::{HashMap, HashSet};
-use std::fmt::{format, Formatter};
-use std::marker::PhantomData;
-use std::ops::Deref;
 
 #[derive(PartialEq, Debug, Default, Copy, Clone, Serialize, Deserialize)]
 pub struct CrateId {
@@ -31,9 +33,17 @@ impl From<CrateId> for u32 {
     }
 }
 
-#[derive(PartialEq, Debug, Default)]
+#[derive(PartialEq, Debug)]
 pub struct ModuleMap<T> {
     table: HashMap<ModulePath, T>,
+}
+
+impl<T> Default for ModuleMap<T> {
+    fn default() -> Self {
+        Self {
+            table: HashMap::default(),
+        }
+    }
 }
 
 impl<T> Deref for ModuleMap<T> {
@@ -118,7 +128,83 @@ where
 
 #[derive(PartialEq, Debug, Default)]
 pub struct ModuleNamespace<'a> {
-    items: HashMap<InternedStr, &'a Item>,
+    pub(crate) items: HashMap<InternedStr, &'a Item>,
+}
+
+#[derive(PartialEq, Debug, Default)]
+pub struct CrateNamespace<'a> {
+    pub(crate) namespaces: ModuleMap<ModuleNamespace<'a>>,
+}
+
+impl CrateNamespace<'_> {
+    pub fn find_definition(&self, qualified_ident: &QualifiedIdent) -> Option<&'_ Item> {
+        qualified_ident
+            .module_path()
+            .map(|path| self.namespaces.get(&path))
+            .flatten()
+            .map(|namespace| namespace.items.get(&qualified_ident.last().ident))
+            .flatten()
+            .copied()
+    }
+}
+
+#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
+pub struct CrateAttributes {
+    module_item_attributes: ModuleMap<ItemAttrs>,
+}
+
+impl CrateAttributes {
+    pub fn insert(&mut self, module_path: ModulePath, item_attrs: ItemAttrs) {
+        self.module_item_attributes.insert(module_path, item_attrs);
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum ItemAttrs {
+    Class(ClassAttrs),
+    Enum(EnumAttrs),
+    Trait(TraitAttrs),
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct ClassAttrs {
+    fields: HashMap<InternedStr, LocalDefId>,
+    generic_params: HashMap<InternedStr, LocalDefId>,
+    self_fns: HashMap<InternedStr, FnAttributes>,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct FnAttributes {
+    pub(crate) local_def_id: LocalDefId,
+    pub(crate) param_number: usize,
+}
+
+impl FnAttributes {
+    pub fn new(local_def_id: LocalDefId, param_number: usize) -> Self {
+        Self {
+            local_def_id,
+            param_number,
+        }
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct EnumAttrs {
+    members: HashMap<InternedStr, EnumMemberAttributes>,
+    generic_params: HashMap<InternedStr, LocalDefId>,
+    self_fns: HashMap<InternedStr, FnAttributes>,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct EnumMemberAttributes {
+    fields: HashMap<InternedStr, LocalDefId>,
+    self_fns: HashMap<InternedStr, FnAttributes>,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct TraitAttrs {
+    generic_params: HashMap<InternedStr, LocalDefId>,
+    self_fns: HashMap<InternedStr, FnAttributes>,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]

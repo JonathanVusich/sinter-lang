@@ -459,7 +459,7 @@ pub struct ClassStmt {
     pub(crate) class_type: ClassType,
     pub(crate) generic_params: GenericParams,
     pub(crate) fields: Fields,
-    pub(crate) fn_stmts: Vec<FnSelfStmt>,
+    pub(crate) self_fns: Vec<FnSelfStmt>,
 }
 
 impl ClassStmt {
@@ -475,7 +475,7 @@ impl ClassStmt {
             class_type,
             generic_params,
             fields,
-            fn_stmts,
+            self_fns: fn_stmts,
         }
     }
 }
@@ -485,7 +485,7 @@ pub struct EnumStmt {
     pub name: Ident,
     pub generic_params: GenericParams,
     pub members: Vec<EnumMember>,
-    pub member_fns: Vec<FnSelfStmt>,
+    pub self_fns: Vec<FnSelfStmt>,
 }
 
 impl EnumStmt {
@@ -499,7 +499,7 @@ impl EnumStmt {
             name,
             generic_params,
             members,
-            member_fns,
+            self_fns: member_fns,
         }
     }
 
@@ -721,7 +721,7 @@ impl Field {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
-    pub ident: Ident,
+    pub name: Ident,
     pub ty: Option<Ty>,
     pub initializer: Expr,
 }
@@ -729,7 +729,7 @@ pub struct GlobalLetStmt {
 impl GlobalLetStmt {
     pub fn new(ident: Ident, ty: Option<Ty>, initializer: Expr) -> Self {
         Self {
-            ident,
+            name: ident,
             ty,
             initializer,
         }

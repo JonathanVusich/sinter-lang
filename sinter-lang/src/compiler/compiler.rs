@@ -1,3 +1,17 @@
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::error::Error;
+use std::ffi::{OsStr, OsString};
+use std::fmt::{Display, Formatter};
+use std::fs::File;
+use std::mem::discriminant;
+use std::num::NonZeroUsize;
+use std::path::{Path, PathBuf};
+
+use lasso::{Key as K, LargeSpur, Rodeo};
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Deserializer, Serialize};
+use walkdir::{DirEntry, WalkDir};
+
 use crate::compiler::ast::{AstPass, Item, ItemKind, Module, QualifiedIdent, Stmt, UseStmt};
 use crate::compiler::ast_passes::{HirVisitor, NameCollector, UsedCrateCollector};
 use crate::compiler::codegen::code_generator::emit_code;
@@ -11,19 +25,8 @@ use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
 use crate::compiler::ty_checker::ty_check;
 use crate::compiler::types::types::InternedStr;
+use crate::compiler::validator::{validate, ValidationError, Validator};
 use crate::compiler::StringInterner;
-use lasso::{Key as K, LargeSpur, Rodeo};
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Deserializer, Serialize};
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::error::Error;
-use std::ffi::{OsStr, OsString};
-use std::fmt::{Display, Formatter};
-use std::fs::File;
-use std::mem::discriminant;
-use std::num::NonZeroUsize;
-use std::path::{Path, PathBuf};
-use walkdir::{DirEntry, WalkDir};
 
 #[derive(Default)]
 pub struct Compiler {
@@ -46,7 +49,9 @@ pub enum CompileError {
     /// Module name contains non UTF-8 characters
     InvalidModuleName(OsString),
 
-    /// Module not found during resolution
+    ValidationErrors(Vec<ValidationError>),
+
+    /// Errors found during initial resolution
     ResolveErrors(Vec<ResolveError>),
 
     /// Errors found while parsing
@@ -133,14 +138,22 @@ impl Compiler {
 
     fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
         let crates = self.parse_crates(&application)?;
+        // TODO: Validate crate contents (i.e. no duplicate param/field/fn names, etc.). This will be necessary for resolution later.
+        self.validate_crates(&crates)?;
 
-        // TODO: Validate crate contents (i.e. class fns have bodies, etc)
+        // TODO: Create crate resolution metadata and report initial resolution errors.
+        // We cannot resolve everything in one pass, first we do use validation, var declaration validation, etc.
+
+        // TODO: Implement type inference algorithm
+        /* We need to assign a type to every expression in the AST. This may require making changes to the AST
+           classes to allow for types in every expression.
+        */
+        // TODO: Finish crate resolution now that all type data is available.
+
+        // TODO: Lower the AST to HIR with the provided metadata.
 
         let resolved_crates = self.resolve_crates(crates)?;
 
-        // TODO: Generate externally visible map
-        // TODO: Resolve types, variables
-        // TODO: Type check module
         // TODO: Generate bytecode
         todo!()
     }
@@ -236,6 +249,26 @@ impl Compiler {
         parse(&mut self.compiler_ctxt, tokens)
     }
 
+    fn validate_crates(
+        &mut self,
+        crates: &HashMap<InternedStr, Crate>,
+    ) -> Result<(), CompileError> {
+        let mut validation_errors = Vec::new();
+        for krate in crates.values() {
+            for module in krate.module_lookup.values() {
+                match validate(module) {
+                    Ok(()) => {}
+                    Err(errors) => validation_errors.extend(errors),
+                };
+            }
+        }
+        if !validation_errors.is_empty() {
+            Err(CompileError::ValidationErrors(validation_errors))
+        } else {
+            Ok(())
+        }
+    }
+
     fn resolve_crates(
         &mut self,
         crates: HashMap<InternedStr, Crate>,
@@ -250,13 +283,14 @@ fn local_to_root<'a>(path: &'a Path, root: &Path) -> Result<&'a Path, CompileErr
 }
 
 mod tests {
+    use std::assert_matches::assert_matches;
+
+    use snap::snapshot;
+
     use crate::compiler::ast::ItemKind;
     use crate::compiler::compiler::{Compiler, CompilerCtxt};
     use crate::compiler::krate::{Crate, CrateId};
     use crate::compiler::path::ModulePath;
-    use snap::snapshot;
-    use std::assert_matches::assert_matches;
-
     #[cfg(test)]
     use crate::util::utils::resolve_test_krate_path;
 
