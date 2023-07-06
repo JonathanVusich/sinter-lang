@@ -25,7 +25,7 @@ use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
 use crate::compiler::ty_checker::ty_check;
 use crate::compiler::types::types::InternedStr;
-use crate::compiler::validator::{validate, ValidationError, Validator};
+use crate::compiler::validator::{validate, ValidationError};
 use crate::compiler::StringInterner;
 
 #[derive(Default)]

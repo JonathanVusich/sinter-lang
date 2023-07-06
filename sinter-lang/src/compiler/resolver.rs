@@ -245,6 +245,7 @@ struct CrateMap<'a> {
 struct CrateResolver<'a> {
     krate: &'a Crate,
     krate_attrs: &'a HashMap<InternedStr, CrateAttributes>,
+    errors: Vec<ResolveError>,
     items: Vec<LocalDefId>,
     nodes: HashMap<LocalDefId, HirNode>,
     module_scope: ModuleScope,
@@ -256,6 +257,7 @@ impl<'a> CrateResolver<'a> {
         Self {
             krate,
             krate_attrs,
+            errors: Default::default(),
             items: Default::default(),
             nodes: Default::default(),
             module_scope: ModuleScope::default(),
@@ -264,19 +266,18 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve(mut self) -> Result<HirCrate, CompileError> {
-        let mut errors = Vec::new();
         for module in self.krate.module_lookup.values() {
             // First need to populate the module scope (from used items + module items)
-            errors.extend(self.populate_module_scope(module));
-            errors.extend(self.initial_module_resolution(module));
+            self.populate_module_scope(module);
+            self.initial_module_resolution(module);
             // TODO: Impl trait resolution
 
             // We have to remember to clear out all scopes and reset the module scope
             self.module_scope = ModuleScope::default();
             self.scopes.clear();
         }
-        if !errors.is_empty() {
-            Err(CompileError::ResolveErrors(errors))
+        if !self.errors.is_empty() {
+            Err(CompileError::ResolveErrors(self.errors))
         } else {
             Ok(HirCrate::new(
                 self.krate.name,
@@ -287,7 +288,7 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn initial_module_resolution(mut self, module: &Module) -> Vec<ResolveError> {
+    fn initial_module_resolution(&mut self, module: &Module) -> Vec<ResolveError> {
         let mut errors = Vec::new();
         for item in &module.items {
             let span = item.span;
@@ -323,8 +324,7 @@ impl<'a> CrateResolver<'a> {
         })
     }
 
-    fn populate_module_scope(&mut self, module: &Module) -> Vec<ResolveError> {
-        let mut errors = Vec::new();
+    fn populate_module_scope(&mut self, module: &Module) {
         for item in &module.items {
             if let Some((ident, id)) = match &item.kind {
                 ItemKind::Use(use_stmt) => {
@@ -335,18 +335,7 @@ impl<'a> CrateResolver<'a> {
                             let krate_ident = use_stmt.path.first();
                             let krate_namespace = self.krate_attrs.get(&krate_ident.ident).unwrap(); // Should be safe since the crate should exist
 
-                            let definition = krate_namespace
-                                .find_definition(&use_stmt.path)
-                                .ok_or(DefinitionNotFound);
-                            match definition {
-                                Ok(def_id) => {
-                                    Some((item.ident, def_id.id.to_def_id(self.krate.id)))
-                                }
-                                Err(err) => {
-                                    errors.push(err);
-                                    None
-                                }
-                            }
+                            todo!()
                         }
                     }
                 }
@@ -370,12 +359,11 @@ impl<'a> CrateResolver<'a> {
                 match self.module_scope.insert(ident, id) {
                     Ok(_) => {}
                     Err(err) => {
-                        errors.push(err);
+                        self.errors.push(err);
                     }
                 };
             }
         }
-        errors
     }
 
     fn resolve_global_let_stmt(
@@ -430,20 +418,20 @@ impl<'a> CrateResolver<'a> {
     fn resolve_params(&mut self, params: &AstParams) -> Result<Params, ResolveError> {
         let mut hir_params = Params::default();
         for param in params.iter() {
-            self.insert_param(param.ident.ident, param.id)?;
+            self.insert_param(param.name.ident, param.id)?;
 
             let ty = self.resolve_ty(&param.ty)?;
 
             self.insert_node(
                 param.id,
                 HirNode::new(
-                    HirNodeKind::Param(Param::new(param.ident, ty, param.mutability)),
+                    HirNodeKind::Param(Param::new(param.name, ty, param.mutability)),
                     param.span,
                     param.id,
                 ),
             )?;
 
-            hir_params.insert(param.ident.ident, param.id);
+            hir_params.insert(param.name.ident, param.id);
         }
         Ok(hir_params)
     }
@@ -454,7 +442,7 @@ impl<'a> CrateResolver<'a> {
     ) -> Result<GenericParams, ResolveError> {
         let mut generics = GenericParams::default();
         for param in generic_params.iter() {
-            self.insert_generic_param(param.ident.ident, param.id)?;
+            self.insert_generic_param(param.name.ident, param.id)?;
 
             let trait_bound = match &param.trait_bound {
                 None => None,
@@ -472,13 +460,13 @@ impl<'a> CrateResolver<'a> {
             self.insert_node(
                 param.id,
                 HirNode::new(
-                    HirNodeKind::GenericParam(GenericParam::new(param.ident, trait_bound)),
+                    HirNodeKind::GenericParam(GenericParam::new(param.name, trait_bound)),
                     param.span,
                     param.id,
                 ),
             )?;
 
-            generics.insert(param.ident.ident, param.id);
+            generics.insert(param.name.ident, param.id);
         }
         Ok(generics)
     }
@@ -551,7 +539,7 @@ impl<'a> CrateResolver<'a> {
         let mut fields = Fields::default();
         for field in ast_fields.iter() {
             let AstField {
-                ident,
+                name: ident,
                 ty,
                 span,
                 id,
@@ -1069,7 +1057,8 @@ impl<'a> CrateResolver<'a> {
                 } else {
                     let krate_ident = ident.first().ident;
                     let namespace = self.krate_attrs.get(&krate_ident).unwrap();
-                    namespace.find_definition(ident).ok_or(DefinitionNotFound)
+                    // namespace.find_definition(ident).ok_or(DefinitionNotFound)
+                    todo!()
                 }
             }
         }

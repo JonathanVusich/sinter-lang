@@ -243,15 +243,16 @@ impl Crate {
     }
 
     pub fn find_definition(&self, qualified_ident: &QualifiedIdent) -> Option<DefId> {
-        if let Some(module_path) = qualified_ident.module_path() {
-            let item = qualified_ident.last().ident;
-            return self
-                .namespace
-                .get(&module_path)
-                .and_then(|namespace| namespace.items.get(&item))
-                .copied()
-                .map(|local_id| local_id.to_def_id(self.id));
-        }
-        None
+        todo!()
+        // if let Some(module_path) = qualified_ident.module_path() {
+        //     let item = qualified_ident.last().ident;
+        //     return self
+        //         .namespace
+        //         .get(&module_path)
+        //         .and_then(|namespace| namespace.items.get(&item))
+        //         .copied()
+        //         .map(|local_id| local_id.to_def_id(self.id));
+        // }
+        // None
     }
 }

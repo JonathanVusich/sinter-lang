@@ -1,13 +1,17 @@
+use std::collections::HashMap;
+
+use multimap::MultiMap;
+
 use crate::compiler::ast::{
-    EnumMember, Fields, FnSelfStmt, FnStmt, GenericParams, GlobalLetStmt, Item, ItemKind, Module,
-    Params, QualifiedIdent, UseStmt,
+    EnumMember, Field, Fields, FnSelfStmt, FnSig, FnStmt, GenericParam, GenericParams,
+    GlobalLetStmt, Item, ItemKind, Module, Param, Params, QualifiedIdent, UseStmt,
 };
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::Crate;
 use crate::compiler::types::types::InternedStr;
-use multimap::MultiMap;
-use std::collections::HashMap;
+
+const MAX_NUM: usize = 65535;
 
 #[derive(Debug)]
 pub enum ValidationError {
@@ -15,6 +19,11 @@ pub enum ValidationError {
     DuplicateLetStmts(InternedStr, Vec<LocalDefId>),
     DuplicateTys(InternedStr, Vec<LocalDefId>),
     DuplicateFns(InternedStr, Vec<LocalDefId>),
+    DuplicateGenericParam(InternedStr, Vec<LocalDefId>),
+    DuplicateParam(InternedStr, Vec<LocalDefId>),
+    DuplicateField(InternedStr, Vec<LocalDefId>),
+    DuplicateEnumMember(InternedStr, Vec<LocalDefId>),
+    TooManyFns,
 }
 
 #[derive(Default)]
@@ -98,24 +107,87 @@ impl Validator {
     }
 
     fn validate_generic_params(&mut self, generic_params: &GenericParams) {
-        todo!()
+        self.report_name_clashes(
+            generic_params,
+            |param| param.name.ident,
+            |param| param.id,
+            |name, ids| ValidationError::DuplicateGenericParam(name, ids),
+        );
     }
 
-    fn validate_params(&mut self, generic_params: &Params) {
-        todo!()
+    fn validate_params(&mut self, params: &Params) {
+        self.report_name_clashes(
+            params,
+            |param| param.name.ident,
+            |param| param.id,
+            |name, ids| ValidationError::DuplicateParam(name, ids),
+        );
     }
 
     fn validate_self_fns(&mut self, self_fns: &Vec<FnSelfStmt>) {
-        // TODO: Verify number of trait functions (max 65535)
-        todo!()
+        self.report_name_clashes(
+            self_fns,
+            |self_fn| self_fn.sig.name.ident,
+            |self_fn| self_fn.id,
+            |name, ids| ValidationError::DuplicateFns(name, ids),
+        );
+
+        for self_fn in self_fns {
+            self.validate_fn_sig(&self_fn.sig);
+        }
     }
 
     fn validate_fields(&mut self, fields: &Fields) {
-        todo!()
+        self.report_name_clashes(
+            fields,
+            |field| field.name.ident,
+            |field| field.id,
+            |name, ids| ValidationError::DuplicateField(name, ids),
+        );
     }
 
     fn validate_enum_members(&mut self, members: &Vec<EnumMember>) {
-        todo!()
+        self.report_name_clashes(
+            members,
+            |member| member.name,
+            |member| member.id,
+            |name, ids| ValidationError::DuplicateEnumMember(name, ids),
+        );
+
+        for member in members {
+            self.validate_fields(&member.fields);
+            self.validate_self_fns(&member.self_fns);
+        }
+    }
+
+    fn validate_fn_sig(&mut self, fn_sig: &FnSig) {
+        self.validate_generic_params(&fn_sig.generic_params);
+        self.validate_params(&fn_sig.params);
+    }
+
+    fn report_name_clashes<
+        T,
+        M: Fn(&T) -> InternedStr,
+        I: Fn(&T) -> LocalDefId,
+        E: Fn(InternedStr, Vec<LocalDefId>) -> ValidationError,
+    >(
+        &mut self,
+        items: &[T],
+        mapper: M,
+        id: I,
+        error: E,
+    ) {
+        items
+            .iter()
+            .map(|item| (mapper(item), item))
+            .collect::<MultiMap<InternedStr, &T>>()
+            .iter_all()
+            .filter(|entry| entry.1.len() > 1)
+            .map(|entry| {
+                let ids = entry.1.iter().map(|item| id(item)).collect();
+                error(*entry.0, ids)
+            })
+            .for_each(|error| self.errors.push(error));
     }
 }
 

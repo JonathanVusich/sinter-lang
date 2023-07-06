@@ -310,7 +310,7 @@ impl DerefMut for GenericParams {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GenericParam {
-    pub(crate) ident: Ident,
+    pub(crate) name: Ident,
     // Must be of type TraitBound, but need the entire Ty to store span + id.
     pub(crate) trait_bound: Option<Ty>,
     pub(crate) span: Span,
@@ -320,7 +320,7 @@ pub struct GenericParam {
 impl GenericParam {
     pub fn new(ident: Ident, trait_bound: Option<Ty>, span: Span, id: LocalDefId) -> Self {
         Self {
-            ident,
+            name: ident,
             trait_bound,
             span,
             id,
@@ -681,7 +681,7 @@ impl FnSig {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Param {
-    pub(crate) ident: Ident,
+    pub(crate) name: Ident,
     pub(crate) ty: Ty,
     pub(crate) mutability: Mutability,
     pub(crate) span: Span,
@@ -691,7 +691,7 @@ pub struct Param {
 impl Param {
     pub fn new(ident: Ident, ty: Ty, mutability: Mutability, span: Span, id: LocalDefId) -> Self {
         Self {
-            ident,
+            name: ident,
             ty,
             mutability,
             span,
@@ -702,7 +702,7 @@ impl Param {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Field {
-    pub(crate) ident: Ident,
+    pub(crate) name: Ident,
     pub(crate) ty: Ty,
     pub(crate) span: Span,
     pub(crate) id: LocalDefId,
@@ -711,7 +711,7 @@ pub struct Field {
 impl Field {
     pub fn new(ident: Ident, ty: Ty, span: Span, id: LocalDefId) -> Self {
         Self {
-            ident,
+            name: ident,
             ty,
             span,
             id,
