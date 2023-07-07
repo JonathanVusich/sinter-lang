@@ -98,7 +98,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse(mut self) -> Result<Module, CompileError> {
-        Ok(self.parse_module()?)
+        self.parse_module()
     }
 
     fn get_id(&mut self) -> LocalDefId {
@@ -265,12 +265,9 @@ impl<'ctxt> Parser<'ctxt> {
 
     fn class_stmt_inner(&mut self) -> ParseResult<(Vec<Field>, Vec<FnSelfStmt>)> {
         self.expect(TokenType::LeftBrace)?;
-        let fields = self.parse_multiple(
-            |parser| {
-                let field = parser.field()?;
-                parser.expect(TokenType::Comma)?;
-                Ok(field)
-            },
+        let fields = self.parse_multiple_with_delimiter_and_matcher(
+            |parser| parser.field(),
+            TokenType::Comma,
             |token| matches!(token, TokenType::Identifier(_)),
         )?;
         let fn_stmts = self.parse_multiple(
@@ -412,10 +409,12 @@ impl<'ctxt> Parser<'ctxt> {
     fn enum_stmt_inner(&mut self) -> ParseResult<(Vec<EnumMember>, Vec<FnSelfStmt>)> {
         self.expect(TokenType::LeftBrace)?;
 
-        let enum_members = self.parse_multiple(
+        let enum_members = self.parse_multiple_with_delimiter_and_matcher(
             |parser| parser.enum_member(),
-            |token| matches!(token, TokenType::Identifier(blank_ident)),
+            TokenType::Comma,
+            |token| matches!(token, TokenType::Identifier(_)),
         )?;
+
         let fn_stmts = self.parse_multiple(
             |parser| parser.fn_self_stmt(),
             |token| matches!(token, TokenType::Fn),
@@ -683,15 +682,12 @@ impl<'ctxt> Parser<'ctxt> {
             Some(TokenType::Identifier(ident)) => {
                 self.advance();
                 let fields = self.fields()?;
-                let fn_self_stmts = if self.matches(TokenType::LeftBrace) {
-                    self.parse_multiple(
-                        |parser| parser.fn_self_stmt(),
-                        |token| matches!(token, TokenType::Fn),
-                    )?
-                } else {
-                    Vec::new()
-                };
-                self.expect(TokenType::Comma)?;
+                let fn_self_stmts = self.parse_multiple_with_scope(
+                    |parser| parser.fn_self_stmt(),
+                    TokenType::LeftBrace,
+                    TokenType::RightBrace,
+                )?;
+
                 let span = self.get_span();
                 let id = self.get_id();
                 Ok(EnumMember::new(ident, fields, fn_self_stmts, span, id))
@@ -1468,8 +1464,28 @@ impl<'ctxt> Parser<'ctxt> {
         matcher: fn(&TokenType) -> bool,
     ) -> ParseResult<Vec<T>> {
         let mut items = Vec::new();
-        while self.current().filter(|tt| matcher(tt)).is_some() {
+        while self.current().filter(matcher).is_some() {
             items.push(parse_rule(self)?);
+        }
+        Ok(items)
+    }
+
+    fn parse_multiple_with_delimiter_and_matcher<T>(
+        &mut self,
+        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
+        delimiter: TokenType,
+        matcher: fn(&TokenType) -> bool,
+    ) -> ParseResult<Vec<T>> {
+        let mut items = Vec::new();
+        loop {
+            if self.current().filter(matcher).is_some() {
+                items.push(parse_rule(self)?);
+            }
+            if self.matches(delimiter) {
+                self.advance();
+            } else {
+                break;
+            }
         }
         Ok(items)
     }
@@ -1633,11 +1649,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn matches(&self, token_type: TokenType) -> bool {
-        if let Some(current) = self.current().filter(|tt| *tt == token_type) {
-            true
-        } else {
-            false
-        }
+        matches!(self.current().filter(|tt| *tt == token_type), Some(current))
     }
 
     fn matches_multiple<const N: usize>(&mut self, tokens: [TokenType; N]) -> bool {
@@ -1760,7 +1772,7 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn parse_module<T: AsRef<str>>(code: T) -> Result<(CompilerCtxt, Module), CompileError> {
+    fn parse_module<T: AsRef<str>>(code: T) -> Result<ModuleOutput, CompileError> {
         let mut compiler_ctxt = CompilerCtxt::default();
         let parser = create_parser(&mut compiler_ctxt, code.as_ref());
         parser.parse().map(|ast| (compiler_ctxt, ast))
@@ -1777,8 +1789,11 @@ mod tests {
         Ok((compiler_ctxt, parsed_val))
     }
 
+    type ModuleOutput = (CompilerCtxt, Module);
+    type ExprOutput = (CompilerCtxt, Expr);
+
     #[cfg(test)]
-    fn parse<T: AsRef<str>>(code: T) -> (CompilerCtxt, Module) {
+    fn parse<T: AsRef<str>>(code: T) -> ModuleOutput {
         let (ctxt, ast) = parse_module(code).unwrap();
         (ctxt, ast)
     }
@@ -1944,6 +1959,48 @@ mod tests {
 
     #[test]
     #[snapshot]
+    pub fn class_def_no_trailing_field_comma() -> ModuleOutput {
+        parse("class Point { x: u64, y: u64 }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn class_def_no_trailing_field_comma_with_self_fns() -> ModuleOutput {
+        parse(
+            r#"
+            class Point {
+                x: u64,
+                y: u64
+
+                fn copy() => Point { }
+            }
+            "#,
+        )
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn class_def_trailing_field_comma() -> ModuleOutput {
+        parse("class Point { x: u64, y: u64, }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn class_def_trailing_field_comma_with_self_fns() -> ModuleOutput {
+        parse(
+            r#"
+            class Point {
+                x: u64,
+                y: u64,
+
+                fn copy() => Point { }
+            }
+            "#,
+        )
+    }
+
+    #[test]
+    #[snapshot]
     pub fn single_path_expr() -> (StringInterner, PathExpr) {
         parse_path("std")
     }
@@ -2022,109 +2079,109 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn use_statements() -> (CompilerCtxt, Module) {
+    pub fn use_statements() -> ModuleOutput {
         parse(utils::read_code_example("use_stmts.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn basic_enum() -> (CompilerCtxt, Module) {
+    pub fn basic_enum() -> ModuleOutput {
         parse(utils::read_code_example("basic_enum.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn vector_enum() -> (CompilerCtxt, Module) {
+    pub fn vector_enum() -> ModuleOutput {
         parse(utils::read_code_example("vector_enum.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn main_fn() -> (CompilerCtxt, Module) {
+    pub fn main_fn() -> ModuleOutput {
         parse(utils::read_code_example("hello_world_fn.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn main_fn_with_args() -> (CompilerCtxt, Module) {
+    pub fn main_fn_with_args() -> ModuleOutput {
         parse(utils::read_code_example("main_fn.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn declare_classes_and_vars() -> (CompilerCtxt, Module) {
+    pub fn declare_classes_and_vars() -> ModuleOutput {
         parse(utils::read_code_example("classes_and_vars.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_add_func() -> (CompilerCtxt, Module) {
+    pub fn simple_add_func() -> ModuleOutput {
         parse(utils::read_code_example("sum_fn.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn var_declarations() -> (CompilerCtxt, Module) {
+    pub fn var_declarations() -> ModuleOutput {
         parse(utils::read_code_example("var_declarations.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn mutable_assignment() -> (CompilerCtxt, Module) {
+    pub fn mutable_assignment() -> ModuleOutput {
         parse(utils::read_code_example("mutable_assignment.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn print_fn() -> (CompilerCtxt, Module) {
+    pub fn print_fn() -> ModuleOutput {
         parse(utils::read_code_example("print_fn.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn returning_error_union() -> (CompilerCtxt, Module) {
+    pub fn returning_error_union() -> ModuleOutput {
         parse(utils::read_code_example("returning_error_union.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn trait_vs_generic() -> (CompilerCtxt, Module) {
+    pub fn trait_vs_generic() -> ModuleOutput {
         parse(utils::read_code_example("trait_vs_generic.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_lists() -> (CompilerCtxt, Module) {
+    pub fn generic_lists() -> ModuleOutput {
         parse(utils::read_code_example("generic_lists.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn rectangle_class() -> (CompilerCtxt, Module) {
+    pub fn rectangle_class() -> ModuleOutput {
         parse(utils::read_code_example("rectangle_class.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_message() -> (CompilerCtxt, Module) {
+    pub fn enum_message() -> ModuleOutput {
         parse(utils::read_code_example("enum_message.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn int_match() -> (CompilerCtxt, Expr) {
+    pub fn int_match() -> ExprOutput {
         parse_expr!(utils::read_code_example("int_match.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_match() -> (CompilerCtxt, Module) {
+    pub fn enum_match() -> ModuleOutput {
         parse(utils::read_code_example("enum_match.si"))
     }
 
     #[test]
     #[snapshot]
-    pub fn impl_trait() -> (CompilerCtxt, Module) {
+    pub fn impl_trait() -> ModuleOutput {
         parse(utils::read_code_example("impl_trait.si"))
     }
 

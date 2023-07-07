@@ -1,0 +1,17 @@
+[
+  [
+    "Planet",
+    "Mercury"
+  ],
+  [
+    {
+      "DuplicateEnumMember": [
+        2,
+        [
+          1,
+          2
+        ]
+      ]
+    }
+  ]
+]

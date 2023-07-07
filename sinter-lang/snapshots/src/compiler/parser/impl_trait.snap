@@ -71,7 +71,7 @@
             "generic_params": {
               "params": []
             },
-            "member_fns": [
+            "self_fns": [
               {
                 "sig": {
                   "name": {
@@ -88,7 +88,7 @@
                   "params": {
                     "params": [
                       {
-                        "ident": {
+                        "name": {
                           "ident": 9,
                           "span": {
                             "start": 58,
@@ -172,7 +172,7 @@
                 }
               ]
             },
-            "member_fns": [
+            "self_fns": [
               {
                 "sig": {
                   "name": {
@@ -189,7 +189,7 @@
                   "params": {
                     "params": [
                       {
-                        "ident": {
+                        "name": {
                           "ident": 9,
                           "span": {
                             "start": 117,

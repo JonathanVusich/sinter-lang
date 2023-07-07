@@ -23,7 +23,7 @@
       {
         "kind": {
           "GlobalLet": {
-            "ident": {
+            "name": {
               "ident": 1,
               "span": {
                 "start": 4,

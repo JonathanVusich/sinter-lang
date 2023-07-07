@@ -1,0 +1,18 @@
+[
+  [
+    "duplicate_param",
+    "param",
+    "u32"
+  ],
+  [
+    {
+      "DuplicateParam": [
+        2,
+        [
+          3,
+          6
+        ]
+      ]
+    }
+  ]
+]

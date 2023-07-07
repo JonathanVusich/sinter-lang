@@ -1,0 +1,155 @@
+[
+  {
+    "string_interner": [
+      "Point",
+      "x",
+      "u64",
+      "y",
+      "copy"
+    ],
+    "crate_id": 0,
+    "local_def_id": 13
+  },
+  {
+    "path": {
+      "krate_path": []
+    },
+    "items": [
+      {
+        "kind": {
+          "Class": {
+            "name": {
+              "ident": 1,
+              "span": {
+                "start": 19,
+                "end": 24
+              },
+              "id": 0
+            },
+            "class_type": "Inline",
+            "generic_params": {
+              "params": []
+            },
+            "fields": {
+              "params": [
+                {
+                  "name": {
+                    "ident": 2,
+                    "span": {
+                      "start": 43,
+                      "end": 44
+                    },
+                    "id": 1
+                  },
+                  "ty": {
+                    "kind": "U64",
+                    "span": {
+                      "start": 46,
+                      "end": 49
+                    },
+                    "id": 2
+                  },
+                  "span": {
+                    "start": 43,
+                    "end": 49
+                  },
+                  "id": 3
+                },
+                {
+                  "name": {
+                    "ident": 4,
+                    "span": {
+                      "start": 67,
+                      "end": 68
+                    },
+                    "id": 4
+                  },
+                  "ty": {
+                    "kind": "U64",
+                    "span": {
+                      "start": 70,
+                      "end": 73
+                    },
+                    "id": 5
+                  },
+                  "span": {
+                    "start": 67,
+                    "end": 73
+                  },
+                  "id": 6
+                }
+              ]
+            },
+            "self_fns": [
+              {
+                "sig": {
+                  "name": {
+                    "ident": 5,
+                    "span": {
+                      "start": 95,
+                      "end": 99
+                    },
+                    "id": 7
+                  },
+                  "generic_params": {
+                    "params": []
+                  },
+                  "params": {
+                    "params": []
+                  },
+                  "return_type": {
+                    "kind": {
+                      "Path": {
+                        "path": {
+                          "ident": {
+                            "ident_type": "LocalOrUse",
+                            "idents": [
+                              {
+                                "ident": 1,
+                                "span": {
+                                  "start": 105,
+                                  "end": 110
+                                },
+                                "id": 8
+                              }
+                            ]
+                          },
+                          "generics": {
+                            "generics": []
+                          }
+                        }
+                      }
+                    },
+                    "span": {
+                      "start": 105,
+                      "end": 110
+                    },
+                    "id": 9
+                  }
+                },
+                "body": {
+                  "stmts": [],
+                  "span": {
+                    "start": 111,
+                    "end": 114
+                  },
+                  "id": 10
+                },
+                "span": {
+                  "start": 92,
+                  "end": 114
+                },
+                "id": 11
+              }
+            ]
+          }
+        },
+        "span": {
+          "start": 13,
+          "end": 128
+        },
+        "id": 12
+      }
+    ]
+  }
+]

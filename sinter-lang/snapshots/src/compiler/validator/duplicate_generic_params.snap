@@ -1,0 +1,17 @@
+[
+  [
+    "duplicate_generic_params",
+    "T"
+  ],
+  [
+    {
+      "DuplicateGenericParam": [
+        2,
+        [
+          2,
+          4
+        ]
+      ]
+    }
+  ]
+]

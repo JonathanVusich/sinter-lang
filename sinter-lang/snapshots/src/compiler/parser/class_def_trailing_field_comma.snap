@@ -1,0 +1,93 @@
+[
+  {
+    "string_interner": [
+      "Point",
+      "x",
+      "u64",
+      "y"
+    ],
+    "crate_id": 0,
+    "local_def_id": 8
+  },
+  {
+    "path": {
+      "krate_path": []
+    },
+    "items": [
+      {
+        "kind": {
+          "Class": {
+            "name": {
+              "ident": 1,
+              "span": {
+                "start": 6,
+                "end": 11
+              },
+              "id": 0
+            },
+            "class_type": "Inline",
+            "generic_params": {
+              "params": []
+            },
+            "fields": {
+              "params": [
+                {
+                  "name": {
+                    "ident": 2,
+                    "span": {
+                      "start": 14,
+                      "end": 15
+                    },
+                    "id": 1
+                  },
+                  "ty": {
+                    "kind": "U64",
+                    "span": {
+                      "start": 17,
+                      "end": 20
+                    },
+                    "id": 2
+                  },
+                  "span": {
+                    "start": 14,
+                    "end": 20
+                  },
+                  "id": 3
+                },
+                {
+                  "name": {
+                    "ident": 4,
+                    "span": {
+                      "start": 22,
+                      "end": 23
+                    },
+                    "id": 4
+                  },
+                  "ty": {
+                    "kind": "U64",
+                    "span": {
+                      "start": 25,
+                      "end": 28
+                    },
+                    "id": 5
+                  },
+                  "span": {
+                    "start": 22,
+                    "end": 28
+                  },
+                  "id": 6
+                }
+              ]
+            },
+            "self_fns": []
+          }
+        },
+        "span": {
+          "start": 0,
+          "end": 31
+        },
+        "id": 7
+      }
+    ]
+  }
+]

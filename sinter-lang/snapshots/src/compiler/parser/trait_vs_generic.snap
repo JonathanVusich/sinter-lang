@@ -34,7 +34,7 @@
             "generic_params": {
               "params": []
             },
-            "member_fns": [
+            "self_fns": [
               {
                 "sig": {
                   "name": {
@@ -51,7 +51,7 @@
                   "params": {
                     "params": [
                       {
-                        "ident": {
+                        "name": {
                           "ident": 10,
                           "span": {
                             "start": 43,
@@ -116,7 +116,7 @@
               "generic_params": {
                 "params": [
                   {
-                    "ident": {
+                    "name": {
                       "ident": 5,
                       "span": {
                         "start": 87,
@@ -186,7 +186,7 @@
               "params": {
                 "params": [
                   {
-                    "ident": {
+                    "name": {
                       "ident": 7,
                       "span": {
                         "start": 115,
@@ -379,7 +379,7 @@
               "params": {
                 "params": [
                   {
-                    "ident": {
+                    "name": {
                       "ident": 7,
                       "span": {
                         "start": 196,

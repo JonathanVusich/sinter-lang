@@ -38,7 +38,7 @@
             "fields": {
               "params": [
                 {
-                  "ident": {
+                  "name": {
                     "ident": 2,
                     "span": {
                       "start": 22,
@@ -61,7 +61,7 @@
                   "id": 3
                 },
                 {
-                  "ident": {
+                  "name": {
                     "ident": 4,
                     "span": {
                       "start": 38,
@@ -85,7 +85,7 @@
                 }
               ]
             },
-            "fn_stmts": [
+            "self_fns": [
               {
                 "sig": {
                   "name": {
@@ -102,7 +102,7 @@
                   "params": {
                     "params": [
                       {
-                        "ident": {
+                        "name": {
                           "ident": 9,
                           "span": {
                             "start": 69,
@@ -344,7 +344,7 @@
                   "params": {
                     "params": [
                       {
-                        "ident": {
+                        "name": {
                           "ident": 8,
                           "span": {
                             "start": 158,

@@ -46,7 +46,7 @@
               "generic_params": {
                 "params": [
                   {
-                    "ident": {
+                    "name": {
                       "ident": 2,
                       "span": {
                         "start": 9,
@@ -98,7 +98,7 @@
               "params": {
                 "params": [
                   {
-                    "ident": {
+                    "name": {
                       "ident": 4,
                       "span": {
                         "start": 26,
@@ -718,10 +718,10 @@
                 "fields": {
                   "params": []
                 },
-                "member_fns": [],
+                "self_fns": [],
                 "span": {
                   "start": 304,
-                  "end": 319
+                  "end": 318
                 },
                 "id": 59
               },
@@ -730,15 +730,15 @@
                 "fields": {
                   "params": []
                 },
-                "member_fns": [],
+                "self_fns": [],
                 "span": {
                   "start": 324,
-                  "end": 339
+                  "end": 338
                 },
                 "id": 60
               }
             ],
-            "member_fns": []
+            "self_fns": []
           }
         },
         "span": {
@@ -781,7 +781,7 @@
                 }
               ]
             },
-            "member_fns": [
+            "self_fns": [
               {
                 "sig": {
                   "name": {
@@ -798,7 +798,7 @@
                   "params": {
                     "params": [
                       {
-                        "ident": {
+                        "name": {
                           "ident": 21,
                           "span": {
                             "start": 387,
@@ -1029,7 +1029,7 @@
                   "params": {
                     "params": [
                       {
-                        "ident": {
+                        "name": {
                           "ident": 21,
                           "span": {
                             "start": 550,

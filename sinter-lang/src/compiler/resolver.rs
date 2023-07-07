@@ -40,6 +40,11 @@ pub fn resolve(crates: HashMap<InternedStr, Crate>) -> Result<Vec<HirCrate>, Com
 }
 
 #[derive(Default)]
+struct CrateIndex {
+    // namespace: ModuleMap<>
+}
+
+#[derive(Default)]
 struct ModuleScope {
     items: HashMap<InternedStr, DefId>,
 }
@@ -213,8 +218,8 @@ impl Resolver {
 }
 
 fn generate_crate_attrs(krate: &Crate) -> Result<CrateAttributes, Vec<ResolveError>> {
-    let mut errors = Vec::new();
-    let mut crate_attrs = CrateAttributes::default();
+    let errors = Vec::new();
+    let crate_attrs = CrateAttributes::default();
 
     for (path, module) in krate.module_lookup.iter() {
         for item in &module.items {
@@ -302,16 +307,13 @@ impl<'a> CrateResolver<'a> {
                 AstItemKind::Class(class_stmt) => self.resolve_class_stmt(class_stmt, span, id),
                 AstItemKind::Enum(enum_stmt) => self.resolve_enum_stmt(enum_stmt, span, id),
                 AstItemKind::Trait(trait_stmt) => self.resolve_trait_stmt(trait_stmt, span, id),
-                /// Purposefully empty because we have to wait until all types are resolved before we can check trait impl bodies.
+                // Purposefully empty because we have to wait until all types are resolved before we can check trait impl bodies.
                 AstItemKind::TraitImpl(trait_impl_stmt) => Ok(()),
                 AstItemKind::Fn(fn_stmt) => self.resolve_fn_stmt(fn_stmt, span, id),
             };
 
-            match result {
-                Err(error) => {
-                    errors.push(error);
-                }
-                _ => {}
+            if let Err(error) = result {
+                errors.push(error);
             }
         }
         errors

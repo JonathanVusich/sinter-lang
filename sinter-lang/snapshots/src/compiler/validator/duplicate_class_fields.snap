@@ -1,0 +1,18 @@
+[
+  [
+    "Rectangle",
+    "width",
+    "u64"
+  ],
+  [
+    {
+      "DuplicateField": [
+        2,
+        [
+          3,
+          6
+        ]
+      ]
+    }
+  ]
+]

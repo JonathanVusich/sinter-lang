@@ -32,7 +32,7 @@
               "params": {
                 "params": [
                   {
-                    "ident": {
+                    "name": {
                       "ident": 2,
                       "span": {
                         "start": 9,

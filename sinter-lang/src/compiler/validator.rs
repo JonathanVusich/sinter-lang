@@ -10,10 +10,11 @@ use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::Crate;
 use crate::compiler::types::types::InternedStr;
+use serde::{Deserialize, Serialize};
 
 const MAX_NUM: usize = 65535;
 
-#[derive(Debug)]
+#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum ValidationError {
     DuplicateUseStmts(QualifiedIdent, Vec<LocalDefId>),
     DuplicateLetStmts(InternedStr, Vec<LocalDefId>),
@@ -24,6 +25,11 @@ pub enum ValidationError {
     DuplicateField(InternedStr, Vec<LocalDefId>),
     DuplicateEnumMember(InternedStr, Vec<LocalDefId>),
     TooManyFns,
+}
+
+pub fn validate(module: &Module) -> Vec<ValidationError> {
+    let validator = Validator::default();
+    validator.validate(module)
 }
 
 #[derive(Default)]
@@ -37,7 +43,7 @@ struct Validator {
 }
 
 impl Validator {
-    fn validate(mut self, module: &Module) -> Result<(), Vec<ValidationError>> {
+    fn validate(mut self, module: &Module) -> Vec<ValidationError> {
         for item in &module.items {
             match &item.kind {
                 ItemKind::Use(use_stmt) => self.use_stmts.insert(use_stmt.path.clone(), item.id),
@@ -99,11 +105,7 @@ impl Validator {
             }
         }
 
-        if !self.errors.is_empty() {
-            Err(self.errors)
-        } else {
-            Ok(())
-        }
+        self.errors
     }
 
     fn validate_generic_params(&mut self, generic_params: &GenericParams) {
@@ -111,7 +113,7 @@ impl Validator {
             generic_params,
             |param| param.name.ident,
             |param| param.id,
-            |name, ids| ValidationError::DuplicateGenericParam(name, ids),
+            ValidationError::DuplicateGenericParam,
         );
     }
 
@@ -120,7 +122,7 @@ impl Validator {
             params,
             |param| param.name.ident,
             |param| param.id,
-            |name, ids| ValidationError::DuplicateParam(name, ids),
+            ValidationError::DuplicateParam,
         );
     }
 
@@ -129,7 +131,7 @@ impl Validator {
             self_fns,
             |self_fn| self_fn.sig.name.ident,
             |self_fn| self_fn.id,
-            |name, ids| ValidationError::DuplicateFns(name, ids),
+            ValidationError::DuplicateFns,
         );
 
         for self_fn in self_fns {
@@ -142,7 +144,7 @@ impl Validator {
             fields,
             |field| field.name.ident,
             |field| field.id,
-            |name, ids| ValidationError::DuplicateField(name, ids),
+            ValidationError::DuplicateField,
         );
     }
 
@@ -151,7 +153,7 @@ impl Validator {
             members,
             |member| member.name,
             |member| member.id,
-            |name, ids| ValidationError::DuplicateEnumMember(name, ids),
+            ValidationError::DuplicateEnumMember,
         );
 
         for member in members {
@@ -191,7 +193,75 @@ impl Validator {
     }
 }
 
-pub fn validate(module: &Module) -> Result<(), Vec<ValidationError>> {
-    let validator = Validator::default();
-    validator.validate(module)
+mod tests {
+    use crate::compiler::compiler::CompilerCtxt;
+    use crate::compiler::parser::parse;
+    use crate::compiler::tokens::tokenizer::tokenize;
+    use crate::compiler::validator::ValidationError;
+    use crate::compiler::{compiler, StringInterner};
+    use snap::snapshot;
+
+    type ValidationOutput = (StringInterner, Vec<ValidationError>);
+
+    #[cfg(test)]
+    fn validate<T: AsRef<str>>(code: T) -> ValidationOutput {
+        let mut compiler_ctxt = CompilerCtxt::default();
+        let tokenized_input = tokenize(&mut compiler_ctxt, code);
+        let module = parse(&mut compiler_ctxt, tokenized_input).unwrap();
+        (
+            StringInterner::from(compiler_ctxt),
+            crate::compiler::validator::validate(&module),
+        )
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn valid_fn() -> ValidationOutput {
+        validate("fn valid_fn() { }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn fn_with_duplicate_param() -> ValidationOutput {
+        validate("fn duplicate_param(param: u32, param: u32) { }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn duplicate_generic_params() -> ValidationOutput {
+        validate("fn duplicate_generic_params<T, T>() { }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn duplicate_class_fields() -> ValidationOutput {
+        validate("class Rectangle { width: u64, width: u64 }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn duplicate_enum_members() -> ValidationOutput {
+        validate("enum Planet { Mercury, Mercury }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn duplicate_enum_member_field() -> ValidationOutput {
+        validate("enum Planet { Mercury(diameter: u64, diameter: u64), }")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn duplicate_enum_member_self_fns() -> ValidationOutput {
+        validate(
+            r#"
+            enum Planet {
+                Mercury {
+                    fn relative_gravity(planet: Planet) { }
+                    fn relative_gravity() { }
+                }
+            }
+            "#,
+        )
+    }
 }

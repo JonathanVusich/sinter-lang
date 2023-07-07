@@ -130,7 +130,7 @@
             "generic_params": {
               "params": [
                 {
-                  "ident": {
+                  "name": {
                     "ident": 6,
                     "span": {
                       "start": 63,
@@ -203,7 +203,7 @@
                 "fields": {
                   "params": [
                     {
-                      "ident": {
+                      "name": {
                         "ident": 8,
                         "span": {
                           "start": 101,
@@ -247,7 +247,7 @@
                       "id": 18
                     },
                     {
-                      "ident": {
+                      "name": {
                         "ident": 9,
                         "span": {
                           "start": 107,
@@ -292,10 +292,10 @@
                     }
                   ]
                 },
-                "member_fns": [],
+                "self_fns": [],
                 "span": {
                   "start": 90,
-                  "end": 113
+                  "end": 112
                 },
                 "id": 23
               },
@@ -304,7 +304,7 @@
                 "fields": {
                   "params": [
                     {
-                      "ident": {
+                      "name": {
                         "ident": 8,
                         "span": {
                           "start": 127,
@@ -348,7 +348,7 @@
                       "id": 27
                     },
                     {
-                      "ident": {
+                      "name": {
                         "ident": 9,
                         "span": {
                           "start": 133,
@@ -393,15 +393,15 @@
                     }
                   ]
                 },
-                "member_fns": [],
+                "self_fns": [],
                 "span": {
                   "start": 118,
-                  "end": 139
+                  "end": 138
                 },
                 "id": 32
               }
             ],
-            "member_fns": [
+            "self_fns": [
               {
                 "sig": {
                   "name": {
@@ -418,7 +418,7 @@
                   "params": {
                     "params": [
                       {
-                        "ident": {
+                        "name": {
                           "ident": 16,
                           "span": {
                             "start": 162,

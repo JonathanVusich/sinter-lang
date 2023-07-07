@@ -138,21 +138,19 @@ impl Compiler {
 
     fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
         let crates = self.parse_crates(&application)?;
-        // TODO: Validate crate contents (i.e. no duplicate param/field/fn names, etc.). This will be necessary for resolution later.
         self.validate_crates(&crates)?;
 
         // TODO: Create crate resolution metadata and report initial resolution errors.
         // We cannot resolve everything in one pass, first we do use validation, var declaration validation, etc.
+        let resolved_crates = self.resolve_crates(crates)?;
 
         // TODO: Implement type inference algorithm
         /* We need to assign a type to every expression in the AST. This may require making changes to the AST
            classes to allow for types in every expression.
         */
-        // TODO: Finish crate resolution now that all type data is available.
+        // TODO: Do type checking to ensure that all expressions evaluate to correct types
 
         // TODO: Lower the AST to HIR with the provided metadata.
-
-        let resolved_crates = self.resolve_crates(crates)?;
 
         // TODO: Generate bytecode
         todo!()
@@ -256,10 +254,7 @@ impl Compiler {
         let mut validation_errors = Vec::new();
         for krate in crates.values() {
             for module in krate.module_lookup.values() {
-                match validate(module) {
-                    Ok(()) => {}
-                    Err(errors) => validation_errors.extend(errors),
-                };
+                validation_errors.extend(validate(module));
             }
         }
         if !validation_errors.is_empty() {
@@ -272,7 +267,7 @@ impl Compiler {
     fn resolve_crates(
         &mut self,
         crates: HashMap<InternedStr, Crate>,
-    ) -> Result<Vec<HirCrate>, CompileError> {
+    ) -> Result<HashMap<InternedStr, CrateIndex>, CompileError> {
         todo!()
     }
 }
