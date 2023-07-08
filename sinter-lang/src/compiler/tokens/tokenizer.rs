@@ -13,7 +13,7 @@ use crate::compiler::compiler::{CompileError, CompilerCtxt};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::types::InternedStr;
 use crate::compiler::StringInterner;
 
 pub fn tokenize_file(

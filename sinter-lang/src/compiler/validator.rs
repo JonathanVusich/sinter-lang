@@ -9,7 +9,7 @@ use crate::compiler::ast::{
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::Crate;
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::types::InternedStr;
 use serde::{Deserialize, Serialize};
 
 const MAX_NUM: usize = 65535;

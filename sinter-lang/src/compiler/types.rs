@@ -1,7 +1,9 @@
+use std::collections::HashMap;
 use crate::compiler::ast::{PathTy, QualifiedIdent, TraitBound, Ty};
 use crate::compiler::interner::Key;
 use lasso::Spur;
 use serde::{Deserialize, Serialize};
+use crate::compiler::hir::LocalDefId;
 
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -27,6 +29,9 @@ impl InternedStr {
         Self { str }
     }
 }
+
+pub(crate) type StrMap<T> = HashMap<InternedStr, T>;
+pub(crate) type LocalDefIdMap<T> = HashMap<LocalDefId, T>;
 
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]

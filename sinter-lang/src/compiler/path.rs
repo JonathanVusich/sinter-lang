@@ -5,7 +5,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{Ident, IdentType, QualifiedIdent, Segment};
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::types::InternedStr;
 
 #[derive(PartialEq, Eq, Hash, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ModulePath {

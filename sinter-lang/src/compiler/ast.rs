@@ -11,7 +11,7 @@ use crate::compiler::krate::CrateId;
 use crate::compiler::parser::{ClassType, ParseError};
 use crate::compiler::path::ModulePath;
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::types::InternedStr;
 use crate::traits::traits::Trait;
 
 /// This trait describes a visitor that can traverse the AST and collect information.

@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::types::InternedStr;
 
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Token {

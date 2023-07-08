@@ -7,7 +7,7 @@ use crate::compiler::ast::{
 };
 use crate::compiler::hir::{HirItem, LocalDefId};
 use crate::compiler::path::ModulePath;
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::types::InternedStr;
 
 #[derive(PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct UsedCrate {

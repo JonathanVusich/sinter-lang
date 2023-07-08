@@ -26,7 +26,7 @@ use crate::compiler::parser::ParseError::{
 };
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
-use crate::compiler::types::types::{InternedStr, InternedTy};
+use crate::compiler::types::{InternedStr, InternedTy};
 use crate::compiler::StringInterner;
 
 pub fn parse(ctxt: &mut CompilerCtxt, input: TokenizedInput) -> Result<Module, CompileError> {
@@ -1749,7 +1749,7 @@ mod tests {
     use crate::compiler::tokens::token::TokenType::{Identifier, Semicolon};
     use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
     use crate::compiler::tokens::tokenizer::tokenize;
-    use crate::compiler::types::types::InternedStr;
+    use crate::compiler::types::InternedStr;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 

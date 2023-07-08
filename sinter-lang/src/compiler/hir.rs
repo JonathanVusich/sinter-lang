@@ -9,10 +9,10 @@ use crate::compiler::ast::{Ident, InfixOp, Mutability, QualifiedIdent, UnaryOp};
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::ClassType;
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::types::{InternedStr, StrMap};
 use crate::traits::traits::Trait;
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct DefId {
     crate_id: u32,
     local_id: u32,
@@ -161,11 +161,11 @@ pub struct EnumMember {
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EnumMembers {
-    members: HashMap<InternedStr, LocalDefId>,
+    members: StrMap<LocalDefId>,
 }
 
 impl Deref for EnumMembers {
-    type Target = HashMap<InternedStr, LocalDefId>;
+    type Target = StrMap<LocalDefId>;
 
     fn deref(&self) -> &Self::Target {
         &self.members
@@ -637,11 +637,11 @@ pub struct IfStmt {}
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct FnStmts {
-    fields: HashMap<InternedStr, LocalDefId>,
+    fields: StrMap<LocalDefId>,
 }
 
 impl Deref for FnStmts {
-    type Target = HashMap<InternedStr, LocalDefId>;
+    type Target = StrMap<LocalDefId>;
 
     fn deref(&self) -> &Self::Target {
         &self.fields
@@ -689,11 +689,11 @@ impl Args {
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Fields {
-    fields: HashMap<InternedStr, LocalDefId>,
+    fields: StrMap<LocalDefId>,
 }
 
 impl Deref for Fields {
-    type Target = HashMap<InternedStr, LocalDefId>;
+    type Target = StrMap<LocalDefId>;
 
     fn deref(&self) -> &Self::Target {
         &self.fields
@@ -722,11 +722,11 @@ impl ClosureParam {
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Params {
-    params: HashMap<InternedStr, LocalDefId>,
+    params: StrMap<LocalDefId>,
 }
 
 impl Deref for Params {
-    type Target = HashMap<InternedStr, LocalDefId>;
+    type Target = StrMap<LocalDefId>;
 
     fn deref(&self) -> &Self::Target {
         &self.params
@@ -742,11 +742,11 @@ impl DerefMut for Params {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct ClosureParams {
-    closure_params: HashMap<InternedStr, ClosureParam>,
+    closure_params: StrMap<ClosureParam>,
 }
 
 impl ClosureParams {
-    pub fn new(fields: HashMap<InternedStr, ClosureParam>) -> Self {
+    pub fn new(fields: StrMap<ClosureParam>) -> Self {
         Self {
             closure_params: fields,
         }
@@ -754,7 +754,7 @@ impl ClosureParams {
 }
 
 impl Deref for ClosureParams {
-    type Target = HashMap<InternedStr, ClosureParam>;
+    type Target = StrMap<ClosureParam>;
 
     fn deref(&self) -> &Self::Target {
         &self.closure_params
@@ -764,11 +764,11 @@ impl Deref for ClosureParams {
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct GenericParams {
-    generic_params: HashMap<InternedStr, LocalDefId>,
+    generic_params: StrMap<LocalDefId>,
 }
 
 impl Deref for GenericParams {
-    type Target = HashMap<InternedStr, LocalDefId>;
+    type Target = StrMap<LocalDefId>;
 
     fn deref(&self) -> &Self::Target {
         &self.generic_params

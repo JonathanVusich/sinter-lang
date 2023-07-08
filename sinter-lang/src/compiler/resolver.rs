@@ -3,6 +3,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
+use serde::{Serialize, Deserialize};
 
 use crate::compiler::ast::{
     ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt,
@@ -28,25 +29,31 @@ use crate::compiler::hir::{
     PathExpr, PathTy, Pattern, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty,
     UnaryExpr,
 };
-use crate::compiler::krate::{Crate, CrateAttributes, CrateNamespace, ModuleMap, ModuleNamespace};
+use crate::compiler::krate::{Crate, ModuleMap};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError::{DefinitionNotFound, DuplicateLocalDefIds};
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::types::{StrMap, InternedStr, LocalDefIdMap};
 
-pub fn resolve(crates: HashMap<InternedStr, Crate>) -> Result<Vec<HirCrate>, CompileError> {
+pub fn resolve(crates: StrMap<Crate>) -> Result<StrMap<CrateIndex>, CompileError> {
     let resolver = Resolver::new(crates);
     resolver.resolve()
 }
 
-#[derive(Default)]
-struct CrateIndex {
-    // namespace: ModuleMap<>
+#[derive(PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct CrateIndex {
+    module_indexes: ModuleMap<ModuleIndex>,
+}
+
+#[derive(PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct ModuleIndex {
+    namespace: StrMap<LocalDefId>,
+    resolved_vars: LocalDefIdMap<DefId>,
 }
 
 #[derive(Default)]
 struct ModuleScope {
-    items: HashMap<InternedStr, DefId>,
+    items: StrMap<DefId>,
 }
 
 impl ModuleScope {
@@ -63,30 +70,30 @@ impl ModuleScope {
 
 pub enum Scope {
     Class {
-        fields: HashMap<InternedStr, LocalDefId>,
-        self_fns: HashMap<InternedStr, LocalDefId>,
-        generics: HashMap<InternedStr, LocalDefId>,
+        fields: StrMap<LocalDefId>,
+        self_fns: StrMap<LocalDefId>,
+        generics: StrMap<LocalDefId>,
     },
     Enum {
-        members: HashMap<InternedStr, LocalDefId>,
-        self_fns: HashMap<InternedStr, LocalDefId>,
-        generics: HashMap<InternedStr, LocalDefId>,
+        members: StrMap<LocalDefId>,
+        self_fns: StrMap<LocalDefId>,
+        generics: StrMap<LocalDefId>,
     },
     EnumMember {
-        fields: HashMap<InternedStr, LocalDefId>,
-        self_fns: HashMap<InternedStr, LocalDefId>,
+        fields: StrMap<LocalDefId>,
+        self_fns: StrMap<LocalDefId>,
     },
     Fn {
-        params: HashMap<InternedStr, LocalDefId>,
-        generics: HashMap<InternedStr, LocalDefId>,
-        vars: HashMap<InternedStr, LocalDefId>,
+        params: StrMap<LocalDefId>,
+        generics: StrMap<LocalDefId>,
+        vars: StrMap<LocalDefId>,
     },
     Block {
-        vars: HashMap<InternedStr, LocalDefId>,
+        vars: StrMap<LocalDefId>,
     },
     Trait {
-        generics: HashMap<InternedStr, LocalDefId>,
-        self_fns: HashMap<InternedStr, LocalDefId>,
+        generics: StrMap<LocalDefId>,
+        self_fns: StrMap<LocalDefId>,
     }, // TODO: Add traits
 }
 
@@ -171,37 +178,23 @@ type ResolveResult = Result<(), ResolveError>;
 
 #[derive(Default)]
 struct Resolver {
-    crates: HashMap<InternedStr, Crate>,
+    crates: StrMap<Crate>,
 }
 
 impl Resolver {
-    fn new(crates: HashMap<InternedStr, Crate>) -> Self {
+    fn new(crates: StrMap<Crate>) -> Self {
         Self { crates }
     }
 
-    fn resolve(self) -> Result<Vec<HirCrate>, CompileError> {
+    fn resolve(self) -> Result<StrMap<CrateIndex>, CompileError> {
         let mut resolve_errors = Vec::new();
-        let mut crates = Vec::new();
-
-        // Generate crate item attributes to enable fast lookups for all items and their properties.
-        let mut crate_item_attributes = HashMap::default();
-        for krate in self.crates.values() {
-            let crate_attrs = generate_crate_attrs(krate);
-            match crate_attrs {
-                Ok(crate_attrs) => {
-                    crate_item_attributes.insert(krate.name, crate_attrs);
-                }
-                Err(errors) => {
-                    resolve_errors.extend(errors);
-                }
-            }
-        }
+        let mut crates = StrMap::default();
 
         for krate in self.crates.values() {
-            let crate_resolver = CrateResolver::new(krate, &crate_item_attributes);
+            let crate_resolver = CrateResolver::new(krate);
             match crate_resolver.resolve() {
-                Ok(crate_map) => {
-                    crates.push(crate_map);
+                Ok(crate_index) => {
+                    crates.insert(krate.name, crate_index);
                 }
                 Err(errors) => match errors {
                     CompileError::ResolveErrors(errors) => resolve_errors.extend(errors),
@@ -217,31 +210,6 @@ impl Resolver {
     }
 }
 
-fn generate_crate_attrs(krate: &Crate) -> Result<CrateAttributes, Vec<ResolveError>> {
-    let errors = Vec::new();
-    let crate_attrs = CrateAttributes::default();
-
-    for (path, module) in krate.module_lookup.iter() {
-        for item in &module.items {
-            match &item.kind {
-                ItemKind::Use(use_stmt) => {}
-                ItemKind::GlobalLet(_) => {}
-                ItemKind::Class(_) => {}
-                ItemKind::Enum(_) => {}
-                ItemKind::Trait(_) => {}
-                ItemKind::TraitImpl(_) => {}
-                ItemKind::Fn(_) => {}
-            }
-        }
-    }
-
-    if !errors.is_empty() {
-        Err(errors)
-    } else {
-        Ok(crate_attrs)
-    }
-}
-
 #[derive(Default)]
 struct CrateMap<'a> {
     items: HashMap<LocalDefId, &'a AstItem>,
@@ -249,7 +217,6 @@ struct CrateMap<'a> {
 
 struct CrateResolver<'a> {
     krate: &'a Crate,
-    krate_attrs: &'a HashMap<InternedStr, CrateAttributes>,
     errors: Vec<ResolveError>,
     items: Vec<LocalDefId>,
     nodes: HashMap<LocalDefId, HirNode>,
@@ -258,10 +225,9 @@ struct CrateResolver<'a> {
 }
 
 impl<'a> CrateResolver<'a> {
-    fn new(krate: &'a Crate, krate_attrs: &'a HashMap<InternedStr, CrateAttributes>) -> Self {
+    fn new(krate: &'a Crate) -> Self {
         Self {
             krate,
-            krate_attrs,
             errors: Default::default(),
             items: Default::default(),
             nodes: Default::default(),
@@ -270,7 +236,7 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve(mut self) -> Result<HirCrate, CompileError> {
+    fn resolve(mut self) -> Result<CrateIndex, CompileError> {
         for module in self.krate.module_lookup.values() {
             // First need to populate the module scope (from used items + module items)
             self.populate_module_scope(module);
