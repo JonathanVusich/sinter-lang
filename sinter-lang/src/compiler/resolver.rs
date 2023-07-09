@@ -250,7 +250,7 @@ fn create_module_ns(crate_id: CrateId, module: &Module) -> ModuleNS {
     let names = module
         .items
         .iter()
-        .map(|item| {
+        .filter_map(|item| {
             match &item.kind {
                 ItemKind::GlobalLet(global_let_stmt) => Some(global_let_stmt.name.ident),
                 ItemKind::Class(class_stmt) => Some(class_stmt.name.ident),
@@ -261,7 +261,6 @@ fn create_module_ns(crate_id: CrateId, module: &Module) -> ModuleNS {
             }
             .map(|name| (name, item.id.to_def_id(crate_id)))
         })
-        .flatten()
         .collect();
     ModuleNS::new(names)
 }
@@ -274,6 +273,7 @@ struct CrateMap<'a> {
 struct CrateResolver<'a> {
     krate: &'a Crate,
     krate_ns: &'a CrateNS,
+    module_ns: Option<&'a ModuleNS>,
     krate_namespaces: &'a StrMap<CrateNS>,
     errors: Vec<ResolveError>,
     items: Vec<LocalDefId>,
@@ -286,6 +286,7 @@ impl<'a> CrateResolver<'a> {
         Self {
             krate,
             krate_ns: krate_namespaces.get(&krate.name).unwrap(),
+            module_ns: None,
             krate_namespaces,
             errors: Default::default(),
             items: Default::default(),
@@ -296,8 +297,7 @@ impl<'a> CrateResolver<'a> {
 
     fn resolve(mut self) -> Result<CrateIndex, CompileError> {
         for module in self.krate.module_lookup.values() {
-            // First need to populate the module scope (from used items + module items)
-            self.initial_module_resolution(module);
+            self.resolve_module(module);
 
             // We have to remember to clear out all scopes and reset the module scope
             self.scopes.clear();
@@ -309,7 +309,8 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn initial_module_resolution(&mut self, module: &Module) {
+    fn resolve_module(&mut self, module: &Module) {
+        self.module_ns = self.krate_ns.ns.get(&module.path);
         module.items.iter().for_each(|item| self.visit_item(item));
     }
 
@@ -1019,8 +1020,9 @@ impl<'a> CrateResolver<'a> {
             IdentType::Crate => self.krate.find_definition(ident).ok_or(DefinitionNotFound),
             IdentType::LocalOrUse => {
                 if ident.is_local() {
-                    self.module_scope
-                        .items
+                    self.module_ns
+                        .unwrap()
+                        .names
                         .get(&ident.first().ident)
                         .copied()
                         .or_else(|| {
@@ -1058,7 +1060,8 @@ mod tests {
 
     use crate::compiler::compiler::{CompileError, Compiler};
     use crate::compiler::hir::HirCrate;
-    use crate::compiler::resolver::{CrateIndex, CrateResolver, Resolver};
+    use crate::compiler::resolver::{create_crate_ns, CrateIndex, CrateResolver, Resolver};
+    use crate::compiler::types::StrMap;
     use crate::util::utils;
 
     #[cfg(test)]
@@ -1070,7 +1073,7 @@ mod tests {
         let krate = compiler
             .parse_crate(&utils::resolve_test_krate_path(name))
             .unwrap();
-        let map = HashMap::default();
+        let map = StrMap::from([(krate.name, create_crate_ns(&krate))]);
         let crate_resolver = CrateResolver::new(&krate, &map);
         crate_resolver.resolve().unwrap()
     }
