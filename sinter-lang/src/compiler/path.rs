@@ -9,12 +9,14 @@ use crate::compiler::types::InternedStr;
 
 #[derive(PartialEq, Eq, Hash, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ModulePath {
-    krate_path: Vec<InternedStr>,
+    module_path: Vec<InternedStr>,
 }
 
 impl ModulePath {
-    pub fn new(krate_path: Vec<InternedStr>) -> Self {
-        Self { krate_path }
+    pub fn new(module_path: Vec<InternedStr>) -> Self {
+        Self {
+            module_path,
+        }
     }
 }
 
@@ -25,7 +27,7 @@ where
     fn from(value: T) -> Self {
         let qualified_ident = value.borrow();
         Self {
-            krate_path: qualified_ident
+            module_path: qualified_ident
                 .idents
                 .iter()
                 .map(|ident| ident.ident)

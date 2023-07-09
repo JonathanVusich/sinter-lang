@@ -1,9 +1,9 @@
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
-use serde::{Serialize, Deserialize};
 
 use crate::compiler::ast::{
     ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt,
@@ -33,7 +33,7 @@ use crate::compiler::krate::{Crate, ModuleMap};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError::{DefinitionNotFound, DuplicateLocalDefIds};
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::{StrMap, InternedStr, LocalDefIdMap};
+use crate::compiler::types::{InternedStr, LocalDefIdMap, StrMap};
 
 pub fn resolve(crates: StrMap<Crate>) -> Result<StrMap<CrateIndex>, CompileError> {
     let resolver = Resolver::new(crates);
@@ -41,14 +41,23 @@ pub fn resolve(crates: StrMap<Crate>) -> Result<StrMap<CrateIndex>, CompileError
 }
 
 #[derive(PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct CrateNS {
+    ns: ModuleMap<ModuleNS>,
+}
+
+#[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct CrateIndex {
     module_indexes: ModuleMap<ModuleIndex>,
 }
 
-#[derive(PartialEq, Eq, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct ModuleIndex {
-    namespace: StrMap<LocalDefId>,
     resolved_vars: LocalDefIdMap<DefId>,
+}
+
+#[derive(PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct ModuleNS {
+    names: StrMap<DefId>,
 }
 
 #[derive(Default)]
@@ -189,9 +198,10 @@ impl Resolver {
     fn resolve(self) -> Result<StrMap<CrateIndex>, CompileError> {
         let mut resolve_errors = Vec::new();
         let mut crates = StrMap::default();
+        let crate_indexes = self.generate_crate_ns();
 
         for krate in self.crates.values() {
-            let crate_resolver = CrateResolver::new(krate);
+            let crate_resolver = CrateResolver::new(krate, &crate_indexes);
             match crate_resolver.resolve() {
                 Ok(crate_index) => {
                     crates.insert(krate.name, crate_index);
@@ -208,6 +218,10 @@ impl Resolver {
             Ok(crates)
         }
     }
+
+    fn generate_crate_ns(&self) -> StrMap<CrateNS> {
+        todo!()
+    }
 }
 
 #[derive(Default)]
@@ -217,17 +231,19 @@ struct CrateMap<'a> {
 
 struct CrateResolver<'a> {
     krate: &'a Crate,
+    krate_ns: &'a StrMap<CrateNS>,
     errors: Vec<ResolveError>,
     items: Vec<LocalDefId>,
-    nodes: HashMap<LocalDefId, HirNode>,
+    nodes: LocalDefIdMap<HirNode>,
     module_scope: ModuleScope,
     scopes: Vec<Scope>,
 }
 
 impl<'a> CrateResolver<'a> {
-    fn new(krate: &'a Crate) -> Self {
+    fn new(krate: &'a Crate, krate_ns: &'a StrMap<CrateNS>) -> Self {
         Self {
             krate,
+            krate_ns,
             errors: Default::default(),
             items: Default::default(),
             nodes: Default::default(),
@@ -250,12 +266,7 @@ impl<'a> CrateResolver<'a> {
         if !self.errors.is_empty() {
             Err(CompileError::ResolveErrors(self.errors))
         } else {
-            Ok(HirCrate::new(
-                self.krate.name,
-                self.krate.id,
-                self.items,
-                self.nodes,
-            ))
+            Ok(CrateIndex::default())
         }
     }
 
@@ -301,8 +312,7 @@ impl<'a> CrateResolver<'a> {
                         IdentType::Crate => Some((item.ident, item.id.to_def_id(self.krate.id))),
                         IdentType::LocalOrUse => {
                             let krate_ident = use_stmt.path.first();
-                            let krate_namespace = self.krate_attrs.get(&krate_ident.ident).unwrap(); // Should be safe since the crate should exist
-
+                            let krate_namespace = self.krate_ns.get(&krate_ident.ident).unwrap(); // Should be safe since the crate should exist
                             todo!()
                         }
                     }
@@ -1024,7 +1034,7 @@ impl<'a> CrateResolver<'a> {
                         .ok_or(DefinitionNotFound)
                 } else {
                     let krate_ident = ident.first().ident;
-                    let namespace = self.krate_attrs.get(&krate_ident).unwrap();
+                    let namespace = self.krate_ns.get(&krate_ident).unwrap();
                     // namespace.find_definition(ident).ok_or(DefinitionNotFound)
                     todo!()
                 }
@@ -1052,11 +1062,14 @@ mod tests {
 
     use crate::compiler::compiler::{CompileError, Compiler};
     use crate::compiler::hir::HirCrate;
-    use crate::compiler::resolver::{CrateResolver, Resolver};
+    use crate::compiler::resolver::{CrateIndex, CrateResolver, Resolver};
     use crate::util::utils;
 
     #[cfg(test)]
-    fn compile_crate(name: &str) -> HirCrate {
+    type ResolvedCrate = CrateIndex;
+
+    #[cfg(test)]
+    fn compile_crate(name: &str) -> ResolvedCrate {
         let mut compiler = Compiler::default();
         let krate = compiler
             .parse_crate(&utils::resolve_test_krate_path(name))
@@ -1068,13 +1081,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn import_function_from_crate() -> HirCrate {
+    pub fn import_function_from_crate() -> ResolvedCrate {
         compile_crate("complex_arithmetic")
     }
 
     #[test]
     #[snapshot]
-    pub fn compile_simple_class() -> HirCrate {
+    pub fn compile_simple_class() -> ResolvedCrate {
         compile_crate("compile_simple_class")
     }
 }
