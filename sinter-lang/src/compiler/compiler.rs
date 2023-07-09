@@ -20,7 +20,7 @@ use crate::compiler::interner::{Interner, Key};
 use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseError};
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::{CrateIndex, resolve, ResolveError};
+use crate::compiler::resolver::{resolve, CrateIndex, ResolveError};
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
 use crate::compiler::ty_checker::ty_check;
@@ -156,10 +156,7 @@ impl Compiler {
         todo!()
     }
 
-    fn parse_crates(
-        &mut self,
-        application: &Application,
-    ) -> Result<StrMap<Crate>, CompileError> {
+    fn parse_crates(&mut self, application: &Application) -> Result<StrMap<Crate>, CompileError> {
         let mut crates = HashMap::default();
 
         // Parse main crate
@@ -247,10 +244,7 @@ impl Compiler {
         parse(&mut self.compiler_ctxt, tokens)
     }
 
-    fn validate_crates(
-        &mut self,
-        crates: &StrMap<Crate>,
-    ) -> Result<(), CompileError> {
+    fn validate_crates(&mut self, crates: &StrMap<Crate>) -> Result<(), CompileError> {
         let mut validation_errors = Vec::new();
         for krate in crates.values() {
             for module in krate.module_lookup.values() {

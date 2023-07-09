@@ -46,6 +46,13 @@ impl<T> Default for ModuleMap<T> {
     }
 }
 
+impl<V> FromIterator<(ModulePath, V)> for ModuleMap<V> {
+    fn from_iter<T: IntoIterator<Item = (ModulePath, V)>>(iter: T) -> Self {
+        let table = HashMap::from_iter(iter);
+        Self { table }
+    }
+}
+
 impl<T> Deref for ModuleMap<T> {
     type Target = HashMap<ModulePath, T>;
 

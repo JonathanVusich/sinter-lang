@@ -1,9 +1,9 @@
-use std::collections::HashMap;
 use crate::compiler::ast::{PathTy, QualifiedIdent, TraitBound, Ty};
+use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::Key;
 use lasso::Spur;
 use serde::{Deserialize, Serialize};
-use crate::compiler::hir::LocalDefId;
+use std::collections::HashMap;
 
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Hash, Serialize, Deserialize)]

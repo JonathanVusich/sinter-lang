@@ -1,9 +1,10 @@
-use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
+
+use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{
     ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt,
@@ -29,7 +30,7 @@ use crate::compiler::hir::{
     PathExpr, PathTy, Pattern, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty,
     UnaryExpr,
 };
-use crate::compiler::krate::{Crate, ModuleMap};
+use crate::compiler::krate::{Crate, CrateId, ModuleMap};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError::{DefinitionNotFound, DuplicateLocalDefIds};
 use crate::compiler::tokens::tokenized_file::Span;
@@ -45,6 +46,12 @@ pub struct CrateNS {
     ns: ModuleMap<ModuleNS>,
 }
 
+impl CrateNS {
+    pub fn new(ns: ModuleMap<ModuleNS>) -> Self {
+        Self { ns }
+    }
+}
+
 #[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct CrateIndex {
     module_indexes: ModuleMap<ModuleIndex>,
@@ -58,6 +65,12 @@ pub struct ModuleIndex {
 #[derive(PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct ModuleNS {
     names: StrMap<DefId>,
+}
+
+impl ModuleNS {
+    pub fn new(names: StrMap<DefId>) -> Self {
+        Self { names }
+    }
 }
 
 #[derive(Default)]
@@ -198,7 +211,11 @@ impl Resolver {
     fn resolve(self) -> Result<StrMap<CrateIndex>, CompileError> {
         let mut resolve_errors = Vec::new();
         let mut crates = StrMap::default();
-        let crate_indexes = self.generate_crate_ns();
+        let crate_indexes = self
+            .crates
+            .iter()
+            .map(|(name, krate)| (*name, create_crate_ns(krate)))
+            .collect();
 
         for krate in self.crates.values() {
             let crate_resolver = CrateResolver::new(krate, &crate_indexes);
@@ -218,10 +235,35 @@ impl Resolver {
             Ok(crates)
         }
     }
+}
 
-    fn generate_crate_ns(&self) -> StrMap<CrateNS> {
-        todo!()
-    }
+fn create_crate_ns(krate: &Crate) -> CrateNS {
+    let module_ns = krate
+        .module_lookup
+        .iter()
+        .map(|(path, module)| (path.clone(), create_module_ns(krate.id, module)))
+        .collect::<ModuleMap<ModuleNS>>();
+    CrateNS::new(module_ns)
+}
+
+fn create_module_ns(crate_id: CrateId, module: &Module) -> ModuleNS {
+    let names = module
+        .items
+        .iter()
+        .map(|item| {
+            match &item.kind {
+                ItemKind::GlobalLet(global_let_stmt) => Some(global_let_stmt.name.ident),
+                ItemKind::Class(class_stmt) => Some(class_stmt.name.ident),
+                ItemKind::Enum(enum_stmt) => Some(enum_stmt.name.ident),
+                ItemKind::Trait(trait_stmt) => Some(trait_stmt.name.ident),
+                ItemKind::Fn(fn_stmt) => Some(fn_stmt.sig.name.ident),
+                ItemKind::Use(_) | ItemKind::TraitImpl(_) => None,
+            }
+            .map(|name| (name, item.id.to_def_id(crate_id)))
+        })
+        .flatten()
+        .collect();
+    ModuleNS::new(names)
 }
 
 #[derive(Default)]
@@ -231,23 +273,23 @@ struct CrateMap<'a> {
 
 struct CrateResolver<'a> {
     krate: &'a Crate,
-    krate_ns: &'a StrMap<CrateNS>,
+    krate_ns: &'a CrateNS,
+    krate_namespaces: &'a StrMap<CrateNS>,
     errors: Vec<ResolveError>,
     items: Vec<LocalDefId>,
     nodes: LocalDefIdMap<HirNode>,
-    module_scope: ModuleScope,
     scopes: Vec<Scope>,
 }
 
 impl<'a> CrateResolver<'a> {
-    fn new(krate: &'a Crate, krate_ns: &'a StrMap<CrateNS>) -> Self {
+    fn new(krate: &'a Crate, krate_namespaces: &'a StrMap<CrateNS>) -> Self {
         Self {
             krate,
-            krate_ns,
+            krate_ns: krate_namespaces.get(&krate.name).unwrap(),
+            krate_namespaces,
             errors: Default::default(),
             items: Default::default(),
             nodes: Default::default(),
-            module_scope: ModuleScope::default(),
             scopes: Default::default(),
         }
     }
@@ -255,12 +297,9 @@ impl<'a> CrateResolver<'a> {
     fn resolve(mut self) -> Result<CrateIndex, CompileError> {
         for module in self.krate.module_lookup.values() {
             // First need to populate the module scope (from used items + module items)
-            self.populate_module_scope(module);
             self.initial_module_resolution(module);
-            // TODO: Impl trait resolution
 
             // We have to remember to clear out all scopes and reset the module scope
-            self.module_scope = ModuleScope::default();
             self.scopes.clear();
         }
         if !self.errors.is_empty() {
@@ -270,30 +309,28 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn initial_module_resolution(&mut self, module: &Module) -> Vec<ResolveError> {
-        let mut errors = Vec::new();
-        for item in &module.items {
-            let span = item.span;
-            let id = item.id;
+    fn initial_module_resolution(&mut self, module: &Module) {
+        module.items.iter().for_each(|item| self.visit_item(item));
+    }
 
-            let result = match &item.kind {
-                AstItemKind::Use(use_stmt) => Ok(()),
-                AstItemKind::GlobalLet(let_stmt) => {
-                    self.resolve_global_let_stmt(let_stmt, span, id)
-                }
-                AstItemKind::Class(class_stmt) => self.resolve_class_stmt(class_stmt, span, id),
-                AstItemKind::Enum(enum_stmt) => self.resolve_enum_stmt(enum_stmt, span, id),
-                AstItemKind::Trait(trait_stmt) => self.resolve_trait_stmt(trait_stmt, span, id),
-                // Purposefully empty because we have to wait until all types are resolved before we can check trait impl bodies.
-                AstItemKind::TraitImpl(trait_impl_stmt) => Ok(()),
-                AstItemKind::Fn(fn_stmt) => self.resolve_fn_stmt(fn_stmt, span, id),
-            };
+    fn visit_item(&mut self, item: &Item) {
+        let span = item.span;
+        let id = item.id;
 
-            if let Err(error) = result {
-                errors.push(error);
-            }
+        let result = match &item.kind {
+            AstItemKind::Use(use_stmt) => Ok(()),
+            AstItemKind::GlobalLet(let_stmt) => self.resolve_global_let_stmt(let_stmt, span, id),
+            AstItemKind::Class(class_stmt) => self.resolve_class_stmt(class_stmt, span, id),
+            AstItemKind::Enum(enum_stmt) => self.resolve_enum_stmt(enum_stmt, span, id),
+            AstItemKind::Trait(trait_stmt) => self.resolve_trait_stmt(trait_stmt, span, id),
+            // Purposefully empty because we have to wait until all types are resolved before we can check trait impl bodies.
+            AstItemKind::TraitImpl(trait_impl_stmt) => Ok(()),
+            AstItemKind::Fn(fn_stmt) => self.resolve_fn_stmt(fn_stmt, span, id),
+        };
+
+        if let Err(error) = result {
+            self.errors.push(error);
         }
-        errors
     }
 
     fn duplicate_definition(&self, existing: LocalDefId, new: LocalDefId) -> ResolveResult {
@@ -301,47 +338,6 @@ impl<'a> CrateResolver<'a> {
             existing: existing.to_def_id(self.krate.id),
             new: new.to_def_id(self.krate.id),
         })
-    }
-
-    fn populate_module_scope(&mut self, module: &Module) {
-        for item in &module.items {
-            if let Some((ident, id)) = match &item.kind {
-                ItemKind::Use(use_stmt) => {
-                    let item = use_stmt.path.last();
-                    match use_stmt.path.ident_type {
-                        IdentType::Crate => Some((item.ident, item.id.to_def_id(self.krate.id))),
-                        IdentType::LocalOrUse => {
-                            let krate_ident = use_stmt.path.first();
-                            let krate_namespace = self.krate_ns.get(&krate_ident.ident).unwrap(); // Should be safe since the crate should exist
-                            todo!()
-                        }
-                    }
-                }
-                ItemKind::GlobalLet(let_stmt) => {
-                    Some((let_stmt.name.ident, item.id.to_def_id(self.krate.id)))
-                }
-                ItemKind::Class(class_stmt) => {
-                    Some((class_stmt.name.ident, item.id.to_def_id(self.krate.id)))
-                }
-                ItemKind::Enum(enum_stmt) => {
-                    Some((enum_stmt.name.ident, item.id.to_def_id(self.krate.id)))
-                }
-                ItemKind::Trait(trait_stmt) => {
-                    Some((trait_stmt.name.ident, item.id.to_def_id(self.krate.id)))
-                }
-                ItemKind::TraitImpl(trait_impl_stmt) => None,
-                ItemKind::Fn(fn_stmt) => {
-                    Some((fn_stmt.sig.name.ident, item.id.to_def_id(self.krate.id)))
-                }
-            } {
-                match self.module_scope.insert(ident, id) {
-                    Ok(_) => {}
-                    Err(err) => {
-                        self.errors.push(err);
-                    }
-                };
-            }
-        }
     }
 
     fn resolve_global_let_stmt(
@@ -1034,7 +1030,7 @@ impl<'a> CrateResolver<'a> {
                         .ok_or(DefinitionNotFound)
                 } else {
                     let krate_ident = ident.first().ident;
-                    let namespace = self.krate_ns.get(&krate_ident).unwrap();
+                    let namespace = self.krate_namespaces.get(&krate_ident).unwrap();
                     // namespace.find_definition(ident).ok_or(DefinitionNotFound)
                     todo!()
                 }
