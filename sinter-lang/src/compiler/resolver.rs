@@ -931,13 +931,12 @@ impl<'a> CrateResolver<'a> {
                 let resolved_ty = self.maybe_resolve_ty(&let_stmt.ty)?;
                 let resolved_initializer = self.maybe_resolve_expr(&let_stmt.initializer)?;
 
-                let stmt = Stmt::Let(LetStmt::new(
+                Stmt::Let(LetStmt::new(
                     let_stmt.ident,
                     let_stmt.mutability,
                     resolved_ty,
                     resolved_initializer,
-                ));
-                stmt
+                ))
             }
             AstStmtKind::For(for_stmt) => {
                 self.scopes.push(Scope::Block {
@@ -1058,14 +1057,33 @@ mod tests {
 
     use snap::snapshot;
 
-    use crate::compiler::compiler::{CompileError, Compiler};
+    use crate::compiler::compiler::{CompileError, Compiler, CompilerCtxt};
     use crate::compiler::hir::HirCrate;
+    use crate::compiler::krate::{Crate, CrateId};
+    use crate::compiler::path::ModulePath;
     use crate::compiler::resolver::{create_crate_ns, CrateIndex, CrateResolver, Resolver};
     use crate::compiler::types::StrMap;
     use crate::util::utils;
 
     #[cfg(test)]
     type ResolvedCrate = CrateIndex;
+
+    #[cfg(test)]
+    fn compile_example(crate_name: &str, module: &str) -> ResolvedCrate {
+        let mut compiler_ctxt = CompilerCtxt::default();
+        let mut compiler = Compiler::with_ctxt(compiler_ctxt);
+        let mut krate = Crate::new(compiler_ctxt.intern_str(crate_name), CrateId::new(0));
+        let module_path = ModulePath::new(vec![compiler_ctxt.intern_str(module)]);
+        let module = compiler
+            .parse_ast(&utils::resolve_code_example_path(module))
+            .unwrap();
+        krate.module_lookup.insert(module_path, module);
+        krate.local_def_id = compiler_ctxt.crate_local_def_id();
+
+        let map = StrMap::from([(krate.name, create_crate_ns(&krate))]);
+        let crate_resolver = CrateResolver::new(&krate, &map);
+        crate_resolver.resolve().unwrap()
+    }
 
     #[cfg(test)]
     fn compile_crate(name: &str) -> ResolvedCrate {

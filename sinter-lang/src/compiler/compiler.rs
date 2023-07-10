@@ -109,7 +109,7 @@ impl CompilerCtxt {
         self.local_def_id as u32
     }
 
-    fn module_path(&mut self, path: &Path) -> Result<ModulePath, CompileError> {
+    pub(crate) fn module_path(&mut self, path: &Path) -> Result<ModulePath, CompileError> {
         let mut segments = Vec::new();
         for segment in path.iter() {
             let segment = segment
@@ -130,10 +130,8 @@ impl From<CompilerCtxt> for StringInterner {
 }
 
 impl Compiler {
-    fn new() -> Self {
-        Self {
-            compiler_ctxt: CompilerCtxt::default(),
-        }
+    pub(crate) fn with_ctxt(compiler_ctxt: CompilerCtxt) -> Self {
+        Self { compiler_ctxt }
     }
 
     fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
@@ -239,7 +237,7 @@ impl Compiler {
         Ok(krate)
     }
 
-    fn parse_ast(&mut self, path: &Path) -> Result<Module, CompileError> {
+    pub(crate) fn parse_ast(&mut self, path: &Path) -> Result<Module, CompileError> {
         let tokens = tokenize_file(&mut self.compiler_ctxt, path)?;
         parse(&mut self.compiler_ctxt, tokens)
     }
