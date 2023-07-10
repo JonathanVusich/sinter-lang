@@ -1,3 +1,5 @@
+use itertools::Itertools;
+use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
@@ -24,11 +26,11 @@ use crate::compiler::hir;
 use crate::compiler::hir::HirItem::Trait;
 use crate::compiler::hir::{
     Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig,
-    FnStmt, FnStmts, ForStmt, GenericParam, GenericParams, Generics, HirCrate, HirItem, HirNode,
-    HirNodeKind, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, Param, Params,
-    PathExpr, PathTy, Pattern, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty,
-    UnaryExpr,
+    ClosureParams, DefId, DestructurePattern, EnumMembers, EnumStmt, Expr, Expression, Field,
+    FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam, GenericParams, Generics,
+    HirCrate, HirItem, HirNode, HirNodeKind, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm,
+    MatchExpr, OrPattern, Param, Params, PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt,
+    Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty, TyPattern, UnaryExpr,
 };
 use crate::compiler::krate::{Crate, CrateId, ModuleMap};
 use crate::compiler::path::ModulePath;
@@ -36,7 +38,7 @@ use crate::compiler::resolver::ResolveError::{DefinitionNotFound, DuplicateLocal
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::{InternedStr, LocalDefIdMap, StrMap};
 
-pub fn resolve(crates: StrMap<Crate>) -> Result<StrMap<CrateIndex>, CompileError> {
+pub fn resolve(crates: StrMap<Crate>) -> Result<StrMap<HirCrate>, CompileError> {
     let resolver = Resolver::new(crates);
     resolver.resolve()
 }
@@ -50,11 +52,6 @@ impl CrateNS {
     pub fn new(ns: ModuleMap<ModuleNS>) -> Self {
         Self { ns }
     }
-}
-
-#[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
-pub struct CrateIndex {
-    module_indexes: ModuleMap<ModuleIndex>,
 }
 
 #[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
@@ -208,13 +205,14 @@ impl Resolver {
         Self { crates }
     }
 
-    fn resolve(self) -> Result<StrMap<CrateIndex>, CompileError> {
+    fn resolve(self) -> Result<StrMap<HirCrate>, CompileError> {
         let mut resolve_errors = Vec::new();
         let mut crates = StrMap::default();
-        let crate_indexes = self
+        let mut crate_indexes = self
             .crates
-            .iter()
-            .map(|(name, krate)| (*name, create_crate_ns(krate)))
+            .values()
+            .sorted_by(|a, b| a.id.cmp(&b.id))
+            .map(|krate| create_crate_ns(krate))
             .collect();
 
         for krate in self.crates.values() {
@@ -274,7 +272,7 @@ struct CrateResolver<'a> {
     krate: &'a Crate,
     krate_ns: &'a CrateNS,
     module_ns: Option<&'a ModuleNS>,
-    krate_namespaces: &'a StrMap<CrateNS>,
+    krate_namespaces: &'a Vec<CrateNS>,
     errors: Vec<ResolveError>,
     items: Vec<LocalDefId>,
     nodes: LocalDefIdMap<HirNode>,
@@ -282,10 +280,10 @@ struct CrateResolver<'a> {
 }
 
 impl<'a> CrateResolver<'a> {
-    fn new(krate: &'a Crate, krate_namespaces: &'a StrMap<CrateNS>) -> Self {
+    fn new(krate: &'a Crate, krate_namespaces: &'a Vec<CrateNS>) -> Self {
         Self {
             krate,
-            krate_ns: krate_namespaces.get(&krate.name).unwrap(),
+            krate_ns: krate_namespaces.get(krate.index()).unwrap(),
             module_ns: None,
             krate_namespaces,
             errors: Default::default(),
@@ -295,7 +293,7 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve(mut self) -> Result<CrateIndex, CompileError> {
+    fn resolve(mut self) -> Result<HirCrate, CompileError> {
         for module in self.krate.module_lookup.values() {
             self.resolve_module(module);
 
@@ -305,7 +303,12 @@ impl<'a> CrateResolver<'a> {
         if !self.errors.is_empty() {
             Err(CompileError::ResolveErrors(self.errors))
         } else {
-            Ok(CrateIndex::default())
+            Ok(HirCrate::new(
+                self.krate.name,
+                self.krate.id,
+                self.items,
+                self.nodes,
+            ))
         }
     }
 
@@ -698,6 +701,8 @@ impl<'a> CrateResolver<'a> {
 
         let return_ty = self.maybe_resolve_ty(&fn_sig.return_type)?;
 
+        self.scopes.pop();
+
         Ok(FnSig::new(fn_sig.name, generic_params, params, return_ty))
     }
 
@@ -1010,31 +1015,65 @@ impl<'a> CrateResolver<'a> {
         Ok(MatchArm::new(pattern, body))
     }
 
-    fn resolve_pattern(&mut self, pattern: &AstPattern) -> Result<LocalDefId, ResolveError> {
-        todo!()
+    fn resolve_pattern(&mut self, pattern: &AstPattern) -> Result<Pattern, ResolveError> {
+        let hir_pattern = match pattern {
+            AstPattern::Wildcard => Pattern::Wildcard,
+            AstPattern::Or(or_pattern) => {
+                let patterns = or_pattern
+                    .patterns
+                    .iter()
+                    .map(|patt| self.resolve_pattern(patt))
+                    .collect::<Result<Vec<Pattern>, ResolveError>>()?;
+                Pattern::Or(OrPattern::new(patterns))
+            }
+            AstPattern::Boolean(bool) => Pattern::Boolean(*bool),
+            AstPattern::Integer(integer) => Pattern::Integer(*integer),
+            AstPattern::String(string) => Pattern::String(*string),
+            AstPattern::Ty(ty_patt) => {
+                let resolved_ty = self.resolve_ty(&ty_patt.ty)?;
+                Pattern::Ty(TyPattern::new(
+                    resolved_ty,
+                    ty_patt
+                        .ident
+                        .map(|pattern_local| PatternLocal::new(pattern_local.ident)),
+                ))
+            }
+            AstPattern::Destructure(de_patt) => {
+                let resolved_ty = self.resolve_ty(&de_patt.ty)?;
+                let exprs = de_patt
+                    .exprs
+                    .iter()
+                    .map(|expr| self.resolve_expr(expr))
+                    .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
+                Pattern::Destructure(DestructurePattern::new(resolved_ty, exprs))
+            }
+        };
+        Ok(hir_pattern)
     }
 
     fn resolve_qualified_ident(&mut self, ident: &QualifiedIdent) -> Result<DefId, ResolveError> {
         match ident.ident_type {
-            IdentType::Crate => self.krate.find_definition(ident).ok_or(DefinitionNotFound),
+            IdentType::Crate => {
+                //self.krate.find_definition(ident).ok_or(DefinitionNotFound)
+                todo!()
+            }
             IdentType::LocalOrUse => {
-                if ident.is_local() {
-                    self.module_ns
-                        .unwrap()
-                        .names
-                        .get(&ident.first().ident)
-                        .copied()
-                        .or_else(|| {
-                            self.find_generic_param(ident.first().ident)
-                                .map(|id| id.to_def_id(self.krate.id))
-                        })
-                        .ok_or(DefinitionNotFound)
-                } else {
-                    let krate_ident = ident.first().ident;
-                    let namespace = self.krate_namespaces.get(&krate_ident).unwrap();
-                    // namespace.find_definition(ident).ok_or(DefinitionNotFound)
-                    todo!()
-                }
+                // 1. Determine what type of Item this is
+
+                let source_def = self
+                    .module_ns
+                    .unwrap()
+                    .names
+                    .get(&ident.first().ident)
+                    .copied()
+                    .or_else(|| {
+                        self.find_generic_param(ident.first().ident)
+                            .map(|id| id.to_def_id(self.krate.id))
+                    })
+                    .ok_or(DefinitionNotFound);
+                // 2. Retrieve the Item and resolve the rest of the paths incrementally.
+
+                let item = todo!();
             }
         }
     }
@@ -1061,37 +1100,36 @@ mod tests {
     use crate::compiler::hir::HirCrate;
     use crate::compiler::krate::{Crate, CrateId};
     use crate::compiler::path::ModulePath;
-    use crate::compiler::resolver::{create_crate_ns, CrateIndex, CrateResolver, Resolver};
+    use crate::compiler::resolver::{create_crate_ns, CrateResolver, Resolver};
     use crate::compiler::types::StrMap;
     use crate::util::utils;
 
     #[cfg(test)]
-    type ResolvedCrate = CrateIndex;
+    type ResolvedCrate = HirCrate;
 
     #[cfg(test)]
-    fn compile_example(crate_name: &str, module: &str) -> ResolvedCrate {
+    fn resolve_example(crate_name: &str, module: &str) -> ResolvedCrate {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let mut compiler = Compiler::with_ctxt(compiler_ctxt);
         let mut krate = Crate::new(compiler_ctxt.intern_str(crate_name), CrateId::new(0));
         let module_path = ModulePath::new(vec![compiler_ctxt.intern_str(module)]);
+        let mut compiler = Compiler::with_ctxt(compiler_ctxt);
         let module = compiler
             .parse_ast(&utils::resolve_code_example_path(module))
             .unwrap();
         krate.module_lookup.insert(module_path, module);
-        krate.local_def_id = compiler_ctxt.crate_local_def_id();
 
-        let map = StrMap::from([(krate.name, create_crate_ns(&krate))]);
+        let map = Vec::from([create_crate_ns(&krate)]);
         let crate_resolver = CrateResolver::new(&krate, &map);
         crate_resolver.resolve().unwrap()
     }
 
     #[cfg(test)]
-    fn compile_crate(name: &str) -> ResolvedCrate {
+    fn resolve_crate(name: &str) -> ResolvedCrate {
         let mut compiler = Compiler::default();
         let krate = compiler
             .parse_crate(&utils::resolve_test_krate_path(name))
             .unwrap();
-        let map = StrMap::from([(krate.name, create_crate_ns(&krate))]);
+        let map = Vec::from([create_crate_ns(&krate)]);
         let crate_resolver = CrateResolver::new(&krate, &map);
         crate_resolver.resolve().unwrap()
     }
@@ -1099,12 +1137,18 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn import_function_from_crate() -> ResolvedCrate {
-        compile_crate("complex_arithmetic")
+        resolve_crate("complex_arithmetic")
     }
 
     #[test]
     #[snapshot]
-    pub fn compile_simple_class() -> ResolvedCrate {
-        compile_crate("compile_simple_class")
+    pub fn rectangle_class() -> ResolvedCrate {
+        resolve_example("rectangle", "rectangle_class.si")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn enum_match() -> ResolvedCrate {
+        resolve_crate("enum_matching")
     }
 }

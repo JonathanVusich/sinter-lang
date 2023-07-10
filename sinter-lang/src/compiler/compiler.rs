@@ -20,7 +20,7 @@ use crate::compiler::interner::{Interner, Key};
 use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseError};
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::{resolve, CrateIndex, ResolveError};
+use crate::compiler::resolver::{resolve, ResolveError};
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
 use crate::compiler::ty_checker::ty_check;
@@ -256,10 +256,7 @@ impl Compiler {
         }
     }
 
-    fn resolve_crates(
-        &mut self,
-        crates: StrMap<Crate>,
-    ) -> Result<StrMap<CrateIndex>, CompileError> {
+    fn resolve_crates(&mut self, crates: StrMap<Crate>) -> Result<StrMap<HirCrate>, CompileError> {
         todo!()
     }
 }
@@ -299,7 +296,7 @@ mod tests {
     #[snapshot]
     pub fn complex_arithmetic() -> Crate {
         let krate_path = resolve_test_krate_path("complex_arithmetic");
-        let mut compiler = Compiler::new();
+        let mut compiler = Compiler::default();
         let krate = compiler.parse_crate(&krate_path).unwrap();
 
         assert_eq!(

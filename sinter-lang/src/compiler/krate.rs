@@ -16,7 +16,7 @@ use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError;
 use crate::compiler::types::InternedStr;
 
-#[derive(PartialEq, Debug, Default, Copy, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Default, Copy, Clone, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CrateId {
     id: u32,
 }
@@ -151,6 +151,10 @@ impl Crate {
         }
     }
 
+    pub fn index(&self) -> usize {
+        self.id.id as usize
+    }
+
     pub fn add_module(
         &mut self,
         module_path: ModulePath,
@@ -166,19 +170,5 @@ impl Crate {
             used_crates.extend(UsedCrateCollector::visit(module));
         }
         used_crates
-    }
-
-    pub fn find_definition(&self, qualified_ident: &QualifiedIdent) -> Option<DefId> {
-        todo!()
-        // if let Some(module_path) = qualified_ident.module_path() {
-        //     let item = qualified_ident.last().ident;
-        //     return self
-        //         .namespace
-        //         .get(&module_path)
-        //         .and_then(|namespace| namespace.items.get(&item))
-        //         .copied()
-        //         .map(|local_id| local_id.to_def_id(self.id));
-        // }
-        // None
     }
 }

@@ -1,3 +1,535 @@
 {
-  "module_indexes": []
+  "name": 1,
+  "id": {
+    "id": 0
+  },
+  "items": [],
+  "nodes": {
+    "9": {
+      "kind": {
+        "Ty": {
+          "Path": {
+            "path": {
+              "definition": {
+                "crate_id": 0,
+                "local_id": 2
+              },
+              "generics": []
+            }
+          }
+        }
+      },
+      "span": {
+        "start": 24,
+        "end": 25
+      },
+      "id": 9
+    },
+    "5": {
+      "kind": {
+        "Ty": {
+          "Path": {
+            "path": {
+              "definition": {
+                "crate_id": 0,
+                "local_id": 2
+              },
+              "generics": []
+            }
+          }
+        }
+      },
+      "span": {
+        "start": 18,
+        "end": 19
+      },
+      "id": 5
+    },
+    "12": {
+      "kind": {
+        "Ty": {
+          "Path": {
+            "path": {
+              "definition": {
+                "crate_id": 0,
+                "local_id": 2
+              },
+              "generics": []
+            }
+          }
+        }
+      },
+      "span": {
+        "start": 30,
+        "end": 31
+      },
+      "id": 12
+    },
+    "20": {
+      "kind": {
+        "Fn": {
+          "sig": {
+            "name": {
+              "ident": 3,
+              "span": {
+                "start": 3,
+                "end": 11
+              },
+              "id": 0
+            },
+            "generic_params": {
+              "4": 2
+            },
+            "params": {
+              "5": 6,
+              "6": 10
+            },
+            "return_type": 12
+          },
+          "body": 19
+        }
+      },
+      "span": {
+        "start": 0,
+        "end": 45
+      },
+      "id": 20
+    },
+    "27": {
+      "kind": {
+        "GenericParam": {
+          "ident": {
+            "ident": 4,
+            "span": {
+              "start": 48,
+              "end": 49
+            },
+            "id": 26
+          },
+          "trait_bound": null
+        }
+      },
+      "span": {
+        "start": 48,
+        "end": 49
+      },
+      "id": 27
+    },
+    "45": {
+      "kind": {
+        "Stmt": {
+          "Expression": {
+            "expr": 44,
+            "implicit_return": false
+          }
+        }
+      },
+      "span": {
+        "start": 74,
+        "end": 88
+      },
+      "id": 45
+    },
+    "16": {
+      "kind": {
+        "Expr": {
+          "Path": {
+            "segments": [
+              {
+                "ident": {
+                  "ident": 6,
+                  "span": {
+                    "start": 42,
+                    "end": 43
+                  },
+                  "id": 15
+                },
+                "generics": null
+              }
+            ]
+          }
+        }
+      },
+      "span": {
+        "start": 42,
+        "end": 43
+      },
+      "id": 16
+    },
+    "17": {
+      "kind": {
+        "Expr": {
+          "Infix": {
+            "operator": "Multiply",
+            "lhs": 14,
+            "rhs": 16
+          }
+        }
+      },
+      "span": {
+        "start": 38,
+        "end": 43
+      },
+      "id": 17
+    },
+    "37": {
+      "kind": {
+        "Ty": {
+          "Path": {
+            "path": {
+              "definition": {
+                "crate_id": 0,
+                "local_id": 27
+              },
+              "generics": []
+            }
+          }
+        }
+      },
+      "span": {
+        "start": 66,
+        "end": 67
+      },
+      "id": 37
+    },
+    "41": {
+      "kind": {
+        "Expr": {
+          "Path": {
+            "segments": [
+              {
+                "ident": {
+                  "ident": 5,
+                  "span": {
+                    "start": 83,
+                    "end": 84
+                  },
+                  "id": 40
+                },
+                "generics": null
+              }
+            ]
+          }
+        }
+      },
+      "span": {
+        "start": 83,
+        "end": 84
+      },
+      "id": 41
+    },
+    "39": {
+      "kind": {
+        "Expr": {
+          "Path": {
+            "segments": [
+              {
+                "ident": {
+                  "ident": 3,
+                  "span": {
+                    "start": 74,
+                    "end": 82
+                  },
+                  "id": 38
+                },
+                "generics": null
+              }
+            ]
+          }
+        }
+      },
+      "span": {
+        "start": 74,
+        "end": 82
+      },
+      "id": 39
+    },
+    "6": {
+      "kind": {
+        "Param": {
+          "ident": {
+            "ident": 5,
+            "span": {
+              "start": 15,
+              "end": 16
+            },
+            "id": 3
+          },
+          "ty": 5,
+          "mutability": "Immutable"
+        }
+      },
+      "span": {
+        "start": 15,
+        "end": 19
+      },
+      "id": 6
+    },
+    "19": {
+      "kind": {
+        "Block": {
+          "stmts": [
+            18
+          ]
+        }
+      },
+      "span": {
+        "start": 32,
+        "end": 45
+      },
+      "id": 19
+    },
+    "35": {
+      "kind": {
+        "Param": {
+          "ident": {
+            "ident": 6,
+            "span": {
+              "start": 57,
+              "end": 58
+            },
+            "id": 32
+          },
+          "ty": 34,
+          "mutability": "Immutable"
+        }
+      },
+      "span": {
+        "start": 57,
+        "end": 61
+      },
+      "id": 35
+    },
+    "34": {
+      "kind": {
+        "Ty": {
+          "Path": {
+            "path": {
+              "definition": {
+                "crate_id": 0,
+                "local_id": 27
+              },
+              "generics": []
+            }
+          }
+        }
+      },
+      "span": {
+        "start": 60,
+        "end": 61
+      },
+      "id": 34
+    },
+    "46": {
+      "kind": {
+        "Block": {
+          "stmts": [
+            45
+          ]
+        }
+      },
+      "span": {
+        "start": 68,
+        "end": 90
+      },
+      "id": 46
+    },
+    "44": {
+      "kind": {
+        "Expr": {
+          "Call": {
+            "target": 39,
+            "args": [
+              41,
+              43
+            ]
+          }
+        }
+      },
+      "span": {
+        "start": 74,
+        "end": 88
+      },
+      "id": 44
+    },
+    "10": {
+      "kind": {
+        "Param": {
+          "ident": {
+            "ident": 6,
+            "span": {
+              "start": 21,
+              "end": 22
+            },
+            "id": 7
+          },
+          "ty": 9,
+          "mutability": "Immutable"
+        }
+      },
+      "span": {
+        "start": 21,
+        "end": 25
+      },
+      "id": 10
+    },
+    "18": {
+      "kind": {
+        "Stmt": {
+          "Expression": {
+            "expr": 17,
+            "implicit_return": false
+          }
+        }
+      },
+      "span": {
+        "start": 38,
+        "end": 43
+      },
+      "id": 18
+    },
+    "2": {
+      "kind": {
+        "GenericParam": {
+          "ident": {
+            "ident": 4,
+            "span": {
+              "start": 12,
+              "end": 13
+            },
+            "id": 1
+          },
+          "trait_bound": null
+        }
+      },
+      "span": {
+        "start": 12,
+        "end": 13
+      },
+      "id": 2
+    },
+    "47": {
+      "kind": {
+        "Fn": {
+          "sig": {
+            "name": {
+              "ident": 10,
+              "span": {
+                "start": 41,
+                "end": 47
+              },
+              "id": 25
+            },
+            "generic_params": {
+              "4": 27
+            },
+            "params": {
+              "6": 35,
+              "5": 31
+            },
+            "return_type": 37
+          },
+          "body": 46
+        }
+      },
+      "span": {
+        "start": 38,
+        "end": 90
+      },
+      "id": 47
+    },
+    "14": {
+      "kind": {
+        "Expr": {
+          "Path": {
+            "segments": [
+              {
+                "ident": {
+                  "ident": 5,
+                  "span": {
+                    "start": 38,
+                    "end": 39
+                  },
+                  "id": 13
+                },
+                "generics": null
+              }
+            ]
+          }
+        }
+      },
+      "span": {
+        "start": 38,
+        "end": 39
+      },
+      "id": 14
+    },
+    "30": {
+      "kind": {
+        "Ty": {
+          "Path": {
+            "path": {
+              "definition": {
+                "crate_id": 0,
+                "local_id": 27
+              },
+              "generics": []
+            }
+          }
+        }
+      },
+      "span": {
+        "start": 54,
+        "end": 55
+      },
+      "id": 30
+    },
+    "31": {
+      "kind": {
+        "Param": {
+          "ident": {
+            "ident": 5,
+            "span": {
+              "start": 51,
+              "end": 52
+            },
+            "id": 28
+          },
+          "ty": 30,
+          "mutability": "Immutable"
+        }
+      },
+      "span": {
+        "start": 51,
+        "end": 55
+      },
+      "id": 31
+    },
+    "43": {
+      "kind": {
+        "Expr": {
+          "Path": {
+            "segments": [
+              {
+                "ident": {
+                  "ident": 5,
+                  "span": {
+                    "start": 86,
+                    "end": 87
+                  },
+                  "id": 42
+                },
+                "generics": null
+              }
+            ]
+          }
+        }
+      },
+      "span": {
+        "start": 86,
+        "end": 87
+      },
+      "id": 43
+    }
+  }
 }

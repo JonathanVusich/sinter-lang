@@ -1366,6 +1366,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_match_arm(&mut self) -> ParseResult<MatchArm> {
+        self.track_span();
         let mut patterns = self
             .parse_multiple_with_delimiter(|parser| parser.parse_pattern(), TokenType::BitwiseOr)?;
         let pattern = if patterns.len() > 1 {
@@ -1376,7 +1377,7 @@ impl<'ctxt> Parser<'ctxt> {
 
         self.expect(TokenType::RightArrow)?;
         let stmt = self.parse_block_or_expr()?;
-        Ok(MatchArm::new(pattern, stmt))
+        Ok(MatchArm::new(pattern, stmt, self.get_span(), self.get_id()))
     }
 
     fn parse_block_or_expr(&mut self) -> ParseResult<Stmt> {

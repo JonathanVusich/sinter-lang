@@ -832,11 +832,18 @@ impl MatchExpr {
 pub struct MatchArm {
     pub pattern: Pattern,
     pub body: Stmt,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 impl MatchArm {
-    pub fn new(pattern: Pattern, body: Stmt) -> Self {
-        Self { pattern, body }
+    pub fn new(pattern: Pattern, body: Stmt, span: Span, id: LocalDefId) -> Self {
+        Self {
+            pattern,
+            body,
+            span,
+            id,
+        }
     }
 }
 
@@ -1024,7 +1031,7 @@ impl OrPattern {
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct PatternLocal {

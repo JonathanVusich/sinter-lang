@@ -18,6 +18,16 @@ pub struct DefId {
     local_id: u32,
 }
 
+impl DefId {
+    pub fn crate_id(&self) -> usize {
+        self.crate_id as usize
+    }
+
+    pub fn local_id(&self) -> usize {
+        self.local_id as usize
+    }
+}
+
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Debug, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -443,12 +453,12 @@ impl MatchExpr {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct MatchArm {
-    pub pattern: LocalDefId,
+    pub pattern: Pattern,
     pub body: LocalDefId,
 }
 
 impl MatchArm {
-    pub fn new(pattern: LocalDefId, body: LocalDefId) -> Self {
+    pub fn new(pattern: Pattern, body: LocalDefId) -> Self {
         Self { pattern, body }
     }
 }
@@ -472,13 +482,25 @@ pub enum Pattern {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct OrPattern {
-    patterns: Vec<LocalDefId>,
+    patterns: Vec<Pattern>,
+}
+
+impl OrPattern {
+    pub fn new(patterns: Vec<Pattern>) -> Self {
+        Self { patterns }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TyPattern {
     pub ty: LocalDefId,
     pub ident: Option<PatternLocal>,
+}
+
+impl TyPattern {
+    pub fn new(ty: LocalDefId, ident: Option<PatternLocal>) -> Self {
+        Self { ty, ident }
+    }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -488,10 +510,22 @@ pub struct PatternLocal {
     pub ident: InternedStr,
 }
 
+impl PatternLocal {
+    pub fn new(ident: InternedStr) -> Self {
+        Self { ident }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct DestructurePattern {
     pub ty: LocalDefId,
     pub exprs: Vec<LocalDefId>,
+}
+
+impl DestructurePattern {
+    pub fn new(ty: LocalDefId, exprs: Vec<LocalDefId>) -> Self {
+        Self { ty, exprs }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
