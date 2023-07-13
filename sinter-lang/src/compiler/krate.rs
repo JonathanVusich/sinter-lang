@@ -10,7 +10,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use crate::compiler::ast::{AstPass, Field, Item, ItemKind, Module, QualifiedIdent};
 use crate::compiler::ast_passes::{UsedCrate, UsedCrateCollector};
 use crate::compiler::compiler::CompileError;
-use crate::compiler::hir::{DefId, HirItem, LocalDefId};
+use crate::compiler::hir::{DefId, HirItem, LocalDefId, ModId};
 use crate::compiler::parser::ParseError;
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError;
@@ -134,6 +134,13 @@ where
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum CrateItem {
+    Module(ModId),
+    Definition(DefId),
+}
+
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Crate {
     pub(crate) name: InternedStr,
     pub(crate) id: CrateId,
@@ -154,14 +161,32 @@ impl Crate {
     pub fn index(&self) -> usize {
         self.id.id as usize
     }
+    
+    pub fn find(&self, path: &QualifiedIdent) -> Option<CrateItem> {
+        let mut module_path = ModulePath::from(path);
+        if let Some(module) = self.module_lookup.get(&module_path) {
+            Some(CrateItem::Module(ModId::new(self.id.id, module_path)))
+        } else {
+            match module_path.pop() {
+                // We have to return None because the module path had length 1 and was not found
+                None => None,
+                // We check for an item to be in the module.
+                Some(item) => {
+                    match self.module_lookup.get(&module_path) {
+                        None => None,
+                        Some(_) => {}
+                    }
+                }
+            }
+        }
+    }
 
     pub fn add_module(
         &mut self,
         module_path: ModulePath,
         module: Module,
-    ) -> Result<(), ParseError> {
+    ) {
         self.module_lookup.insert(module_path, module);
-        Ok(())
     }
 
     pub fn get_used_crates(&self) -> HashSet<UsedCrate> {

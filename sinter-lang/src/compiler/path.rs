@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::ast::{Ident, IdentType, QualifiedIdent, Segment};
 use crate::compiler::types::InternedStr;
 
+use crate::gc::block::BLOCK_SIZE;
+
 #[derive(PartialEq, Eq, Hash, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ModulePath {
     module_path: Vec<InternedStr>,
@@ -14,9 +16,11 @@ pub struct ModulePath {
 
 impl ModulePath {
     pub fn new(module_path: Vec<InternedStr>) -> Self {
-        Self {
-            module_path,
-        }
+        Self { module_path }
+    }
+
+    pub fn pop(&mut self) -> Option<InternedStr> {
+        self.module_path.pop()
     }
 }
 

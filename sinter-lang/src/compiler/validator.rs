@@ -2,14 +2,11 @@ use std::collections::HashMap;
 
 use multimap::MultiMap;
 
-use crate::compiler::ast::{
-    EnumMember, Field, Fields, FnSelfStmt, FnSig, FnStmt, GenericParam, GenericParams,
-    GlobalLetStmt, Item, ItemKind, Module, Param, Params, QualifiedIdent, UseStmt,
-};
+use crate::compiler::ast::{EnumMember, Field, Fields, FnSelfStmt, FnSig, FnStmt, GenericParam, GenericParams, GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, UseStmt};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::Crate;
-use crate::compiler::types::InternedStr;
+use crate::compiler::types::{InternedStr, StrMap};
 use serde::{Deserialize, Serialize};
 
 const MAX_NUM: usize = 65535;
@@ -27,9 +24,9 @@ pub enum ValidationError {
     TooManyFns,
 }
 
-pub fn validate(module: &Module) -> Vec<ValidationError> {
+pub fn validate(crates: &StrMap<Crate>, krate: &Crate, module: &Module) -> Vec<ValidationError> {
     let validator = Validator::default();
-    validator.validate(module)
+    validator.validate(crates, krate, module)
 }
 
 #[derive(Default)]
@@ -43,10 +40,24 @@ struct Validator {
 }
 
 impl Validator {
-    fn validate(mut self, module: &Module) -> Vec<ValidationError> {
+    fn validate(
+        mut self,
+        crates: &StrMap<Crate>,
+        krate: &Crate,
+        module: &Module,
+    ) -> Vec<ValidationError> {
         for item in &module.items {
             match &item.kind {
-                ItemKind::Use(use_stmt) => self.use_stmts.insert(use_stmt.path.clone(), item.id),
+                ItemKind::Use(use_stmt) => {
+                    self.use_stmts.insert(use_stmt.path.clone(), item.id);
+                    // TODO: Add check to verify that the imported ty does not clash with an existing ty.
+                    match &use_stmt.path.ident_type {
+                        IdentType::Crate => {}
+                        IdentType::LocalOrUse => {}
+                    }
+
+                    // TODO: Add types to local tys
+                }
                 ItemKind::GlobalLet(global_let_stmt) => {
                     self.global_lets.insert(global_let_stmt.name.ident, item.id)
                 }
@@ -195,11 +206,15 @@ impl Validator {
 
 mod tests {
     use crate::compiler::compiler::CompilerCtxt;
+    use crate::compiler::krate::{Crate, CrateId, ModuleMap};
     use crate::compiler::parser::parse;
+    use crate::compiler::path::ModulePath;
     use crate::compiler::tokens::tokenizer::tokenize;
+    use crate::compiler::types::StrMap;
     use crate::compiler::validator::ValidationError;
     use crate::compiler::{compiler, StringInterner};
     use snap::snapshot;
+    use std::collections::HashMap;
 
     type ValidationOutput = (StringInterner, Vec<ValidationError>);
 
@@ -208,9 +223,16 @@ mod tests {
         let mut compiler_ctxt = CompilerCtxt::default();
         let tokenized_input = tokenize(&mut compiler_ctxt, code);
         let module = parse(&mut compiler_ctxt, tokenized_input).unwrap();
+        let mut krate = Crate::new(compiler_ctxt.intern_str("crate"), CrateId::new(0));
+        krate
+            .add_module(
+                ModulePath::new(vec![compiler_ctxt.intern_str("module")]),
+                module,
+            );
+        let krates = StrMap::from([(krate.name, krate)]);
         (
             StringInterner::from(compiler_ctxt),
-            crate::compiler::validator::validate(&module),
+            crate::compiler::validator::validate(&krates, &krate, &module),
         )
     }
 

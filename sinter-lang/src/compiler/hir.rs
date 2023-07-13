@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::ast::{Ident, InfixOp, Mutability, QualifiedIdent, UnaryOp};
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::ClassType;
+use crate::compiler::path::ModulePath;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::{InternedStr, StrMap};
 use crate::traits::traits::Trait;
@@ -25,6 +26,29 @@ impl DefId {
 
     pub fn local_id(&self) -> usize {
         self.local_id as usize
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct ModId {
+    crate_id: u32,
+    module_path: ModulePath,
+}
+
+impl ModId {
+    pub fn new(crate_id: u32, module_path: ModulePath) -> Self {
+        Self {
+            crate_id,
+            module_path,
+        }
+    }
+    
+    pub fn crate_id(&self) -> usize {
+        self.crate_id as usize
+    }
+
+    pub fn module_id(&self) -> &ModulePath{
+        &self.module_path
     }
 }
 

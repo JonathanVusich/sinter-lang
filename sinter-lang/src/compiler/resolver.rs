@@ -29,8 +29,8 @@ use crate::compiler::hir::{
     ClosureParams, DefId, DestructurePattern, EnumMembers, EnumStmt, Expr, Expression, Field,
     FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam, GenericParams, Generics,
     HirCrate, HirItem, HirNode, HirNodeKind, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm,
-    MatchExpr, OrPattern, Param, Params, PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt,
-    Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty, TyPattern, UnaryExpr,
+    MatchExpr, ModId, OrPattern, Param, Params, PathExpr, PathTy, Pattern, PatternLocal,
+    ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty, TyPattern, UnaryExpr,
 };
 use crate::compiler::krate::{Crate, CrateId, ModuleMap};
 use crate::compiler::path::ModulePath;
@@ -54,19 +54,20 @@ impl CrateNS {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
-pub struct ModuleIndex {
-    resolved_vars: LocalDefIdMap<DefId>,
-}
-
 #[derive(PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct ModuleNS {
-    names: StrMap<DefId>,
+    types: StrMap<DefId>,
+    fns: StrMap<DefId>,
+    constants: StrMap<DefId>,
 }
 
 impl ModuleNS {
-    pub fn new(names: StrMap<DefId>) -> Self {
-        Self { names }
+    pub fn new(types: StrMap<DefId>, fns: StrMap<DefId>, constants: StrMap<DefId>) -> Self {
+        Self {
+            types,
+            fns,
+            constants,
+        }
     }
 }
 
@@ -117,6 +118,14 @@ pub enum Scope {
 }
 
 impl Scope {
+    pub fn contains_var(&self, ident: InternedStr) -> Option<LocalDefId> {
+        match self {
+            Scope::Block { vars} => vars.get(&ident).copied(),
+            Scope::Fn { params, .. } => params.get(&ident).copied(),
+            _ => None,
+        }
+    }
+
     pub fn contains_generic(&self, ident: InternedStr) -> Option<LocalDefId> {
         match self {
             Scope::Class { generics, .. } => generics.get(&ident).copied(),
@@ -197,26 +206,23 @@ type ResolveResult = Result<(), ResolveError>;
 
 #[derive(Default)]
 struct Resolver {
-    crates: StrMap<Crate>,
+    krates: StrMap<Crate>,
 }
 
 impl Resolver {
     fn new(crates: StrMap<Crate>) -> Self {
-        Self { crates }
+        Self { krates: crates }
     }
 
     fn resolve(self) -> Result<StrMap<HirCrate>, CompileError> {
         let mut resolve_errors = Vec::new();
         let mut crates = StrMap::default();
-        let mut crate_indexes = self
-            .crates
-            .values()
-            .sorted_by(|a, b| a.id.cmp(&b.id))
-            .map(|krate| create_crate_ns(krate))
-            .collect();
+        // We are building lookup maps for each module so that we can query the types and constants in that module
+        // when resolving use stmts later.
+        let crate_indexes = NSBuilder::new(&self.krates).build()?;
 
-        for krate in self.crates.values() {
-            let crate_resolver = CrateResolver::new(krate, &crate_indexes);
+        for krate in self.krates.values() {
+            let crate_resolver = CrateResolver::new(krate, &self.krates, &crate_indexes);
             match crate_resolver.resolve() {
                 Ok(crate_index) => {
                     crates.insert(krate.name, crate_index);
@@ -233,34 +239,96 @@ impl Resolver {
             Ok(crates)
         }
     }
-}
 
-fn create_crate_ns(krate: &Crate) -> CrateNS {
-    let module_ns = krate
-        .module_lookup
-        .iter()
-        .map(|(path, module)| (path.clone(), create_module_ns(krate.id, module)))
-        .collect::<ModuleMap<ModuleNS>>();
-    CrateNS::new(module_ns)
-}
+    fn create_crate_ns(&self, krate: &Crate) -> CrateNS {
+        let module_ns = krate
+            .module_lookup
+            .iter()
+            .map(|(path, module)| (path.clone(), self.create_module_ns(krate, module)))
+            .collect::<ModuleMap<ModuleNS>>();
+        CrateNS::new(module_ns)
+    }
 
-fn create_module_ns(crate_id: CrateId, module: &Module) -> ModuleNS {
-    let names = module
-        .items
-        .iter()
-        .filter_map(|item| {
-            match &item.kind {
-                ItemKind::GlobalLet(global_let_stmt) => Some(global_let_stmt.name.ident),
-                ItemKind::Class(class_stmt) => Some(class_stmt.name.ident),
-                ItemKind::Enum(enum_stmt) => Some(enum_stmt.name.ident),
-                ItemKind::Trait(trait_stmt) => Some(trait_stmt.name.ident),
-                ItemKind::Fn(fn_stmt) => Some(fn_stmt.sig.name.ident),
-                ItemKind::Use(_) | ItemKind::TraitImpl(_) => None,
+    fn create_module_ns(&self, krate: &Crate, module: &Module) -> ModuleNS {
+        enum ExportableType {
+            Constant(InternedStr, DefId),
+            Type(InternedStr, DefId),
+            Fn(InternedStr, DefId),
+        }
+        let mut constants = StrMap::default();
+        let mut types = StrMap::default();
+        let mut fns = StrMap::default();
+
+        let names = module
+            .items
+            .iter()
+            .filter_map(|item| {
+                let def_id = item.id.to_def_id(krate.id);
+                match &item.kind {
+                    ItemKind::GlobalLet(global_let_stmt) => Some(ExportableType::Constant(global_let_stmt.name.ident, def_id)),
+                    ItemKind::Class(class_stmt) => Some(ExportableType::Type(class_stmt.name.ident, def_id)),
+                    ItemKind::Enum(enum_stmt) => Some(ExportableType::Type(enum_stmt.name.ident, def_id)),
+                    ItemKind::Trait(trait_stmt) => Some(ExportableType::Type(trait_stmt.name.ident, def_id)),
+                    ItemKind::Fn(fn_stmt) => Some(ExportableType::Fn(fn_stmt.sig.name.ident, def_id)),
+                    ItemKind::Use(_) => None, // TODO:
+                    ItemKind::TraitImpl(_) => None,
+                }
+            })
+            .collect::<Vec<ExportableType>>();
+
+        for name in names {
+            match name {
+                ExportableType::Constant(name, id) => {
+                    constants.insert(name, id);
+                }
+                ExportableType::Type(name, id) => {
+                    types.insert(name, id);
+                }
+                ExportableType::Fn(name, id) => {
+                    fns.insert(name, id);
+                }
             }
-            .map(|name| (name, item.id.to_def_id(crate_id)))
-        })
-        .collect();
-    ModuleNS::new(names)
+        }
+
+        ModuleNS::new(types, fns, constants)
+    }
+}
+struct NSBuilder<'a> {
+    krates: &'a StrMap<Crate>,
+    errors: Vec<ResolveError>,
+}
+
+impl<'a> NSBuilder<'a> {
+    pub fn new(krates: &'a StrMap<Crate>) -> Self {
+        Self {
+            krates,
+            errors: Default::default(),
+        }
+    }
+
+    pub fn build(mut self) -> Result<Vec<CrateNS>, CompileError> {
+        for krate in self.krates.values() {
+            let mut krate_ns = CrateNS::default();
+            for module in krate.module_lookup.values() {
+                let mut module_ns = ModuleNS::default();
+                for item in &module.items {
+                    match &item.kind {
+                        ItemKind::Use(use_stmt) => match &use_stmt.path.ident_type {
+                            IdentType::Crate => {}
+                            IdentType::LocalOrUse => {}
+                        },
+                        ItemKind::GlobalLet(_) => {}
+                        ItemKind::Class(_) => {}
+                        ItemKind::Enum(_) => {}
+                        ItemKind::Trait(_) => {}
+                        ItemKind::TraitImpl(_) => {}
+                        ItemKind::Fn(_) => {}
+                    }
+                }
+            }
+        }
+        todo!()
+    }
 }
 
 #[derive(Default)]
@@ -270,8 +338,9 @@ struct CrateMap<'a> {
 
 struct CrateResolver<'a> {
     krate: &'a Crate,
+    krates: &'a StrMap<Crate>,
     krate_ns: &'a CrateNS,
-    module_ns: Option<&'a ModuleNS>,
+    module_ns: &'a ModuleNS,
     krate_namespaces: &'a Vec<CrateNS>,
     errors: Vec<ResolveError>,
     items: Vec<LocalDefId>,
@@ -280,11 +349,12 @@ struct CrateResolver<'a> {
 }
 
 impl<'a> CrateResolver<'a> {
-    fn new(krate: &'a Crate, krate_namespaces: &'a Vec<CrateNS>) -> Self {
+    fn new(krate: &'a Crate, krates: &'a StrMap<Crate>, krate_namespaces: &'a Vec<CrateNS>) -> Self {
         Self {
             krate,
+            krates,
             krate_ns: krate_namespaces.get(krate.index()).unwrap(),
-            module_ns: None,
+            module_ns: &ModuleNS::default(),
             krate_namespaces,
             errors: Default::default(),
             items: Default::default(),
@@ -313,7 +383,7 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_module(&mut self, module: &Module) {
-        self.module_ns = self.krate_ns.ns.get(&module.path);
+        self.module_ns = self.krate_ns.ns.get(&module.path).unwrap();
         module.items.iter().for_each(|item| self.visit_item(item));
     }
 
@@ -483,6 +553,12 @@ impl<'a> CrateResolver<'a> {
             None => Ok(()),
             Some(_) => Err(DuplicateLocalDefIds),
         }
+    }
+
+    fn find_var(&mut self, ident: InternedStr) -> Option<LocalDefId> {
+        self.scopes.iter()
+            .rev()
+            .find_map(|scope| scope.contains_var(ident))
     }
 
     fn find_generic_param(&mut self, ident: InternedStr) -> Option<LocalDefId> {
@@ -1058,22 +1134,14 @@ impl<'a> CrateResolver<'a> {
                 todo!()
             }
             IdentType::LocalOrUse => {
-                // 1. Determine what type of Item this is
+                if let Some(ident) = ident.is_single() {
+                    // Must be a local type
+                    let ty = self.module_ns.types.get(&ident);
+                } else {
+                    // Else it could be from an imported module
+                }
 
-                let source_def = self
-                    .module_ns
-                    .unwrap()
-                    .names
-                    .get(&ident.first().ident)
-                    .copied()
-                    .or_else(|| {
-                        self.find_generic_param(ident.first().ident)
-                            .map(|id| id.to_def_id(self.krate.id))
-                    })
-                    .ok_or(DefinitionNotFound);
-                // 2. Retrieve the Item and resolve the rest of the paths incrementally.
-
-                let item = todo!();
+                todo!()
             }
         }
     }
@@ -1119,7 +1187,7 @@ mod tests {
         krate.module_lookup.insert(module_path, module);
 
         let map = Vec::from([create_crate_ns(&krate)]);
-        let crate_resolver = CrateResolver::new(&krate, &map);
+        let crate_resolver = CrateResolver::new(&krate, , &map);
         crate_resolver.resolve().unwrap()
     }
 
@@ -1130,7 +1198,7 @@ mod tests {
             .parse_crate(&utils::resolve_test_krate_path(name))
             .unwrap();
         let map = Vec::from([create_crate_ns(&krate)]);
-        let crate_resolver = CrateResolver::new(&krate, &map);
+        let crate_resolver = CrateResolver::new(&krate, , &map);
         crate_resolver.resolve().unwrap()
     }
 

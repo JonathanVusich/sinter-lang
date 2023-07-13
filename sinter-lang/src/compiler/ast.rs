@@ -189,18 +189,11 @@ impl QualifiedIdent {
         self.idents.last().copied().unwrap()
     }
 
-    pub fn is_local(&self) -> bool {
-        self.idents.len() == 1
-    }
-
-    pub fn module_path(&self) -> Option<ModulePath> {
-        if self.idents.len() < 3 {
-            None
+    pub fn is_single(&self) -> Option<InternedStr> {
+        if self.idents.len() == 1 {
+            Some(self.idents[0].ident)
         } else {
-            let inner_paths = &self.idents[1..self.idents.len() - 1];
-            let module_path =
-                ModulePath::new(inner_paths.iter().map(|ident| ident.ident).collect());
-            Some(module_path)
+            None
         }
     }
 }

@@ -246,7 +246,7 @@ impl Compiler {
         let mut validation_errors = Vec::new();
         for krate in crates.values() {
             for module in krate.module_lookup.values() {
-                validation_errors.extend(validate(module));
+                validation_errors.extend(validate(crates, krate, module));
             }
         }
         if !validation_errors.is_empty() {
