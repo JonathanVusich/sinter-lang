@@ -33,9 +33,18 @@ pub struct Compiler {
     compiler_ctxt: CompilerCtxt,
 }
 
-struct Application {
-    main_crate: Box<Path>,
-    crate_path: Box<Path>,
+pub struct Application<'a> {
+    main_crate: &'a Path,
+    crate_path: &'a Path,
+}
+
+impl<'a> Application<'a> {
+    pub fn new(main_crate: &'a Path, crate_path: &'a Path) -> Self {
+        Application {
+            main_crate,
+            crate_path,
+        }
+    }
 }
 
 pub struct ByteCode {}
@@ -119,7 +128,7 @@ impl CompilerCtxt {
             segments.push(interned_segment);
         }
 
-        Ok(ModulePath::new(segments))
+        Ok(ModulePath::from_vec(segments))
     }
 }
 
@@ -134,13 +143,13 @@ impl Compiler {
         Self { compiler_ctxt }
     }
 
-    fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
+    pub(crate) fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
         let crates = self.parse_crates(&application)?;
         self.validate_crates(&crates)?;
 
         // TODO: Create crate resolution metadata and report initial resolution errors.
         // We cannot resolve everything in one pass, first we do use validation, var declaration validation, etc.
-        let resolved_crates = self.resolve_crates(crates)?;
+        let resolved_crates = self.resolve_crates(&crates)?;
 
         // TODO: Implement type inference algorithm
         /* We need to assign a type to every expression in the AST. This may require making changes to the AST
@@ -154,7 +163,10 @@ impl Compiler {
         todo!()
     }
 
-    fn parse_crates(&mut self, application: &Application) -> Result<StrMap<Crate>, CompileError> {
+    pub(crate) fn parse_crates(
+        &mut self,
+        application: &Application,
+    ) -> Result<StrMap<Crate>, CompileError> {
         let mut crates = HashMap::default();
 
         // Parse main crate
@@ -172,7 +184,7 @@ impl Compiler {
             let krate = crates.get(&crate_name).unwrap();
 
             let mut new_crates = Vec::new();
-            for used_crate in krate.get_used_crates() {
+            for used_crate in krate.used_crates() {
                 if !crates_visited.contains(&used_crate.crate_name) {
                     let crate_name = self.compiler_ctxt.resolve_str(used_crate.crate_name);
                     let mut crate_path = application.crate_path.to_path_buf();
@@ -228,7 +240,7 @@ impl Compiler {
             let mut ast = self.parse_ast(file.path())?;
 
             ast.path = module_path.clone();
-            krate.module_lookup.insert(module_path, ast);
+            krate.add_module(module_path, ast);
         }
 
         // Assign the last used local def id to the crate
@@ -242,10 +254,10 @@ impl Compiler {
         parse(&mut self.compiler_ctxt, tokens)
     }
 
-    fn validate_crates(&mut self, crates: &StrMap<Crate>) -> Result<(), CompileError> {
+    pub(crate) fn validate_crates(&mut self, crates: &StrMap<Crate>) -> Result<(), CompileError> {
         let mut validation_errors = Vec::new();
         for krate in crates.values() {
-            for module in krate.module_lookup.values() {
+            for module in krate.modules() {
                 validation_errors.extend(validate(crates, krate, module));
             }
         }
@@ -256,8 +268,11 @@ impl Compiler {
         }
     }
 
-    fn resolve_crates(&mut self, crates: StrMap<Crate>) -> Result<StrMap<HirCrate>, CompileError> {
-        todo!()
+    pub(crate) fn resolve_crates(
+        &mut self,
+        crates: &StrMap<Crate>,
+    ) -> Result<StrMap<HirCrate>, CompileError> {
+        resolve(crates)
     }
 }
 

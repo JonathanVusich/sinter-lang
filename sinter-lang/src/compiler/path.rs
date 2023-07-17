@@ -1,4 +1,5 @@
 use std::borrow::Borrow;
+use std::collections::VecDeque;
 use std::ops::Deref;
 use std::path::Path;
 
@@ -11,16 +12,28 @@ use crate::gc::block::BLOCK_SIZE;
 
 #[derive(PartialEq, Eq, Hash, Default, Debug, Clone, Serialize, Deserialize)]
 pub struct ModulePath {
-    module_path: Vec<InternedStr>,
+    module_path: VecDeque<InternedStr>,
 }
 
 impl ModulePath {
-    pub fn new(module_path: Vec<InternedStr>) -> Self {
-        Self { module_path }
+    pub fn from_vec(module_path: Vec<InternedStr>) -> Self {
+        Self {
+            module_path: VecDeque::from(module_path),
+        }
     }
 
-    pub fn pop(&mut self) -> Option<InternedStr> {
-        self.module_path.pop()
+    pub fn from_array<const N: usize>(module_path: [InternedStr; N]) -> Self {
+        Self {
+            module_path: VecDeque::from(module_path),
+        }
+    }
+
+    pub fn pop_back(&mut self) -> Option<InternedStr> {
+        self.module_path.pop_back()
+    }
+
+    pub fn pop_front(&mut self) -> Option<InternedStr> {
+        self.module_path.pop_front()
     }
 }
 

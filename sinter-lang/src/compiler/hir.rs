@@ -29,26 +29,26 @@ impl DefId {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
-pub struct ModId {
+#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct ModuleId {
     crate_id: u32,
-    module_path: ModulePath,
+    module_id: u32,
 }
 
-impl ModId {
-    pub fn new(crate_id: u32, module_path: ModulePath) -> Self {
+impl ModuleId {
+    pub fn new(crate_id: u32, module_id: u32) -> Self {
         Self {
             crate_id,
-            module_path,
+            module_id,
         }
     }
-    
+
     pub fn crate_id(&self) -> usize {
         self.crate_id as usize
     }
 
-    pub fn module_id(&self) -> &ModulePath{
-        &self.module_path
+    pub fn module_id(&self) -> usize {
+        self.module_id as usize
     }
 }
 

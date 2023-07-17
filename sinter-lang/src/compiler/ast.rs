@@ -179,14 +179,14 @@ impl QualifiedIdent {
         self.idents.len()
     }
 
-    pub fn first(&self) -> Ident {
+    pub fn first(&self) -> InternedStr {
         // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
-        self.idents.first().copied().unwrap()
+        self.idents.first().map(|ident| ident.ident).unwrap()
     }
 
-    pub fn last(&self) -> Ident {
+    pub fn last(&self) -> InternedStr {
         // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
-        self.idents.last().copied().unwrap()
+        self.idents.last().map(|ident| ident.ident).unwrap()
     }
 
     pub fn is_single(&self) -> Option<InternedStr> {

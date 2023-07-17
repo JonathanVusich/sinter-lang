@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use multimap::MultiMap;
 
-use crate::compiler::ast::{EnumMember, Field, Fields, FnSelfStmt, FnSig, FnStmt, GenericParam, GenericParams, GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, UseStmt};
+use crate::compiler::ast::{
+    EnumMember, Field, Fields, FnSelfStmt, FnSig, FnStmt, GenericParam, GenericParams,
+    GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, UseStmt,
+};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::Crate;
@@ -51,12 +54,6 @@ impl Validator {
                 ItemKind::Use(use_stmt) => {
                     self.use_stmts.insert(use_stmt.path.clone(), item.id);
                     // TODO: Add check to verify that the imported ty does not clash with an existing ty.
-                    match &use_stmt.path.ident_type {
-                        IdentType::Crate => {}
-                        IdentType::LocalOrUse => {}
-                    }
-
-                    // TODO: Add types to local tys
                 }
                 ItemKind::GlobalLet(global_let_stmt) => {
                     self.global_lets.insert(global_let_stmt.name.ident, item.id)
@@ -206,6 +203,7 @@ impl Validator {
 
 mod tests {
     use crate::compiler::compiler::CompilerCtxt;
+    use crate::compiler::hir::ModuleId;
     use crate::compiler::krate::{Crate, CrateId, ModuleMap};
     use crate::compiler::parser::parse;
     use crate::compiler::path::ModulePath;
@@ -223,16 +221,18 @@ mod tests {
         let mut compiler_ctxt = CompilerCtxt::default();
         let tokenized_input = tokenize(&mut compiler_ctxt, code);
         let module = parse(&mut compiler_ctxt, tokenized_input).unwrap();
-        let mut krate = Crate::new(compiler_ctxt.intern_str("crate"), CrateId::new(0));
-        krate
-            .add_module(
-                ModulePath::new(vec![compiler_ctxt.intern_str("module")]),
-                module,
-            );
-        let krates = StrMap::from([(krate.name, krate)]);
+        let krate_name = compiler_ctxt.intern_str("crate");
+        let mut krate = Crate::new(krate_name, CrateId::new(0));
+        krate.add_module(
+            ModulePath::from_array([compiler_ctxt.intern_str("module")]),
+            module,
+        );
+        let krates = StrMap::from([(krate_name, krate)]);
+        let krate = krates.get(&krate_name).unwrap();
+        let module = krate.module(0);
         (
             StringInterner::from(compiler_ctxt),
-            crate::compiler::validator::validate(&krates, &krate, &module),
+            crate::compiler::validator::validate(&krates, krate, module),
         )
     }
 

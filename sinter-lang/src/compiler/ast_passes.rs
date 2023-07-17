@@ -41,10 +41,9 @@ impl AstPass<HashSet<UsedCrate>> for UsedCrateCollector {
             match use_stmt.path.ident_type {
                 IdentType::Crate => {}
                 IdentType::LocalOrUse => {
-                    let krate = use_stmt.path.first();
-                    let module_path = Into::<ModulePath>::into(&use_stmt.path);
-                    self.used_crates
-                        .insert(UsedCrate::new(krate.ident, module_path));
+                    let mut module_path = ModulePath::from(&use_stmt.path);
+                    let krate = module_path.pop_front().unwrap();
+                    self.used_crates.insert(UsedCrate::new(krate, module_path));
                 }
             }
         }
