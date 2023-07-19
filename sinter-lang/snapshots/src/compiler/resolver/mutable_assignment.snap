@@ -1,0 +1,206 @@
+[
+  [
+    "mutable_assignment",
+    "mutable_assignment.si",
+    "mut_var",
+    "x"
+  ],
+  {
+    "1": {
+      "name": 1,
+      "id": {
+        "id": 0
+      },
+      "items": [],
+      "nodes": {
+        "2": {
+          "kind": {
+            "Expr": {
+              "Integer": 5
+            }
+          },
+          "span": {
+            "start": 31,
+            "end": 32
+          },
+          "id": 2
+        },
+        "3": {
+          "kind": {
+            "Stmt": {
+              "Let": {
+                "ident": {
+                  "ident": 4,
+                  "span": {
+                    "start": 27,
+                    "end": 28
+                  },
+                  "id": 1
+                },
+                "mutability": "Mutable",
+                "ty": null,
+                "initializer": 2
+              }
+            }
+          },
+          "span": {
+            "start": 19,
+            "end": 33
+          },
+          "id": 3
+        },
+        "5": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 4,
+                      "span": {
+                        "start": 64,
+                        "end": 65
+                      },
+                      "id": 4
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 64,
+            "end": 65
+          },
+          "id": 5
+        },
+        "7": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 4,
+                      "span": {
+                        "start": 68,
+                        "end": 69
+                      },
+                      "id": 6
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 68,
+            "end": 69
+          },
+          "id": 7
+        },
+        "8": {
+          "kind": {
+            "Expr": {
+              "Integer": 1
+            }
+          },
+          "span": {
+            "start": 72,
+            "end": 73
+          },
+          "id": 8
+        },
+        "9": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Add",
+                "lhs": 7,
+                "rhs": 8
+              }
+            }
+          },
+          "span": {
+            "start": 68,
+            "end": 73
+          },
+          "id": 9
+        },
+        "10": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Assign",
+                "lhs": 5,
+                "rhs": 9
+              }
+            }
+          },
+          "span": {
+            "start": 64,
+            "end": 73
+          },
+          "id": 10
+        },
+        "11": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 10,
+                "implicit_return": true
+              }
+            }
+          },
+          "span": {
+            "start": 64,
+            "end": 74
+          },
+          "id": 11
+        },
+        "12": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                3,
+                11
+              ]
+            }
+          },
+          "span": {
+            "start": 13,
+            "end": 76
+          },
+          "id": 12
+        },
+        "13": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 3,
+                  "span": {
+                    "start": 3,
+                    "end": 10
+                  },
+                  "id": 0
+                },
+                "generic_params": {},
+                "params": {},
+                "return_type": null
+              },
+              "body": 12
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 76
+          },
+          "id": 13
+        }
+      }
+    }
+  }
+]

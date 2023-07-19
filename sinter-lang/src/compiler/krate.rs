@@ -10,7 +10,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use crate::compiler::ast::{AstPass, Field, Item, ItemKind, Module, QualifiedIdent};
 use crate::compiler::ast_passes::{UsedCrate, UsedCrateCollector};
 use crate::compiler::compiler::CompileError;
-use crate::compiler::hir::{DefId, HirItem, LocalDefId, ModuleId};
+use crate::compiler::hir::{DefId, LocalDefId, ModuleId};
 use crate::compiler::parser::ParseError;
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError;

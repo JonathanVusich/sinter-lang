@@ -99,14 +99,18 @@ impl HirNode {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum HirNodeKind {
-    Item(HirItem),
+    GlobalLet(GlobalLetStmt),
+    Class(ClassStmt),
+    Enum(EnumStmt),
+    Trait(TraitStmt),
+    TraitImpl(TraitImplStmt),
+    Fn(FnStmt),
 
     EnumMember(EnumMember),
 
     Expr(Expr),
     Stmt(Stmt),
     Ty(Ty),
-    Fn(FnStmt),
     Block(Block),
 
     Param(Param),
@@ -114,16 +118,6 @@ pub enum HirNodeKind {
     Field(Field),
     Pattern(Pattern),
     MatchArm(MatchArm),
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum HirItem {
-    GlobalLet(GlobalLetStmt),
-    Class(ClassStmt),
-    Enum(EnumStmt),
-    Trait(TraitStmt),
-    TraitImpl(TraitImplStmt),
-    Fn(FnStmt),
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -189,8 +183,16 @@ pub struct EnumMember {
     pub name: InternedStr,
     pub fields: Fields,
     pub member_fns: FnStmts,
-    pub span: Span,
-    pub id: LocalDefId,
+}
+
+impl EnumMember {
+    pub fn new(name: InternedStr, fields: Fields, member_fns: FnStmts) -> Self {
+        Self {
+            name,
+            fields,
+            member_fns,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
@@ -884,7 +886,10 @@ pub struct HirCrate {
     pub(crate) name: InternedStr,
     pub(crate) id: CrateId,
     items: Vec<LocalDefId>,
+    #[cfg(not(test))]
     nodes: HashMap<LocalDefId, HirNode>,
+    #[cfg(test)]
+    nodes: BTreeMap<LocalDefId, HirNode>,
 }
 
 impl HirCrate {
@@ -894,6 +899,8 @@ impl HirCrate {
         items: Vec<LocalDefId>,
         nodes: HashMap<LocalDefId, HirNode>,
     ) -> Self {
+        #[cfg(test)]
+        let nodes = BTreeMap::from_iter(nodes);
         Self {
             name,
             id,

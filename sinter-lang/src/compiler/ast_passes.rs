@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::ast::{
     AstPass, Expr, Ident, IdentType, Item, ItemKind, QualifiedIdent, UseStmt,
 };
-use crate::compiler::hir::{HirItem, LocalDefId};
+use crate::compiler::hir::LocalDefId;
 use crate::compiler::path::ModulePath;
 use crate::compiler::types::InternedStr;
 
@@ -48,11 +48,6 @@ impl AstPass<HashSet<UsedCrate>> for UsedCrateCollector {
             }
         }
     }
-}
-
-#[derive(Default)]
-pub struct HirVisitor {
-    ast: Vec<HirItem>,
 }
 
 #[derive(Default)]

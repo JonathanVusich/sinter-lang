@@ -13,7 +13,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
 use crate::compiler::ast::{AstPass, Item, ItemKind, Module, QualifiedIdent, Stmt, UseStmt};
-use crate::compiler::ast_passes::{HirVisitor, NameCollector, UsedCrateCollector};
+use crate::compiler::ast_passes::{NameCollector, UsedCrateCollector};
 use crate::compiler::codegen::code_generator::emit_code;
 use crate::compiler::hir::{HirCrate, LocalDefId};
 use crate::compiler::interner::{Interner, Key};
@@ -31,6 +31,13 @@ use crate::compiler::StringInterner;
 #[derive(Default)]
 pub struct Compiler {
     compiler_ctxt: CompilerCtxt,
+}
+
+#[cfg(test)]
+impl From<Compiler> for CompilerCtxt {
+    fn from(compiler: Compiler) -> Self {
+        compiler.compiler_ctxt
+    }
 }
 
 pub struct Application<'a> {

@@ -2099,7 +2099,7 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn main_fn() -> ModuleOutput {
-        parse(utils::read_code_example("hello_world_fn.si"))
+        parse(utils::read_code_example("hello_world.si"))
     }
 
     #[test]

@@ -23,12 +23,11 @@ use crate::compiler::ast::{Expr as AstExpr, Field as AstField};
 use crate::compiler::ast_passes::NameCollector;
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir;
-use crate::compiler::hir::HirItem::Trait;
 use crate::compiler::hir::{
     Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, DestructurePattern, EnumMembers, EnumStmt, Expr, Expression, Field,
-    FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam, GenericParams, Generics,
-    HirCrate, HirItem, HirNode, HirNodeKind, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm,
+    ClosureParams, DefId, DestructurePattern, EnumMember, EnumMembers, EnumStmt, Expr, Expression,
+    Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam, GenericParams,
+    Generics, HirCrate, HirNode, HirNodeKind, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm,
     MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern, PatternLocal,
     ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty, TyPattern, UnaryExpr,
 };
@@ -411,8 +410,9 @@ impl<'a> CrateResolver<'a> {
             AstItemKind::Class(class_stmt) => self.resolve_class_stmt(class_stmt, span, id),
             AstItemKind::Enum(enum_stmt) => self.resolve_enum_stmt(enum_stmt, span, id),
             AstItemKind::Trait(trait_stmt) => self.resolve_trait_stmt(trait_stmt, span, id),
-            // Purposefully empty because we have to wait until all types are resolved before we can check trait impl bodies.
-            AstItemKind::TraitImpl(trait_impl_stmt) => Ok(()),
+            AstItemKind::TraitImpl(trait_impl_stmt) => {
+                self.resolve_trait_impl_stmt(trait_impl_stmt, span, id)
+            }
             AstItemKind::Fn(fn_stmt) => self.resolve_fn_stmt(fn_stmt, span, id),
         };
 
@@ -456,14 +456,14 @@ impl<'a> CrateResolver<'a> {
         let fields = self.resolve_fields(&class_stmt.fields)?;
         let fn_stmts = self.resolve_self_fn_stmts(&class_stmt.self_fns)?;
 
-        let item = HirItem::Class(ClassStmt::new(
+        let hir_class = ClassStmt::new(
             class_stmt.name,
             class_stmt.class_type,
             generic_params,
             fields,
             fn_stmts,
-        ));
-        let hir_node = HirNode::new(HirNodeKind::Item(item), span, id);
+        );
+        let hir_node = HirNode::new(HirNodeKind::Class(hir_class), span, id);
         self.items.push(id);
         self.insert_node(id, hir_node)?;
         Ok(())
@@ -652,13 +652,8 @@ impl<'a> CrateResolver<'a> {
 
         self.scopes.pop();
 
-        let item = HirItem::Enum(EnumStmt::new(
-            enum_stmt.name,
-            generic_params,
-            enum_members,
-            member_fns,
-        ));
-        let hir_node = HirNode::new(HirNodeKind::Item(item), span, id);
+        let hir_enum = EnumStmt::new(enum_stmt.name, generic_params, enum_members, member_fns);
+        let hir_node = HirNode::new(HirNodeKind::Enum(hir_enum), span, id);
         self.items.push(id);
         self.insert_node(id, hir_node)?;
         Ok(())
@@ -678,11 +673,18 @@ impl<'a> CrateResolver<'a> {
             let self_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
             let fields = self.resolve_fields(&member.fields)?;
 
-            // TODO: Continue implementing this
+            self.nodes.insert(
+                member.id,
+                HirNode::new(
+                    HirNodeKind::EnumMember(EnumMember::new(member.name, fields, self_fns)),
+                    member.span,
+                    member.id,
+                ),
+            );
 
             self.scopes.pop();
         }
-        todo!()
+        Ok(enum_members)
     }
 
     fn resolve_trait_stmt(
@@ -701,8 +703,8 @@ impl<'a> CrateResolver<'a> {
 
         self.scopes.pop();
 
-        let item = Trait(TraitStmt::new(trait_stmt.name, generic_params, member_fns));
-        let hir_node = HirNode::new(HirNodeKind::Item(item), span, id);
+        let hir_trait = TraitStmt::new(trait_stmt.name, generic_params, member_fns);
+        let hir_node = HirNode::new(HirNodeKind::Trait(hir_trait), span, id);
         self.items.push(id);
         self.insert_node(id, hir_node)?;
         Ok(())
@@ -727,8 +729,16 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
+        self.scopes.push(Scope::Fn {
+            params: Default::default(),
+            generics: Default::default(),
+            vars: Default::default(),
+        });
+
         let resolved_sig = self.resolve_fn_sig(&fn_stmt.sig)?;
         let resolved_body = self.maybe_resolve_block(&fn_stmt.body)?;
+
+        self.scopes.pop();
 
         let name = resolved_sig.name.ident;
 
@@ -781,26 +791,12 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_fn_sig(&mut self, fn_sig: &AstFnSig) -> Result<FnSig, ResolveError> {
-        self.scopes.push(Scope::Fn {
-            params: Default::default(),
-            generics: Default::default(),
-            vars: Default::default(),
-        });
-
         let generic_params = self.resolve_generic_params(&fn_sig.generic_params)?;
         let params = self.resolve_params(&fn_sig.params)?;
 
         let return_ty = self.maybe_resolve_ty(&fn_sig.return_type)?;
 
-        self.scopes.pop();
-
         Ok(FnSig::new(fn_sig.name, generic_params, params, return_ty))
-    }
-
-    fn resolve_field(&mut self, field: &AstField) -> Result<LocalDefId, ResolveError> {
-        let ty = self.resolve_ty(&field.ty);
-
-        todo!()
     }
 
     fn maybe_resolve_expr(
@@ -1190,12 +1186,13 @@ mod tests {
     use crate::compiler::hir::HirCrate;
     use crate::compiler::krate::{Crate, CrateId};
     use crate::compiler::path::ModulePath;
-    use crate::compiler::resolver::{CrateResolver, Resolver};
+    use crate::compiler::resolver::{resolve, CrateResolver, Resolver};
     use crate::compiler::types::StrMap;
+    use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
-    type ResolvedCrates = StrMap<HirCrate>;
+    type ResolvedCrates = (StringInterner, StrMap<HirCrate>);
 
     #[cfg(test)]
     fn resolve_crate(name: &str) -> ResolvedCrates {
@@ -1206,7 +1203,21 @@ mod tests {
         let crates = compiler.parse_crates(&application).unwrap();
         compiler.validate_crates(&crates).unwrap();
 
-        compiler.resolve_crates(&crates).unwrap()
+        let resolved_crates = compiler.resolve_crates(&crates).unwrap();
+        let string_interner = StringInterner::from(CompilerCtxt::from(compiler));
+        (string_interner, resolved_crates)
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn hello_world() -> ResolvedCrates {
+        resolve_crate("hello_world")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn mutable_assignment() -> ResolvedCrates {
+        resolve_crate("mutable_assignment")
     }
 
     #[test]
