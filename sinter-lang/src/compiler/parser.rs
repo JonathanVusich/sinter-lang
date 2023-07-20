@@ -917,6 +917,10 @@ impl<'ctxt> Parser<'ctxt> {
                         self.advance();
                         Ok(Ty::new(TyKind::Str, span, self.get_id()))
                     }
+                    "bool" => {
+                        self.advance();
+                        Ok(Ty::new(TyKind::Boolean, span, self.get_id()))
+                    }
                     other => self.parse_qualified_ty(),
                 }
             }
@@ -2077,6 +2081,7 @@ mod tests {
     simple_type!(TyKind::F32, f32_type, "f32");
     simple_type!(TyKind::F64, f64_type, "f64");
     simple_type!(TyKind::None, none_type, "None");
+    simple_type!(TyKind::Boolean, bool_type, "bool");
 
     #[test]
     #[snapshot]

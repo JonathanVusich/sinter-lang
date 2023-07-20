@@ -124,6 +124,7 @@ pub enum TyKind {
     F32,
     F64,
     Str,
+    Boolean,
     None,
 }
 

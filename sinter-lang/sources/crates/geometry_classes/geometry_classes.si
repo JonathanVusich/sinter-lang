@@ -1,0 +1,25 @@
+ref class Node {
+    bounds: Bounds,
+
+    fn is_target(pick_point: PickPoint) => bool {
+        self.bounds.contains(pick_point)
+    }
+}
+
+class Bounds {
+    x: i32,
+    y: i32,
+    width: i32,
+    height: i32,
+
+    fn contains(self, pick_point: PickPoint) => bool {
+        let max_x = self.x + self.width;
+        let max_y = self.y + self.height;
+        return pick_point.x < max_x && pick_point.x > self.x && pick_point.y < max_y && pick_point.y > self.y;
+    }
+}
+
+class PickPoint {
+    x: i32,
+    y: i32,
+}

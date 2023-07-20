@@ -4,6 +4,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
+use std::process::id;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
@@ -27,9 +28,10 @@ use crate::compiler::hir::{
     Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
     ClosureParams, DefId, DestructurePattern, EnumMember, EnumMembers, EnumStmt, Expr, Expression,
     Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam, GenericParams,
-    Generics, HirCrate, HirNode, HirNodeKind, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm,
-    MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern, PatternLocal,
-    ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitStmt, Ty, TyPattern, UnaryExpr,
+    Generics, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDefId,
+    MatchArm, MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern,
+    PatternLocal, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitImplStmt, TraitStmt, Ty,
+    TyPattern, UnaryExpr, WhileStmt,
 };
 use crate::compiler::krate::{Crate, CrateId, ModuleMap};
 use crate::compiler::path::ModulePath;
@@ -100,6 +102,7 @@ impl ModuleScope {
     }
 }
 
+#[derive(Debug)]
 pub enum Scope {
     Class {
         fields: StrMap<LocalDefId>,
@@ -120,13 +123,19 @@ pub enum Scope {
         generics: StrMap<LocalDefId>,
         vars: StrMap<LocalDefId>,
     },
+    MatchArm {
+        vars: StrMap<LocalDefId>,
+    },
     Block {
         vars: StrMap<LocalDefId>,
     },
     Trait {
         generics: StrMap<LocalDefId>,
         self_fns: StrMap<LocalDefId>,
-    }, // TODO: Add traits
+    },
+    TraitImpl {
+        self_fns: StrMap<LocalDefId>,
+    },
 }
 
 impl Scope {
@@ -716,11 +725,23 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
+        self.scopes.push(Scope::TraitImpl {
+            self_fns: Default::default(),
+        });
+
         let trait_to_impl = self.resolve_path_ty(&trait_stmt.trait_to_impl)?;
         let target_ty = self.resolve_qualified_ident(&trait_stmt.target_ty)?;
         let self_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
 
-        todo!()
+        self.insert_node(
+            id,
+            HirNode::new(
+                HirNodeKind::TraitImpl(TraitImplStmt::new(trait_to_impl, target_ty, self_fns)),
+                span,
+                id,
+            ),
+        )?;
+        Ok(())
     }
 
     fn resolve_fn_stmt(
@@ -763,8 +784,18 @@ impl<'a> CrateResolver<'a> {
             span,
             id,
         } = fn_stmt;
-        let resolved_body = self.maybe_resolve_block(body)?;
+
+        self.scopes.push(Scope::Fn {
+            params: Default::default(),
+            generics: Default::default(),
+            vars: Default::default(),
+        });
+
         let resolved_sig = self.resolve_fn_sig(sig)?;
+        let resolved_body = self.maybe_resolve_block(body)?;
+
+        self.scopes.pop();
+
         let name = resolved_sig.name.ident;
         self.insert_node(
             *id,
@@ -781,6 +812,7 @@ impl<'a> CrateResolver<'a> {
         for fn_stmt in stmts {
             self.insert_self_fn(fn_stmt.sig.name.ident, fn_stmt.id)?;
         }
+
         // This is safe because we have already checked to ensure that there are no name collisions.
         let mut fn_stmts = FnStmts::default();
         for fn_stmt in stmts {
@@ -911,6 +943,7 @@ impl<'a> CrateResolver<'a> {
                     };
                     segments.push(Segment::new(ident, generics))
                 }
+                // TODO: Need to actually resolve this path!!
                 Expr::Path(PathExpr::new(segments))
             }
             AstExprKind::Parentheses(parentheses) => {
@@ -975,6 +1008,7 @@ impl<'a> CrateResolver<'a> {
             TyKind::I64 => Ty::I64,
             TyKind::F32 => Ty::F32,
             TyKind::F64 => Ty::F64,
+            TyKind::Boolean => Ty::Boolean,
             TyKind::Str => Ty::Str,
             TyKind::None => Ty::None,
         };
@@ -1044,17 +1078,42 @@ impl<'a> CrateResolver<'a> {
                 stmt
             }
             AstStmtKind::If(if_stmt) => {
-                todo!()
+                let condition = self.resolve_expr(&if_stmt.condition)?;
+                self.scopes.push(Scope::Block {
+                    vars: Default::default(),
+                });
+                let if_true = self.resolve_block(&if_stmt.if_true)?;
+                self.scopes.pop();
+                self.scopes.push(Scope::Block {
+                    vars: Default::default(),
+                });
+                let if_false = self.maybe_resolve_block(&if_stmt.if_false)?;
+                self.scopes.pop();
+
+                Stmt::If(IfStmt::new(condition, if_true, if_false))
             }
             AstStmtKind::Return(return_stmt) => {
                 let maybe_expr = self.maybe_resolve_expr(&return_stmt.value)?;
                 Stmt::Return(ReturnStmt::new(maybe_expr))
             }
             AstStmtKind::While(while_stmt) => {
-                todo!()
+                let condition = self.resolve_expr(&while_stmt.condition)?;
+
+                self.scopes.push(Scope::Block {
+                    vars: Default::default(),
+                });
+                let block = self.resolve_block(&while_stmt.block_stmt)?;
+                self.scopes.pop();
+
+                Stmt::While(WhileStmt::new(condition, block))
             }
             AstStmtKind::Block(block) => {
-                todo!()
+                self.scopes.push(Scope::Block {
+                    vars: Default::default(),
+                });
+                let block = self.resolve_block(block)?;
+                self.scopes.pop();
+                Stmt::Block(block)
             }
             AstStmtKind::Expression(expression) => {
                 let expr = self.resolve_expr(&expression.expr)?;
@@ -1096,8 +1155,13 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Result<MatchArm, ResolveError> {
-        let body = self.resolve_stmt(&arm.body)?;
+        self.scopes.push(Scope::MatchArm {
+            vars: Default::default(),
+        });
+
         let pattern = self.resolve_pattern(&arm.pattern)?;
+
+        let body = self.resolve_stmt(&arm.body)?;
 
         Ok(MatchArm::new(pattern, body))
     }
@@ -1132,6 +1196,15 @@ impl<'a> CrateResolver<'a> {
                     .iter()
                     .map(|expr| self.resolve_expr(expr))
                     .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
+                // I think this needs some more formal validation when parsing to only allow constants,
+                // calls (for nested destructuring?) and naked vars that are wildcard references.
+                exprs.iter().for_each(|expr| {
+                    let node = self.nodes.get(expr).unwrap();
+                    if let HirNodeKind::Expr(Expr::Path(path_expr)) = &node.kind {
+                        todo!() //  path_expr.segments
+                    }
+                });
+
                 Pattern::Destructure(DestructurePattern::new(resolved_ty, exprs))
             }
         };
@@ -1147,8 +1220,12 @@ impl<'a> CrateResolver<'a> {
                 .ok_or(DefinitionNotFound),
             IdentType::LocalOrUse => {
                 if let Some(ident) = ident.is_single() {
-                    // Has to be a local type
-                    module_ns.find_ty(ident).ok_or(DefinitionNotFound)
+                    // Has to be a local type or generic
+                    // Check first if it is a generic and then if it is in the module ns
+                    self.find_generic_param(ident)
+                        .map(|local_id| local_id.to_def_id(self.krate.crate_id))
+                        .or_else(|| module_ns.find_ty(ident))
+                        .ok_or(DefinitionNotFound)
                 } else if let Some(module_id) = module_ns.find_module(ident.first()) {
                     // Else it could be from a used module
                     let krate_ns = self.krate_namespaces.get(module_id.crate_id()).unwrap();
@@ -1218,6 +1295,12 @@ mod tests {
     #[snapshot]
     pub fn mutable_assignment() -> ResolvedCrates {
         resolve_crate("mutable_assignment")
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn geometry_classes() -> ResolvedCrates {
+        resolve_crate("geometry_classes")
     }
 
     #[test]

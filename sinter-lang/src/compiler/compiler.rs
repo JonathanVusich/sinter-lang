@@ -177,7 +177,7 @@ impl Compiler {
         let mut crates = HashMap::default();
 
         // Parse main crate
-        let main_crate = self.parse_crate(&application.main_crate)?;
+        let main_crate = self.parse_crate(application.main_crate)?;
         let main_name = main_crate.name;
 
         // Insert crate into lookup map

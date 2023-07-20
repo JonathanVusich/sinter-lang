@@ -227,10 +227,21 @@ impl TraitStmt {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitImplStmt {
-    pub trait_to_impl: DefId,
+    pub trait_to_impl: PathTy,
     pub target_ty: DefId,
     pub member_fns: FnStmts,
 }
+
+impl TraitImplStmt {
+    pub fn new(trait_to_impl: PathTy, target_ty: DefId, member_fns: FnStmts) -> Self {
+        Self {
+            trait_to_impl,
+            target_ty,
+            member_fns,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct FnStmt {
     pub(crate) sig: FnSig,
@@ -342,6 +353,7 @@ pub enum Ty {
     F32,
     F64,
     Str,
+    Boolean,
     None,
 }
 
@@ -352,7 +364,7 @@ pub enum Stmt {
     If(IfStmt),
     Return(ReturnStmt),
     While(WhileStmt),
-    Block(Block),
+    Block(LocalDefId),
     Expression(Expression),
 }
 
@@ -675,7 +687,13 @@ impl ReturnStmt {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct WhileStmt {
     pub condition: LocalDefId,
-    pub block_stmt: LocalDefId,
+    pub block: LocalDefId,
+}
+
+impl WhileStmt {
+    pub fn new(condition: LocalDefId, block: LocalDefId) -> Self {
+        Self { condition, block }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -692,7 +710,21 @@ impl ForStmt {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct IfStmt {}
+pub struct IfStmt {
+    condition: LocalDefId,
+    if_true: LocalDefId,
+    if_false: Option<LocalDefId>,
+}
+
+impl IfStmt {
+    pub fn new(condition: LocalDefId, if_true: LocalDefId, if_false: Option<LocalDefId>) -> Self {
+        Self {
+            condition,
+            if_true,
+            if_false,
+        }
+    }
+}
 
 #[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(transparent)]
