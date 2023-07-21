@@ -60,14 +60,9 @@ impl Item {
 pub enum ExprKind {
     Array(ArrayExpr),
     Call(CallExpr),
-    Constructor(CallExpr),
     Infix(InfixExpr),
     Unary(UnaryExpr),
-    None,
-    Boolean(bool),
-    Integer(i64),
-    Float(f64),
-    String(InternedStr),
+    Literal(Literal),
     Match(MatchExpr),
     Closure(ClosureExpr),
     Assign(AssignExpr),
@@ -90,6 +85,16 @@ impl Expr {
     pub fn new(kind: ExprKind, span: Span, id: LocalDefId) -> Self {
         Self { kind, span, id }
     }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub enum Literal {
+    True,
+    False,
+    Float(f64),
+    Integer(i64),
+    String(InternedStr),
+    None,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -988,11 +993,7 @@ pub enum Pattern {
     // _
     Or(OrPattern),
     // pat | pat
-    Boolean(bool),
-    // true/false
-    Integer(i64),
-    // 100
-    String(InternedStr),
+    Literal(Literal),
     // "true"
     Ty(TyPattern),
     // Logical logical => { }
@@ -1040,26 +1041,46 @@ impl PatternLocal {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TyPattern {
-    pub ty: Ty,
+    pub ty: PathTy,
     pub ident: Option<PatternLocal>,
 }
 
 impl TyPattern {
-    pub fn new(ty: Ty, ident: Option<PatternLocal>) -> Self {
+    pub fn new(ty: PathTy, ident: Option<PatternLocal>) -> Self {
         Self { ty, ident }
     }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct DestructurePattern {
-    pub ty: Ty,
-    pub exprs: Vec<Expr>,
+    pub ty: PathTy,
+    pub exprs: Vec<DestructureExpr>,
 }
 
 impl DestructurePattern {
-    pub fn new(ty: Ty, exprs: Vec<Expr>) -> Self {
+    pub fn new(ty: PathTy, exprs: Vec<DestructureExpr>) -> Self {
         Self { ty, exprs }
     }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct DestructureExpr {
+    kind: DestructureExprKind,
+    span: Span,
+    id: LocalDefId,
+}
+
+impl DestructureExpr {
+    pub fn new(kind: DestructureExprKind, span: Span, id: LocalDefId) -> Self {
+        Self { kind, span, id }
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub enum DestructureExprKind {
+    Pattern(Box<DestructurePattern>),
+    Identifier(InternedStr),
+    Literal(Literal),
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]

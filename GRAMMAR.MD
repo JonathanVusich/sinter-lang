@@ -145,9 +145,15 @@ _________________________________
 
 `orPattern => pattern ( "|" pattern )*`
 
-`pattern => matcher`
+`pattern => tyPattern | destructurePattern | literal | wildcard | `
 
-`matcher => "_" | string | boolean | number | ( ty identifier? ) `
+`wildcard = "_"`
+
+`tyPattern => pathType identifier?`
+
+`destructurePattern => pathType "(" destructureExpr ("," destructureExpr)* ")"`
+
+`destructureExpr => literal | wildcard | identifier | destructurePattern`
 
 _________________________________
 ### Type Definitions

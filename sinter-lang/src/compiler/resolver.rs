@@ -15,10 +15,11 @@ use crate::compiler::ast::{
     ExprKind as AstExprKind, Fields as AstFields, FnSelfStmt as AstFnSelfStmt, FnSelfStmt,
     FnSig as AstFnSig, FnStmt as AstFnStmt, GenericParams as AstGenericParams,
     Generics as AstGenerics, GlobalLetStmt, Ident, IdentType, Item as AstItem, Item,
-    ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm, Module, Params as AstParams,
-    PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt,
-    StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitImplStmt as AstTraitImplStmt,
-    TraitStmt as AstTraitStmt, Ty as AstTy, TyKind, TyKind as AstTyKind, UseStmt,
+    ItemKind as AstItemKind, ItemKind, Literal as AstLiteral, MatchArm as AstMatchArm, Module,
+    Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
+    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
+    TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
+    TyKind as AstTyKind, UseStmt,
 };
 use crate::compiler::ast::{Expr as AstExpr, Field as AstField};
 use crate::compiler::ast_passes::NameCollector;
@@ -28,8 +29,8 @@ use crate::compiler::hir::{
     Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
     ClosureParams, DefId, DestructurePattern, EnumMember, EnumMembers, EnumStmt, Expr, Expression,
     Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam, GenericParams,
-    Generics, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDefId,
-    MatchArm, MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern,
+    Generics, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, Literal,
+    LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern,
     PatternLocal, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitImplStmt, TraitStmt, Ty,
     TyPattern, UnaryExpr, WhileStmt,
 };
@@ -872,16 +873,6 @@ impl<'a> CrateResolver<'a> {
 
                 Expr::Call(CallExpr::new(target, Args::new(args)))
             }
-            AstExprKind::Constructor(constructor) => {
-                let args = constructor
-                    .args
-                    .iter()
-                    .map(|expr| self.resolve_expr(expr))
-                    .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
-                let target = self.resolve_expr(&constructor.target)?;
-
-                Expr::Constructor(CallExpr::new(target, Args::new(args)))
-            }
             AstExprKind::Infix(infix) => {
                 let lhs = self.resolve_expr(&infix.lhs)?;
                 let rhs = self.resolve_expr(&infix.rhs)?;
@@ -893,11 +884,7 @@ impl<'a> CrateResolver<'a> {
 
                 Expr::Unary(UnaryExpr::new(unary.operator, expr))
             }
-            AstExprKind::None => Expr::None,
-            AstExprKind::Boolean(boolean) => Expr::Boolean(*boolean),
-            AstExprKind::Integer(integer) => Expr::Integer(*integer),
-            AstExprKind::Float(float) => Expr::Float(*float),
-            AstExprKind::String(string) => Expr::String(*string),
+            AstExprKind::Literal(literal) => Expr::Literal(literal.into()),
             AstExprKind::Match(match_expr) => {
                 let source = self.resolve_expr(&match_expr.source)?;
                 let arms = match_expr
@@ -1177,11 +1164,9 @@ impl<'a> CrateResolver<'a> {
                     .collect::<Result<Vec<Pattern>, ResolveError>>()?;
                 Pattern::Or(OrPattern::new(patterns))
             }
-            AstPattern::Boolean(bool) => Pattern::Boolean(*bool),
-            AstPattern::Integer(integer) => Pattern::Integer(*integer),
-            AstPattern::String(string) => Pattern::String(*string),
+            AstPattern::Literal(literal) => Pattern::Literal(literal.into()),
             AstPattern::Ty(ty_patt) => {
-                let resolved_ty = self.resolve_ty(&ty_patt.ty)?;
+                let resolved_ty = self.resolve_path_ty(&ty_patt.ty)?;
                 Pattern::Ty(TyPattern::new(
                     resolved_ty,
                     ty_patt
@@ -1190,7 +1175,7 @@ impl<'a> CrateResolver<'a> {
                 ))
             }
             AstPattern::Destructure(de_patt) => {
-                let resolved_ty = self.resolve_ty(&de_patt.ty)?;
+                let resolved_ty = self.resolve_path_ty(&de_patt.ty)?;
                 let exprs = de_patt
                     .exprs
                     .iter()
@@ -1198,12 +1183,6 @@ impl<'a> CrateResolver<'a> {
                     .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
                 // I think this needs some more formal validation when parsing to only allow constants,
                 // calls (for nested destructuring?) and naked vars that are wildcard references.
-                exprs.iter().for_each(|expr| {
-                    let node = self.nodes.get(expr).unwrap();
-                    if let HirNodeKind::Expr(Expr::Path(path_expr)) = &node.kind {
-                        todo!() //  path_expr.segments
-                    }
-                });
 
                 Pattern::Destructure(DestructurePattern::new(resolved_ty, exprs))
             }

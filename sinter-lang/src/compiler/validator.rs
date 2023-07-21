@@ -3,8 +3,9 @@ use std::collections::HashMap;
 use multimap::MultiMap;
 
 use crate::compiler::ast::{
-    EnumMember, Field, Fields, FnSelfStmt, FnSig, FnStmt, GenericParam, GenericParams,
-    GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, UseStmt,
+    Block, EnumMember, Field, Fields, FnSelfStmt, FnSig, FnStmt, GenericParam, GenericParams,
+    GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, Stmt,
+    StmtKind, UseStmt,
 };
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::LocalDefId;

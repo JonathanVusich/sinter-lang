@@ -9,14 +9,14 @@ use serde::{Deserialize, Serialize};
 use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::{
-    Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructurePattern,
-    EnumMember, EnumStmt, Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnSelfStmt, FnSig,
-    FnStmt, ForStmt, GenericCallSite, GenericParam, GenericParams, Generics, GlobalLetStmt, Ident,
-    IdentType, IfStmt, IndexExpr, InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr,
-    Module, Mutability, OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern,
-    PatternLocal, PostfixOp, QualifiedIdent, Range, ReturnStmt, Segment, Stmt, StmtKind,
-    TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt,
-    WhileStmt,
+    Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructureExpr,
+    DestructureExprKind, DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind, Expression,
+    Field, FieldExpr, Fields, FnSelfStmt, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam,
+    GenericParams, Generics, GlobalLetStmt, Ident, IdentType, IfStmt, IndexExpr, InfixExpr,
+    InfixOp, Item, ItemKind, LetStmt, Literal, MatchArm, MatchExpr, Module, Mutability, OrPattern,
+    Param, Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal, PostfixOp, QualifiedIdent,
+    Range, ReturnStmt, Segment, Stmt, StmtKind, TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind,
+    TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
 };
 use crate::compiler::compiler::{CompileError, CompilerCtxt};
 use crate::compiler::hir::LocalDefId;
@@ -1152,23 +1152,23 @@ impl<'ctxt> Parser<'ctxt> {
                 }
                 TokenType::True => {
                     self.advance();
-                    ExprKind::Boolean(true)
+                    ExprKind::Literal(Literal::True)
                 }
                 TokenType::False => {
                     self.advance();
-                    ExprKind::Boolean(false)
+                    ExprKind::Literal(Literal::False)
                 }
                 TokenType::SignedInteger(int) => {
                     self.advance();
-                    ExprKind::Integer(int)
+                    ExprKind::Literal(Literal::Integer(int))
                 }
                 TokenType::Float(float) => {
                     self.advance();
-                    ExprKind::Float(float)
+                    ExprKind::Literal(Literal::Float(float))
                 }
                 TokenType::String(string) => {
                     self.advance();
-                    ExprKind::String(string)
+                    ExprKind::Literal(Literal::String(string))
                 }
                 TokenType::Identifier(ident) => ExprKind::Path(self.parse_path_expr()?),
                 TokenType::SelfCapitalized => {
@@ -1181,7 +1181,7 @@ impl<'ctxt> Parser<'ctxt> {
                 }
                 TokenType::None => {
                     self.advance();
-                    ExprKind::None
+                    ExprKind::Literal(Literal::None)
                 }
 
                 // Handle parenthesized expression
@@ -1404,31 +1404,35 @@ impl<'ctxt> Parser<'ctxt> {
         match self.current() {
             Some(TokenType::String(str)) => {
                 self.advance();
-                Ok(Pattern::String(str))
+                Ok(Pattern::Literal(Literal::String(str)))
             }
             Some(TokenType::SignedInteger(integer)) => {
                 self.advance();
-                Ok(Pattern::Integer(integer))
+                Ok(Pattern::Literal(Literal::Integer(integer)))
             }
             Some(TokenType::True) => {
                 self.advance();
-                Ok(Pattern::Boolean(true))
+                Ok(Pattern::Literal(Literal::True))
             }
             Some(TokenType::False) => {
                 self.advance();
-                Ok(Pattern::Boolean(false))
+                Ok(Pattern::Literal(Literal::False))
+            }
+            Some(TokenType::None) => {
+                self.advance();
+                Ok(Pattern::Literal(Literal::None))
             }
             Some(TokenType::Underscore) => {
                 self.advance();
                 Ok(Pattern::Wildcard)
             }
             Some(token_type) => {
-                let ty = self.parse_ty()?;
+                let ty = self.parse_path_ty()?;
                 match self.current() {
                     Some(TokenType::LeftParentheses) => {
                         self.advance();
                         let exprs = self.parse_multiple_with_delimiter(
-                            |parser| parser.expr(),
+                            |parser| parser.destructure_expr(),
                             TokenType::Comma,
                         )?;
                         self.expect(TokenType::RightParentheses)?;
@@ -1448,6 +1452,72 @@ impl<'ctxt> Parser<'ctxt> {
                     None => self.unexpected_end(),
                 }
             }
+            None => self.unexpected_end(),
+        }
+    }
+
+    fn destructure_expr(&mut self) -> ParseResult<DestructureExpr> {
+        self.track_span();
+        match self.current() {
+            Some(TokenType::Identifier(ident)) => {
+                // If the next token is a comma, we know that this is an identifier not a path.
+                match self.next_type(1) {
+                    Some(TokenType::Comma) => Ok(DestructureExpr::new(
+                        DestructureExprKind::Identifier(ident),
+                        self.get_span(),
+                        self.get_id(),
+                    )),
+                    Some(_) => {
+                        let path_ty = self.parse_path_ty()?;
+                        let exprs = self
+                            .parse_multiple_with_scope_delimiter::<DestructureExpr, 1>(
+                                |parser| parser.destructure_expr(),
+                                TokenType::Comma,
+                                TokenType::LeftParentheses,
+                                TokenType::RightParentheses,
+                            )?;
+                        Ok(DestructureExpr::new(
+                            DestructureExprKind::Pattern(Box::new(DestructurePattern::new(
+                                path_ty, exprs,
+                            ))),
+                            self.get_span(),
+                            self.get_id(),
+                        ))
+                    }
+                    None => self.unexpected_end(),
+                }
+            }
+            Some(TokenType::True) => Ok(DestructureExpr::new(
+                DestructureExprKind::Literal(Literal::True),
+                self.get_span(),
+                self.get_id(),
+            )),
+            Some(TokenType::False) => Ok(DestructureExpr::new(
+                DestructureExprKind::Literal(Literal::False),
+                self.get_span(),
+                self.get_id(),
+            )),
+            Some(TokenType::String(string)) => Ok(DestructureExpr::new(
+                DestructureExprKind::Literal(Literal::String(string)),
+                self.get_span(),
+                self.get_id(),
+            )),
+            Some(TokenType::SignedInteger(integer)) => Ok(DestructureExpr::new(
+                DestructureExprKind::Literal(Literal::Integer(integer)),
+                self.get_span(),
+                self.get_id(),
+            )),
+            Some(TokenType::Float(float)) => Ok(DestructureExpr::new(
+                DestructureExprKind::Literal(Literal::Float(float)),
+                self.get_span(),
+                self.get_id(),
+            )),
+            Some(TokenType::None) => Ok(DestructureExpr::new(
+                DestructureExprKind::Literal(Literal::None),
+                self.get_span(),
+                self.get_id(),
+            )),
+            Some(token) => self.unexpected_token(token),
             None => self.unexpected_end(),
         }
     }

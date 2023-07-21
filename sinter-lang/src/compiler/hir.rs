@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
@@ -5,7 +6,9 @@ use std::slice::SliceIndex;
 
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{Ident, InfixOp, Mutability, QualifiedIdent, UnaryOp};
+use crate::compiler::ast::{
+    Ident, InfixOp, Literal as AstLiteral, Mutability, QualifiedIdent, UnaryOp,
+};
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::ClassType;
 use crate::compiler::path::ModulePath;
@@ -415,11 +418,7 @@ pub enum Expr {
     Constructor(CallExpr),
     Infix(InfixExpr),
     Unary(UnaryExpr),
-    None,
-    Boolean(bool),
-    Integer(i64),
-    Float(f64),
-    String(InternedStr),
+    Literal(Literal),
     Match(MatchExpr),
     Closure(ClosureExpr),
     Assign(AssignExpr),
@@ -428,6 +427,32 @@ pub enum Expr {
     Path(PathExpr),
     Break,
     Continue,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub enum Literal {
+    None,
+    True,
+    False,
+    Integer(i64),
+    Float(f64),
+    String(InternedStr),
+}
+
+impl<T> From<T> for Literal
+where
+    T: Borrow<AstLiteral>,
+{
+    fn from(value: T) -> Self {
+        match value.borrow() {
+            AstLiteral::True => Literal::True,
+            AstLiteral::False => Literal::False,
+            AstLiteral::Float(float) => Literal::Float(*float),
+            AstLiteral::Integer(integer) => Literal::Integer(*integer),
+            AstLiteral::String(string) => Literal::String(*string),
+            AstLiteral::None => Literal::None,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -504,18 +529,10 @@ impl MatchArm {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Pattern {
     Wildcard,
-    // _
     Or(OrPattern),
-    // pat | pat
-    Boolean(bool),
-    // true/false
-    Integer(i64),
-    // 100
-    String(InternedStr),
-    // "true"
+    Literal(Literal),
     Ty(TyPattern),
-    // Logical logical => { }
-    Destructure(DestructurePattern), // Logical(1, true, 100) => { }
+    Destructure(DestructurePattern),
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -531,12 +548,12 @@ impl OrPattern {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TyPattern {
-    pub ty: LocalDefId,
+    pub ty: PathTy,
     pub ident: Option<PatternLocal>,
 }
 
 impl TyPattern {
-    pub fn new(ty: LocalDefId, ident: Option<PatternLocal>) -> Self {
+    pub fn new(ty: PathTy, ident: Option<PatternLocal>) -> Self {
         Self { ty, ident }
     }
 }
@@ -556,12 +573,12 @@ impl PatternLocal {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct DestructurePattern {
-    pub ty: LocalDefId,
+    pub ty: PathTy,
     pub exprs: Vec<LocalDefId>,
 }
 
 impl DestructurePattern {
-    pub fn new(ty: LocalDefId, exprs: Vec<LocalDefId>) -> Self {
+    pub fn new(ty: PathTy, exprs: Vec<LocalDefId>) -> Self {
         Self { ty, exprs }
     }
 }
