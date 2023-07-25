@@ -1,5 +1,6 @@
 use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap};
+use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 
 use serde::{Deserialize, Serialize};
@@ -50,7 +51,9 @@ impl ModuleId {
 }
 
 #[repr(transparent)]
-#[derive(Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Debug, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, PartialEq, Eq, Ord, Default, PartialOrd, Debug, Hash, Serialize, Deserialize,
+)]
 #[serde(transparent)]
 pub struct LocalDefId {
     local_id: u32,
@@ -81,11 +84,17 @@ impl From<u32> for LocalDefId {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub struct HirNode {
     pub(crate) kind: HirNodeKind,
     pub(crate) span: Span,
     pub(crate) id: LocalDefId,
+}
+
+impl Debug for HirNode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.kind.fmt(f)
+    }
 }
 
 impl HirNode {

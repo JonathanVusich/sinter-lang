@@ -164,11 +164,11 @@ impl Scope {
         fields.insert(ident, id)
     }
 
-    pub fn insert_var(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
+    pub fn insert_var(&mut self, ident: InternedStr, id: LocalDefId) {
         match self {
             Scope::Fn { vars, .. } => vars.insert(ident, id),
             _ => panic!("Cannot insert var into this scope!"),
-        }
+        };
     }
 
     pub fn insert_self_fn(&mut self, ident: InternedStr, id: LocalDefId) -> Option<LocalDefId> {
@@ -425,6 +425,7 @@ impl<'a> CrateResolver<'a> {
         };
 
         if let Err(error) = result {
+            dbg!(&item);
             self.errors.push(error);
         }
     }
@@ -548,11 +549,8 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn insert_var(&mut self, var_name: InternedStr, id: LocalDefId) -> ResolveResult {
-        match self.scopes.last_mut().unwrap().insert_var(var_name, id) {
-            None => Ok(()),
-            Some(existing) => self.duplicate_definition(existing, id),
-        }
+    fn insert_var(&mut self, var_name: InternedStr, id: LocalDefId) {
+        self.scopes.last_mut().unwrap().insert_var(var_name, id);
     }
 
     fn insert_self_fn(&mut self, fn_name: InternedStr, id: LocalDefId) -> ResolveResult {
@@ -953,12 +951,17 @@ impl<'a> CrateResolver<'a> {
         &mut self,
         destructure_expr: &AstDestructureExpr,
     ) -> Result<LocalDefId, ResolveError> {
+        let id = destructure_expr.id;
+        let span = destructure_expr.span;
         let expr = match &destructure_expr.kind {
             AstDestructureExprKind::Pattern(pattern) => {
                 let pattern = self.resolve_destructure_pattern(pattern)?;
                 DestructureExpr::Pattern(pattern)
             }
-            AstDestructureExprKind::Identifier(ident) => DestructureExpr::Identifier(*ident),
+            AstDestructureExprKind::Identifier(ident) => {
+                self.insert_var(*ident, id);
+                DestructureExpr::Identifier(*ident)
+            }
             DestructureExprKind::True => DestructureExpr::True,
             DestructureExprKind::False => DestructureExpr::False,
             DestructureExprKind::Float(float) => DestructureExpr::Float(*float),
@@ -967,8 +970,6 @@ impl<'a> CrateResolver<'a> {
             DestructureExprKind::None => DestructureExpr::None,
         };
 
-        let id = destructure_expr.id;
-        let span = destructure_expr.span;
         self.insert_node(
             id,
             HirNode::new(HirNodeKind::DestructureExpr(expr), span, id),
@@ -1069,7 +1070,7 @@ impl<'a> CrateResolver<'a> {
     fn resolve_stmt(&mut self, stmt: &AstStmt) -> Result<LocalDefId, ResolveError> {
         let hir_stmt = match &stmt.kind {
             AstStmtKind::Let(let_stmt) => {
-                self.insert_var(let_stmt.ident.ident, let_stmt.ident.id)?;
+                self.insert_var(let_stmt.ident.ident, let_stmt.ident.id);
 
                 let resolved_ty = self.maybe_resolve_ty(&let_stmt.ty)?;
                 let resolved_initializer = self.maybe_resolve_expr(&let_stmt.initializer)?;
@@ -1085,7 +1086,7 @@ impl<'a> CrateResolver<'a> {
                 self.scopes.push(Scope::Block {
                     vars: HashMap::default(),
                 });
-                self.insert_var(for_stmt.ident.ident, for_stmt.ident.id)?;
+                self.insert_var(for_stmt.ident.ident, for_stmt.ident.id);
 
                 let range = self.resolve_expr(&for_stmt.range)?;
                 let body = self.resolve_block(&for_stmt.body)?;
@@ -1180,6 +1181,8 @@ impl<'a> CrateResolver<'a> {
 
         let body = self.resolve_stmt(&arm.body)?;
 
+        self.scopes.pop();
+
         Ok(MatchArm::new(pattern, body))
     }
 
@@ -1196,15 +1199,14 @@ impl<'a> CrateResolver<'a> {
             }
             AstPattern::Ty(ty_patt) => {
                 let resolved_ty = self.resolve_path_ty(&ty_patt.ty)?;
-                Pattern::Ty(TyPattern::new(
-                    resolved_ty,
-                    ty_patt
-                        .ident
-                        .map(|pattern_local| PatternLocal::new(pattern_local.ident)),
-                ))
+                let resolved_ident = ty_patt.ident.map(|pattern_local| {
+                    self.insert_var(pattern_local.ident, pattern_local.id);
+                    PatternLocal::new(pattern_local.ident)
+                });
+                Pattern::Ty(TyPattern::new(resolved_ty, resolved_ident))
             }
             AstPattern::Destructure(de_patt) => {
-                let destructure_pattern = self.resolve_destructure_pattern(&de_patt)?;
+                let destructure_pattern = self.resolve_destructure_pattern(de_patt)?;
                 Pattern::Destructure(destructure_pattern)
             }
             AstPattern::True => Pattern::True,
@@ -1214,6 +1216,7 @@ impl<'a> CrateResolver<'a> {
             AstPattern::String(string) => Pattern::String(*string),
             AstPattern::None => Pattern::None,
         };
+
         Ok(hir_pattern)
     }
 

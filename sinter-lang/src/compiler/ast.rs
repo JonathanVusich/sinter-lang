@@ -1027,15 +1027,15 @@ impl OrPattern {
 }
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
-#[repr(transparent)]
-#[serde(transparent)]
 pub struct PatternLocal {
     pub ident: InternedStr,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 impl PatternLocal {
-    pub fn new(ident: InternedStr) -> Self {
-        Self { ident }
+    pub fn new(ident: InternedStr, span: Span, id: LocalDefId) -> Self {
+        Self { ident, span, id }
     }
 }
 

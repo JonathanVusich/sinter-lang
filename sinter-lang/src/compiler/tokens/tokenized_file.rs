@@ -28,7 +28,7 @@ impl NormalizedSpan {
     }
 }
 
-#[derive(Eq, PartialEq, Debug, Hash, Serialize, Deserialize, Copy, Clone)]
+#[derive(Eq, PartialEq, Default, Debug, Hash, Serialize, Deserialize, Copy, Clone)]
 pub struct Span {
     pub start: u32,
     pub end: u32,
@@ -44,12 +44,6 @@ impl Span {
             start: self.start,
             end: other.end,
         }
-    }
-}
-
-impl Default for Span {
-    fn default() -> Self {
-        Self { start: 0, end: 0 }
     }
 }
 

@@ -1440,8 +1440,12 @@ impl<'ctxt> Parser<'ctxt> {
                         Ok(Pattern::Destructure(destructure_pat))
                     }
                     Some(TokenType::Identifier(str)) => {
+                        self.track_span();
                         self.advance();
-                        let ty_pat = TyPattern::new(ty, Some(PatternLocal::new(str)));
+                        let ty_pat = TyPattern::new(
+                            ty,
+                            Some(PatternLocal::new(str, self.get_span(), self.get_id())),
+                        );
                         Ok(Pattern::Ty(ty_pat))
                     }
                     Some(TokenType::RightArrow) | Some(TokenType::BitwiseXor) => {
