@@ -24,7 +24,7 @@
       "self"
     ],
     "crate_id": 0,
-    "local_def_id": 98
+    "local_def_id": 96
   },
   {
     "path": {
@@ -870,33 +870,22 @@
                                     "pattern": {
                                       "Ty": {
                                         "ty": {
-                                          "kind": {
-                                            "Path": {
-                                              "path": {
-                                                "ident": {
-                                                  "ident_type": "LocalOrUse",
-                                                  "idents": [
-                                                    {
-                                                      "ident": 18,
-                                                      "span": {
-                                                        "start": 435,
-                                                        "end": 449
-                                                      },
-                                                      "id": 71
-                                                    }
-                                                  ]
+                                          "ident": {
+                                            "ident_type": "LocalOrUse",
+                                            "idents": [
+                                              {
+                                                "ident": 18,
+                                                "span": {
+                                                  "start": 435,
+                                                  "end": 449
                                                 },
-                                                "generics": {
-                                                  "generics": []
-                                                }
+                                                "id": 71
                                               }
-                                            }
+                                            ]
                                           },
-                                          "span": {
-                                            "start": 435,
-                                            "end": 449
-                                          },
-                                          "id": 72
+                                          "generics": {
+                                            "generics": []
+                                          }
                                         },
                                         "ident": null
                                       }
@@ -912,7 +901,7 @@
                                               "start": 453,
                                               "end": 469
                                             },
-                                            "id": 73
+                                            "id": 72
                                           },
                                           "implicit_return": true
                                         }
@@ -921,45 +910,34 @@
                                         "start": 453,
                                         "end": 469
                                       },
-                                      "id": 74
+                                      "id": 73
                                     },
                                     "span": {
                                       "start": 435,
                                       "end": 469
                                     },
-                                    "id": 75
+                                    "id": 74
                                   },
                                   {
                                     "pattern": {
                                       "Ty": {
                                         "ty": {
-                                          "kind": {
-                                            "Path": {
-                                              "path": {
-                                                "ident": {
-                                                  "ident_type": "LocalOrUse",
-                                                  "idents": [
-                                                    {
-                                                      "ident": 14,
-                                                      "span": {
-                                                        "start": 483,
-                                                        "end": 497
-                                                      },
-                                                      "id": 76
-                                                    }
-                                                  ]
+                                          "ident": {
+                                            "ident_type": "LocalOrUse",
+                                            "idents": [
+                                              {
+                                                "ident": 14,
+                                                "span": {
+                                                  "start": 483,
+                                                  "end": 497
                                                 },
-                                                "generics": {
-                                                  "generics": []
-                                                }
+                                                "id": 75
                                               }
-                                            }
+                                            ]
                                           },
-                                          "span": {
-                                            "start": 483,
-                                            "end": 497
-                                          },
-                                          "id": 77
+                                          "generics": {
+                                            "generics": []
+                                          }
                                         },
                                         "ident": null
                                       }
@@ -975,7 +953,7 @@
                                               "start": 501,
                                               "end": 517
                                             },
-                                            "id": 78
+                                            "id": 76
                                           },
                                           "implicit_return": true
                                         }
@@ -984,13 +962,13 @@
                                         "start": 501,
                                         "end": 517
                                       },
-                                      "id": 79
+                                      "id": 77
                                     },
                                     "span": {
                                       "start": 483,
                                       "end": 517
                                     },
-                                    "id": 80
+                                    "id": 78
                                   }
                                 ]
                               }
@@ -999,7 +977,7 @@
                               "start": 410,
                               "end": 528
                             },
-                            "id": 81
+                            "id": 79
                           },
                           "implicit_return": false
                         }
@@ -1008,20 +986,20 @@
                         "start": 410,
                         "end": 528
                       },
-                      "id": 82
+                      "id": 80
                     }
                   ],
                   "span": {
                     "start": 400,
                     "end": 534
                   },
-                  "id": 83
+                  "id": 81
                 },
                 "span": {
                   "start": 376,
                   "end": 534
                 },
-                "id": 84
+                "id": 82
               },
               {
                 "sig": {
@@ -1031,7 +1009,7 @@
                       "start": 543,
                       "end": 549
                     },
-                    "id": 85
+                    "id": 83
                   },
                   "generic_params": {
                     "params": []
@@ -1045,7 +1023,7 @@
                             "start": 550,
                             "end": 554
                           },
-                          "id": 86
+                          "id": 84
                         },
                         "ty": {
                           "kind": "QSelf",
@@ -1053,14 +1031,14 @@
                             "start": 550,
                             "end": 554
                           },
-                          "id": 87
+                          "id": 85
                         },
                         "mutability": "Immutable",
                         "span": {
                           "start": 550,
                           "end": 554
                         },
-                        "id": 88
+                        "id": 86
                       }
                     ]
                   },
@@ -1077,7 +1055,7 @@
                                   "start": 559,
                                   "end": 565
                                 },
-                                "id": 89
+                                "id": 87
                               }
                             ]
                           },
@@ -1096,7 +1074,7 @@
                                               "start": 566,
                                               "end": 571
                                             },
-                                            "id": 90
+                                            "id": 88
                                           }
                                         ]
                                       },
@@ -1110,7 +1088,7 @@
                                   "start": 566,
                                   "end": 571
                                 },
-                                "id": 91
+                                "id": 89
                               }
                             ]
                           }
@@ -1121,7 +1099,7 @@
                       "start": 559,
                       "end": 572
                     },
-                    "id": 92
+                    "id": 90
                   }
                 },
                 "body": {
@@ -1135,7 +1113,7 @@
                               "start": 583,
                               "end": 587
                             },
-                            "id": 93
+                            "id": 91
                           },
                           "implicit_return": false
                         }
@@ -1144,20 +1122,20 @@
                         "start": 583,
                         "end": 587
                       },
-                      "id": 94
+                      "id": 92
                     }
                   ],
                   "span": {
                     "start": 573,
                     "end": 593
                   },
-                  "id": 95
+                  "id": 93
                 },
                 "span": {
                   "start": 540,
                   "end": 593
                 },
-                "id": 96
+                "id": 94
               }
             ]
           }
@@ -1166,7 +1144,7 @@
           "start": 343,
           "end": 595
         },
-        "id": 97
+        "id": 95
       }
     ]
   }

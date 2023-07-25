@@ -13,7 +13,7 @@
       "caption"
     ],
     "crate_id": 0,
-    "local_def_id": 38
+    "local_def_id": 33
   },
   {
     "path": {
@@ -68,41 +68,30 @@
                             {
                               "Destructure": {
                                 "ty": {
-                                  "kind": {
-                                    "Path": {
-                                      "path": {
-                                        "ident": {
-                                          "ident_type": "LocalOrUse",
-                                          "idents": [
-                                            {
-                                              "ident": 3,
-                                              "span": {
-                                                "start": 41,
-                                                "end": 48
-                                              },
-                                              "id": 3
-                                            },
-                                            {
-                                              "ident": 4,
-                                              "span": {
-                                                "start": 50,
-                                                "end": 54
-                                              },
-                                              "id": 4
-                                            }
-                                          ]
+                                  "ident": {
+                                    "ident_type": "LocalOrUse",
+                                    "idents": [
+                                      {
+                                        "ident": 3,
+                                        "span": {
+                                          "start": 41,
+                                          "end": 48
                                         },
-                                        "generics": {
-                                          "generics": []
-                                        }
+                                        "id": 3
+                                      },
+                                      {
+                                        "ident": 4,
+                                        "span": {
+                                          "start": 50,
+                                          "end": 54
+                                        },
+                                        "id": 4
                                       }
-                                    }
+                                    ]
                                   },
-                                  "span": {
-                                    "start": 41,
-                                    "end": 54
-                                  },
-                                  "id": 5
+                                  "generics": {
+                                    "generics": []
+                                  }
                                 },
                                 "exprs": [
                                   {
@@ -113,7 +102,7 @@
                                       "start": 55,
                                       "end": 61
                                     },
-                                    "id": 6
+                                    "id": 5
                                   }
                                 ]
                               }
@@ -121,41 +110,30 @@
                             {
                               "Destructure": {
                                 "ty": {
-                                  "kind": {
-                                    "Path": {
-                                      "path": {
-                                        "ident": {
-                                          "ident_type": "LocalOrUse",
-                                          "idents": [
-                                            {
-                                              "ident": 3,
-                                              "span": {
-                                                "start": 65,
-                                                "end": 72
-                                              },
-                                              "id": 7
-                                            },
-                                            {
-                                              "ident": 6,
-                                              "span": {
-                                                "start": 74,
-                                                "end": 79
-                                              },
-                                              "id": 8
-                                            }
-                                          ]
+                                  "ident": {
+                                    "ident_type": "LocalOrUse",
+                                    "idents": [
+                                      {
+                                        "ident": 3,
+                                        "span": {
+                                          "start": 65,
+                                          "end": 72
                                         },
-                                        "generics": {
-                                          "generics": []
-                                        }
+                                        "id": 6
+                                      },
+                                      {
+                                        "ident": 6,
+                                        "span": {
+                                          "start": 74,
+                                          "end": 79
+                                        },
+                                        "id": 7
                                       }
-                                    }
+                                    ]
                                   },
-                                  "span": {
-                                    "start": 65,
-                                    "end": 79
-                                  },
-                                  "id": 9
+                                  "generics": {
+                                    "generics": []
+                                  }
                                 },
                                 "exprs": [
                                   {
@@ -166,32 +144,37 @@
                                       "start": 80,
                                       "end": 86
                                     },
-                                    "id": 10
+                                    "id": 8
                                   },
                                   {
                                     "kind": {
-                                      "Path": {
-                                        "ident_type": "LocalOrUse",
-                                        "segments": [
-                                          {
-                                            "ident": {
-                                              "ident": 7,
-                                              "span": {
-                                                "start": 88,
-                                                "end": 93
-                                              },
-                                              "id": 11
-                                            },
-                                            "generics": null
+                                      "Pattern": {
+                                        "ty": {
+                                          "ident": {
+                                            "ident_type": "LocalOrUse",
+                                            "idents": [
+                                              {
+                                                "ident": 7,
+                                                "span": {
+                                                  "start": 88,
+                                                  "end": 93
+                                                },
+                                                "id": 9
+                                              }
+                                            ]
+                                          },
+                                          "generics": {
+                                            "generics": []
                                           }
-                                        ]
+                                        },
+                                        "exprs": []
                                       }
                                     },
                                     "span": {
                                       "start": 88,
                                       "end": 93
                                     },
-                                    "id": 12
+                                    "id": 10
                                   }
                                 ]
                               }
@@ -210,7 +193,7 @@
                                 "start": 98,
                                 "end": 100
                               },
-                              "id": 13
+                              "id": 11
                             },
                             "implicit_return": true
                           }
@@ -219,79 +202,73 @@
                           "start": 98,
                           "end": 100
                         },
-                        "id": 14
+                        "id": 12
                       },
                       "span": {
                         "start": 41,
                         "end": 100
                       },
-                      "id": 15
+                      "id": 13
                     },
                     {
                       "pattern": {
                         "Destructure": {
                           "ty": {
-                            "kind": {
-                              "Path": {
-                                "path": {
-                                  "ident": {
-                                    "ident_type": "LocalOrUse",
-                                    "idents": [
-                                      {
-                                        "ident": 3,
-                                        "span": {
-                                          "start": 106,
-                                          "end": 113
-                                        },
-                                        "id": 16
-                                      },
-                                      {
-                                        "ident": 4,
-                                        "span": {
-                                          "start": 115,
-                                          "end": 119
-                                        },
-                                        "id": 17
-                                      }
-                                    ]
+                            "ident": {
+                              "ident_type": "LocalOrUse",
+                              "idents": [
+                                {
+                                  "ident": 3,
+                                  "span": {
+                                    "start": 106,
+                                    "end": 113
                                   },
-                                  "generics": {
-                                    "generics": []
-                                  }
+                                  "id": 14
+                                },
+                                {
+                                  "ident": 4,
+                                  "span": {
+                                    "start": 115,
+                                    "end": 119
+                                  },
+                                  "id": 15
                                 }
-                              }
+                              ]
                             },
-                            "span": {
-                              "start": 106,
-                              "end": 119
-                            },
-                            "id": 18
+                            "generics": {
+                              "generics": []
+                            }
                           },
                           "exprs": [
                             {
                               "kind": {
-                                "Path": {
-                                  "ident_type": "LocalOrUse",
-                                  "segments": [
-                                    {
-                                      "ident": {
-                                        "ident": 9,
-                                        "span": {
-                                          "start": 120,
-                                          "end": 123
-                                        },
-                                        "id": 19
-                                      },
-                                      "generics": null
+                                "Pattern": {
+                                  "ty": {
+                                    "ident": {
+                                      "ident_type": "LocalOrUse",
+                                      "idents": [
+                                        {
+                                          "ident": 9,
+                                          "span": {
+                                            "start": 120,
+                                            "end": 123
+                                          },
+                                          "id": 16
+                                        }
+                                      ]
+                                    },
+                                    "generics": {
+                                      "generics": []
                                     }
-                                  ]
+                                  },
+                                  "exprs": []
                                 }
                               },
                               "span": {
                                 "start": 120,
                                 "end": 123
                               },
-                              "id": 20
+                              "id": 17
                             }
                           ]
                         }
@@ -311,7 +288,7 @@
                                           "start": 128,
                                           "end": 131
                                         },
-                                        "id": 21
+                                        "id": 18
                                       },
                                       "generics": null
                                     }
@@ -322,7 +299,7 @@
                                 "start": 128,
                                 "end": 131
                               },
-                              "id": 22
+                              "id": 19
                             },
                             "implicit_return": true
                           }
@@ -331,104 +308,83 @@
                           "start": 128,
                           "end": 131
                         },
-                        "id": 23
+                        "id": 20
                       },
                       "span": {
                         "start": 106,
                         "end": 131
                       },
-                      "id": 24
+                      "id": 21
                     },
                     {
                       "pattern": {
                         "Destructure": {
                           "ty": {
-                            "kind": {
-                              "Path": {
-                                "path": {
-                                  "ident": {
-                                    "ident_type": "LocalOrUse",
-                                    "idents": [
-                                      {
-                                        "ident": 3,
-                                        "span": {
-                                          "start": 137,
-                                          "end": 144
-                                        },
-                                        "id": 25
-                                      },
-                                      {
-                                        "ident": 6,
-                                        "span": {
-                                          "start": 146,
-                                          "end": 151
-                                        },
-                                        "id": 26
-                                      }
-                                    ]
+                            "ident": {
+                              "ident_type": "LocalOrUse",
+                              "idents": [
+                                {
+                                  "ident": 3,
+                                  "span": {
+                                    "start": 137,
+                                    "end": 144
                                   },
-                                  "generics": {
-                                    "generics": []
-                                  }
+                                  "id": 22
+                                },
+                                {
+                                  "ident": 6,
+                                  "span": {
+                                    "start": 146,
+                                    "end": 151
+                                  },
+                                  "id": 23
                                 }
-                              }
+                              ]
                             },
-                            "span": {
-                              "start": 137,
-                              "end": 151
-                            },
-                            "id": 27
+                            "generics": {
+                              "generics": []
+                            }
                           },
                           "exprs": [
                             {
                               "kind": {
-                                "Path": {
-                                  "ident_type": "LocalOrUse",
-                                  "segments": [
-                                    {
-                                      "ident": {
-                                        "ident": 10,
-                                        "span": {
-                                          "start": 152,
-                                          "end": 159
-                                        },
-                                        "id": 28
-                                      },
-                                      "generics": null
-                                    }
-                                  ]
-                                }
+                                "Identifier": 10
                               },
                               "span": {
                                 "start": 152,
                                 "end": 159
                               },
-                              "id": 29
+                              "id": 24
                             },
                             {
                               "kind": {
-                                "Path": {
-                                  "ident_type": "LocalOrUse",
-                                  "segments": [
-                                    {
-                                      "ident": {
-                                        "ident": 7,
-                                        "span": {
-                                          "start": 161,
-                                          "end": 166
-                                        },
-                                        "id": 30
-                                      },
-                                      "generics": null
+                                "Pattern": {
+                                  "ty": {
+                                    "ident": {
+                                      "ident_type": "LocalOrUse",
+                                      "idents": [
+                                        {
+                                          "ident": 7,
+                                          "span": {
+                                            "start": 161,
+                                            "end": 166
+                                          },
+                                          "id": 25
+                                        }
+                                      ]
+                                    },
+                                    "generics": {
+                                      "generics": []
                                     }
-                                  ]
+                                  },
+                                  "exprs": []
                                 }
                               },
                               "span": {
                                 "start": 161,
                                 "end": 166
                               },
-                              "id": 31
+                              "id": 26
                             }
                           ]
                         }
@@ -448,7 +404,7 @@
                                           "start": 171,
                                           "end": 178
                                         },
-                                        "id": 32
+                                        "id": 27
                                       },
                                       "generics": null
                                     }
@@ -459,7 +415,7 @@
                                 "start": 171,
                                 "end": 178
                               },
-                              "id": 33
+                              "id": 28
                             },
                             "implicit_return": true
                           }
@@ -468,13 +424,13 @@
                           "start": 171,
                           "end": 178
                         },
-                        "id": 34
+                        "id": 29
                       },
                       "span": {
                         "start": 137,
                         "end": 178
                       },
-                      "id": 35
+                      "id": 30
                     }
                   ]
                 }
@@ -483,7 +439,7 @@
                 "start": 21,
                 "end": 181
               },
-              "id": 36
+              "id": 31
             }
           }
         },
@@ -491,7 +447,7 @@
           "start": 0,
           "end": 182
         },
-        "id": 37
+        "id": 32
       }
     ]
   }

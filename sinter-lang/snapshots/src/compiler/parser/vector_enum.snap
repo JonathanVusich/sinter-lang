@@ -19,7 +19,7 @@
       "self"
     ],
     "crate_id": 0,
-    "local_def_id": 100
+    "local_def_id": 98
   },
   {
     "path": {
@@ -511,33 +511,22 @@
                                     "pattern": {
                                       "Ty": {
                                         "ty": {
-                                          "kind": {
-                                            "Path": {
-                                              "path": {
-                                                "ident": {
-                                                  "ident_type": "LocalOrUse",
-                                                  "idents": [
-                                                    {
-                                                      "ident": 7,
-                                                      "span": {
-                                                        "start": 213,
-                                                        "end": 223
-                                                      },
-                                                      "id": 41
-                                                    }
-                                                  ]
+                                          "ident": {
+                                            "ident_type": "LocalOrUse",
+                                            "idents": [
+                                              {
+                                                "ident": 7,
+                                                "span": {
+                                                  "start": 213,
+                                                  "end": 223
                                                 },
-                                                "generics": {
-                                                  "generics": []
-                                                }
+                                                "id": 41
                                               }
-                                            }
+                                            ]
                                           },
-                                          "span": {
-                                            "start": 213,
-                                            "end": 223
-                                          },
-                                          "id": 42
+                                          "generics": {
+                                            "generics": []
+                                          }
                                         },
                                         "ident": 12
                                       }
@@ -557,7 +546,7 @@
                                                         "start": 238,
                                                         "end": 248
                                                       },
-                                                      "id": 43
+                                                      "id": 42
                                                     },
                                                     "generics": null
                                                   }
@@ -568,7 +557,7 @@
                                               "start": 238,
                                               "end": 248
                                             },
-                                            "id": 44
+                                            "id": 43
                                           },
                                           "implicit_return": true
                                         }
@@ -577,45 +566,34 @@
                                         "start": 238,
                                         "end": 248
                                       },
-                                      "id": 45
+                                      "id": 44
                                     },
                                     "span": {
                                       "start": 213,
                                       "end": 248
                                     },
-                                    "id": 46
+                                    "id": 45
                                   },
                                   {
                                     "pattern": {
                                       "Ty": {
                                         "ty": {
-                                          "kind": {
-                                            "Path": {
-                                              "path": {
-                                                "ident": {
-                                                  "ident_type": "LocalOrUse",
-                                                  "idents": [
-                                                    {
-                                                      "ident": 10,
-                                                      "span": {
-                                                        "start": 262,
-                                                        "end": 270
-                                                      },
-                                                      "id": 47
-                                                    }
-                                                  ]
+                                          "ident": {
+                                            "ident_type": "LocalOrUse",
+                                            "idents": [
+                                              {
+                                                "ident": 10,
+                                                "span": {
+                                                  "start": 262,
+                                                  "end": 270
                                                 },
-                                                "generics": {
-                                                  "generics": []
-                                                }
+                                                "id": 46
                                               }
-                                            }
+                                            ]
                                           },
-                                          "span": {
-                                            "start": 262,
-                                            "end": 270
-                                          },
-                                          "id": 48
+                                          "generics": {
+                                            "generics": []
+                                          }
                                         },
                                         "ident": 13
                                       }
@@ -633,7 +611,7 @@
                                                       "start": 300,
                                                       "end": 309
                                                     },
-                                                    "id": 49
+                                                    "id": 47
                                                   },
                                                   "mutability": "Immutable",
                                                   "ty": null,
@@ -652,7 +630,7 @@
                                                                       "start": 312,
                                                                       "end": 316
                                                                     },
-                                                                    "id": 50
+                                                                    "id": 48
                                                                   },
                                                                   "generics": null
                                                                 },
@@ -663,7 +641,7 @@
                                                                       "start": 318,
                                                                       "end": 322
                                                                     },
-                                                                    "id": 51
+                                                                    "id": 49
                                                                   },
                                                                   "generics": null
                                                                 }
@@ -674,7 +652,7 @@
                                                             "start": 312,
                                                             "end": 322
                                                           },
-                                                          "id": 52
+                                                          "id": 50
                                                         },
                                                         "args": {
                                                           "args": [
@@ -701,7 +679,7 @@
                                                                                             "start": 323,
                                                                                             "end": 326
                                                                                           },
-                                                                                          "id": 53
+                                                                                          "id": 51
                                                                                         },
                                                                                         "generics": null
                                                                                       }
@@ -712,7 +690,7 @@
                                                                                   "start": 323,
                                                                                   "end": 326
                                                                                 },
-                                                                                "id": 54
+                                                                                "id": 52
                                                                               },
                                                                               "ident": {
                                                                                 "ident": 8,
@@ -720,7 +698,7 @@
                                                                                   "start": 327,
                                                                                   "end": 328
                                                                                 },
-                                                                                "id": 55
+                                                                                "id": 53
                                                                               }
                                                                             }
                                                                           },
@@ -728,7 +706,7 @@
                                                                             "start": 323,
                                                                             "end": 328
                                                                           },
-                                                                          "id": 56
+                                                                          "id": 54
                                                                         },
                                                                         "rhs": {
                                                                           "kind": {
@@ -745,7 +723,7 @@
                                                                                             "start": 331,
                                                                                             "end": 334
                                                                                           },
-                                                                                          "id": 57
+                                                                                          "id": 55
                                                                                         },
                                                                                         "generics": null
                                                                                       }
@@ -756,7 +734,7 @@
                                                                                   "start": 331,
                                                                                   "end": 334
                                                                                 },
-                                                                                "id": 58
+                                                                                "id": 56
                                                                               },
                                                                               "ident": {
                                                                                 "ident": 8,
@@ -764,7 +742,7 @@
                                                                                   "start": 335,
                                                                                   "end": 336
                                                                                 },
-                                                                                "id": 59
+                                                                                "id": 57
                                                                               }
                                                                             }
                                                                           },
@@ -772,7 +750,7 @@
                                                                             "start": 331,
                                                                             "end": 336
                                                                           },
-                                                                          "id": 60
+                                                                          "id": 58
                                                                         }
                                                                       }
                                                                     },
@@ -780,7 +758,7 @@
                                                                       "start": 323,
                                                                       "end": 336
                                                                     },
-                                                                    "id": 61
+                                                                    "id": 59
                                                                   },
                                                                   "rhs": {
                                                                     "kind": {
@@ -801,7 +779,7 @@
                                                                                             "start": 339,
                                                                                             "end": 342
                                                                                           },
-                                                                                          "id": 62
+                                                                                          "id": 60
                                                                                         },
                                                                                         "generics": null
                                                                                       }
@@ -812,7 +790,7 @@
                                                                                   "start": 339,
                                                                                   "end": 342
                                                                                 },
-                                                                                "id": 63
+                                                                                "id": 61
                                                                               },
                                                                               "ident": {
                                                                                 "ident": 9,
@@ -820,7 +798,7 @@
                                                                                   "start": 343,
                                                                                   "end": 344
                                                                                 },
-                                                                                "id": 64
+                                                                                "id": 62
                                                                               }
                                                                             }
                                                                           },
@@ -828,7 +806,7 @@
                                                                             "start": 339,
                                                                             "end": 344
                                                                           },
-                                                                          "id": 65
+                                                                          "id": 63
                                                                         },
                                                                         "rhs": {
                                                                           "kind": {
@@ -845,7 +823,7 @@
                                                                                             "start": 347,
                                                                                             "end": 350
                                                                                           },
-                                                                                          "id": 66
+                                                                                          "id": 64
                                                                                         },
                                                                                         "generics": null
                                                                                       }
@@ -856,7 +834,7 @@
                                                                                   "start": 347,
                                                                                   "end": 350
                                                                                 },
-                                                                                "id": 67
+                                                                                "id": 65
                                                                               },
                                                                               "ident": {
                                                                                 "ident": 9,
@@ -864,7 +842,7 @@
                                                                                   "start": 351,
                                                                                   "end": 352
                                                                                 },
-                                                                                "id": 68
+                                                                                "id": 66
                                                                               }
                                                                             }
                                                                           },
@@ -872,7 +850,7 @@
                                                                             "start": 347,
                                                                             "end": 352
                                                                           },
-                                                                          "id": 69
+                                                                          "id": 67
                                                                         }
                                                                       }
                                                                     },
@@ -880,7 +858,7 @@
                                                                       "start": 339,
                                                                       "end": 352
                                                                     },
-                                                                    "id": 70
+                                                                    "id": 68
                                                                   }
                                                                 }
                                                               },
@@ -888,7 +866,7 @@
                                                                 "start": 323,
                                                                 "end": 352
                                                               },
-                                                              "id": 71
+                                                              "id": 69
                                                             }
                                                           ]
                                                         }
@@ -898,7 +876,7 @@
                                                       "start": 312,
                                                       "end": 353
                                                     },
-                                                    "id": 72
+                                                    "id": 70
                                                   }
                                                 }
                                               },
@@ -906,7 +884,7 @@
                                                 "start": 296,
                                                 "end": 354
                                               },
-                                              "id": 73
+                                              "id": 71
                                             },
                                             {
                                               "kind": {
@@ -926,7 +904,7 @@
                                                                       "start": 371,
                                                                       "end": 381
                                                                     },
-                                                                    "id": 74
+                                                                    "id": 72
                                                                   },
                                                                   "generics": null
                                                                 }
@@ -937,7 +915,7 @@
                                                             "start": 371,
                                                             "end": 381
                                                           },
-                                                          "id": 75
+                                                          "id": 73
                                                         },
                                                         "args": {
                                                           "args": [
@@ -960,7 +938,7 @@
                                                                                       "start": 382,
                                                                                       "end": 385
                                                                                     },
-                                                                                    "id": 76
+                                                                                    "id": 74
                                                                                   },
                                                                                   "generics": null
                                                                                 }
@@ -971,7 +949,7 @@
                                                                             "start": 382,
                                                                             "end": 385
                                                                           },
-                                                                          "id": 77
+                                                                          "id": 75
                                                                         },
                                                                         "ident": {
                                                                           "ident": 8,
@@ -979,7 +957,7 @@
                                                                             "start": 386,
                                                                             "end": 387
                                                                           },
-                                                                          "id": 78
+                                                                          "id": 76
                                                                         }
                                                                       }
                                                                     },
@@ -987,7 +965,7 @@
                                                                       "start": 382,
                                                                       "end": 387
                                                                     },
-                                                                    "id": 79
+                                                                    "id": 77
                                                                   },
                                                                   "rhs": {
                                                                     "kind": {
@@ -1001,7 +979,7 @@
                                                                                 "start": 390,
                                                                                 "end": 399
                                                                               },
-                                                                              "id": 80
+                                                                              "id": 78
                                                                             },
                                                                             "generics": null
                                                                           }
@@ -1012,7 +990,7 @@
                                                                       "start": 390,
                                                                       "end": 399
                                                                     },
-                                                                    "id": 81
+                                                                    "id": 79
                                                                   }
                                                                 }
                                                               },
@@ -1020,7 +998,7 @@
                                                                 "start": 382,
                                                                 "end": 399
                                                               },
-                                                              "id": 82
+                                                              "id": 80
                                                             },
                                                             {
                                                               "kind": {
@@ -1041,7 +1019,7 @@
                                                                                       "start": 401,
                                                                                       "end": 404
                                                                                     },
-                                                                                    "id": 83
+                                                                                    "id": 81
                                                                                   },
                                                                                   "generics": null
                                                                                 }
@@ -1052,7 +1030,7 @@
                                                                             "start": 401,
                                                                             "end": 404
                                                                           },
-                                                                          "id": 84
+                                                                          "id": 82
                                                                         },
                                                                         "ident": {
                                                                           "ident": 9,
@@ -1060,7 +1038,7 @@
                                                                             "start": 405,
                                                                             "end": 406
                                                                           },
-                                                                          "id": 85
+                                                                          "id": 83
                                                                         }
                                                                       }
                                                                     },
@@ -1068,7 +1046,7 @@
                                                                       "start": 401,
                                                                       "end": 406
                                                                     },
-                                                                    "id": 86
+                                                                    "id": 84
                                                                   },
                                                                   "rhs": {
                                                                     "kind": {
@@ -1082,7 +1060,7 @@
                                                                                 "start": 409,
                                                                                 "end": 418
                                                                               },
-                                                                              "id": 87
+                                                                              "id": 85
                                                                             },
                                                                             "generics": null
                                                                           }
@@ -1093,7 +1071,7 @@
                                                                       "start": 409,
                                                                       "end": 418
                                                                     },
-                                                                    "id": 88
+                                                                    "id": 86
                                                                   }
                                                                 }
                                                               },
@@ -1101,7 +1079,7 @@
                                                                 "start": 401,
                                                                 "end": 418
                                                               },
-                                                              "id": 89
+                                                              "id": 87
                                                             }
                                                           ]
                                                         }
@@ -1111,7 +1089,7 @@
                                                       "start": 371,
                                                       "end": 419
                                                     },
-                                                    "id": 90
+                                                    "id": 88
                                                   },
                                                   "implicit_return": false
                                                 }
@@ -1120,27 +1098,27 @@
                                                 "start": 371,
                                                 "end": 419
                                               },
-                                              "id": 91
+                                              "id": 89
                                             }
                                           ],
                                           "span": {
                                             "start": 278,
                                             "end": 433
                                           },
-                                          "id": 92
+                                          "id": 90
                                         }
                                       },
                                       "span": {
                                         "start": 278,
                                         "end": 433
                                       },
-                                      "id": 93
+                                      "id": 91
                                     },
                                     "span": {
                                       "start": 262,
                                       "end": 433
                                     },
-                                    "id": 94
+                                    "id": 92
                                   }
                                 ]
                               }
@@ -1149,7 +1127,7 @@
                               "start": 188,
                               "end": 443
                             },
-                            "id": 95
+                            "id": 93
                           },
                           "implicit_return": false
                         }
@@ -1158,20 +1136,20 @@
                         "start": 188,
                         "end": 443
                       },
-                      "id": 96
+                      "id": 94
                     }
                   ],
                   "span": {
                     "start": 178,
                     "end": 449
                   },
-                  "id": 97
+                  "id": 95
                 },
                 "span": {
                   "start": 145,
                   "end": 449
                 },
-                "id": 98
+                "id": 96
               }
             ]
           }
@@ -1180,7 +1158,7 @@
           "start": 51,
           "end": 451
         },
-        "id": 99
+        "id": 97
       }
     ]
   }

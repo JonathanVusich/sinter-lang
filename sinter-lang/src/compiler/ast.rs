@@ -62,7 +62,12 @@ pub enum ExprKind {
     Call(CallExpr),
     Infix(InfixExpr),
     Unary(UnaryExpr),
-    Literal(Literal),
+    True,
+    False,
+    Float(f64),
+    Integer(i64),
+    String(InternedStr),
+    None,
     Match(MatchExpr),
     Closure(ClosureExpr),
     Assign(AssignExpr),
@@ -85,16 +90,6 @@ impl Expr {
     pub fn new(kind: ExprKind, span: Span, id: LocalDefId) -> Self {
         Self { kind, span, id }
     }
-}
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub enum Literal {
-    True,
-    False,
-    Float(f64),
-    Integer(i64),
-    String(InternedStr),
-    None,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -993,7 +988,12 @@ pub enum Pattern {
     // _
     Or(OrPattern),
     // pat | pat
-    Literal(Literal),
+    True,
+    False,
+    Float(f64),
+    Integer(i64),
+    String(InternedStr),
+    None,
     // "true"
     Ty(TyPattern),
     // Logical logical => { }
@@ -1065,9 +1065,9 @@ impl DestructurePattern {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct DestructureExpr {
-    kind: DestructureExprKind,
-    span: Span,
-    id: LocalDefId,
+    pub(crate) kind: DestructureExprKind,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
 }
 
 impl DestructureExpr {
@@ -1078,9 +1078,14 @@ impl DestructureExpr {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum DestructureExprKind {
-    Pattern(Box<DestructurePattern>),
+    Pattern(DestructurePattern),
     Identifier(InternedStr),
-    Literal(Literal),
+    True,
+    False,
+    Float(f64),
+    Integer(i64),
+    String(InternedStr),
+    None,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]

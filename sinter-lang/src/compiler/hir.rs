@@ -1,20 +1,14 @@
 use std::borrow::Borrow;
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::marker::PhantomData;
+use std::collections::{BTreeMap, HashMap};
 use std::ops::{Deref, DerefMut};
-use std::slice::SliceIndex;
 
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{
-    Ident, InfixOp, Literal as AstLiteral, Mutability, QualifiedIdent, UnaryOp,
-};
+use crate::compiler::ast::{Ident, InfixOp, Mutability, UnaryOp};
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::ClassType;
-use crate::compiler::path::ModulePath;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::{InternedStr, StrMap};
-use crate::traits::traits::Trait;
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct DefId {
@@ -112,6 +106,7 @@ pub enum HirNodeKind {
     EnumMember(EnumMember),
 
     Expr(Expr),
+    DestructureExpr(DestructureExpr),
     Stmt(Stmt),
     Ty(Ty),
     Block(Block),
@@ -418,7 +413,12 @@ pub enum Expr {
     Constructor(CallExpr),
     Infix(InfixExpr),
     Unary(UnaryExpr),
-    Literal(Literal),
+    None,
+    True,
+    False,
+    Integer(i64),
+    Float(f64),
+    String(InternedStr),
     Match(MatchExpr),
     Closure(ClosureExpr),
     Assign(AssignExpr),
@@ -430,7 +430,9 @@ pub enum Expr {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum Literal {
+pub enum DestructureExpr {
+    Pattern(DestructurePattern),
+    Identifier(InternedStr),
     None,
     True,
     False,
@@ -439,20 +441,14 @@ pub enum Literal {
     String(InternedStr),
 }
 
-impl<T> From<T> for Literal
-where
-    T: Borrow<AstLiteral>,
-{
-    fn from(value: T) -> Self {
-        match value.borrow() {
-            AstLiteral::True => Literal::True,
-            AstLiteral::False => Literal::False,
-            AstLiteral::Float(float) => Literal::Float(*float),
-            AstLiteral::Integer(integer) => Literal::Integer(*integer),
-            AstLiteral::String(string) => Literal::String(*string),
-            AstLiteral::None => Literal::None,
-        }
-    }
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Literal {
+    None,
+    True,
+    False,
+    Integer(i64),
+    Float(f64),
+    String(InternedStr),
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -530,7 +526,12 @@ impl MatchArm {
 pub enum Pattern {
     Wildcard,
     Or(OrPattern),
-    Literal(Literal),
+    None,
+    True,
+    False,
+    Integer(i64),
+    Float(f64),
+    String(InternedStr),
     Ty(TyPattern),
     Destructure(DestructurePattern),
 }

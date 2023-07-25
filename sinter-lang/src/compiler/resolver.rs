@@ -1,40 +1,38 @@
 use std::any::Any;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
-use std::process::id;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{
     ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt,
-    ClosureParam as AstClosureParam, EnumMember as AstEnumMember, EnumStmt as AstEnumStmt,
-    ExprKind as AstExprKind, Fields as AstFields, FnSelfStmt as AstFnSelfStmt, FnSelfStmt,
-    FnSig as AstFnSig, FnStmt as AstFnStmt, GenericParams as AstGenericParams,
-    Generics as AstGenerics, GlobalLetStmt, Ident, IdentType, Item as AstItem, Item,
-    ItemKind as AstItemKind, ItemKind, Literal as AstLiteral, MatchArm as AstMatchArm, Module,
-    Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
+    ClosureParam as AstClosureParam, DestructureExpr as AstDestructureExpr,
+    DestructureExprKind as AstDestructureExprKind, DestructureExprKind,
+    DestructurePattern as AstDestructurePattern, EnumMember as AstEnumMember,
+    EnumStmt as AstEnumStmt, Expr as AstExpr, ExprKind as AstExprKind, Field as AstField,
+    Fields as AstFields, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
+    FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt,
+    IdentType, Item as AstItem, Item, ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm,
+    Module, Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
     Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
     TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
-    TyKind as AstTyKind, UseStmt,
+    TyKind as AstTyKind,
 };
-use crate::compiler::ast::{Expr as AstExpr, Field as AstField};
-use crate::compiler::ast_passes::NameCollector;
 use crate::compiler::compiler::CompileError;
-use crate::compiler::hir;
 use crate::compiler::hir::{
     Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, DestructurePattern, EnumMember, EnumMembers, EnumStmt, Expr, Expression,
-    Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam, GenericParams,
-    Generics, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, Literal,
+    ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember, EnumMembers, EnumStmt,
+    Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam,
+    GenericParams, Generics, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt,
     LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern,
     PatternLocal, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitImplStmt, TraitStmt, Ty,
     TyPattern, UnaryExpr, WhileStmt,
 };
-use crate::compiler::krate::{Crate, CrateId, ModuleMap};
+use crate::compiler::krate::{Crate, ModuleMap};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError::{DefinitionNotFound, DuplicateLocalDefIds};
 use crate::compiler::tokens::tokenized_file::Span;
@@ -884,7 +882,12 @@ impl<'a> CrateResolver<'a> {
 
                 Expr::Unary(UnaryExpr::new(unary.operator, expr))
             }
-            AstExprKind::Literal(literal) => Expr::Literal(literal.into()),
+            AstExprKind::String(string) => Expr::String(*string),
+            AstExprKind::Integer(integer) => Expr::Integer(*integer),
+            AstExprKind::Float(float) => Expr::Float(*float),
+            AstExprKind::False => Expr::False,
+            AstExprKind::True => Expr::True,
+            AstExprKind::None => Expr::None,
             AstExprKind::Match(match_expr) => {
                 let source = self.resolve_expr(&match_expr.source)?;
                 let arms = match_expr
@@ -943,6 +946,33 @@ impl<'a> CrateResolver<'a> {
         };
 
         self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id))?;
+        Ok(id)
+    }
+
+    fn resolve_destructure_expr(
+        &mut self,
+        destructure_expr: &AstDestructureExpr,
+    ) -> Result<LocalDefId, ResolveError> {
+        let expr = match &destructure_expr.kind {
+            AstDestructureExprKind::Pattern(pattern) => {
+                let pattern = self.resolve_destructure_pattern(pattern)?;
+                DestructureExpr::Pattern(pattern)
+            }
+            AstDestructureExprKind::Identifier(ident) => DestructureExpr::Identifier(*ident),
+            DestructureExprKind::True => DestructureExpr::True,
+            DestructureExprKind::False => DestructureExpr::False,
+            DestructureExprKind::Float(float) => DestructureExpr::Float(*float),
+            DestructureExprKind::Integer(integer) => DestructureExpr::Integer(*integer),
+            DestructureExprKind::String(string) => DestructureExpr::String(*string),
+            DestructureExprKind::None => DestructureExpr::None,
+        };
+
+        let id = destructure_expr.id;
+        let span = destructure_expr.span;
+        self.insert_node(
+            id,
+            HirNode::new(HirNodeKind::DestructureExpr(expr), span, id),
+        )?;
         Ok(id)
     }
 
@@ -1164,7 +1194,6 @@ impl<'a> CrateResolver<'a> {
                     .collect::<Result<Vec<Pattern>, ResolveError>>()?;
                 Pattern::Or(OrPattern::new(patterns))
             }
-            AstPattern::Literal(literal) => Pattern::Literal(literal.into()),
             AstPattern::Ty(ty_patt) => {
                 let resolved_ty = self.resolve_path_ty(&ty_patt.ty)?;
                 Pattern::Ty(TyPattern::new(
@@ -1175,19 +1204,30 @@ impl<'a> CrateResolver<'a> {
                 ))
             }
             AstPattern::Destructure(de_patt) => {
-                let resolved_ty = self.resolve_path_ty(&de_patt.ty)?;
-                let exprs = de_patt
-                    .exprs
-                    .iter()
-                    .map(|expr| self.resolve_expr(expr))
-                    .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
-                // I think this needs some more formal validation when parsing to only allow constants,
-                // calls (for nested destructuring?) and naked vars that are wildcard references.
-
-                Pattern::Destructure(DestructurePattern::new(resolved_ty, exprs))
+                let destructure_pattern = self.resolve_destructure_pattern(&de_patt)?;
+                Pattern::Destructure(destructure_pattern)
             }
+            AstPattern::True => Pattern::True,
+            AstPattern::False => Pattern::False,
+            AstPattern::Float(float) => Pattern::Float(*float),
+            AstPattern::Integer(integer) => Pattern::Integer(*integer),
+            AstPattern::String(string) => Pattern::String(*string),
+            AstPattern::None => Pattern::None,
         };
         Ok(hir_pattern)
+    }
+
+    fn resolve_destructure_pattern(
+        &mut self,
+        de_patt: &AstDestructurePattern,
+    ) -> Result<DestructurePattern, ResolveError> {
+        let resolved_ty = self.resolve_path_ty(&de_patt.ty)?;
+        let exprs = de_patt
+            .exprs
+            .iter()
+            .map(|expr| self.resolve_destructure_expr(expr))
+            .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
+        Ok(DestructurePattern::new(resolved_ty, exprs))
     }
 
     fn resolve_qualified_ident(&mut self, ident: &QualifiedIdent) -> Result<DefId, ResolveError> {
@@ -1234,15 +1274,10 @@ impl<'a> CrateResolver<'a> {
 }
 
 mod tests {
-    use std::collections::HashMap;
-
     use snap::snapshot;
 
-    use crate::compiler::compiler::{Application, CompileError, Compiler, CompilerCtxt};
+    use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
     use crate::compiler::hir::HirCrate;
-    use crate::compiler::krate::{Crate, CrateId};
-    use crate::compiler::path::ModulePath;
-    use crate::compiler::resolver::{resolve, CrateResolver, Resolver};
     use crate::compiler::types::StrMap;
     use crate::compiler::StringInterner;
     use crate::util::utils;
