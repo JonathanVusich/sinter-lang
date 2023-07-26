@@ -10,6 +10,7 @@ use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::{ClassType, ParseError};
 use crate::compiler::path::ModulePath;
+use crate::compiler::resolver::ModuleNS;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::InternedStr;
 use crate::traits::traits::Trait;
@@ -131,6 +132,7 @@ pub enum TyKind {
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Module {
     pub(crate) path: ModulePath,
+    pub(crate) ns: ModuleNS,
     pub(crate) items: Vec<Item>,
 }
 
@@ -138,6 +140,7 @@ impl Module {
     pub fn new(items: Vec<Item>) -> Self {
         Self {
             path: Default::default(),
+            ns: Default::default(),
             items,
         }
     }

@@ -170,12 +170,56 @@ impl Crate {
         self.module_lookup.get(module_path).copied()
     }
 
+    pub fn find_definition(
+        &self,
+        ident: &QualifiedIdent,
+        trim_crate_name: bool,
+    ) -> Option<CrateDef> {
+        let mut module_path = ModulePath::from(ident);
+        if trim_crate_name {
+            module_path.pop_front();
+        }
+        match self.module_lookup.get(&module_path) {
+            Some(mod_id) => Some(CrateDef::Module(*mod_id)),
+            None => {
+                let value = module_path.pop_back().unwrap();
+                match self.module_lookup.get(&module_path) {
+                    Some(mod_id) => {
+                        let module = self.modules.get(mod_id.module_id()).unwrap();
+                        module.ns.find_value(value).map(|val| CrateDef::Value(val))
+                    }
+                    None => {
+                        let enum_name = module_path.pop_back().unwrap();
+                        // Reuse previously popped value
+                        let enum_discriminant = value;
+                        match self.module_lookup.get(&module_path) {
+                            Some(mod_id) => {
+                                let module = self.modules.get(mod_id.module_id()).unwrap();
+                                module
+                                    .ns
+                                    .find_enum_members(enum_name)
+                                    .map(|members| members.get(&enum_discriminant))
+                                    .flatten()
+                                    .map(|val| CrateDef::Value(*val))
+                            }
+                            None => None,
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     pub fn module(&self, module_id: usize) -> &Module {
         self.modules.get(module_id).unwrap()
     }
 
     pub fn modules(&self) -> impl Iterator<Item = &Module> {
         self.modules.iter()
+    }
+
+    pub fn modules_mut(&mut self) -> impl Iterator<Item = &mut Module> {
+        self.modules.iter_mut()
     }
 
     pub fn used_crates(&self) -> HashSet<UsedCrate> {
@@ -185,4 +229,10 @@ impl Crate {
         }
         used_crates
     }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum CrateDef {
+    Module(ModuleId),
+    Value(DefId),
 }
