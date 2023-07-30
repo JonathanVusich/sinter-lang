@@ -230,7 +230,7 @@ mod tests {
         );
         let krates = StrMap::from([(krate_name, krate)]);
         let krate = krates.get(&krate_name).unwrap();
-        let module = krate.module(0);
+        let module = krate.module(ModuleId::new(0, 0));
         (
             StringInterner::from(compiler_ctxt),
             crate::compiler::validator::validate(&krates, krate, module),

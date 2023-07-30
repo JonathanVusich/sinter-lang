@@ -15,7 +15,7 @@ use walkdir::{DirEntry, WalkDir};
 use crate::compiler::ast::{AstPass, Item, ItemKind, Module, QualifiedIdent, Stmt, UseStmt};
 use crate::compiler::ast_passes::{NameCollector, UsedCrateCollector};
 use crate::compiler::codegen::code_generator::emit_code;
-use crate::compiler::hir::{HirCrate, LocalDefId};
+use crate::compiler::hir::{HirCrate, LocalDefId, ModuleId};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseError};
@@ -125,9 +125,12 @@ impl CompilerCtxt {
         self.local_def_id as u32
     }
 
-    pub(crate) fn module_path(&mut self, path: &Path) -> Result<ModulePath, CompileError> {
+    pub(crate) fn module_path<T: AsRef<Path>>(
+        &mut self,
+        path: T,
+    ) -> Result<ModulePath, CompileError> {
         let mut segments = Vec::new();
-        for segment in path.iter() {
+        for segment in path.as_ref().iter() {
             let segment = segment
                 .to_str()
                 .ok_or_else(|| CompileError::InvalidModuleName(segment.to_os_string()))?;
@@ -151,12 +154,12 @@ impl Compiler {
     }
 
     pub(crate) fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
-        let crates = self.parse_crates(&application)?;
+        let mut crates = self.parse_crates(&application)?;
         self.validate_crates(&crates)?;
 
         // TODO: Create crate resolution metadata and report initial resolution errors.
         // We cannot resolve everything in one pass, first we do use validation, var declaration validation, etc.
-        let resolved_crates = self.resolve_crates(&crates)?;
+        let resolved_crates = self.resolve_crates(&mut crates)?;
 
         // TODO: Implement type inference algorithm
         /* We need to assign a type to every expression in the AST. This may require making changes to the AST
@@ -244,10 +247,10 @@ impl Compiler {
             let local_path = local_to_root(file.path(), path)?;
             let module_path = self.compiler_ctxt.module_path(local_path)?;
 
-            let mut ast = self.parse_ast(file.path())?;
+            let mut module = self.parse_ast(file.path())?;
 
-            ast.path = module_path.clone();
-            krate.add_module(module_path, ast);
+            module.path = module_path.clone();
+            krate.add_module(module_path, module);
         }
 
         // Assign the last used local def id to the crate
@@ -277,14 +280,15 @@ impl Compiler {
 
     pub(crate) fn resolve_crates(
         &mut self,
-        crates: &StrMap<Crate>,
+        crates: &mut StrMap<Crate>,
     ) -> Result<StrMap<HirCrate>, CompileError> {
         resolve(crates)
     }
 }
 
-fn local_to_root<'a>(path: &'a Path, root: &Path) -> Result<&'a Path, CompileError> {
+fn local_to_root(path: &Path, root: &Path) -> Result<PathBuf, CompileError> {
     path.strip_prefix(root)
+        .map(|path| path.with_extension(""))
         .map_err(|err| CompileError::Generic(Box::new(err)))
 }
 

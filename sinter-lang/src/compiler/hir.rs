@@ -27,7 +27,7 @@ impl DefId {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Hash, Default, Copy, Clone, Serialize, Deserialize)]
 pub struct ModuleId {
     crate_id: u32,
     module_id: u32,

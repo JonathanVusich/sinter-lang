@@ -32,8 +32,20 @@ impl ModulePath {
         self.module_path.pop_back()
     }
 
+    pub fn last(&mut self) -> Option<InternedStr> {
+        self.module_path.back().copied()
+    }
+
     pub fn pop_front(&mut self) -> Option<InternedStr> {
         self.module_path.pop_front()
+    }
+
+    pub fn front(&mut self) -> Option<InternedStr> {
+        self.module_path.front().copied()
+    }
+
+    pub fn len(&self) -> usize {
+        self.module_path.len()
     }
 }
 

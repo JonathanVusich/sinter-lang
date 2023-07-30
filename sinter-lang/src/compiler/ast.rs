@@ -6,7 +6,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::hir::LocalDefId;
+use crate::compiler::hir::{LocalDefId, ModuleId};
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::{ClassType, ParseError};
 use crate::compiler::path::ModulePath;
@@ -132,6 +132,7 @@ pub enum TyKind {
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Module {
     pub(crate) path: ModulePath,
+    pub(crate) id: ModuleId,
     pub(crate) ns: ModuleNS,
     pub(crate) items: Vec<Item>,
 }
@@ -140,6 +141,7 @@ impl Module {
     pub fn new(items: Vec<Item>) -> Self {
         Self {
             path: Default::default(),
+            id: Default::default(),
             ns: Default::default(),
             items,
         }

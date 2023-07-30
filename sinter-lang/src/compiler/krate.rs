@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::{format, Formatter};
 use std::marker::PhantomData;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 use serde::de::{DeserializeOwned, SeqAccess, Visitor};
 use serde::ser::{SerializeSeq, SerializeStruct};
@@ -14,7 +14,7 @@ use crate::compiler::hir::{DefId, LocalDefId, ModuleId};
 use crate::compiler::parser::ParseError;
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ResolveError;
-use crate::compiler::types::InternedStr;
+use crate::compiler::types::{InternedStr, StrMap};
 
 #[derive(PartialEq, Eq, Debug, Default, Copy, Clone, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CrateId {
@@ -58,6 +58,12 @@ impl<T> Deref for ModuleMap<T> {
 
     fn deref(&self) -> &Self::Target {
         &self.table
+    }
+}
+
+impl<T> DerefMut for ModuleMap<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.table
     }
 }
 
@@ -157,12 +163,11 @@ impl Crate {
         self.crate_id.id as usize
     }
 
-    pub fn add_module(&mut self, module_path: ModulePath, module: Module) {
+    pub fn add_module(&mut self, module_path: ModulePath, mut module: Module) {
         let module_id = self.modules.len();
-        self.module_lookup.insert(
-            module_path,
-            ModuleId::new(self.crate_id.id, module_id as u32),
-        );
+        let full_mod_id = ModuleId::new(self.crate_id.id, module_id as u32);
+        module.id = full_mod_id;
+        self.module_lookup.insert(module_path, full_mod_id);
         self.modules.push(module);
     }
 
@@ -179,28 +184,36 @@ impl Crate {
         if trim_crate_name {
             module_path.pop_front();
         }
-        match self.module_lookup.get(&module_path) {
-            Some(mod_id) => Some(CrateDef::Module(*mod_id)),
+        match self.find_module(&module_path) {
+            Some(mod_id) => Some(CrateDef::Module(module_path.front()?, mod_id)),
             None => {
-                let value = module_path.pop_back().unwrap();
-                match self.module_lookup.get(&module_path) {
+                let value = module_path.pop_back()?;
+                match self.find_module(&module_path) {
                     Some(mod_id) => {
-                        let module = self.modules.get(mod_id.module_id()).unwrap();
-                        module.ns.find_value(value).map(|val| CrateDef::Value(val))
+                        let module = self.module(mod_id);
+                        module
+                            .ns
+                            .find_value(value)
+                            .map(|val| CrateDef::Value(value, val))
+                            .or_else(|| {
+                                module
+                                    .ns
+                                    .find_enum(value)
+                                    .map(|members| CrateDef::Enum(value, *members))
+                            })
                     }
                     None => {
-                        let enum_name = module_path.pop_back().unwrap();
+                        let enum_name = module_path.pop_back()?;
                         // Reuse previously popped value
                         let enum_discriminant = value;
                         match self.module_lookup.get(&module_path) {
                             Some(mod_id) => {
-                                let module = self.modules.get(mod_id.module_id()).unwrap();
+                                let module = self.module(*mod_id);
                                 module
                                     .ns
                                     .find_enum_members(enum_name)
-                                    .map(|members| members.get(&enum_discriminant))
-                                    .flatten()
-                                    .map(|val| CrateDef::Value(*val))
+                                    .and_then(|members| members.get(&enum_discriminant))
+                                    .map(|val| CrateDef::Value(enum_discriminant, *val))
                             }
                             None => None,
                         }
@@ -210,8 +223,12 @@ impl Crate {
         }
     }
 
-    pub fn module(&self, module_id: usize) -> &Module {
-        self.modules.get(module_id).unwrap()
+    pub fn module(&self, mod_id: ModuleId) -> &Module {
+        self.modules.get(mod_id.module_id()).unwrap()
+    }
+
+    pub fn module_mut(&mut self, module_id: usize) -> &mut Module {
+        self.modules.get_mut(module_id).unwrap()
     }
 
     pub fn modules(&self) -> impl Iterator<Item = &Module> {
@@ -233,6 +250,7 @@ impl Crate {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum CrateDef {
-    Module(ModuleId),
-    Value(DefId),
+    Module(InternedStr, ModuleId),
+    Enum(InternedStr, DefId),
+    Value(InternedStr, DefId),
 }

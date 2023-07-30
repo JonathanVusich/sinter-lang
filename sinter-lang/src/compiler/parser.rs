@@ -1466,7 +1466,7 @@ impl<'ctxt> Parser<'ctxt> {
             Some(TokenType::Identifier(ident)) => {
                 // If the next token is a comma, we know that this is an identifier not a path.
                 match self.next_type(1) {
-                    Some(TokenType::Comma) => {
+                    Some(TokenType::Comma) | Some(TokenType::RightParentheses) => {
                         self.advance();
                         Ok(DestructureExpr::new(
                             DestructureExprKind::Identifier(ident),
