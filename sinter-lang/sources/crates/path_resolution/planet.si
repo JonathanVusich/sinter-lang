@@ -1,0 +1,12 @@
+enum Planet {
+    Mercury,
+    Venus,
+    Earth,
+    Mars,
+    Jupiter,
+    Saturn,
+    Uranus,
+    Neptune,
+}
+
+let NUM_PLANETS = 8;

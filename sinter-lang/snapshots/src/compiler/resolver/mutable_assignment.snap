@@ -1,7 +1,6 @@
 [
   [
     "mutable_assignment",
-    "mutable_assignment.si",
     "mut_var",
     "x"
   ],
@@ -30,7 +29,7 @@
             "Stmt": {
               "Let": {
                 "ident": {
-                  "ident": 4,
+                  "ident": 3,
                   "span": {
                     "start": 27,
                     "end": 28
@@ -56,7 +55,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 4,
+                      "ident": 3,
                       "span": {
                         "start": 64,
                         "end": 65
@@ -82,7 +81,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 4,
+                      "ident": 3,
                       "span": {
                         "start": 68,
                         "end": 69
@@ -180,7 +179,7 @@
             "Fn": {
               "sig": {
                 "name": {
-                  "ident": 3,
+                  "ident": 2,
                   "span": {
                     "start": 3,
                     "end": 10

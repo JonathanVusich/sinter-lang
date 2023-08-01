@@ -13,7 +13,7 @@ use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::{DefId, LocalDefId, ModuleId};
 use crate::compiler::parser::ParseError;
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::ResolveError;
+use crate::compiler::resolver::{EnumDef, ResolveError};
 use crate::compiler::types::{InternedStr, StrMap};
 
 #[derive(PartialEq, Eq, Debug, Default, Copy, Clone, PartialOrd, Ord, Serialize, Deserialize)]
@@ -199,7 +199,7 @@ impl Crate {
                                 module
                                     .ns
                                     .find_enum(value)
-                                    .map(|members| CrateDef::Enum(value, *members))
+                                    .map(|enum_def| CrateDef::Enum(value, enum_def.clone()))
                             })
                     }
                     None => {
@@ -211,8 +211,8 @@ impl Crate {
                                 let module = self.module(*mod_id);
                                 module
                                     .ns
-                                    .find_enum_members(enum_name)
-                                    .and_then(|members| members.get(&enum_discriminant))
+                                    .find_enum(enum_name)
+                                    .and_then(|enum_def| enum_def.members.get(&enum_discriminant))
                                     .map(|val| CrateDef::Value(enum_discriminant, *val))
                             }
                             None => None,
@@ -251,6 +251,6 @@ impl Crate {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum CrateDef {
     Module(InternedStr, ModuleId),
-    Enum(InternedStr, DefId),
+    Enum(InternedStr, EnumDef),
     Value(InternedStr, DefId),
 }

@@ -1,0 +1,871 @@
+[
+  [
+    "enum_matching",
+    "enum_match",
+    "crate",
+    "enum_message",
+    "Message",
+    "message",
+    "Text",
+    "null",
+    "extracted_text",
+    "Photo",
+    "photo",
+    "",
+    "str",
+    "caption",
+    "SerializedPhoto",
+    "size",
+    "u64",
+    "self"
+  ],
+  {
+    "1": {
+      "name": 1,
+      "id": {
+        "id": 0
+      },
+      "items": [
+        51,
+        80
+      ],
+      "nodes": {
+        "7": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 5,
+                      "span": {
+                        "start": 49,
+                        "end": 56
+                      },
+                      "id": 5
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 7,
+                      "span": {
+                        "start": 58,
+                        "end": 62
+                      },
+                      "id": 6
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 49,
+            "end": 62
+          },
+          "id": 7
+        },
+        "8": {
+          "kind": {
+            "Expr": {
+              "String": 8
+            }
+          },
+          "span": {
+            "start": 63,
+            "end": 69
+          },
+          "id": 8
+        },
+        "9": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 7,
+                "args": [
+                  8
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 49,
+            "end": 70
+          },
+          "id": 9
+        },
+        "13": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 100,
+                        "end": 107
+                      },
+                      "id": 12
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 100,
+            "end": 107
+          },
+          "id": 13
+        },
+        "16": {
+          "kind": {
+            "DestructureExpr": {
+              "String": 8
+            }
+          },
+          "span": {
+            "start": 128,
+            "end": 134
+          },
+          "id": 16
+        },
+        "19": {
+          "kind": {
+            "DestructureExpr": {
+              "String": 8
+            }
+          },
+          "span": {
+            "start": 153,
+            "end": 159
+          },
+          "id": 19
+        },
+        "20": {
+          "kind": {
+            "DestructureExpr": {
+              "Identifier": 11
+            }
+          },
+          "span": {
+            "start": 161,
+            "end": 166
+          },
+          "id": 20
+        },
+        "21": {
+          "kind": {
+            "Expr": {
+              "String": 12
+            }
+          },
+          "span": {
+            "start": 171,
+            "end": 173
+          },
+          "id": 21
+        },
+        "22": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 21,
+                "implicit_return": true
+              }
+            }
+          },
+          "span": {
+            "start": 171,
+            "end": 173
+          },
+          "id": 22
+        },
+        "26": {
+          "kind": {
+            "DestructureExpr": {
+              "Identifier": 13
+            }
+          },
+          "span": {
+            "start": 193,
+            "end": 196
+          },
+          "id": 26
+        },
+        "28": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 13,
+                      "span": {
+                        "start": 201,
+                        "end": 204
+                      },
+                      "id": 27
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 201,
+            "end": 204
+          },
+          "id": 28
+        },
+        "29": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 28,
+                "implicit_return": true
+              }
+            }
+          },
+          "span": {
+            "start": 201,
+            "end": 204
+          },
+          "id": 29
+        },
+        "33": {
+          "kind": {
+            "DestructureExpr": {
+              "Identifier": 14
+            }
+          },
+          "span": {
+            "start": 225,
+            "end": 232
+          },
+          "id": 33
+        },
+        "34": {
+          "kind": {
+            "DestructureExpr": {
+              "Identifier": 11
+            }
+          },
+          "span": {
+            "start": 234,
+            "end": 239
+          },
+          "id": 34
+        },
+        "36": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 14,
+                      "span": {
+                        "start": 244,
+                        "end": 251
+                      },
+                      "id": 35
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 244,
+            "end": 251
+          },
+          "id": 36
+        },
+        "37": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 36,
+                "implicit_return": true
+              }
+            }
+          },
+          "span": {
+            "start": 244,
+            "end": 251
+          },
+          "id": 37
+        },
+        "39": {
+          "kind": {
+            "Expr": {
+              "Match": {
+                "source": 13,
+                "arms": [
+                  {
+                    "pattern": {
+                      "Or": {
+                        "patterns": [
+                          {
+                            "Destructure": {
+                              "ty": {
+                                "definition": {
+                                  "crate_id": 0,
+                                  "local_id": 56
+                                },
+                                "generics": []
+                              },
+                              "exprs": [
+                                16
+                              ]
+                            }
+                          },
+                          {
+                            "Destructure": {
+                              "ty": {
+                                "definition": {
+                                  "crate_id": 0,
+                                  "local_id": 79
+                                },
+                                "generics": []
+                              },
+                              "exprs": [
+                                19,
+                                20
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "body": 22
+                  },
+                  {
+                    "pattern": {
+                      "Destructure": {
+                        "ty": {
+                          "definition": {
+                            "crate_id": 0,
+                            "local_id": 56
+                          },
+                          "generics": []
+                        },
+                        "exprs": [
+                          26
+                        ]
+                      }
+                    },
+                    "body": 29
+                  },
+                  {
+                    "pattern": {
+                      "Destructure": {
+                        "ty": {
+                          "definition": {
+                            "crate_id": 0,
+                            "local_id": 79
+                          },
+                          "generics": []
+                        },
+                        "exprs": [
+                          33,
+                          34
+                        ]
+                      }
+                    },
+                    "body": 37
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 94,
+            "end": 254
+          },
+          "id": 39
+        },
+        "44": {
+          "kind": {
+            "Ty": "QSelf"
+          },
+          "span": {
+            "start": 37,
+            "end": 41
+          },
+          "id": 44
+        },
+        "45": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 18,
+                "span": {
+                  "start": 37,
+                  "end": 41
+                },
+                "id": 43
+              },
+              "ty": 44,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 37,
+            "end": 41
+          },
+          "id": 45
+        },
+        "46": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 46,
+            "end": 49
+          },
+          "id": 46
+        },
+        "47": {
+          "kind": {
+            "Expr": {
+              "Integer": 0
+            }
+          },
+          "span": {
+            "start": 67,
+            "end": 68
+          },
+          "id": 47
+        },
+        "48": {
+          "kind": {
+            "Stmt": {
+              "Return": {
+                "value": 47
+              }
+            }
+          },
+          "span": {
+            "start": 60,
+            "end": 69
+          },
+          "id": 48
+        },
+        "49": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                48
+              ]
+            }
+          },
+          "span": {
+            "start": 50,
+            "end": 75
+          },
+          "id": 49
+        },
+        "50": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 16,
+                  "span": {
+                    "start": 32,
+                    "end": 36
+                  },
+                  "id": 42
+                },
+                "generic_params": {},
+                "params": {
+                  "18": 45
+                },
+                "return_type": 46
+              },
+              "body": 49
+            }
+          },
+          "span": {
+            "start": 29,
+            "end": 75
+          },
+          "id": 50
+        },
+        "51": {
+          "kind": {
+            "Class": {
+              "name": {
+                "ident": 15,
+                "span": {
+                  "start": 6,
+                  "end": 21
+                },
+                "id": 41
+              },
+              "class_type": "Inline",
+              "generic_params": {},
+              "fields": {},
+              "fn_stmts": {
+                "16": 50
+              }
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 77
+          },
+          "id": 51
+        },
+        "54": {
+          "kind": {
+            "Ty": "Str"
+          },
+          "span": {
+            "start": 112,
+            "end": 115
+          },
+          "id": 54
+        },
+        "55": {
+          "kind": {
+            "Field": {
+              "ident": {
+                "ident": 6,
+                "span": {
+                  "start": 103,
+                  "end": 110
+                },
+                "id": 53
+              },
+              "ty": 54
+            }
+          },
+          "span": {
+            "start": 103,
+            "end": 115
+          },
+          "id": 55
+        },
+        "56": {
+          "kind": {
+            "EnumMember": {
+              "name": 7,
+              "fields": {
+                "6": 55
+              },
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 98,
+            "end": 116
+          },
+          "id": 56
+        },
+        "58": {
+          "kind": {
+            "Ty": "Str"
+          },
+          "span": {
+            "start": 137,
+            "end": 140
+          },
+          "id": 58
+        },
+        "59": {
+          "kind": {
+            "Field": {
+              "ident": {
+                "ident": 14,
+                "span": {
+                  "start": 128,
+                  "end": 135
+                },
+                "id": 57
+              },
+              "ty": 58
+            }
+          },
+          "span": {
+            "start": 128,
+            "end": 140
+          },
+          "id": 59
+        },
+        "62": {
+          "kind": {
+            "Ty": {
+              "Path": {
+                "path": {
+                  "definition": {
+                    "crate_id": 0,
+                    "local_id": 51
+                  },
+                  "generics": []
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 149,
+            "end": 164
+          },
+          "id": 62
+        },
+        "63": {
+          "kind": {
+            "Field": {
+              "ident": {
+                "ident": 11,
+                "span": {
+                  "start": 142,
+                  "end": 147
+                },
+                "id": 60
+              },
+              "ty": 62
+            }
+          },
+          "span": {
+            "start": 142,
+            "end": 164
+          },
+          "id": 63
+        },
+        "66": {
+          "kind": {
+            "Ty": "QSelf"
+          },
+          "span": {
+            "start": 184,
+            "end": 188
+          },
+          "id": 66
+        },
+        "67": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 18,
+                "span": {
+                  "start": 184,
+                  "end": 188
+                },
+                "id": 65
+              },
+              "ty": 66,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 184,
+            "end": 188
+          },
+          "id": 67
+        },
+        "68": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 193,
+            "end": 196
+          },
+          "id": 68
+        },
+        "70": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 18,
+                      "span": {
+                        "start": 218,
+                        "end": 222
+                      },
+                      "id": 69
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 218,
+            "end": 222
+          },
+          "id": 70
+        },
+        "72": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 70,
+                "ident": {
+                  "ident": 11,
+                  "span": {
+                    "start": 223,
+                    "end": 228
+                  },
+                  "id": 71
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 218,
+            "end": 228
+          },
+          "id": 72
+        },
+        "74": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 72,
+                "ident": {
+                  "ident": 16,
+                  "span": {
+                    "start": 229,
+                    "end": 233
+                  },
+                  "id": 73
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 218,
+            "end": 233
+          },
+          "id": 74
+        },
+        "75": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 74,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 218,
+            "end": 235
+          },
+          "id": 75
+        },
+        "76": {
+          "kind": {
+            "Stmt": {
+              "Return": {
+                "value": 75
+              }
+            }
+          },
+          "span": {
+            "start": 211,
+            "end": 236
+          },
+          "id": 76
+        },
+        "77": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                76
+              ]
+            }
+          },
+          "span": {
+            "start": 197,
+            "end": 246
+          },
+          "id": 77
+        },
+        "78": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 16,
+                  "span": {
+                    "start": 179,
+                    "end": 183
+                  },
+                  "id": 64
+                },
+                "generic_params": {},
+                "params": {
+                  "18": 67
+                },
+                "return_type": 68
+              },
+              "body": 77
+            }
+          },
+          "span": {
+            "start": 176,
+            "end": 246
+          },
+          "id": 78
+        },
+        "79": {
+          "kind": {
+            "EnumMember": {
+              "name": 10,
+              "fields": {
+                "14": 59,
+                "11": 63
+              },
+              "member_fns": {
+                "16": 78
+              }
+            }
+          },
+          "span": {
+            "start": 122,
+            "end": 252
+          },
+          "id": 79
+        },
+        "80": {
+          "kind": {
+            "Enum": {
+              "name": {
+                "ident": 5,
+                "span": {
+                  "start": 84,
+                  "end": 91
+                },
+                "id": 52
+              },
+              "generic_params": {},
+              "members": {
+                "members": {}
+              },
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 79,
+            "end": 255
+          },
+          "id": 80
+        }
+      }
+    }
+  }
+]

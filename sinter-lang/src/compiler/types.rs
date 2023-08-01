@@ -4,7 +4,8 @@ use crate::compiler::interner::Key;
 use lasso::Spur;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -49,7 +50,9 @@ impl InternedTy {
     }
 }
 
+pub(crate) type StrSet = HashSet<InternedStr>;
 pub(crate) type StrMap<T> = HashMap<InternedStr, T>;
+pub(crate) type IStrMap<T> = Arc<StrMap<T>>;
 pub(crate) type LocalDefIdMap<T> = HashMap<LocalDefId, T>;
 
 pub(crate) trait Named {

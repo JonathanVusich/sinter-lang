@@ -321,6 +321,18 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn complex_arithmetic() -> Crate {
+        enum Test {
+            Var,
+        }
+        impl Test {
+            pub fn diameter(self) -> u32 {
+                5
+            }
+        }
+
+        let diameter = Test::Var.diameter();
+        dbg!(diameter);
+
         let krate_path = resolve_test_krate_path("complex_arithmetic");
         let mut compiler = Compiler::default();
         let krate = compiler.parse_crate(&krate_path).unwrap();

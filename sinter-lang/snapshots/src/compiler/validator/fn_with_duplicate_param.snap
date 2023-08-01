@@ -2,7 +2,9 @@
   [
     "duplicate_param",
     "param",
-    "u32"
+    "u32",
+    "crate",
+    "module"
   ],
   [
     {

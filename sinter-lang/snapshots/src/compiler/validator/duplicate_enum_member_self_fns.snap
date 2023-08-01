@@ -3,7 +3,9 @@
     "Planet",
     "Mercury",
     "relative_gravity",
-    "planet"
+    "planet",
+    "crate",
+    "module"
   ],
   [
     {

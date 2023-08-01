@@ -3,7 +3,9 @@
     "Planet",
     "Mercury",
     "diameter",
-    "u64"
+    "u64",
+    "crate",
+    "module"
   ],
   [
     {

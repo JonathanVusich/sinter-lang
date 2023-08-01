@@ -1,6 +1,8 @@
 [
   [
-    "valid_fn"
+    "valid_fn",
+    "crate",
+    "module"
   ],
   []
 ]

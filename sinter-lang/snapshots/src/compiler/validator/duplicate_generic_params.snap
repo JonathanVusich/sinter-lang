@@ -1,7 +1,9 @@
 [
   [
     "duplicate_generic_params",
-    "T"
+    "T",
+    "crate",
+    "module"
   ],
   [
     {

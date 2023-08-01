@@ -2,7 +2,9 @@
   [
     "Rectangle",
     "width",
-    "u64"
+    "u64",
+    "crate",
+    "module"
   ],
   [
     {

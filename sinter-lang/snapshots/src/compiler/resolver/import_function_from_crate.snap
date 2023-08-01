@@ -1,15 +1,13 @@
 [
   [
     "complex_arithmetic",
-    "multiplication.si",
+    "multiplication",
     "multiply",
     "T",
     "x",
     "y",
-    "square.si",
-    "crate",
-    "multiplication",
-    "square"
+    "square",
+    "crate"
   ],
   {
     "1": {
@@ -520,7 +518,7 @@
             "Fn": {
               "sig": {
                 "name": {
-                  "ident": 10,
+                  "ident": 7,
                   "span": {
                     "start": 41,
                     "end": 47
@@ -531,8 +529,8 @@
                   "4": 27
                 },
                 "params": {
-                  "5": 31,
-                  "6": 35
+                  "6": 35,
+                  "5": 31
                 },
                 "return_type": 37
               },

@@ -1,0 +1,26 @@
+use crate::planet;
+use crate::planet::Planet;
+use crate::planet::Planet::Earth;
+use std::math;
+use std::math::min;
+
+let EARTH_DIAMETER = Earth.diameter();
+let VENUS_DIAMETER = Planet::Venus.diameter();
+
+let MAX_DIAMETER = math::max(Earth.diameter(), Planet::Venus.diameter());
+let MIN_DIAMETER = min(Earth.diameter(), Planet::Venus.diameter());
+
+let NUM_PLANETS_FULLY_QUALIFIED = crate::planet::NUM_PLANETS;
+let NUM_PLANETS_PARTIALLY_QUALIFIED = planet::NUM_PLANETS;
+
+fn fun_with_planets<Earth>(Earth: u64) => u64 {
+    Earth
+}
+
+fn fun_with_planets_generic<Earth>() => u64 {
+    Earth::discriminant()
+}
+
+fn fun_with_planets_use() => u64 {
+    Earth.discriminant()
+}

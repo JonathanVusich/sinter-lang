@@ -1,7 +1,9 @@
 [
   [
     "Planet",
-    "Mercury"
+    "Mercury",
+    "crate",
+    "module"
   ],
   [
     {

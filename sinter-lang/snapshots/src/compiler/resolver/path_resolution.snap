@@ -1,0 +1,1959 @@
+[
+  [
+    "path_resolution",
+    "planet",
+    "Planet",
+    "Mercury",
+    "Venus",
+    "Earth",
+    "Mars",
+    "Jupiter",
+    "Saturn",
+    "Uranus",
+    "Neptune",
+    "NUM_PLANETS",
+    "planet_calculator",
+    "crate",
+    "std",
+    "math",
+    "min",
+    "EARTH_DIAMETER",
+    "diameter",
+    "VENUS_DIAMETER",
+    "MAX_DIAMETER",
+    "max",
+    "MIN_DIAMETER",
+    "NUM_PLANETS_FULLY_QUALIFIED",
+    "NUM_PLANETS_PARTIALLY_QUALIFIED",
+    "fun_with_planets",
+    "u64",
+    "fun_with_planets_generic",
+    "discriminant",
+    "fun_with_planets_use",
+    "sqrt",
+    "x",
+    "y",
+    "f64"
+  ],
+  {
+    "15": {
+      "name": 15,
+      "id": {
+        "id": 2
+      },
+      "items": [],
+      "nodes": {
+        "2": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 11,
+            "end": 14
+          },
+          "id": 2
+        },
+        "3": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 32,
+                "span": {
+                  "start": 8,
+                  "end": 9
+                },
+                "id": 1
+              },
+              "ty": 2,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 8,
+            "end": 14
+          },
+          "id": 3
+        },
+        "5": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 19,
+            "end": 22
+          },
+          "id": 5
+        },
+        "6": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 33,
+                "span": {
+                  "start": 16,
+                  "end": 17
+                },
+                "id": 4
+              },
+              "ty": 5,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 16,
+            "end": 22
+          },
+          "id": 6
+        },
+        "7": {
+          "kind": {
+            "Ty": "F64"
+          },
+          "span": {
+            "start": 27,
+            "end": 30
+          },
+          "id": 7
+        },
+        "8": {
+          "kind": {
+            "Expr": {
+              "Float": 0.0
+            }
+          },
+          "span": {
+            "start": 37,
+            "end": 40
+          },
+          "id": 8
+        },
+        "9": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 8,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 37,
+            "end": 40
+          },
+          "id": 9
+        },
+        "10": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                9
+              ]
+            }
+          },
+          "span": {
+            "start": 31,
+            "end": 42
+          },
+          "id": 10
+        },
+        "11": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 31,
+                  "span": {
+                    "start": 3,
+                    "end": 7
+                  },
+                  "id": 0
+                },
+                "generic_params": {},
+                "params": {
+                  "33": 6,
+                  "32": 3
+                },
+                "return_type": 7
+              },
+              "body": 10
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 42
+          },
+          "id": 11
+        },
+        "14": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 54,
+            "end": 57
+          },
+          "id": 14
+        },
+        "15": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 32,
+                "span": {
+                  "start": 51,
+                  "end": 52
+                },
+                "id": 13
+              },
+              "ty": 14,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 51,
+            "end": 57
+          },
+          "id": 15
+        },
+        "17": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 62,
+            "end": 65
+          },
+          "id": 17
+        },
+        "18": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 33,
+                "span": {
+                  "start": 59,
+                  "end": 60
+                },
+                "id": 16
+              },
+              "ty": 17,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 59,
+            "end": 65
+          },
+          "id": 18
+        },
+        "19": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 70,
+            "end": 73
+          },
+          "id": 19
+        },
+        "21": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 32,
+                      "span": {
+                        "start": 83,
+                        "end": 84
+                      },
+                      "id": 20
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 83,
+            "end": 84
+          },
+          "id": 21
+        },
+        "23": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 33,
+                      "span": {
+                        "start": 87,
+                        "end": 88
+                      },
+                      "id": 22
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 87,
+            "end": 88
+          },
+          "id": 23
+        },
+        "24": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Greater",
+                "lhs": 21,
+                "rhs": 23
+              }
+            }
+          },
+          "span": {
+            "start": 83,
+            "end": 88
+          },
+          "id": 24
+        },
+        "26": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 32,
+                      "span": {
+                        "start": 99,
+                        "end": 100
+                      },
+                      "id": 25
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 99,
+            "end": 100
+          },
+          "id": 26
+        },
+        "27": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 26,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 99,
+            "end": 100
+          },
+          "id": 27
+        },
+        "28": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                27
+              ]
+            }
+          },
+          "span": {
+            "start": 89,
+            "end": 106
+          },
+          "id": 28
+        },
+        "30": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 33,
+                      "span": {
+                        "start": 122,
+                        "end": 123
+                      },
+                      "id": 29
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 122,
+            "end": 123
+          },
+          "id": 30
+        },
+        "31": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 30,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 122,
+            "end": 123
+          },
+          "id": 31
+        },
+        "32": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                31
+              ]
+            }
+          },
+          "span": {
+            "start": 112,
+            "end": 129
+          },
+          "id": 32
+        },
+        "33": {
+          "kind": {
+            "Stmt": {
+              "If": {
+                "condition": 24,
+                "if_true": 28,
+                "if_false": 32
+              }
+            }
+          },
+          "span": {
+            "start": 80,
+            "end": 129
+          },
+          "id": 33
+        },
+        "34": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                33
+              ]
+            }
+          },
+          "span": {
+            "start": 74,
+            "end": 131
+          },
+          "id": 34
+        },
+        "35": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 22,
+                  "span": {
+                    "start": 47,
+                    "end": 50
+                  },
+                  "id": 12
+                },
+                "generic_params": {},
+                "params": {
+                  "33": 18,
+                  "32": 15
+                },
+                "return_type": 19
+              },
+              "body": 34
+            }
+          },
+          "span": {
+            "start": 44,
+            "end": 131
+          },
+          "id": 35
+        },
+        "38": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 143,
+            "end": 146
+          },
+          "id": 38
+        },
+        "39": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 32,
+                "span": {
+                  "start": 140,
+                  "end": 141
+                },
+                "id": 37
+              },
+              "ty": 38,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 140,
+            "end": 146
+          },
+          "id": 39
+        },
+        "41": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 151,
+            "end": 154
+          },
+          "id": 41
+        },
+        "42": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 33,
+                "span": {
+                  "start": 148,
+                  "end": 149
+                },
+                "id": 40
+              },
+              "ty": 41,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 148,
+            "end": 154
+          },
+          "id": 42
+        },
+        "43": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 159,
+            "end": 162
+          },
+          "id": 43
+        },
+        "45": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 32,
+                      "span": {
+                        "start": 172,
+                        "end": 173
+                      },
+                      "id": 44
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 172,
+            "end": 173
+          },
+          "id": 45
+        },
+        "47": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 33,
+                      "span": {
+                        "start": 176,
+                        "end": 177
+                      },
+                      "id": 46
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 176,
+            "end": 177
+          },
+          "id": 47
+        },
+        "48": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Less",
+                "lhs": 45,
+                "rhs": 47
+              }
+            }
+          },
+          "span": {
+            "start": 172,
+            "end": 177
+          },
+          "id": 48
+        },
+        "50": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 32,
+                      "span": {
+                        "start": 188,
+                        "end": 189
+                      },
+                      "id": 49
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 188,
+            "end": 189
+          },
+          "id": 50
+        },
+        "51": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 50,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 188,
+            "end": 189
+          },
+          "id": 51
+        },
+        "52": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                51
+              ]
+            }
+          },
+          "span": {
+            "start": 178,
+            "end": 195
+          },
+          "id": 52
+        },
+        "54": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 33,
+                      "span": {
+                        "start": 211,
+                        "end": 212
+                      },
+                      "id": 53
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 211,
+            "end": 212
+          },
+          "id": 54
+        },
+        "55": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 54,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 211,
+            "end": 212
+          },
+          "id": 55
+        },
+        "56": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                55
+              ]
+            }
+          },
+          "span": {
+            "start": 201,
+            "end": 218
+          },
+          "id": 56
+        },
+        "57": {
+          "kind": {
+            "Stmt": {
+              "If": {
+                "condition": 48,
+                "if_true": 52,
+                "if_false": 56
+              }
+            }
+          },
+          "span": {
+            "start": 169,
+            "end": 218
+          },
+          "id": 57
+        },
+        "58": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                57
+              ]
+            }
+          },
+          "span": {
+            "start": 163,
+            "end": 220
+          },
+          "id": 58
+        },
+        "59": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 17,
+                  "span": {
+                    "start": 136,
+                    "end": 139
+                  },
+                  "id": 36
+                },
+                "generic_params": {},
+                "params": {
+                  "33": 42,
+                  "32": 39
+                },
+                "return_type": 43
+              },
+              "body": 58
+            }
+          },
+          "span": {
+            "start": 133,
+            "end": 220
+          },
+          "id": 59
+        }
+      }
+    },
+    "1": {
+      "name": 1,
+      "id": {
+        "id": 0
+      },
+      "items": [
+        9
+      ],
+      "nodes": {
+        "1": {
+          "kind": {
+            "EnumMember": {
+              "name": 4,
+              "fields": {},
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 18,
+            "end": 25
+          },
+          "id": 1
+        },
+        "2": {
+          "kind": {
+            "EnumMember": {
+              "name": 5,
+              "fields": {},
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 31,
+            "end": 36
+          },
+          "id": 2
+        },
+        "3": {
+          "kind": {
+            "EnumMember": {
+              "name": 6,
+              "fields": {},
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 42,
+            "end": 47
+          },
+          "id": 3
+        },
+        "4": {
+          "kind": {
+            "EnumMember": {
+              "name": 7,
+              "fields": {},
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 53,
+            "end": 57
+          },
+          "id": 4
+        },
+        "5": {
+          "kind": {
+            "EnumMember": {
+              "name": 8,
+              "fields": {},
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 63,
+            "end": 70
+          },
+          "id": 5
+        },
+        "6": {
+          "kind": {
+            "EnumMember": {
+              "name": 9,
+              "fields": {},
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 76,
+            "end": 82
+          },
+          "id": 6
+        },
+        "7": {
+          "kind": {
+            "EnumMember": {
+              "name": 10,
+              "fields": {},
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 88,
+            "end": 94
+          },
+          "id": 7
+        },
+        "8": {
+          "kind": {
+            "EnumMember": {
+              "name": 11,
+              "fields": {},
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 100,
+            "end": 107
+          },
+          "id": 8
+        },
+        "9": {
+          "kind": {
+            "Enum": {
+              "name": {
+                "ident": 3,
+                "span": {
+                  "start": 5,
+                  "end": 11
+                },
+                "id": 0
+              },
+              "generic_params": {},
+              "members": {
+                "members": {}
+              },
+              "member_fns": {}
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 110
+          },
+          "id": 9
+        },
+        "11": {
+          "kind": {
+            "Expr": {
+              "Integer": 8
+            }
+          },
+          "span": {
+            "start": 130,
+            "end": 131
+          },
+          "id": 11
+        },
+        "34": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 137,
+                        "end": 142
+                      },
+                      "id": 33
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 137,
+            "end": 142
+          },
+          "id": 34
+        },
+        "36": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 34,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 143,
+                    "end": 151
+                  },
+                  "id": 35
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 137,
+            "end": 151
+          },
+          "id": 36
+        },
+        "37": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 36,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 137,
+            "end": 153
+          },
+          "id": 37
+        },
+        "42": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 3,
+                      "span": {
+                        "start": 176,
+                        "end": 182
+                      },
+                      "id": 40
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 5,
+                      "span": {
+                        "start": 184,
+                        "end": 189
+                      },
+                      "id": 41
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 176,
+            "end": 189
+          },
+          "id": 42
+        },
+        "44": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 42,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 190,
+                    "end": 198
+                  },
+                  "id": 43
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 176,
+            "end": 198
+          },
+          "id": 44
+        },
+        "45": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 44,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 176,
+            "end": 200
+          },
+          "id": 45
+        },
+        "50": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 16,
+                      "span": {
+                        "start": 222,
+                        "end": 226
+                      },
+                      "id": 48
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 22,
+                      "span": {
+                        "start": 228,
+                        "end": 231
+                      },
+                      "id": 49
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 222,
+            "end": 231
+          },
+          "id": 50
+        },
+        "52": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 232,
+                        "end": 237
+                      },
+                      "id": 51
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 232,
+            "end": 237
+          },
+          "id": 52
+        },
+        "54": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 52,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 238,
+                    "end": 246
+                  },
+                  "id": 53
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 232,
+            "end": 246
+          },
+          "id": 54
+        },
+        "55": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 54,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 232,
+            "end": 248
+          },
+          "id": 55
+        },
+        "58": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 3,
+                      "span": {
+                        "start": 250,
+                        "end": 256
+                      },
+                      "id": 56
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 5,
+                      "span": {
+                        "start": 258,
+                        "end": 263
+                      },
+                      "id": 57
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 250,
+            "end": 263
+          },
+          "id": 58
+        },
+        "60": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 58,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 264,
+                    "end": 272
+                  },
+                  "id": 59
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 250,
+            "end": 272
+          },
+          "id": 60
+        },
+        "61": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 60,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 250,
+            "end": 274
+          },
+          "id": 61
+        },
+        "62": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 50,
+                "args": [
+                  55,
+                  61
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 222,
+            "end": 275
+          },
+          "id": 62
+        },
+        "66": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 17,
+                      "span": {
+                        "start": 296,
+                        "end": 299
+                      },
+                      "id": 65
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 296,
+            "end": 299
+          },
+          "id": 66
+        },
+        "68": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 300,
+                        "end": 305
+                      },
+                      "id": 67
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 300,
+            "end": 305
+          },
+          "id": 68
+        },
+        "70": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 68,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 306,
+                    "end": 314
+                  },
+                  "id": 69
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 300,
+            "end": 314
+          },
+          "id": 70
+        },
+        "71": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 70,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 300,
+            "end": 316
+          },
+          "id": 71
+        },
+        "74": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 3,
+                      "span": {
+                        "start": 318,
+                        "end": 324
+                      },
+                      "id": 72
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 5,
+                      "span": {
+                        "start": 326,
+                        "end": 331
+                      },
+                      "id": 73
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 318,
+            "end": 331
+          },
+          "id": 74
+        },
+        "76": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 74,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 332,
+                    "end": 340
+                  },
+                  "id": 75
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 318,
+            "end": 340
+          },
+          "id": 76
+        },
+        "77": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 76,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 318,
+            "end": 342
+          },
+          "id": 77
+        },
+        "78": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 66,
+                "args": [
+                  71,
+                  77
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 296,
+            "end": 343
+          },
+          "id": 78
+        },
+        "84": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 2,
+                      "span": {
+                        "start": 387,
+                        "end": 393
+                      },
+                      "id": 82
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 12,
+                      "span": {
+                        "start": 395,
+                        "end": 406
+                      },
+                      "id": 83
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 380,
+            "end": 406
+          },
+          "id": 84
+        },
+        "89": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 2,
+                      "span": {
+                        "start": 446,
+                        "end": 452
+                      },
+                      "id": 87
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 12,
+                      "span": {
+                        "start": 454,
+                        "end": 465
+                      },
+                      "id": 88
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 446,
+            "end": 465
+          },
+          "id": 89
+        },
+        "93": {
+          "kind": {
+            "GenericParam": {
+              "ident": {
+                "ident": 6,
+                "span": {
+                  "start": 488,
+                  "end": 493
+                },
+                "id": 92
+              },
+              "trait_bound": null
+            }
+          },
+          "span": {
+            "start": 488,
+            "end": 493
+          },
+          "id": 93
+        },
+        "95": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 502,
+            "end": 505
+          },
+          "id": 95
+        },
+        "96": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 6,
+                "span": {
+                  "start": 495,
+                  "end": 500
+                },
+                "id": 94
+              },
+              "ty": 95,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 495,
+            "end": 505
+          },
+          "id": 96
+        },
+        "97": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 510,
+            "end": 513
+          },
+          "id": 97
+        },
+        "99": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 520,
+                        "end": 525
+                      },
+                      "id": 98
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 520,
+            "end": 525
+          },
+          "id": 99
+        },
+        "100": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 99,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 520,
+            "end": 525
+          },
+          "id": 100
+        },
+        "101": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                100
+              ]
+            }
+          },
+          "span": {
+            "start": 514,
+            "end": 527
+          },
+          "id": 101
+        },
+        "102": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 26,
+                  "span": {
+                    "start": 471,
+                    "end": 487
+                  },
+                  "id": 91
+                },
+                "generic_params": {
+                  "6": 93
+                },
+                "params": {
+                  "6": 96
+                },
+                "return_type": 97
+              },
+              "body": 101
+            }
+          },
+          "span": {
+            "start": 468,
+            "end": 527
+          },
+          "id": 102
+        },
+        "105": {
+          "kind": {
+            "GenericParam": {
+              "ident": {
+                "ident": 6,
+                "span": {
+                  "start": 557,
+                  "end": 562
+                },
+                "id": 104
+              },
+              "trait_bound": null
+            }
+          },
+          "span": {
+            "start": 557,
+            "end": 562
+          },
+          "id": 105
+        },
+        "106": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 569,
+            "end": 572
+          },
+          "id": 106
+        },
+        "109": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 579,
+                        "end": 584
+                      },
+                      "id": 107
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 29,
+                      "span": {
+                        "start": 586,
+                        "end": 598
+                      },
+                      "id": 108
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 579,
+            "end": 598
+          },
+          "id": 109
+        },
+        "110": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 109,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 579,
+            "end": 600
+          },
+          "id": 110
+        },
+        "111": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 110,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 579,
+            "end": 600
+          },
+          "id": 111
+        },
+        "112": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                111
+              ]
+            }
+          },
+          "span": {
+            "start": 573,
+            "end": 602
+          },
+          "id": 112
+        },
+        "113": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 28,
+                  "span": {
+                    "start": 532,
+                    "end": 556
+                  },
+                  "id": 103
+                },
+                "generic_params": {
+                  "6": 105
+                },
+                "params": {},
+                "return_type": 106
+              },
+              "body": 112
+            }
+          },
+          "span": {
+            "start": 529,
+            "end": 602
+          },
+          "id": 113
+        },
+        "115": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 633,
+            "end": 636
+          },
+          "id": 115
+        },
+        "117": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 643,
+                        "end": 648
+                      },
+                      "id": 116
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 643,
+            "end": 648
+          },
+          "id": 117
+        },
+        "119": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 117,
+                "ident": {
+                  "ident": 29,
+                  "span": {
+                    "start": 649,
+                    "end": 661
+                  },
+                  "id": 118
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 643,
+            "end": 661
+          },
+          "id": 119
+        },
+        "120": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 119,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 643,
+            "end": 663
+          },
+          "id": 120
+        },
+        "121": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 120,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 643,
+            "end": 663
+          },
+          "id": 121
+        },
+        "122": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                121
+              ]
+            }
+          },
+          "span": {
+            "start": 637,
+            "end": 665
+          },
+          "id": 122
+        },
+        "123": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 30,
+                  "span": {
+                    "start": 607,
+                    "end": 627
+                  },
+                  "id": 114
+                },
+                "generic_params": {},
+                "params": {},
+                "return_type": 115
+              },
+              "body": 122
+            }
+          },
+          "span": {
+            "start": 604,
+            "end": 665
+          },
+          "id": 123
+        }
+      }
+    }
+  }
+]
