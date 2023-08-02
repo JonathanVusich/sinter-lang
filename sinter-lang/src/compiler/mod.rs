@@ -21,6 +21,7 @@ pub mod resolver;
 pub mod krate;
 pub mod validator;
 pub mod types;
+pub mod ty_infer;
 
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;

@@ -9,6 +9,7 @@ let VENUS_DIAMETER = Planet::Venus.diameter();
 
 let MAX_DIAMETER = math::max(Earth.diameter(), Planet::Venus.diameter());
 let MIN_DIAMETER = min(Earth.diameter(), Planet::Venus.diameter());
+let QUALIFIED_MIN = std::math::min(Earth.diameter(), Planet::Venus.diameter());
 
 let NUM_PLANETS_FULLY_QUALIFIED = crate::planet::NUM_PLANETS;
 let NUM_PLANETS_PARTIALLY_QUALIFIED = planet::NUM_PLANETS;

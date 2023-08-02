@@ -155,12 +155,11 @@ impl Compiler {
 
     pub(crate) fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
         let mut crates = self.parse_crates(&application)?;
-        self.validate_crates(&crates)?;
 
-        // TODO: Create crate resolution metadata and report initial resolution errors.
-        // We cannot resolve everything in one pass, first we do use validation, var declaration validation, etc.
+        self.validate_crates(&crates)?;
         let resolved_crates = self.resolve_crates(&mut crates)?;
 
+        self.type_check(resolved_crates)?;
         // TODO: Implement type inference algorithm
         /* We need to assign a type to every expression in the AST. This may require making changes to the AST
            classes to allow for types in every expression.
@@ -283,6 +282,13 @@ impl Compiler {
         crates: &mut StrMap<Crate>,
     ) -> Result<StrMap<HirCrate>, CompileError> {
         resolve(crates)
+    }
+
+    pub(crate) fn type_check_crates(
+        &mut self,
+        crates: StrMap<HirCrate>,
+    ) -> Result<StrMap<HirCrate>, CompileError> {
+        Ok(crates)
     }
 }
 

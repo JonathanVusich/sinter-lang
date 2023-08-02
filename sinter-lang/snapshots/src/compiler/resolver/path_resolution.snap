@@ -23,6 +23,7 @@
     "MAX_DIAMETER",
     "max",
     "MIN_DIAMETER",
+    "QUALIFIED_MIN",
     "NUM_PLANETS_FULLY_QUALIFIED",
     "NUM_PLANETS_PARTIALLY_QUALIFIED",
     "fun_with_planets",
@@ -57,7 +58,7 @@
           "kind": {
             "Param": {
               "ident": {
-                "ident": 32,
+                "ident": 33,
                 "span": {
                   "start": 8,
                   "end": 9
@@ -88,7 +89,7 @@
           "kind": {
             "Param": {
               "ident": {
-                "ident": 33,
+                "ident": 34,
                 "span": {
                   "start": 16,
                   "end": 17
@@ -161,7 +162,7 @@
             "Fn": {
               "sig": {
                 "name": {
-                  "ident": 31,
+                  "ident": 32,
                   "span": {
                     "start": 3,
                     "end": 7
@@ -170,8 +171,8 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "33": 6,
-                  "32": 3
+                  "34": 6,
+                  "33": 3
                 },
                 "return_type": 7
               },
@@ -198,7 +199,7 @@
           "kind": {
             "Param": {
               "ident": {
-                "ident": 32,
+                "ident": 33,
                 "span": {
                   "start": 51,
                   "end": 52
@@ -229,7 +230,7 @@
           "kind": {
             "Param": {
               "ident": {
-                "ident": 33,
+                "ident": 34,
                 "span": {
                   "start": 59,
                   "end": 60
@@ -263,7 +264,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 32,
+                      "ident": 33,
                       "span": {
                         "start": 83,
                         "end": 84
@@ -289,7 +290,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 33,
+                      "ident": 34,
                       "span": {
                         "start": 87,
                         "end": 88
@@ -331,7 +332,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 32,
+                      "ident": 33,
                       "span": {
                         "start": 99,
                         "end": 100
@@ -386,7 +387,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 33,
+                      "ident": 34,
                       "span": {
                         "start": 122,
                         "end": 123
@@ -478,8 +479,8 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "33": 18,
-                  "32": 15
+                  "33": 15,
+                  "34": 18
                 },
                 "return_type": 19
               },
@@ -506,7 +507,7 @@
           "kind": {
             "Param": {
               "ident": {
-                "ident": 32,
+                "ident": 33,
                 "span": {
                   "start": 140,
                   "end": 141
@@ -537,7 +538,7 @@
           "kind": {
             "Param": {
               "ident": {
-                "ident": 33,
+                "ident": 34,
                 "span": {
                   "start": 148,
                   "end": 149
@@ -571,7 +572,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 32,
+                      "ident": 33,
                       "span": {
                         "start": 172,
                         "end": 173
@@ -597,7 +598,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 33,
+                      "ident": 34,
                       "span": {
                         "start": 176,
                         "end": 177
@@ -639,7 +640,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 32,
+                      "ident": 33,
                       "span": {
                         "start": 188,
                         "end": 189
@@ -694,7 +695,7 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 33,
+                      "ident": 34,
                       "span": {
                         "start": 211,
                         "end": 212
@@ -786,8 +787,8 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "33": 42,
-                  "32": 39
+                  "34": 42,
+                  "33": 39
                 },
                 "return_type": 43
               },
@@ -1476,10 +1477,21 @@
                 "segments": [
                   {
                     "ident": {
-                      "ident": 2,
+                      "ident": 15,
                       "span": {
-                        "start": 387,
-                        "end": 393
+                        "start": 365,
+                        "end": 368
+                      },
+                      "id": 81
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 16,
+                      "span": {
+                        "start": 370,
+                        "end": 374
                       },
                       "id": 82
                     },
@@ -1487,10 +1499,10 @@
                   },
                   {
                     "ident": {
-                      "ident": 12,
+                      "ident": 17,
                       "span": {
-                        "start": 395,
-                        "end": 406
+                        "start": 376,
+                        "end": 379
                       },
                       "id": 83
                     },
@@ -1501,12 +1513,167 @@
             }
           },
           "span": {
-            "start": 380,
-            "end": 406
+            "start": 365,
+            "end": 379
           },
           "id": 84
         },
+        "86": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 380,
+                        "end": 385
+                      },
+                      "id": 85
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 380,
+            "end": 385
+          },
+          "id": 86
+        },
+        "88": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 86,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 386,
+                    "end": 394
+                  },
+                  "id": 87
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 380,
+            "end": 394
+          },
+          "id": 88
+        },
         "89": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 88,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 380,
+            "end": 396
+          },
+          "id": 89
+        },
+        "92": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 3,
+                      "span": {
+                        "start": 398,
+                        "end": 404
+                      },
+                      "id": 90
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 5,
+                      "span": {
+                        "start": 406,
+                        "end": 411
+                      },
+                      "id": 91
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 398,
+            "end": 411
+          },
+          "id": 92
+        },
+        "94": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 92,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 412,
+                    "end": 420
+                  },
+                  "id": 93
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 398,
+            "end": 420
+          },
+          "id": 94
+        },
+        "95": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 94,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 398,
+            "end": 422
+          },
+          "id": 95
+        },
+        "96": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 84,
+                "args": [
+                  89,
+                  95
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 365,
+            "end": 423
+          },
+          "id": 96
+        },
+        "102": {
           "kind": {
             "Expr": {
               "Path": {
@@ -1515,10 +1682,10 @@
                     "ident": {
                       "ident": 2,
                       "span": {
-                        "start": 446,
-                        "end": 452
+                        "start": 467,
+                        "end": 473
                       },
-                      "id": 87
+                      "id": 100
                     },
                     "generics": null
                   },
@@ -1526,10 +1693,10 @@
                     "ident": {
                       "ident": 12,
                       "span": {
-                        "start": 454,
-                        "end": 465
+                        "start": 475,
+                        "end": 486
                       },
-                      "id": 88
+                      "id": 101
                     },
                     "generics": null
                   }
@@ -1538,301 +1705,106 @@
             }
           },
           "span": {
-            "start": 446,
-            "end": 465
+            "start": 460,
+            "end": 486
           },
-          "id": 89
+          "id": 102
         },
-        "93": {
+        "107": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 2,
+                      "span": {
+                        "start": 526,
+                        "end": 532
+                      },
+                      "id": 105
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 12,
+                      "span": {
+                        "start": 534,
+                        "end": 545
+                      },
+                      "id": 106
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 526,
+            "end": 545
+          },
+          "id": 107
+        },
+        "111": {
           "kind": {
             "GenericParam": {
               "ident": {
                 "ident": 6,
                 "span": {
-                  "start": 488,
-                  "end": 493
+                  "start": 568,
+                  "end": 573
                 },
-                "id": 92
+                "id": 110
               },
               "trait_bound": null
             }
           },
           "span": {
-            "start": 488,
-            "end": 493
+            "start": 568,
+            "end": 573
           },
-          "id": 93
+          "id": 111
         },
-        "95": {
+        "113": {
           "kind": {
             "Ty": "U64"
           },
           "span": {
-            "start": 502,
-            "end": 505
+            "start": 582,
+            "end": 585
           },
-          "id": 95
+          "id": 113
         },
-        "96": {
+        "114": {
           "kind": {
             "Param": {
               "ident": {
                 "ident": 6,
                 "span": {
-                  "start": 495,
-                  "end": 500
+                  "start": 575,
+                  "end": 580
                 },
-                "id": 94
+                "id": 112
               },
-              "ty": 95,
+              "ty": 113,
               "mutability": "Immutable"
             }
           },
           "span": {
-            "start": 495,
-            "end": 505
+            "start": 575,
+            "end": 585
           },
-          "id": 96
-        },
-        "97": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 510,
-            "end": 513
-          },
-          "id": 97
-        },
-        "99": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 520,
-                        "end": 525
-                      },
-                      "id": 98
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 520,
-            "end": 525
-          },
-          "id": 99
-        },
-        "100": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 99,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 520,
-            "end": 525
-          },
-          "id": 100
-        },
-        "101": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                100
-              ]
-            }
-          },
-          "span": {
-            "start": 514,
-            "end": 527
-          },
-          "id": 101
-        },
-        "102": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 26,
-                  "span": {
-                    "start": 471,
-                    "end": 487
-                  },
-                  "id": 91
-                },
-                "generic_params": {
-                  "6": 93
-                },
-                "params": {
-                  "6": 96
-                },
-                "return_type": 97
-              },
-              "body": 101
-            }
-          },
-          "span": {
-            "start": 468,
-            "end": 527
-          },
-          "id": 102
-        },
-        "105": {
-          "kind": {
-            "GenericParam": {
-              "ident": {
-                "ident": 6,
-                "span": {
-                  "start": 557,
-                  "end": 562
-                },
-                "id": 104
-              },
-              "trait_bound": null
-            }
-          },
-          "span": {
-            "start": 557,
-            "end": 562
-          },
-          "id": 105
-        },
-        "106": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 569,
-            "end": 572
-          },
-          "id": 106
-        },
-        "109": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 579,
-                        "end": 584
-                      },
-                      "id": 107
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 29,
-                      "span": {
-                        "start": 586,
-                        "end": 598
-                      },
-                      "id": 108
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 579,
-            "end": 598
-          },
-          "id": 109
-        },
-        "110": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 109,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 579,
-            "end": 600
-          },
-          "id": 110
-        },
-        "111": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 110,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 579,
-            "end": 600
-          },
-          "id": 111
-        },
-        "112": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                111
-              ]
-            }
-          },
-          "span": {
-            "start": 573,
-            "end": 602
-          },
-          "id": 112
-        },
-        "113": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 28,
-                  "span": {
-                    "start": 532,
-                    "end": 556
-                  },
-                  "id": 103
-                },
-                "generic_params": {
-                  "6": 105
-                },
-                "params": {},
-                "return_type": 106
-              },
-              "body": 112
-            }
-          },
-          "span": {
-            "start": 529,
-            "end": 602
-          },
-          "id": 113
+          "id": 114
         },
         "115": {
           "kind": {
             "Ty": "U64"
           },
           "span": {
-            "start": 633,
-            "end": 636
+            "start": 590,
+            "end": 593
           },
           "id": 115
         },
@@ -1845,8 +1817,8 @@
                     "ident": {
                       "ident": 6,
                       "span": {
-                        "start": 643,
-                        "end": 648
+                        "start": 600,
+                        "end": 605
                       },
                       "id": 116
                     },
@@ -1857,101 +1829,333 @@
             }
           },
           "span": {
-            "start": 643,
-            "end": 648
+            "start": 600,
+            "end": 605
           },
           "id": 117
         },
-        "119": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 117,
-                "ident": {
-                  "ident": 29,
-                  "span": {
-                    "start": 649,
-                    "end": 661
-                  },
-                  "id": 118
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 643,
-            "end": 661
-          },
-          "id": 119
-        },
-        "120": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 119,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 643,
-            "end": 663
-          },
-          "id": 120
-        },
-        "121": {
+        "118": {
           "kind": {
             "Stmt": {
               "Expression": {
-                "expr": 120,
+                "expr": 117,
                 "implicit_return": false
               }
             }
           },
           "span": {
-            "start": 643,
-            "end": 663
+            "start": 600,
+            "end": 605
           },
-          "id": 121
+          "id": 118
         },
-        "122": {
+        "119": {
           "kind": {
             "Block": {
               "stmts": [
-                121
+                118
               ]
             }
           },
           "span": {
-            "start": 637,
-            "end": 665
+            "start": 594,
+            "end": 607
           },
-          "id": 122
+          "id": 119
         },
-        "123": {
+        "120": {
           "kind": {
             "Fn": {
               "sig": {
                 "name": {
-                  "ident": 30,
+                  "ident": 27,
                   "span": {
-                    "start": 607,
-                    "end": 627
+                    "start": 551,
+                    "end": 567
                   },
-                  "id": 114
+                  "id": 109
                 },
-                "generic_params": {},
-                "params": {},
+                "generic_params": {
+                  "6": 111
+                },
+                "params": {
+                  "6": 114
+                },
                 "return_type": 115
               },
-              "body": 122
+              "body": 119
             }
           },
           "span": {
-            "start": 604,
-            "end": 665
+            "start": 548,
+            "end": 607
+          },
+          "id": 120
+        },
+        "123": {
+          "kind": {
+            "GenericParam": {
+              "ident": {
+                "ident": 6,
+                "span": {
+                  "start": 637,
+                  "end": 642
+                },
+                "id": 122
+              },
+              "trait_bound": null
+            }
+          },
+          "span": {
+            "start": 637,
+            "end": 642
           },
           "id": 123
+        },
+        "124": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 649,
+            "end": 652
+          },
+          "id": 124
+        },
+        "127": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 659,
+                        "end": 664
+                      },
+                      "id": 125
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 30,
+                      "span": {
+                        "start": 666,
+                        "end": 678
+                      },
+                      "id": 126
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 659,
+            "end": 678
+          },
+          "id": 127
+        },
+        "128": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 127,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 659,
+            "end": 680
+          },
+          "id": 128
+        },
+        "129": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 128,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 659,
+            "end": 680
+          },
+          "id": 129
+        },
+        "130": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                129
+              ]
+            }
+          },
+          "span": {
+            "start": 653,
+            "end": 682
+          },
+          "id": 130
+        },
+        "131": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 29,
+                  "span": {
+                    "start": 612,
+                    "end": 636
+                  },
+                  "id": 121
+                },
+                "generic_params": {
+                  "6": 123
+                },
+                "params": {},
+                "return_type": 124
+              },
+              "body": 130
+            }
+          },
+          "span": {
+            "start": 609,
+            "end": 682
+          },
+          "id": 131
+        },
+        "133": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 713,
+            "end": 716
+          },
+          "id": 133
+        },
+        "135": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 723,
+                        "end": 728
+                      },
+                      "id": 134
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 723,
+            "end": 728
+          },
+          "id": 135
+        },
+        "137": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 135,
+                "ident": {
+                  "ident": 30,
+                  "span": {
+                    "start": 729,
+                    "end": 741
+                  },
+                  "id": 136
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 723,
+            "end": 741
+          },
+          "id": 137
+        },
+        "138": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 137,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 723,
+            "end": 743
+          },
+          "id": 138
+        },
+        "139": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 138,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 723,
+            "end": 743
+          },
+          "id": 139
+        },
+        "140": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                139
+              ]
+            }
+          },
+          "span": {
+            "start": 717,
+            "end": 745
+          },
+          "id": 140
+        },
+        "141": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 31,
+                  "span": {
+                    "start": 687,
+                    "end": 707
+                  },
+                  "id": 132
+                },
+                "generic_params": {},
+                "params": {},
+                "return_type": 133
+              },
+              "body": 140
+            }
+          },
+          "span": {
+            "start": 684,
+            "end": 745
+          },
+          "id": 141
         }
       }
     }
