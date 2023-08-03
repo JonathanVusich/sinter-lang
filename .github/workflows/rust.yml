@@ -26,11 +26,11 @@ jobs:
         working-directory: sinter-lang
       - name: Test Sinter
         run: cargo test --verbose
-        working-directory: snap
+        working-directory: sinter-lang
       - name: Build Snap
         run: cargo build --verbose
-        working-directory: ./snap
+        working-directory: snap
       - name: Test Snap
         run: cargo test --verbose
-        working-directory: ./snap
+        working-directory: snap
       
