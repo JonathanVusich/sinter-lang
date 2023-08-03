@@ -3,7 +3,7 @@
   "crate_id": {
     "id": 0
   },
-  "local_def_id": 46,
+  "local_def_id": 26,
   "module_lookup": [
     [
       {
@@ -54,8 +54,7 @@
                   "span": {
                     "start": 3,
                     "end": 6
-                  },
-                  "id": 0
+                  }
                 },
                 "generic_params": {
                   "params": [
@@ -65,8 +64,7 @@
                         "span": {
                           "start": 7,
                           "end": 8
-                        },
-                        "id": 1
+                        }
                       },
                       "trait_bound": {
                         "kind": {
@@ -82,8 +80,7 @@
                                         "span": {
                                           "start": 10,
                                           "end": 16
-                                        },
-                                        "id": 2
+                                        }
                                       }
                                     ]
                                   },
@@ -99,13 +96,13 @@
                           "start": 10,
                           "end": 16
                         },
-                        "id": 3
+                        "id": 0
                       },
                       "span": {
                         "start": 7,
                         "end": 16
                       },
-                      "id": 4
+                      "id": 1
                     }
                   ]
                 },
@@ -117,8 +114,7 @@
                         "span": {
                           "start": 18,
                           "end": 21
-                        },
-                        "id": 5
+                        }
                       },
                       "ty": {
                         "kind": {
@@ -132,8 +128,7 @@
                                     "span": {
                                       "start": 23,
                                       "end": 24
-                                    },
-                                    "id": 6
+                                    }
                                   }
                                 ]
                               },
@@ -147,14 +142,14 @@
                           "start": 23,
                           "end": 24
                         },
-                        "id": 7
+                        "id": 2
                       },
                       "mutability": "Immutable",
                       "span": {
                         "start": 18,
                         "end": 24
                       },
-                      "id": 8
+                      "id": 3
                     },
                     {
                       "name": {
@@ -162,8 +157,7 @@
                         "span": {
                           "start": 26,
                           "end": 29
-                        },
-                        "id": 9
+                        }
                       },
                       "ty": {
                         "kind": {
@@ -177,8 +171,7 @@
                                     "span": {
                                       "start": 31,
                                       "end": 32
-                                    },
-                                    "id": 10
+                                    }
                                   }
                                 ]
                               },
@@ -192,14 +185,14 @@
                           "start": 31,
                           "end": 32
                         },
-                        "id": 11
+                        "id": 4
                       },
                       "mutability": "Immutable",
                       "span": {
                         "start": 26,
                         "end": 32
                       },
-                      "id": 12
+                      "id": 5
                     }
                   ]
                 },
@@ -215,8 +208,7 @@
                               "span": {
                                 "start": 37,
                                 "end": 38
-                              },
-                              "id": 13
+                              }
                             }
                           ]
                         },
@@ -230,7 +222,7 @@
                     "start": 37,
                     "end": 38
                   },
-                  "id": 14
+                  "id": 6
                 }
               },
               "body": {
@@ -253,8 +245,7 @@
                                           "span": {
                                             "start": 45,
                                             "end": 48
-                                          },
-                                          "id": 15
+                                          }
                                         },
                                         "generics": null
                                       }
@@ -265,7 +256,7 @@
                                   "start": 45,
                                   "end": 48
                                 },
-                                "id": 16
+                                "id": 7
                               },
                               "rhs": {
                                 "kind": {
@@ -278,8 +269,7 @@
                                           "span": {
                                             "start": 51,
                                             "end": 54
-                                          },
-                                          "id": 17
+                                          }
                                         },
                                         "generics": null
                                       }
@@ -290,7 +280,7 @@
                                   "start": 51,
                                   "end": 54
                                 },
-                                "id": 18
+                                "id": 8
                               }
                             }
                           },
@@ -298,7 +288,7 @@
                             "start": 45,
                             "end": 54
                           },
-                          "id": 19
+                          "id": 9
                         },
                         "implicit_return": false
                       }
@@ -307,14 +297,14 @@
                       "start": 45,
                       "end": 54
                     },
-                    "id": 20
+                    "id": 10
                   }
                 ],
                 "span": {
                   "start": 39,
                   "end": 56
                 },
-                "id": 21
+                "id": 11
               }
             }
           },
@@ -322,7 +312,7 @@
             "start": 0,
             "end": 56
           },
-          "id": 22
+          "id": 12
         }
       ]
     },
@@ -351,8 +341,7 @@
                   "span": {
                     "start": 3,
                     "end": 11
-                  },
-                  "id": 23
+                  }
                 },
                 "generic_params": {
                   "params": [
@@ -362,8 +351,7 @@
                         "span": {
                           "start": 12,
                           "end": 13
-                        },
-                        "id": 24
+                        }
                       },
                       "trait_bound": {
                         "kind": {
@@ -379,8 +367,7 @@
                                         "span": {
                                           "start": 15,
                                           "end": 21
-                                        },
-                                        "id": 25
+                                        }
                                       }
                                     ]
                                   },
@@ -396,13 +383,13 @@
                           "start": 15,
                           "end": 21
                         },
-                        "id": 26
+                        "id": 13
                       },
                       "span": {
                         "start": 12,
                         "end": 21
                       },
-                      "id": 27
+                      "id": 14
                     }
                   ]
                 },
@@ -414,8 +401,7 @@
                         "span": {
                           "start": 23,
                           "end": 26
-                        },
-                        "id": 28
+                        }
                       },
                       "ty": {
                         "kind": {
@@ -429,8 +415,7 @@
                                     "span": {
                                       "start": 28,
                                       "end": 29
-                                    },
-                                    "id": 29
+                                    }
                                   }
                                 ]
                               },
@@ -444,14 +429,14 @@
                           "start": 28,
                           "end": 29
                         },
-                        "id": 30
+                        "id": 15
                       },
                       "mutability": "Immutable",
                       "span": {
                         "start": 23,
                         "end": 29
                       },
-                      "id": 31
+                      "id": 16
                     },
                     {
                       "name": {
@@ -459,8 +444,7 @@
                         "span": {
                           "start": 31,
                           "end": 34
-                        },
-                        "id": 32
+                        }
                       },
                       "ty": {
                         "kind": {
@@ -474,8 +458,7 @@
                                     "span": {
                                       "start": 36,
                                       "end": 37
-                                    },
-                                    "id": 33
+                                    }
                                   }
                                 ]
                               },
@@ -489,14 +472,14 @@
                           "start": 36,
                           "end": 37
                         },
-                        "id": 34
+                        "id": 17
                       },
                       "mutability": "Immutable",
                       "span": {
                         "start": 31,
                         "end": 37
                       },
-                      "id": 35
+                      "id": 18
                     }
                   ]
                 },
@@ -512,8 +495,7 @@
                               "span": {
                                 "start": 42,
                                 "end": 43
-                              },
-                              "id": 36
+                              }
                             }
                           ]
                         },
@@ -527,7 +509,7 @@
                     "start": 42,
                     "end": 43
                   },
-                  "id": 37
+                  "id": 19
                 }
               },
               "body": {
@@ -550,8 +532,7 @@
                                           "span": {
                                             "start": 50,
                                             "end": 53
-                                          },
-                                          "id": 38
+                                          }
                                         },
                                         "generics": null
                                       }
@@ -562,7 +543,7 @@
                                   "start": 50,
                                   "end": 53
                                 },
-                                "id": 39
+                                "id": 20
                               },
                               "rhs": {
                                 "kind": {
@@ -575,8 +556,7 @@
                                           "span": {
                                             "start": 56,
                                             "end": 59
-                                          },
-                                          "id": 40
+                                          }
                                         },
                                         "generics": null
                                       }
@@ -587,7 +567,7 @@
                                   "start": 56,
                                   "end": 59
                                 },
-                                "id": 41
+                                "id": 21
                               }
                             }
                           },
@@ -595,7 +575,7 @@
                             "start": 50,
                             "end": 59
                           },
-                          "id": 42
+                          "id": 22
                         },
                         "implicit_return": false
                       }
@@ -604,14 +584,14 @@
                       "start": 50,
                       "end": 59
                     },
-                    "id": 43
+                    "id": 23
                   }
                 ],
                 "span": {
                   "start": 44,
                   "end": 61
                 },
-                "id": 44
+                "id": 24
               }
             }
           },
@@ -619,7 +599,7 @@
             "start": 0,
             "end": 61
           },
-          "id": 45
+          "id": 25
         }
       ]
     }

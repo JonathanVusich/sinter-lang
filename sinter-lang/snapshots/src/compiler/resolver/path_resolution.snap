@@ -37,782 +37,16 @@
     "f64"
   ],
   {
-    "15": {
-      "name": 15,
-      "id": {
-        "id": 2
-      },
-      "items": [],
-      "nodes": {
-        "2": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 11,
-            "end": 14
-          },
-          "id": 2
-        },
-        "3": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 33,
-                "span": {
-                  "start": 8,
-                  "end": 9
-                },
-                "id": 1
-              },
-              "ty": 2,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 8,
-            "end": 14
-          },
-          "id": 3
-        },
-        "5": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 19,
-            "end": 22
-          },
-          "id": 5
-        },
-        "6": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 34,
-                "span": {
-                  "start": 16,
-                  "end": 17
-                },
-                "id": 4
-              },
-              "ty": 5,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 16,
-            "end": 22
-          },
-          "id": 6
-        },
-        "7": {
-          "kind": {
-            "Ty": "F64"
-          },
-          "span": {
-            "start": 27,
-            "end": 30
-          },
-          "id": 7
-        },
-        "8": {
-          "kind": {
-            "Expr": {
-              "Float": 0.0
-            }
-          },
-          "span": {
-            "start": 37,
-            "end": 40
-          },
-          "id": 8
-        },
-        "9": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 8,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 37,
-            "end": 40
-          },
-          "id": 9
-        },
-        "10": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                9
-              ]
-            }
-          },
-          "span": {
-            "start": 31,
-            "end": 42
-          },
-          "id": 10
-        },
-        "11": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 32,
-                  "span": {
-                    "start": 3,
-                    "end": 7
-                  },
-                  "id": 0
-                },
-                "generic_params": {},
-                "params": {
-                  "34": 6,
-                  "33": 3
-                },
-                "return_type": 7
-              },
-              "body": 10
-            }
-          },
-          "span": {
-            "start": 0,
-            "end": 42
-          },
-          "id": 11
-        },
-        "14": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 54,
-            "end": 57
-          },
-          "id": 14
-        },
-        "15": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 33,
-                "span": {
-                  "start": 51,
-                  "end": 52
-                },
-                "id": 13
-              },
-              "ty": 14,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 51,
-            "end": 57
-          },
-          "id": 15
-        },
-        "17": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 62,
-            "end": 65
-          },
-          "id": 17
-        },
-        "18": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 34,
-                "span": {
-                  "start": 59,
-                  "end": 60
-                },
-                "id": 16
-              },
-              "ty": 17,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 59,
-            "end": 65
-          },
-          "id": 18
-        },
-        "19": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 70,
-            "end": 73
-          },
-          "id": 19
-        },
-        "21": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 33,
-                      "span": {
-                        "start": 83,
-                        "end": 84
-                      },
-                      "id": 20
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 83,
-            "end": 84
-          },
-          "id": 21
-        },
-        "23": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 34,
-                      "span": {
-                        "start": 87,
-                        "end": 88
-                      },
-                      "id": 22
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 87,
-            "end": 88
-          },
-          "id": 23
-        },
-        "24": {
-          "kind": {
-            "Expr": {
-              "Infix": {
-                "operator": "Greater",
-                "lhs": 21,
-                "rhs": 23
-              }
-            }
-          },
-          "span": {
-            "start": 83,
-            "end": 88
-          },
-          "id": 24
-        },
-        "26": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 33,
-                      "span": {
-                        "start": 99,
-                        "end": 100
-                      },
-                      "id": 25
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 99,
-            "end": 100
-          },
-          "id": 26
-        },
-        "27": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 26,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 99,
-            "end": 100
-          },
-          "id": 27
-        },
-        "28": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                27
-              ]
-            }
-          },
-          "span": {
-            "start": 89,
-            "end": 106
-          },
-          "id": 28
-        },
-        "30": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 34,
-                      "span": {
-                        "start": 122,
-                        "end": 123
-                      },
-                      "id": 29
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 122,
-            "end": 123
-          },
-          "id": 30
-        },
-        "31": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 30,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 122,
-            "end": 123
-          },
-          "id": 31
-        },
-        "32": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                31
-              ]
-            }
-          },
-          "span": {
-            "start": 112,
-            "end": 129
-          },
-          "id": 32
-        },
-        "33": {
-          "kind": {
-            "Stmt": {
-              "If": {
-                "condition": 24,
-                "if_true": 28,
-                "if_false": 32
-              }
-            }
-          },
-          "span": {
-            "start": 80,
-            "end": 129
-          },
-          "id": 33
-        },
-        "34": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                33
-              ]
-            }
-          },
-          "span": {
-            "start": 74,
-            "end": 131
-          },
-          "id": 34
-        },
-        "35": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 22,
-                  "span": {
-                    "start": 47,
-                    "end": 50
-                  },
-                  "id": 12
-                },
-                "generic_params": {},
-                "params": {
-                  "33": 15,
-                  "34": 18
-                },
-                "return_type": 19
-              },
-              "body": 34
-            }
-          },
-          "span": {
-            "start": 44,
-            "end": 131
-          },
-          "id": 35
-        },
-        "38": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 143,
-            "end": 146
-          },
-          "id": 38
-        },
-        "39": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 33,
-                "span": {
-                  "start": 140,
-                  "end": 141
-                },
-                "id": 37
-              },
-              "ty": 38,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 140,
-            "end": 146
-          },
-          "id": 39
-        },
-        "41": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 151,
-            "end": 154
-          },
-          "id": 41
-        },
-        "42": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 34,
-                "span": {
-                  "start": 148,
-                  "end": 149
-                },
-                "id": 40
-              },
-              "ty": 41,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 148,
-            "end": 154
-          },
-          "id": 42
-        },
-        "43": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 159,
-            "end": 162
-          },
-          "id": 43
-        },
-        "45": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 33,
-                      "span": {
-                        "start": 172,
-                        "end": 173
-                      },
-                      "id": 44
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 172,
-            "end": 173
-          },
-          "id": 45
-        },
-        "47": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 34,
-                      "span": {
-                        "start": 176,
-                        "end": 177
-                      },
-                      "id": 46
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 176,
-            "end": 177
-          },
-          "id": 47
-        },
-        "48": {
-          "kind": {
-            "Expr": {
-              "Infix": {
-                "operator": "Less",
-                "lhs": 45,
-                "rhs": 47
-              }
-            }
-          },
-          "span": {
-            "start": 172,
-            "end": 177
-          },
-          "id": 48
-        },
-        "50": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 33,
-                      "span": {
-                        "start": 188,
-                        "end": 189
-                      },
-                      "id": 49
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 188,
-            "end": 189
-          },
-          "id": 50
-        },
-        "51": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 50,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 188,
-            "end": 189
-          },
-          "id": 51
-        },
-        "52": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                51
-              ]
-            }
-          },
-          "span": {
-            "start": 178,
-            "end": 195
-          },
-          "id": 52
-        },
-        "54": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 34,
-                      "span": {
-                        "start": 211,
-                        "end": 212
-                      },
-                      "id": 53
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 211,
-            "end": 212
-          },
-          "id": 54
-        },
-        "55": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 54,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 211,
-            "end": 212
-          },
-          "id": 55
-        },
-        "56": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                55
-              ]
-            }
-          },
-          "span": {
-            "start": 201,
-            "end": 218
-          },
-          "id": 56
-        },
-        "57": {
-          "kind": {
-            "Stmt": {
-              "If": {
-                "condition": 48,
-                "if_true": 52,
-                "if_false": 56
-              }
-            }
-          },
-          "span": {
-            "start": 169,
-            "end": 218
-          },
-          "id": 57
-        },
-        "58": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                57
-              ]
-            }
-          },
-          "span": {
-            "start": 163,
-            "end": 220
-          },
-          "id": 58
-        },
-        "59": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 17,
-                  "span": {
-                    "start": 136,
-                    "end": 139
-                  },
-                  "id": 36
-                },
-                "generic_params": {},
-                "params": {
-                  "34": 42,
-                  "33": 39
-                },
-                "return_type": 43
-              },
-              "body": 58
-            }
-          },
-          "span": {
-            "start": 133,
-            "end": 220
-          },
-          "id": 59
-        }
-      }
-    },
     "1": {
       "name": 1,
       "id": {
         "id": 0
       },
       "items": [
-        9
+        8
       ],
       "nodes": {
-        "1": {
+        "0": {
           "kind": {
             "EnumMember": {
               "name": 4,
@@ -824,9 +58,9 @@
             "start": 18,
             "end": 25
           },
-          "id": 1
+          "id": 0
         },
-        "2": {
+        "1": {
           "kind": {
             "EnumMember": {
               "name": 5,
@@ -838,9 +72,9 @@
             "start": 31,
             "end": 36
           },
-          "id": 2
+          "id": 1
         },
-        "3": {
+        "2": {
           "kind": {
             "EnumMember": {
               "name": 6,
@@ -852,9 +86,9 @@
             "start": 42,
             "end": 47
           },
-          "id": 3
+          "id": 2
         },
-        "4": {
+        "3": {
           "kind": {
             "EnumMember": {
               "name": 7,
@@ -866,9 +100,9 @@
             "start": 53,
             "end": 57
           },
-          "id": 4
+          "id": 3
         },
-        "5": {
+        "4": {
           "kind": {
             "EnumMember": {
               "name": 8,
@@ -880,9 +114,9 @@
             "start": 63,
             "end": 70
           },
-          "id": 5
+          "id": 4
         },
-        "6": {
+        "5": {
           "kind": {
             "EnumMember": {
               "name": 9,
@@ -894,9 +128,9 @@
             "start": 76,
             "end": 82
           },
-          "id": 6
+          "id": 5
         },
-        "7": {
+        "6": {
           "kind": {
             "EnumMember": {
               "name": 10,
@@ -908,9 +142,9 @@
             "start": 88,
             "end": 94
           },
-          "id": 7
+          "id": 6
         },
-        "8": {
+        "7": {
           "kind": {
             "EnumMember": {
               "name": 11,
@@ -922,9 +156,9 @@
             "start": 100,
             "end": 107
           },
-          "id": 8
+          "id": 7
         },
-        "9": {
+        "8": {
           "kind": {
             "Enum": {
               "name": {
@@ -932,8 +166,7 @@
                 "span": {
                   "start": 5,
                   "end": 11
-                },
-                "id": 0
+                }
               },
               "generic_params": {},
               "members": {
@@ -946,9 +179,9 @@
             "start": 0,
             "end": 110
           },
-          "id": 9
+          "id": 8
         },
-        "11": {
+        "9": {
           "kind": {
             "Expr": {
               "Integer": 8
@@ -958,9 +191,23 @@
             "start": 130,
             "end": 131
           },
-          "id": 11
+          "id": 9
         },
-        "34": {
+        "10": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 12,
+              "ty": null,
+              "initializer": 9
+            }
+          },
+          "span": {
+            "start": 112,
+            "end": 132
+          },
+          "id": 10
+        },
+        "16": {
           "kind": {
             "Expr": {
               "Path": {
@@ -971,8 +218,7 @@
                       "span": {
                         "start": 137,
                         "end": 142
-                      },
-                      "id": 33
+                      }
                     },
                     "generics": null
                   }
@@ -984,20 +230,19 @@
             "start": 137,
             "end": 142
           },
-          "id": 34
+          "id": 16
         },
-        "36": {
+        "17": {
           "kind": {
             "Expr": {
               "Field": {
-                "lhs": 34,
+                "lhs": 16,
                 "ident": {
                   "ident": 19,
                   "span": {
                     "start": 143,
                     "end": 151
-                  },
-                  "id": 35
+                  }
                 }
               }
             }
@@ -1006,13 +251,13 @@
             "start": 137,
             "end": 151
           },
-          "id": 36
+          "id": 17
         },
-        "37": {
+        "18": {
           "kind": {
             "Expr": {
               "Call": {
-                "target": 36,
+                "target": 17,
                 "args": []
               }
             }
@@ -1021,9 +266,23 @@
             "start": 137,
             "end": 153
           },
-          "id": 37
+          "id": 18
         },
-        "42": {
+        "19": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 18,
+              "ty": null,
+              "initializer": 18
+            }
+          },
+          "span": {
+            "start": 116,
+            "end": 154
+          },
+          "id": 19
+        },
+        "20": {
           "kind": {
             "Expr": {
               "Path": {
@@ -1034,8 +293,7 @@
                       "span": {
                         "start": 176,
                         "end": 182
-                      },
-                      "id": 40
+                      }
                     },
                     "generics": null
                   },
@@ -1045,8 +303,7 @@
                       "span": {
                         "start": 184,
                         "end": 189
-                      },
-                      "id": 41
+                      }
                     },
                     "generics": null
                   }
@@ -1058,20 +315,19 @@
             "start": 176,
             "end": 189
           },
-          "id": 42
+          "id": 20
         },
-        "44": {
+        "21": {
           "kind": {
             "Expr": {
               "Field": {
-                "lhs": 42,
+                "lhs": 20,
                 "ident": {
                   "ident": 19,
                   "span": {
                     "start": 190,
                     "end": 198
-                  },
-                  "id": 43
+                  }
                 }
               }
             }
@@ -1079,6 +335,514 @@
           "span": {
             "start": 176,
             "end": 198
+          },
+          "id": 21
+        },
+        "22": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 21,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 176,
+            "end": 200
+          },
+          "id": 22
+        },
+        "23": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 20,
+              "ty": null,
+              "initializer": 22
+            }
+          },
+          "span": {
+            "start": 155,
+            "end": 201
+          },
+          "id": 23
+        },
+        "24": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 16,
+                      "span": {
+                        "start": 222,
+                        "end": 226
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 22,
+                      "span": {
+                        "start": 228,
+                        "end": 231
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 222,
+            "end": 231
+          },
+          "id": 24
+        },
+        "25": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 232,
+                        "end": 237
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 232,
+            "end": 237
+          },
+          "id": 25
+        },
+        "26": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 25,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 238,
+                    "end": 246
+                  }
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 232,
+            "end": 246
+          },
+          "id": 26
+        },
+        "27": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 26,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 232,
+            "end": 248
+          },
+          "id": 27
+        },
+        "28": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 3,
+                      "span": {
+                        "start": 250,
+                        "end": 256
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 5,
+                      "span": {
+                        "start": 258,
+                        "end": 263
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 250,
+            "end": 263
+          },
+          "id": 28
+        },
+        "29": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 28,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 264,
+                    "end": 272
+                  }
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 250,
+            "end": 272
+          },
+          "id": 29
+        },
+        "30": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 29,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 250,
+            "end": 274
+          },
+          "id": 30
+        },
+        "31": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 24,
+                "args": [
+                  27,
+                  30
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 222,
+            "end": 275
+          },
+          "id": 31
+        },
+        "32": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 21,
+              "ty": null,
+              "initializer": 31
+            }
+          },
+          "span": {
+            "start": 203,
+            "end": 276
+          },
+          "id": 32
+        },
+        "33": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 17,
+                      "span": {
+                        "start": 296,
+                        "end": 299
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 296,
+            "end": 299
+          },
+          "id": 33
+        },
+        "34": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 300,
+                        "end": 305
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 300,
+            "end": 305
+          },
+          "id": 34
+        },
+        "35": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 34,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 306,
+                    "end": 314
+                  }
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 300,
+            "end": 314
+          },
+          "id": 35
+        },
+        "36": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 35,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 300,
+            "end": 316
+          },
+          "id": 36
+        },
+        "37": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 3,
+                      "span": {
+                        "start": 318,
+                        "end": 324
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 5,
+                      "span": {
+                        "start": 326,
+                        "end": 331
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 318,
+            "end": 331
+          },
+          "id": 37
+        },
+        "38": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 37,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 332,
+                    "end": 340
+                  }
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 318,
+            "end": 340
+          },
+          "id": 38
+        },
+        "39": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 38,
+                "args": []
+              }
+            }
+          },
+          "span": {
+            "start": 318,
+            "end": 342
+          },
+          "id": 39
+        },
+        "40": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 33,
+                "args": [
+                  36,
+                  39
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 296,
+            "end": 343
+          },
+          "id": 40
+        },
+        "41": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 23,
+              "ty": null,
+              "initializer": 40
+            }
+          },
+          "span": {
+            "start": 277,
+            "end": 344
+          },
+          "id": 41
+        },
+        "42": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 15,
+                      "span": {
+                        "start": 365,
+                        "end": 368
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 16,
+                      "span": {
+                        "start": 370,
+                        "end": 374
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "ident": {
+                      "ident": 17,
+                      "span": {
+                        "start": 376,
+                        "end": 379
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 365,
+            "end": 379
+          },
+          "id": 42
+        },
+        "43": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 6,
+                      "span": {
+                        "start": 380,
+                        "end": 385
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 380,
+            "end": 385
+          },
+          "id": 43
+        },
+        "44": {
+          "kind": {
+            "Expr": {
+              "Field": {
+                "lhs": 43,
+                "ident": {
+                  "ident": 19,
+                  "span": {
+                    "start": 386,
+                    "end": 394
+                  }
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 380,
+            "end": 394
           },
           "id": 44
         },
@@ -1092,496 +856,12 @@
             }
           },
           "span": {
-            "start": 176,
-            "end": 200
-          },
-          "id": 45
-        },
-        "50": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 16,
-                      "span": {
-                        "start": 222,
-                        "end": 226
-                      },
-                      "id": 48
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 22,
-                      "span": {
-                        "start": 228,
-                        "end": 231
-                      },
-                      "id": 49
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 222,
-            "end": 231
-          },
-          "id": 50
-        },
-        "52": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 232,
-                        "end": 237
-                      },
-                      "id": 51
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 232,
-            "end": 237
-          },
-          "id": 52
-        },
-        "54": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 52,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 238,
-                    "end": 246
-                  },
-                  "id": 53
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 232,
-            "end": 246
-          },
-          "id": 54
-        },
-        "55": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 54,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 232,
-            "end": 248
-          },
-          "id": 55
-        },
-        "58": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 250,
-                        "end": 256
-                      },
-                      "id": 56
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 258,
-                        "end": 263
-                      },
-                      "id": 57
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 250,
-            "end": 263
-          },
-          "id": 58
-        },
-        "60": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 58,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 264,
-                    "end": 272
-                  },
-                  "id": 59
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 250,
-            "end": 272
-          },
-          "id": 60
-        },
-        "61": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 60,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 250,
-            "end": 274
-          },
-          "id": 61
-        },
-        "62": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 50,
-                "args": [
-                  55,
-                  61
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 222,
-            "end": 275
-          },
-          "id": 62
-        },
-        "66": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 296,
-                        "end": 299
-                      },
-                      "id": 65
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 296,
-            "end": 299
-          },
-          "id": 66
-        },
-        "68": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 300,
-                        "end": 305
-                      },
-                      "id": 67
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 300,
-            "end": 305
-          },
-          "id": 68
-        },
-        "70": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 68,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 306,
-                    "end": 314
-                  },
-                  "id": 69
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 300,
-            "end": 314
-          },
-          "id": 70
-        },
-        "71": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 70,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 300,
-            "end": 316
-          },
-          "id": 71
-        },
-        "74": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 318,
-                        "end": 324
-                      },
-                      "id": 72
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 326,
-                        "end": 331
-                      },
-                      "id": 73
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 318,
-            "end": 331
-          },
-          "id": 74
-        },
-        "76": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 74,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 332,
-                    "end": 340
-                  },
-                  "id": 75
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 318,
-            "end": 340
-          },
-          "id": 76
-        },
-        "77": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 76,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 318,
-            "end": 342
-          },
-          "id": 77
-        },
-        "78": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 66,
-                "args": [
-                  71,
-                  77
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 296,
-            "end": 343
-          },
-          "id": 78
-        },
-        "84": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 15,
-                      "span": {
-                        "start": 365,
-                        "end": 368
-                      },
-                      "id": 81
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 16,
-                      "span": {
-                        "start": 370,
-                        "end": 374
-                      },
-                      "id": 82
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 376,
-                        "end": 379
-                      },
-                      "id": 83
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 365,
-            "end": 379
-          },
-          "id": 84
-        },
-        "86": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 380,
-                        "end": 385
-                      },
-                      "id": 85
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 380,
-            "end": 385
-          },
-          "id": 86
-        },
-        "88": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 86,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 386,
-                    "end": 394
-                  },
-                  "id": 87
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 380,
-            "end": 394
-          },
-          "id": 88
-        },
-        "89": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 88,
-                "args": []
-              }
-            }
-          },
-          "span": {
             "start": 380,
             "end": 396
           },
-          "id": 89
+          "id": 45
         },
-        "92": {
+        "46": {
           "kind": {
             "Expr": {
               "Path": {
@@ -1592,8 +872,7 @@
                       "span": {
                         "start": 398,
                         "end": 404
-                      },
-                      "id": 90
+                      }
                     },
                     "generics": null
                   },
@@ -1603,8 +882,7 @@
                       "span": {
                         "start": 406,
                         "end": 411
-                      },
-                      "id": 91
+                      }
                     },
                     "generics": null
                   }
@@ -1616,20 +894,19 @@
             "start": 398,
             "end": 411
           },
-          "id": 92
+          "id": 46
         },
-        "94": {
+        "47": {
           "kind": {
             "Expr": {
               "Field": {
-                "lhs": 92,
+                "lhs": 46,
                 "ident": {
                   "ident": 19,
                   "span": {
                     "start": 412,
                     "end": 420
-                  },
-                  "id": 93
+                  }
                 }
               }
             }
@@ -1638,13 +915,13 @@
             "start": 398,
             "end": 420
           },
-          "id": 94
+          "id": 47
         },
-        "95": {
+        "48": {
           "kind": {
             "Expr": {
               "Call": {
-                "target": 94,
+                "target": 47,
                 "args": []
               }
             }
@@ -1653,16 +930,16 @@
             "start": 398,
             "end": 422
           },
-          "id": 95
+          "id": 48
         },
-        "96": {
+        "49": {
           "kind": {
             "Expr": {
               "Call": {
-                "target": 84,
+                "target": 42,
                 "args": [
-                  89,
-                  95
+                  45,
+                  48
                 ]
               }
             }
@@ -1671,9 +948,23 @@
             "start": 365,
             "end": 423
           },
-          "id": 96
+          "id": 49
         },
-        "102": {
+        "50": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 24,
+              "ty": null,
+              "initializer": 49
+            }
+          },
+          "span": {
+            "start": 345,
+            "end": 424
+          },
+          "id": 50
+        },
+        "51": {
           "kind": {
             "Expr": {
               "Path": {
@@ -1684,8 +975,7 @@
                       "span": {
                         "start": 467,
                         "end": 473
-                      },
-                      "id": 100
+                      }
                     },
                     "generics": null
                   },
@@ -1695,8 +985,7 @@
                       "span": {
                         "start": 475,
                         "end": 486
-                      },
-                      "id": 101
+                      }
                     },
                     "generics": null
                   }
@@ -1708,9 +997,23 @@
             "start": 460,
             "end": 486
           },
-          "id": 102
+          "id": 51
         },
-        "107": {
+        "52": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 25,
+              "ty": null,
+              "initializer": 51
+            }
+          },
+          "span": {
+            "start": 426,
+            "end": 487
+          },
+          "id": 52
+        },
+        "53": {
           "kind": {
             "Expr": {
               "Path": {
@@ -1721,8 +1024,7 @@
                       "span": {
                         "start": 526,
                         "end": 532
-                      },
-                      "id": 105
+                      }
                     },
                     "generics": null
                   },
@@ -1732,8 +1034,7 @@
                       "span": {
                         "start": 534,
                         "end": 545
-                      },
-                      "id": 106
+                      }
                     },
                     "generics": null
                   }
@@ -1745,9 +1046,23 @@
             "start": 526,
             "end": 545
           },
-          "id": 107
+          "id": 53
         },
-        "111": {
+        "54": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 26,
+              "ty": null,
+              "initializer": 53
+            }
+          },
+          "span": {
+            "start": 488,
+            "end": 546
+          },
+          "id": 54
+        },
+        "55": {
           "kind": {
             "GenericParam": {
               "ident": {
@@ -1755,8 +1070,7 @@
                 "span": {
                   "start": 568,
                   "end": 573
-                },
-                "id": 110
+                }
               },
               "trait_bound": null
             }
@@ -1765,9 +1079,9 @@
             "start": 568,
             "end": 573
           },
-          "id": 111
+          "id": 55
         },
-        "113": {
+        "56": {
           "kind": {
             "Ty": "U64"
           },
@@ -1775,9 +1089,9 @@
             "start": 582,
             "end": 585
           },
-          "id": 113
+          "id": 56
         },
-        "114": {
+        "57": {
           "kind": {
             "Param": {
               "ident": {
@@ -1785,10 +1099,9 @@
                 "span": {
                   "start": 575,
                   "end": 580
-                },
-                "id": 112
+                }
               },
-              "ty": 113,
+              "ty": 56,
               "mutability": "Immutable"
             }
           },
@@ -1796,9 +1109,9 @@
             "start": 575,
             "end": 585
           },
-          "id": 114
+          "id": 57
         },
-        "115": {
+        "58": {
           "kind": {
             "Ty": "U64"
           },
@@ -1806,9 +1119,9 @@
             "start": 590,
             "end": 593
           },
-          "id": 115
+          "id": 58
         },
-        "117": {
+        "59": {
           "kind": {
             "Expr": {
               "Path": {
@@ -1819,8 +1132,7 @@
                       "span": {
                         "start": 600,
                         "end": 605
-                      },
-                      "id": 116
+                      }
                     },
                     "generics": null
                   }
@@ -1832,13 +1144,13 @@
             "start": 600,
             "end": 605
           },
-          "id": 117
+          "id": 59
         },
-        "118": {
+        "60": {
           "kind": {
             "Stmt": {
               "Expression": {
-                "expr": 117,
+                "expr": 59,
                 "implicit_return": false
               }
             }
@@ -1847,13 +1159,13 @@
             "start": 600,
             "end": 605
           },
-          "id": 118
+          "id": 60
         },
-        "119": {
+        "61": {
           "kind": {
             "Block": {
               "stmts": [
-                118
+                60
               ]
             }
           },
@@ -1861,9 +1173,9 @@
             "start": 594,
             "end": 607
           },
-          "id": 119
+          "id": 61
         },
-        "120": {
+        "62": {
           "kind": {
             "Fn": {
               "sig": {
@@ -1872,27 +1184,26 @@
                   "span": {
                     "start": 551,
                     "end": 567
-                  },
-                  "id": 109
+                  }
                 },
                 "generic_params": {
-                  "6": 111
+                  "6": 55
                 },
                 "params": {
-                  "6": 114
+                  "6": 57
                 },
-                "return_type": 115
+                "return_type": 58
               },
-              "body": 119
+              "body": 61
             }
           },
           "span": {
             "start": 548,
             "end": 607
           },
-          "id": 120
+          "id": 62
         },
-        "123": {
+        "63": {
           "kind": {
             "GenericParam": {
               "ident": {
@@ -1900,8 +1211,7 @@
                 "span": {
                   "start": 637,
                   "end": 642
-                },
-                "id": 122
+                }
               },
               "trait_bound": null
             }
@@ -1910,9 +1220,9 @@
             "start": 637,
             "end": 642
           },
-          "id": 123
+          "id": 63
         },
-        "124": {
+        "64": {
           "kind": {
             "Ty": "U64"
           },
@@ -1920,9 +1230,9 @@
             "start": 649,
             "end": 652
           },
-          "id": 124
+          "id": 64
         },
-        "127": {
+        "65": {
           "kind": {
             "Expr": {
               "Path": {
@@ -1933,8 +1243,7 @@
                       "span": {
                         "start": 659,
                         "end": 664
-                      },
-                      "id": 125
+                      }
                     },
                     "generics": null
                   },
@@ -1944,8 +1253,7 @@
                       "span": {
                         "start": 666,
                         "end": 678
-                      },
-                      "id": 126
+                      }
                     },
                     "generics": null
                   }
@@ -1957,13 +1265,13 @@
             "start": 659,
             "end": 678
           },
-          "id": 127
+          "id": 65
         },
-        "128": {
+        "66": {
           "kind": {
             "Expr": {
               "Call": {
-                "target": 127,
+                "target": 65,
                 "args": []
               }
             }
@@ -1972,13 +1280,13 @@
             "start": 659,
             "end": 680
           },
-          "id": 128
+          "id": 66
         },
-        "129": {
+        "67": {
           "kind": {
             "Stmt": {
               "Expression": {
-                "expr": 128,
+                "expr": 66,
                 "implicit_return": false
               }
             }
@@ -1987,13 +1295,13 @@
             "start": 659,
             "end": 680
           },
-          "id": 129
+          "id": 67
         },
-        "130": {
+        "68": {
           "kind": {
             "Block": {
               "stmts": [
-                129
+                67
               ]
             }
           },
@@ -2001,9 +1309,9 @@
             "start": 653,
             "end": 682
           },
-          "id": 130
+          "id": 68
         },
-        "131": {
+        "69": {
           "kind": {
             "Fn": {
               "sig": {
@@ -2012,25 +1320,24 @@
                   "span": {
                     "start": 612,
                     "end": 636
-                  },
-                  "id": 121
+                  }
                 },
                 "generic_params": {
-                  "6": 123
+                  "6": 63
                 },
                 "params": {},
-                "return_type": 124
+                "return_type": 64
               },
-              "body": 130
+              "body": 68
             }
           },
           "span": {
             "start": 609,
             "end": 682
           },
-          "id": 131
+          "id": 69
         },
-        "133": {
+        "70": {
           "kind": {
             "Ty": "U64"
           },
@@ -2038,9 +1345,9 @@
             "start": 713,
             "end": 716
           },
-          "id": 133
+          "id": 70
         },
-        "135": {
+        "71": {
           "kind": {
             "Expr": {
               "Path": {
@@ -2051,8 +1358,7 @@
                       "span": {
                         "start": 723,
                         "end": 728
-                      },
-                      "id": 134
+                      }
                     },
                     "generics": null
                   }
@@ -2064,20 +1370,19 @@
             "start": 723,
             "end": 728
           },
-          "id": 135
+          "id": 71
         },
-        "137": {
+        "72": {
           "kind": {
             "Expr": {
               "Field": {
-                "lhs": 135,
+                "lhs": 71,
                 "ident": {
                   "ident": 30,
                   "span": {
                     "start": 729,
                     "end": 741
-                  },
-                  "id": 136
+                  }
                 }
               }
             }
@@ -2086,13 +1391,13 @@
             "start": 723,
             "end": 741
           },
-          "id": 137
+          "id": 72
         },
-        "138": {
+        "73": {
           "kind": {
             "Expr": {
               "Call": {
-                "target": 137,
+                "target": 72,
                 "args": []
               }
             }
@@ -2101,13 +1406,13 @@
             "start": 723,
             "end": 743
           },
-          "id": 138
+          "id": 73
         },
-        "139": {
+        "74": {
           "kind": {
             "Stmt": {
               "Expression": {
-                "expr": 138,
+                "expr": 73,
                 "implicit_return": false
               }
             }
@@ -2116,13 +1421,13 @@
             "start": 723,
             "end": 743
           },
-          "id": 139
+          "id": 74
         },
-        "140": {
+        "75": {
           "kind": {
             "Block": {
               "stmts": [
-                139
+                74
               ]
             }
           },
@@ -2130,9 +1435,9 @@
             "start": 717,
             "end": 745
           },
-          "id": 140
+          "id": 75
         },
-        "141": {
+        "76": {
           "kind": {
             "Fn": {
               "sig": {
@@ -2141,21 +1446,769 @@
                   "span": {
                     "start": 687,
                     "end": 707
-                  },
-                  "id": 132
+                  }
                 },
                 "generic_params": {},
                 "params": {},
-                "return_type": 133
+                "return_type": 70
               },
-              "body": 140
+              "body": 75
             }
           },
           "span": {
             "start": 684,
             "end": 745
           },
-          "id": 141
+          "id": 76
+        }
+      }
+    },
+    "15": {
+      "name": 15,
+      "id": {
+        "id": 2
+      },
+      "items": [],
+      "nodes": {
+        "0": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 11,
+            "end": 14
+          },
+          "id": 0
+        },
+        "1": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 33,
+                "span": {
+                  "start": 8,
+                  "end": 9
+                }
+              },
+              "ty": 0,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 8,
+            "end": 14
+          },
+          "id": 1
+        },
+        "2": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 19,
+            "end": 22
+          },
+          "id": 2
+        },
+        "3": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 34,
+                "span": {
+                  "start": 16,
+                  "end": 17
+                }
+              },
+              "ty": 2,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 16,
+            "end": 22
+          },
+          "id": 3
+        },
+        "4": {
+          "kind": {
+            "Ty": "F64"
+          },
+          "span": {
+            "start": 27,
+            "end": 30
+          },
+          "id": 4
+        },
+        "5": {
+          "kind": {
+            "Expr": {
+              "Float": 0.0
+            }
+          },
+          "span": {
+            "start": 37,
+            "end": 40
+          },
+          "id": 5
+        },
+        "6": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 5,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 37,
+            "end": 40
+          },
+          "id": 6
+        },
+        "7": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                6
+              ]
+            }
+          },
+          "span": {
+            "start": 31,
+            "end": 42
+          },
+          "id": 7
+        },
+        "8": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 32,
+                  "span": {
+                    "start": 3,
+                    "end": 7
+                  }
+                },
+                "generic_params": {},
+                "params": {
+                  "34": 3,
+                  "33": 1
+                },
+                "return_type": 4
+              },
+              "body": 7
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 42
+          },
+          "id": 8
+        },
+        "9": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 54,
+            "end": 57
+          },
+          "id": 9
+        },
+        "10": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 33,
+                "span": {
+                  "start": 51,
+                  "end": 52
+                }
+              },
+              "ty": 9,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 51,
+            "end": 57
+          },
+          "id": 10
+        },
+        "11": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 62,
+            "end": 65
+          },
+          "id": 11
+        },
+        "12": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 34,
+                "span": {
+                  "start": 59,
+                  "end": 60
+                }
+              },
+              "ty": 11,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 59,
+            "end": 65
+          },
+          "id": 12
+        },
+        "13": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 70,
+            "end": 73
+          },
+          "id": 13
+        },
+        "14": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 33,
+                      "span": {
+                        "start": 83,
+                        "end": 84
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 83,
+            "end": 84
+          },
+          "id": 14
+        },
+        "15": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 34,
+                      "span": {
+                        "start": 87,
+                        "end": 88
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 87,
+            "end": 88
+          },
+          "id": 15
+        },
+        "16": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Greater",
+                "lhs": 14,
+                "rhs": 15
+              }
+            }
+          },
+          "span": {
+            "start": 83,
+            "end": 88
+          },
+          "id": 16
+        },
+        "17": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 33,
+                      "span": {
+                        "start": 99,
+                        "end": 100
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 99,
+            "end": 100
+          },
+          "id": 17
+        },
+        "18": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 17,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 99,
+            "end": 100
+          },
+          "id": 18
+        },
+        "19": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                18
+              ]
+            }
+          },
+          "span": {
+            "start": 89,
+            "end": 106
+          },
+          "id": 19
+        },
+        "20": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 34,
+                      "span": {
+                        "start": 122,
+                        "end": 123
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 122,
+            "end": 123
+          },
+          "id": 20
+        },
+        "21": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 20,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 122,
+            "end": 123
+          },
+          "id": 21
+        },
+        "22": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                21
+              ]
+            }
+          },
+          "span": {
+            "start": 112,
+            "end": 129
+          },
+          "id": 22
+        },
+        "23": {
+          "kind": {
+            "Stmt": {
+              "If": {
+                "condition": 16,
+                "if_true": 19,
+                "if_false": 22
+              }
+            }
+          },
+          "span": {
+            "start": 80,
+            "end": 129
+          },
+          "id": 23
+        },
+        "24": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                23
+              ]
+            }
+          },
+          "span": {
+            "start": 74,
+            "end": 131
+          },
+          "id": 24
+        },
+        "25": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 22,
+                  "span": {
+                    "start": 47,
+                    "end": 50
+                  }
+                },
+                "generic_params": {},
+                "params": {
+                  "33": 10,
+                  "34": 12
+                },
+                "return_type": 13
+              },
+              "body": 24
+            }
+          },
+          "span": {
+            "start": 44,
+            "end": 131
+          },
+          "id": 25
+        },
+        "26": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 143,
+            "end": 146
+          },
+          "id": 26
+        },
+        "27": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 33,
+                "span": {
+                  "start": 140,
+                  "end": 141
+                }
+              },
+              "ty": 26,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 140,
+            "end": 146
+          },
+          "id": 27
+        },
+        "28": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 151,
+            "end": 154
+          },
+          "id": 28
+        },
+        "29": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 34,
+                "span": {
+                  "start": 148,
+                  "end": 149
+                }
+              },
+              "ty": 28,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 148,
+            "end": 154
+          },
+          "id": 29
+        },
+        "30": {
+          "kind": {
+            "Ty": "U64"
+          },
+          "span": {
+            "start": 159,
+            "end": 162
+          },
+          "id": 30
+        },
+        "31": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 33,
+                      "span": {
+                        "start": 172,
+                        "end": 173
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 172,
+            "end": 173
+          },
+          "id": 31
+        },
+        "32": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 34,
+                      "span": {
+                        "start": 176,
+                        "end": 177
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 176,
+            "end": 177
+          },
+          "id": 32
+        },
+        "33": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Less",
+                "lhs": 31,
+                "rhs": 32
+              }
+            }
+          },
+          "span": {
+            "start": 172,
+            "end": 177
+          },
+          "id": 33
+        },
+        "34": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 33,
+                      "span": {
+                        "start": 188,
+                        "end": 189
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 188,
+            "end": 189
+          },
+          "id": 34
+        },
+        "35": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 34,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 188,
+            "end": 189
+          },
+          "id": 35
+        },
+        "36": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                35
+              ]
+            }
+          },
+          "span": {
+            "start": 178,
+            "end": 195
+          },
+          "id": 36
+        },
+        "37": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 34,
+                      "span": {
+                        "start": 211,
+                        "end": 212
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 211,
+            "end": 212
+          },
+          "id": 37
+        },
+        "38": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 37,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 211,
+            "end": 212
+          },
+          "id": 38
+        },
+        "39": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                38
+              ]
+            }
+          },
+          "span": {
+            "start": 201,
+            "end": 218
+          },
+          "id": 39
+        },
+        "40": {
+          "kind": {
+            "Stmt": {
+              "If": {
+                "condition": 33,
+                "if_true": 36,
+                "if_false": 39
+              }
+            }
+          },
+          "span": {
+            "start": 169,
+            "end": 218
+          },
+          "id": 40
+        },
+        "41": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                40
+              ]
+            }
+          },
+          "span": {
+            "start": 163,
+            "end": 220
+          },
+          "id": 41
+        },
+        "42": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 17,
+                  "span": {
+                    "start": 136,
+                    "end": 139
+                  }
+                },
+                "generic_params": {},
+                "params": {
+                  "34": 29,
+                  "33": 27
+                },
+                "return_type": 30
+              },
+              "body": 41
+            }
+          },
+          "span": {
+            "start": 133,
+            "end": 220
+          },
+          "id": 42
         }
       }
     }

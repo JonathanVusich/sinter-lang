@@ -134,6 +134,16 @@ pub struct GlobalLetStmt {
     pub initializer: LocalDefId,
 }
 
+impl GlobalLetStmt {
+    pub fn new(ident: InternedStr, ty: Option<LocalDefId>, initializer: LocalDefId) -> Self {
+        Self {
+            ident,
+            ty,
+            initializer,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ClassStmt {
     pub(crate) name: Ident,

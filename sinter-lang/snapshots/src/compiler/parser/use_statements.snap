@@ -8,7 +8,7 @@
       "HashMap"
     ],
     "crate_id": 0,
-    "local_def_id": 10
+    "local_def_id": 3
   },
   {
     "path": {
@@ -34,16 +34,14 @@
                 "span": {
                   "start": 4,
                   "end": 7
-                },
-                "id": 0
+                }
               },
               {
                 "ident": 2,
                 "span": {
                   "start": 9,
                   "end": 15
-                },
-                "id": 1
+                }
               }
             ]
           }
@@ -52,7 +50,7 @@
           "start": 0,
           "end": 16
         },
-        "id": 2
+        "id": 0
       },
       {
         "kind": {
@@ -64,16 +62,14 @@
                 "span": {
                   "start": 21,
                   "end": 24
-                },
-                "id": 3
+                }
               },
               {
                 "ident": 3,
                 "span": {
                   "start": 26,
                   "end": 31
-                },
-                "id": 4
+                }
               }
             ]
           }
@@ -82,7 +78,7 @@
           "start": 17,
           "end": 32
         },
-        "id": 5
+        "id": 1
       },
       {
         "kind": {
@@ -94,24 +90,21 @@
                 "span": {
                   "start": 37,
                   "end": 40
-                },
-                "id": 6
+                }
               },
               {
                 "ident": 4,
                 "span": {
                   "start": 42,
                   "end": 45
-                },
-                "id": 7
+                }
               },
               {
                 "ident": 5,
                 "span": {
                   "start": 47,
                   "end": 54
-                },
-                "id": 8
+                }
               }
             ]
           }
@@ -120,7 +113,7 @@
           "start": 33,
           "end": 55
         },
-        "id": 9
+        "id": 2
       }
     ]
   }

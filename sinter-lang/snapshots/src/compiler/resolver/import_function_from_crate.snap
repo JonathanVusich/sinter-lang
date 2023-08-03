@@ -17,7 +17,7 @@
       },
       "items": [],
       "nodes": {
-        "2": {
+        "0": {
           "kind": {
             "GenericParam": {
               "ident": {
@@ -25,8 +25,7 @@
                 "span": {
                   "start": 12,
                   "end": 13
-                },
-                "id": 1
+                }
               },
               "trait_bound": null
             }
@@ -35,16 +34,16 @@
             "start": 12,
             "end": 13
           },
-          "id": 2
+          "id": 0
         },
-        "5": {
+        "1": {
           "kind": {
             "Ty": {
               "Path": {
                 "path": {
                   "definition": {
                     "crate_id": 0,
-                    "local_id": 2
+                    "local_id": 0
                   },
                   "generics": []
                 }
@@ -55,9 +54,9 @@
             "start": 18,
             "end": 19
           },
-          "id": 5
+          "id": 1
         },
-        "6": {
+        "2": {
           "kind": {
             "Param": {
               "ident": {
@@ -65,10 +64,9 @@
                 "span": {
                   "start": 15,
                   "end": 16
-                },
-                "id": 3
+                }
               },
-              "ty": 5,
+              "ty": 1,
               "mutability": "Immutable"
             }
           },
@@ -76,16 +74,16 @@
             "start": 15,
             "end": 19
           },
-          "id": 6
+          "id": 2
         },
-        "9": {
+        "3": {
           "kind": {
             "Ty": {
               "Path": {
                 "path": {
                   "definition": {
                     "crate_id": 0,
-                    "local_id": 2
+                    "local_id": 0
                   },
                   "generics": []
                 }
@@ -96,9 +94,9 @@
             "start": 24,
             "end": 25
           },
-          "id": 9
+          "id": 3
         },
-        "10": {
+        "4": {
           "kind": {
             "Param": {
               "ident": {
@@ -106,10 +104,9 @@
                 "span": {
                   "start": 21,
                   "end": 22
-                },
-                "id": 7
+                }
               },
-              "ty": 9,
+              "ty": 3,
               "mutability": "Immutable"
             }
           },
@@ -117,16 +114,16 @@
             "start": 21,
             "end": 25
           },
-          "id": 10
+          "id": 4
         },
-        "12": {
+        "5": {
           "kind": {
             "Ty": {
               "Path": {
                 "path": {
                   "definition": {
                     "crate_id": 0,
-                    "local_id": 2
+                    "local_id": 0
                   },
                   "generics": []
                 }
@@ -137,9 +134,9 @@
             "start": 30,
             "end": 31
           },
-          "id": 12
+          "id": 5
         },
-        "14": {
+        "6": {
           "kind": {
             "Expr": {
               "Path": {
@@ -150,8 +147,7 @@
                       "span": {
                         "start": 38,
                         "end": 39
-                      },
-                      "id": 13
+                      }
                     },
                     "generics": null
                   }
@@ -163,9 +159,9 @@
             "start": 38,
             "end": 39
           },
-          "id": 14
+          "id": 6
         },
-        "16": {
+        "7": {
           "kind": {
             "Expr": {
               "Path": {
@@ -176,8 +172,7 @@
                       "span": {
                         "start": 42,
                         "end": 43
-                      },
-                      "id": 15
+                      }
                     },
                     "generics": null
                   }
@@ -189,15 +184,15 @@
             "start": 42,
             "end": 43
           },
-          "id": 16
+          "id": 7
         },
-        "17": {
+        "8": {
           "kind": {
             "Expr": {
               "Infix": {
                 "operator": "Multiply",
-                "lhs": 14,
-                "rhs": 16
+                "lhs": 6,
+                "rhs": 7
               }
             }
           },
@@ -205,13 +200,13 @@
             "start": 38,
             "end": 43
           },
-          "id": 17
+          "id": 8
         },
-        "18": {
+        "9": {
           "kind": {
             "Stmt": {
               "Expression": {
-                "expr": 17,
+                "expr": 8,
                 "implicit_return": false
               }
             }
@@ -220,13 +215,13 @@
             "start": 38,
             "end": 43
           },
-          "id": 18
+          "id": 9
         },
-        "19": {
+        "10": {
           "kind": {
             "Block": {
               "stmts": [
-                18
+                9
               ]
             }
           },
@@ -234,9 +229,9 @@
             "start": 32,
             "end": 45
           },
-          "id": 19
+          "id": 10
         },
-        "20": {
+        "11": {
           "kind": {
             "Fn": {
               "sig": {
@@ -245,28 +240,27 @@
                   "span": {
                     "start": 3,
                     "end": 11
-                  },
-                  "id": 0
+                  }
                 },
                 "generic_params": {
-                  "4": 2
+                  "4": 0
                 },
                 "params": {
-                  "6": 10,
-                  "5": 6
+                  "6": 4,
+                  "5": 2
                 },
-                "return_type": 12
+                "return_type": 5
               },
-              "body": 19
+              "body": 10
             }
           },
           "span": {
             "start": 0,
             "end": 45
           },
-          "id": 20
+          "id": 11
         },
-        "27": {
+        "13": {
           "kind": {
             "GenericParam": {
               "ident": {
@@ -274,8 +268,7 @@
                 "span": {
                   "start": 48,
                   "end": 49
-                },
-                "id": 26
+                }
               },
               "trait_bound": null
             }
@@ -284,16 +277,16 @@
             "start": 48,
             "end": 49
           },
-          "id": 27
+          "id": 13
         },
-        "30": {
+        "14": {
           "kind": {
             "Ty": {
               "Path": {
                 "path": {
                   "definition": {
                     "crate_id": 0,
-                    "local_id": 27
+                    "local_id": 13
                   },
                   "generics": []
                 }
@@ -304,9 +297,9 @@
             "start": 54,
             "end": 55
           },
-          "id": 30
+          "id": 14
         },
-        "31": {
+        "15": {
           "kind": {
             "Param": {
               "ident": {
@@ -314,10 +307,9 @@
                 "span": {
                   "start": 51,
                   "end": 52
-                },
-                "id": 28
+                }
               },
-              "ty": 30,
+              "ty": 14,
               "mutability": "Immutable"
             }
           },
@@ -325,16 +317,16 @@
             "start": 51,
             "end": 55
           },
-          "id": 31
+          "id": 15
         },
-        "34": {
+        "16": {
           "kind": {
             "Ty": {
               "Path": {
                 "path": {
                   "definition": {
                     "crate_id": 0,
-                    "local_id": 27
+                    "local_id": 13
                   },
                   "generics": []
                 }
@@ -345,9 +337,9 @@
             "start": 60,
             "end": 61
           },
-          "id": 34
+          "id": 16
         },
-        "35": {
+        "17": {
           "kind": {
             "Param": {
               "ident": {
@@ -355,10 +347,9 @@
                 "span": {
                   "start": 57,
                   "end": 58
-                },
-                "id": 32
+                }
               },
-              "ty": 34,
+              "ty": 16,
               "mutability": "Immutable"
             }
           },
@@ -366,16 +357,16 @@
             "start": 57,
             "end": 61
           },
-          "id": 35
+          "id": 17
         },
-        "37": {
+        "18": {
           "kind": {
             "Ty": {
               "Path": {
                 "path": {
                   "definition": {
                     "crate_id": 0,
-                    "local_id": 27
+                    "local_id": 13
                   },
                   "generics": []
                 }
@@ -386,9 +377,9 @@
             "start": 66,
             "end": 67
           },
-          "id": 37
+          "id": 18
         },
-        "39": {
+        "19": {
           "kind": {
             "Expr": {
               "Path": {
@@ -399,8 +390,7 @@
                       "span": {
                         "start": 74,
                         "end": 82
-                      },
-                      "id": 38
+                      }
                     },
                     "generics": null
                   }
@@ -412,9 +402,9 @@
             "start": 74,
             "end": 82
           },
-          "id": 39
+          "id": 19
         },
-        "41": {
+        "20": {
           "kind": {
             "Expr": {
               "Path": {
@@ -425,8 +415,7 @@
                       "span": {
                         "start": 83,
                         "end": 84
-                      },
-                      "id": 40
+                      }
                     },
                     "generics": null
                   }
@@ -438,9 +427,9 @@
             "start": 83,
             "end": 84
           },
-          "id": 41
+          "id": 20
         },
-        "43": {
+        "21": {
           "kind": {
             "Expr": {
               "Path": {
@@ -451,8 +440,7 @@
                       "span": {
                         "start": 86,
                         "end": 87
-                      },
-                      "id": 42
+                      }
                     },
                     "generics": null
                   }
@@ -464,16 +452,16 @@
             "start": 86,
             "end": 87
           },
-          "id": 43
+          "id": 21
         },
-        "44": {
+        "22": {
           "kind": {
             "Expr": {
               "Call": {
-                "target": 39,
+                "target": 19,
                 "args": [
-                  41,
-                  43
+                  20,
+                  21
                 ]
               }
             }
@@ -482,13 +470,13 @@
             "start": 74,
             "end": 88
           },
-          "id": 44
+          "id": 22
         },
-        "45": {
+        "23": {
           "kind": {
             "Stmt": {
               "Expression": {
-                "expr": 44,
+                "expr": 22,
                 "implicit_return": false
               }
             }
@@ -497,13 +485,13 @@
             "start": 74,
             "end": 88
           },
-          "id": 45
+          "id": 23
         },
-        "46": {
+        "24": {
           "kind": {
             "Block": {
               "stmts": [
-                45
+                23
               ]
             }
           },
@@ -511,9 +499,9 @@
             "start": 68,
             "end": 90
           },
-          "id": 46
+          "id": 24
         },
-        "47": {
+        "25": {
           "kind": {
             "Fn": {
               "sig": {
@@ -522,26 +510,25 @@
                   "span": {
                     "start": 41,
                     "end": 47
-                  },
-                  "id": 25
+                  }
                 },
                 "generic_params": {
-                  "4": 27
+                  "4": 13
                 },
                 "params": {
-                  "6": 35,
-                  "5": 31
+                  "5": 15,
+                  "6": 17
                 },
-                "return_type": 37
+                "return_type": 18
               },
-              "body": 46
+              "body": 24
             }
           },
           "span": {
             "start": 38,
             "end": 90
           },
-          "id": 47
+          "id": 25
         }
       }
     }

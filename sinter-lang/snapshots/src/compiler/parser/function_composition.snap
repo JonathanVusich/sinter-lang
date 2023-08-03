@@ -6,7 +6,7 @@
       "h"
     ],
     "crate_id": 0,
-    "local_def_id": 9
+    "local_def_id": 6
   },
   {
     "kind": {
@@ -22,8 +22,7 @@
                     "span": {
                       "start": 0,
                       "end": 1
-                    },
-                    "id": 0
+                    }
                   },
                   "generics": null
                 }
@@ -34,7 +33,7 @@
             "start": 0,
             "end": 1
           },
-          "id": 1
+          "id": 0
         },
         "args": {
           "args": [
@@ -52,8 +51,7 @@
                               "span": {
                                 "start": 2,
                                 "end": 3
-                              },
-                              "id": 2
+                              }
                             },
                             "generics": null
                           }
@@ -64,7 +62,7 @@
                       "start": 2,
                       "end": 3
                     },
-                    "id": 3
+                    "id": 1
                   },
                   "args": {
                     "args": [
@@ -82,8 +80,7 @@
                                         "span": {
                                           "start": 4,
                                           "end": 5
-                                        },
-                                        "id": 4
+                                        }
                                       },
                                       "generics": null
                                     }
@@ -94,7 +91,7 @@
                                 "start": 4,
                                 "end": 5
                               },
-                              "id": 5
+                              "id": 2
                             },
                             "args": {
                               "args": []
@@ -105,7 +102,7 @@
                           "start": 4,
                           "end": 7
                         },
-                        "id": 6
+                        "id": 3
                       }
                     ]
                   }
@@ -115,7 +112,7 @@
                 "start": 2,
                 "end": 8
               },
-              "id": 7
+              "id": 4
             }
           ]
         }
@@ -125,6 +122,6 @@
       "start": 0,
       "end": 9
     },
-    "id": 8
+    "id": 5
   }
 ]

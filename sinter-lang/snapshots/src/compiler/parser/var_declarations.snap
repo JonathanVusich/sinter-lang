@@ -6,7 +6,7 @@
       "b"
     ],
     "crate_id": 0,
-    "local_def_id": 7
+    "local_def_id": 5
   },
   {
     "path": {
@@ -30,8 +30,7 @@
               "span": {
                 "start": 4,
                 "end": 5
-              },
-              "id": 0
+              }
             },
             "ty": {
               "kind": "I64",
@@ -39,7 +38,7 @@
                 "start": 7,
                 "end": 10
               },
-              "id": 1
+              "id": 0
             },
             "initializer": {
               "kind": {
@@ -49,7 +48,7 @@
                 "start": 13,
                 "end": 14
               },
-              "id": 2
+              "id": 1
             }
           }
         },
@@ -57,7 +56,7 @@
           "start": 0,
           "end": 15
         },
-        "id": 3
+        "id": 2
       },
       {
         "kind": {
@@ -67,8 +66,7 @@
               "span": {
                 "start": 44,
                 "end": 45
-              },
-              "id": 4
+              }
             },
             "ty": null,
             "initializer": {
@@ -79,7 +77,7 @@
                 "start": 48,
                 "end": 49
               },
-              "id": 5
+              "id": 3
             }
           }
         },
@@ -87,7 +85,7 @@
           "start": 40,
           "end": 50
         },
-        "id": 6
+        "id": 4
       }
     ]
   }

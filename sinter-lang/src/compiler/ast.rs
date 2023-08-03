@@ -152,12 +152,11 @@ impl Module {
 pub struct Ident {
     pub ident: InternedStr,
     pub span: Span,
-    pub id: LocalDefId,
 }
 
 impl Ident {
-    pub fn new(ident: InternedStr, span: Span, id: LocalDefId) -> Self {
-        Self { ident, span, id }
+    pub fn new(ident: InternedStr, span: Span) -> Self {
+        Self { ident, span }
     }
 }
 

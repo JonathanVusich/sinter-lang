@@ -7,7 +7,7 @@
       "y"
     ],
     "crate_id": 0,
-    "local_def_id": 8
+    "local_def_id": 5
   },
   {
     "path": {
@@ -31,8 +31,7 @@
               "span": {
                 "start": 6,
                 "end": 11
-              },
-              "id": 0
+              }
             },
             "class_type": "Inline",
             "generic_params": {
@@ -46,8 +45,7 @@
                     "span": {
                       "start": 14,
                       "end": 15
-                    },
-                    "id": 1
+                    }
                   },
                   "ty": {
                     "kind": "U64",
@@ -55,13 +53,13 @@
                       "start": 17,
                       "end": 20
                     },
-                    "id": 2
+                    "id": 0
                   },
                   "span": {
                     "start": 14,
                     "end": 20
                   },
-                  "id": 3
+                  "id": 1
                 },
                 {
                   "name": {
@@ -69,8 +67,7 @@
                     "span": {
                       "start": 22,
                       "end": 23
-                    },
-                    "id": 4
+                    }
                   },
                   "ty": {
                     "kind": "U64",
@@ -78,13 +75,13 @@
                       "start": 25,
                       "end": 28
                     },
-                    "id": 5
+                    "id": 2
                   },
                   "span": {
                     "start": 22,
                     "end": 28
                   },
-                  "id": 6
+                  "id": 3
                 }
               ]
             },
@@ -95,7 +92,7 @@
           "start": 0,
           "end": 31
         },
-        "id": 7
+        "id": 4
       }
     ]
   }

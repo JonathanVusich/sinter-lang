@@ -8,7 +8,7 @@
       "to_str"
     ],
     "crate_id": 0,
-    "local_def_id": 16
+    "local_def_id": 11
   },
   {
     "path": {
@@ -33,8 +33,7 @@
                 "span": {
                   "start": 3,
                   "end": 7
-                },
-                "id": 0
+                }
               },
               "generic_params": {
                 "params": []
@@ -47,8 +46,7 @@
                       "span": {
                         "start": 8,
                         "end": 12
-                      },
-                      "id": 1
+                      }
                     },
                     "ty": {
                       "kind": {
@@ -59,7 +57,7 @@
                               "start": 15,
                               "end": 18
                             },
-                            "id": 2
+                            "id": 0
                           }
                         }
                       },
@@ -67,14 +65,14 @@
                         "start": 14,
                         "end": 18
                       },
-                      "id": 3
+                      "id": 1
                     },
                     "mutability": "Immutable",
                     "span": {
                       "start": 8,
                       "end": 19
                     },
-                    "id": 4
+                    "id": 2
                   }
                 ]
               },
@@ -99,8 +97,7 @@
                                         "span": {
                                           "start": 27,
                                           "end": 32
-                                        },
-                                        "id": 5
+                                        }
                                       },
                                       "generics": null
                                     }
@@ -111,7 +108,7 @@
                                 "start": 27,
                                 "end": 32
                               },
-                              "id": 6
+                              "id": 3
                             },
                             "args": {
                               "args": [
@@ -132,8 +129,7 @@
                                                         "span": {
                                                           "start": 33,
                                                           "end": 37
-                                                        },
-                                                        "id": 7
+                                                        }
                                                       },
                                                       "generics": null
                                                     }
@@ -144,15 +140,14 @@
                                                 "start": 33,
                                                 "end": 37
                                               },
-                                              "id": 8
+                                              "id": 4
                                             },
                                             "ident": {
                                               "ident": 5,
                                               "span": {
                                                 "start": 38,
                                                 "end": 44
-                                              },
-                                              "id": 9
+                                              }
                                             }
                                           }
                                         },
@@ -160,7 +155,7 @@
                                           "start": 33,
                                           "end": 44
                                         },
-                                        "id": 10
+                                        "id": 5
                                       },
                                       "args": {
                                         "args": []
@@ -171,7 +166,7 @@
                                     "start": 33,
                                     "end": 46
                                   },
-                                  "id": 11
+                                  "id": 6
                                 }
                               ]
                             }
@@ -181,7 +176,7 @@
                           "start": 27,
                           "end": 47
                         },
-                        "id": 12
+                        "id": 7
                       },
                       "implicit_return": true
                     }
@@ -190,14 +185,14 @@
                     "start": 27,
                     "end": 48
                   },
-                  "id": 13
+                  "id": 8
                 }
               ],
               "span": {
                 "start": 21,
                 "end": 50
               },
-              "id": 14
+              "id": 9
             }
           }
         },
@@ -205,7 +200,7 @@
           "start": 0,
           "end": 50
         },
-        "id": 15
+        "id": 10
       }
     ]
   }

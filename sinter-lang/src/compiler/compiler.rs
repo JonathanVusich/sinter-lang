@@ -159,14 +159,11 @@ impl Compiler {
         self.validate_crates(&crates)?;
         let resolved_crates = self.resolve_crates(&mut crates)?;
 
-        self.type_check(resolved_crates)?;
         // TODO: Implement type inference algorithm
-        /* We need to assign a type to every expression in the AST. This may require making changes to the AST
-           classes to allow for types in every expression.
-        */
+        self.infer_types(resolved_crates)?;
         // TODO: Do type checking to ensure that all expressions evaluate to correct types
 
-        // TODO: Lower the AST to HIR with the provided metadata.
+        // TODO: Lower the AST to MIR with the provided metadata.
 
         // TODO: Generate bytecode
         todo!()
@@ -284,7 +281,7 @@ impl Compiler {
         resolve(crates)
     }
 
-    pub(crate) fn type_check_crates(
+    pub(crate) fn infer_types(
         &mut self,
         crates: StrMap<HirCrate>,
     ) -> Result<StrMap<HirCrate>, CompileError> {

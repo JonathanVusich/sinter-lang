@@ -3,19 +3,8 @@
   "crate_id": {
     "id": 0
   },
-  "local_def_id": 48,
+  "local_def_id": 26,
   "module_lookup": [
-    [
-      {
-        "module_path": [
-          7
-        ]
-      },
-      {
-        "crate_id": 0,
-        "module_id": 1
-      }
-    ],
     [
       {
         "module_path": [
@@ -25,6 +14,17 @@
       {
         "crate_id": 0,
         "module_id": 0
+      }
+    ],
+    [
+      {
+        "module_path": [
+          7
+        ]
+      },
+      {
+        "crate_id": 0,
+        "module_id": 1
       }
     ]
   ],
@@ -54,8 +54,7 @@
                   "span": {
                     "start": 3,
                     "end": 11
-                  },
-                  "id": 0
+                  }
                 },
                 "generic_params": {
                   "params": [
@@ -65,15 +64,14 @@
                         "span": {
                           "start": 12,
                           "end": 13
-                        },
-                        "id": 1
+                        }
                       },
                       "trait_bound": null,
                       "span": {
                         "start": 12,
                         "end": 13
                       },
-                      "id": 2
+                      "id": 0
                     }
                   ]
                 },
@@ -85,8 +83,7 @@
                         "span": {
                           "start": 15,
                           "end": 16
-                        },
-                        "id": 3
+                        }
                       },
                       "ty": {
                         "kind": {
@@ -100,8 +97,7 @@
                                     "span": {
                                       "start": 18,
                                       "end": 19
-                                    },
-                                    "id": 4
+                                    }
                                   }
                                 ]
                               },
@@ -115,14 +111,14 @@
                           "start": 18,
                           "end": 19
                         },
-                        "id": 5
+                        "id": 1
                       },
                       "mutability": "Immutable",
                       "span": {
                         "start": 15,
                         "end": 19
                       },
-                      "id": 6
+                      "id": 2
                     },
                     {
                       "name": {
@@ -130,8 +126,7 @@
                         "span": {
                           "start": 21,
                           "end": 22
-                        },
-                        "id": 7
+                        }
                       },
                       "ty": {
                         "kind": {
@@ -145,8 +140,7 @@
                                     "span": {
                                       "start": 24,
                                       "end": 25
-                                    },
-                                    "id": 8
+                                    }
                                   }
                                 ]
                               },
@@ -160,14 +154,14 @@
                           "start": 24,
                           "end": 25
                         },
-                        "id": 9
+                        "id": 3
                       },
                       "mutability": "Immutable",
                       "span": {
                         "start": 21,
                         "end": 25
                       },
-                      "id": 10
+                      "id": 4
                     }
                   ]
                 },
@@ -183,8 +177,7 @@
                               "span": {
                                 "start": 30,
                                 "end": 31
-                              },
-                              "id": 11
+                              }
                             }
                           ]
                         },
@@ -198,7 +191,7 @@
                     "start": 30,
                     "end": 31
                   },
-                  "id": 12
+                  "id": 5
                 }
               },
               "body": {
@@ -221,8 +214,7 @@
                                           "span": {
                                             "start": 38,
                                             "end": 39
-                                          },
-                                          "id": 13
+                                          }
                                         },
                                         "generics": null
                                       }
@@ -233,7 +225,7 @@
                                   "start": 38,
                                   "end": 39
                                 },
-                                "id": 14
+                                "id": 6
                               },
                               "rhs": {
                                 "kind": {
@@ -246,8 +238,7 @@
                                           "span": {
                                             "start": 42,
                                             "end": 43
-                                          },
-                                          "id": 15
+                                          }
                                         },
                                         "generics": null
                                       }
@@ -258,7 +249,7 @@
                                   "start": 42,
                                   "end": 43
                                 },
-                                "id": 16
+                                "id": 7
                               }
                             }
                           },
@@ -266,7 +257,7 @@
                             "start": 38,
                             "end": 43
                           },
-                          "id": 17
+                          "id": 8
                         },
                         "implicit_return": false
                       }
@@ -275,14 +266,14 @@
                       "start": 38,
                       "end": 43
                     },
-                    "id": 18
+                    "id": 9
                   }
                 ],
                 "span": {
                   "start": 32,
                   "end": 45
                 },
-                "id": 19
+                "id": 10
               }
             }
           },
@@ -290,7 +281,7 @@
             "start": 0,
             "end": 45
           },
-          "id": 20
+          "id": 11
         }
       ]
     },
@@ -320,16 +311,14 @@
                   "span": {
                     "start": 11,
                     "end": 25
-                  },
-                  "id": 22
+                  }
                 },
                 {
                   "ident": 3,
                   "span": {
                     "start": 27,
                     "end": 35
-                  },
-                  "id": 23
+                  }
                 }
               ]
             }
@@ -338,7 +327,7 @@
             "start": 0,
             "end": 36
           },
-          "id": 24
+          "id": 12
         },
         {
           "kind": {
@@ -349,8 +338,7 @@
                   "span": {
                     "start": 41,
                     "end": 47
-                  },
-                  "id": 25
+                  }
                 },
                 "generic_params": {
                   "params": [
@@ -360,15 +348,14 @@
                         "span": {
                           "start": 48,
                           "end": 49
-                        },
-                        "id": 26
+                        }
                       },
                       "trait_bound": null,
                       "span": {
                         "start": 48,
                         "end": 49
                       },
-                      "id": 27
+                      "id": 13
                     }
                   ]
                 },
@@ -380,8 +367,7 @@
                         "span": {
                           "start": 51,
                           "end": 52
-                        },
-                        "id": 28
+                        }
                       },
                       "ty": {
                         "kind": {
@@ -395,8 +381,7 @@
                                     "span": {
                                       "start": 54,
                                       "end": 55
-                                    },
-                                    "id": 29
+                                    }
                                   }
                                 ]
                               },
@@ -410,14 +395,14 @@
                           "start": 54,
                           "end": 55
                         },
-                        "id": 30
+                        "id": 14
                       },
                       "mutability": "Immutable",
                       "span": {
                         "start": 51,
                         "end": 55
                       },
-                      "id": 31
+                      "id": 15
                     },
                     {
                       "name": {
@@ -425,8 +410,7 @@
                         "span": {
                           "start": 57,
                           "end": 58
-                        },
-                        "id": 32
+                        }
                       },
                       "ty": {
                         "kind": {
@@ -440,8 +424,7 @@
                                     "span": {
                                       "start": 60,
                                       "end": 61
-                                    },
-                                    "id": 33
+                                    }
                                   }
                                 ]
                               },
@@ -455,14 +438,14 @@
                           "start": 60,
                           "end": 61
                         },
-                        "id": 34
+                        "id": 16
                       },
                       "mutability": "Immutable",
                       "span": {
                         "start": 57,
                         "end": 61
                       },
-                      "id": 35
+                      "id": 17
                     }
                   ]
                 },
@@ -478,8 +461,7 @@
                               "span": {
                                 "start": 66,
                                 "end": 67
-                              },
-                              "id": 36
+                              }
                             }
                           ]
                         },
@@ -493,7 +475,7 @@
                     "start": 66,
                     "end": 67
                   },
-                  "id": 37
+                  "id": 18
                 }
               },
               "body": {
@@ -515,8 +497,7 @@
                                           "span": {
                                             "start": 74,
                                             "end": 82
-                                          },
-                                          "id": 38
+                                          }
                                         },
                                         "generics": null
                                       }
@@ -527,7 +508,7 @@
                                   "start": 74,
                                   "end": 82
                                 },
-                                "id": 39
+                                "id": 19
                               },
                               "args": {
                                 "args": [
@@ -542,8 +523,7 @@
                                               "span": {
                                                 "start": 83,
                                                 "end": 84
-                                              },
-                                              "id": 40
+                                              }
                                             },
                                             "generics": null
                                           }
@@ -554,7 +534,7 @@
                                       "start": 83,
                                       "end": 84
                                     },
-                                    "id": 41
+                                    "id": 20
                                   },
                                   {
                                     "kind": {
@@ -567,8 +547,7 @@
                                               "span": {
                                                 "start": 86,
                                                 "end": 87
-                                              },
-                                              "id": 42
+                                              }
                                             },
                                             "generics": null
                                           }
@@ -579,7 +558,7 @@
                                       "start": 86,
                                       "end": 87
                                     },
-                                    "id": 43
+                                    "id": 21
                                   }
                                 ]
                               }
@@ -589,7 +568,7 @@
                             "start": 74,
                             "end": 88
                           },
-                          "id": 44
+                          "id": 22
                         },
                         "implicit_return": false
                       }
@@ -598,14 +577,14 @@
                       "start": 74,
                       "end": 88
                     },
-                    "id": 45
+                    "id": 23
                   }
                 ],
                 "span": {
                   "start": 68,
                   "end": 90
                 },
-                "id": 46
+                "id": 24
               }
             }
           },
@@ -613,7 +592,7 @@
             "start": 38,
             "end": 90
           },
-          "id": 47
+          "id": 25
         }
       ]
     }

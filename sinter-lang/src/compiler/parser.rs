@@ -552,7 +552,7 @@ impl<'ctxt> Parser<'ctxt> {
                 span,
             }) => {
                 self.advance();
-                Ok(Ident::new(ident, span, self.get_id()))
+                Ok(Ident::new(ident, span))
             }
             Some(token) => {
                 let ident = self.intern_str("");
@@ -570,7 +570,7 @@ impl<'ctxt> Parser<'ctxt> {
                     token_type: TokenType::Identifier(identifier),
                     span,
                 }) => {
-                    let ident = Ident::new(identifier, span, self.get_id());
+                    let ident = Ident::new(identifier, span);
                     idents.push(ident);
                     if self.matches_multiple([
                         TokenType::Identifier(identifier),
@@ -764,7 +764,7 @@ impl<'ctxt> Parser<'ctxt> {
         }) = self.current_token()
         {
             self.advance();
-            ident = Ident::new(self.intern_str("self"), span, self.get_id());
+            ident = Ident::new(self.intern_str("self"), span);
             ty = Ty::new(TyKind::QSelf, span, self.get_id());
         } else {
             ident = self.identifier()?;
@@ -785,7 +785,7 @@ impl<'ctxt> Parser<'ctxt> {
                 span,
             }) => {
                 self.advance();
-                let ident = Ident::new(self.intern_str("self"), span, self.get_id());
+                let ident = Ident::new(self.intern_str("self"), span);
                 let ty = Ty::new(TyKind::QSelf, span, self.get_id());
 
                 Ok(Param::new(
@@ -1106,7 +1106,7 @@ impl<'ctxt> Parser<'ctxt> {
                         token_type: TokenType::Identifier(ident),
                         span,
                     }) => {
-                        let ident = Ident::new(ident, span, self.get_id());
+                        let ident = Ident::new(ident, span);
                         path_segments.push(Segment::new(ident, None));
                         self.advance();
                     }
@@ -1144,7 +1144,7 @@ impl<'ctxt> Parser<'ctxt> {
             let expr = match current.token_type {
                 TokenType::SelfLowercase => {
                     self.advance();
-                    let ident = Ident::new(self.intern_str("self"), current.span, self.get_id());
+                    let ident = Ident::new(self.intern_str("self"), current.span);
                     ExprKind::Path(PathExpr::new(
                         IdentType::LocalOrUse,
                         vec![Segment::new(ident, None)],
@@ -1173,7 +1173,7 @@ impl<'ctxt> Parser<'ctxt> {
                 TokenType::Identifier(ident) => ExprKind::Path(self.parse_path_expr()?),
                 TokenType::SelfCapitalized => {
                     self.advance();
-                    let ident = Ident::new(self.intern_str("Self"), current.span, self.get_id());
+                    let ident = Ident::new(self.intern_str("Self"), current.span);
                     ExprKind::Path(PathExpr::new(
                         IdentType::LocalOrUse,
                         vec![Segment::new(ident, None)],
@@ -1249,7 +1249,12 @@ impl<'ctxt> Parser<'ctxt> {
             return self.unexpected_end();
         };
 
-        let mut lhs_expr = Expr::new(lhs, self.compute_span(start), self.get_id());
+        // We don't assign IDs to parentheses because they are discarded later.
+        let mut lhs_expr = if let ExprKind::Parentheses(_) = lhs {
+            Expr::new(lhs, self.compute_span(start), LocalDefId::default())
+        } else {
+            Expr::new(lhs, self.compute_span(start), self.get_id())
+        };
 
         while let Some(current) = self.current() {
             if let Some(postfix_op) = self.postfix_op() {

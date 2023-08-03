@@ -12,7 +12,7 @@
       "self"
     ],
     "crate_id": 0,
-    "local_def_id": 32
+    "local_def_id": 18
   },
   {
     "path": {
@@ -38,24 +38,21 @@
                 "span": {
                   "start": 4,
                   "end": 8
-                },
-                "id": 0
+                }
               },
               {
                 "ident": 2,
                 "span": {
                   "start": 10,
                   "end": 15
-                },
-                "id": 1
+                }
               },
               {
                 "ident": 3,
                 "span": {
                   "start": 17,
                   "end": 22
-                },
-                "id": 2
+                }
               }
             ]
           }
@@ -64,7 +61,7 @@
           "start": 0,
           "end": 23
         },
-        "id": 3
+        "id": 0
       },
       {
         "kind": {
@@ -74,8 +71,7 @@
               "span": {
                 "start": 31,
                 "end": 38
-              },
-              "id": 4
+              }
             },
             "generic_params": {
               "params": []
@@ -88,8 +84,7 @@
                     "span": {
                       "start": 48,
                       "end": 57
-                    },
-                    "id": 5
+                    }
                   },
                   "generic_params": {
                     "params": []
@@ -102,8 +97,7 @@
                           "span": {
                             "start": 58,
                             "end": 62
-                          },
-                          "id": 6
+                          }
                         },
                         "ty": {
                           "kind": "QSelf",
@@ -111,14 +105,14 @@
                             "start": 58,
                             "end": 62
                           },
-                          "id": 7
+                          "id": 1
                         },
                         "mutability": "Immutable",
                         "span": {
                           "start": 58,
                           "end": 62
                         },
-                        "id": 8
+                        "id": 2
                       }
                     ]
                   },
@@ -128,7 +122,7 @@
                       "start": 67,
                       "end": 70
                     },
-                    "id": 9
+                    "id": 3
                   }
                 },
                 "body": null,
@@ -136,7 +130,7 @@
                   "start": 45,
                   "end": 71
                 },
-                "id": 10
+                "id": 4
               }
             ]
           }
@@ -145,7 +139,7 @@
           "start": 25,
           "end": 73
         },
-        "id": 11
+        "id": 5
       },
       {
         "kind": {
@@ -159,8 +153,7 @@
                     "span": {
                       "start": 80,
                       "end": 87
-                    },
-                    "id": 12
+                    }
                   }
                 ]
               },
@@ -176,8 +169,7 @@
                   "span": {
                     "start": 92,
                     "end": 97
-                  },
-                  "id": 13
+                  }
                 }
               ]
             },
@@ -189,8 +181,7 @@
                     "span": {
                       "start": 107,
                       "end": 116
-                    },
-                    "id": 14
+                    }
                   },
                   "generic_params": {
                     "params": []
@@ -203,8 +194,7 @@
                           "span": {
                             "start": 117,
                             "end": 121
-                          },
-                          "id": 15
+                          }
                         },
                         "ty": {
                           "kind": "QSelf",
@@ -212,14 +202,14 @@
                             "start": 117,
                             "end": 121
                           },
-                          "id": 16
+                          "id": 6
                         },
                         "mutability": "Immutable",
                         "span": {
                           "start": 117,
                           "end": 121
                         },
-                        "id": 17
+                        "id": 7
                       }
                     ]
                   },
@@ -229,7 +219,7 @@
                       "start": 126,
                       "end": 129
                     },
-                    "id": 18
+                    "id": 8
                   }
                 },
                 "body": {
@@ -255,8 +245,7 @@
                                                   "span": {
                                                     "start": 147,
                                                     "end": 151
-                                                  },
-                                                  "id": 19
+                                                  }
                                                 },
                                                 "generics": null
                                               }
@@ -267,15 +256,14 @@
                                           "start": 147,
                                           "end": 151
                                         },
-                                        "id": 20
+                                        "id": 9
                                       },
                                       "ident": {
                                         "ident": 7,
                                         "span": {
                                           "start": 152,
                                           "end": 160
-                                        },
-                                        "id": 21
+                                        }
                                       }
                                     }
                                   },
@@ -283,7 +271,7 @@
                                     "start": 147,
                                     "end": 160
                                   },
-                                  "id": 22
+                                  "id": 10
                                 },
                                 "rhs": {
                                   "kind": {
@@ -299,8 +287,7 @@
                                                   "span": {
                                                     "start": 163,
                                                     "end": 167
-                                                  },
-                                                  "id": 23
+                                                  }
                                                 },
                                                 "generics": null
                                               }
@@ -311,15 +298,14 @@
                                           "start": 163,
                                           "end": 167
                                         },
-                                        "id": 24
+                                        "id": 11
                                       },
                                       "ident": {
                                         "ident": 8,
                                         "span": {
                                           "start": 168,
                                           "end": 175
-                                        },
-                                        "id": 25
+                                        }
                                       }
                                     }
                                   },
@@ -327,7 +313,7 @@
                                     "start": 163,
                                     "end": 175
                                   },
-                                  "id": 26
+                                  "id": 12
                                 }
                               }
                             },
@@ -335,7 +321,7 @@
                               "start": 147,
                               "end": 175
                             },
-                            "id": 27
+                            "id": 13
                           }
                         }
                       },
@@ -343,20 +329,20 @@
                         "start": 140,
                         "end": 176
                       },
-                      "id": 28
+                      "id": 14
                     }
                   ],
                   "span": {
                     "start": 130,
                     "end": 182
                   },
-                  "id": 29
+                  "id": 15
                 },
                 "span": {
                   "start": 104,
                   "end": 182
                 },
-                "id": 30
+                "id": 16
               }
             ]
           }
@@ -365,7 +351,7 @@
           "start": 75,
           "end": 184
         },
-        "id": 31
+        "id": 17
       }
     ]
   }

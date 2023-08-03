@@ -7,7 +7,7 @@
       "b"
     ],
     "crate_id": 0,
-    "local_def_id": 16
+    "local_def_id": 11
   },
   {
     "path": {
@@ -32,8 +32,7 @@
                 "span": {
                   "start": 3,
                   "end": 6
-                },
-                "id": 0
+                }
               },
               "generic_params": {
                 "params": []
@@ -46,8 +45,7 @@
                       "span": {
                         "start": 7,
                         "end": 8
-                      },
-                      "id": 1
+                      }
                     },
                     "ty": {
                       "kind": "I64",
@@ -55,14 +53,14 @@
                         "start": 10,
                         "end": 13
                       },
-                      "id": 2
+                      "id": 0
                     },
                     "mutability": "Immutable",
                     "span": {
                       "start": 7,
                       "end": 13
                     },
-                    "id": 3
+                    "id": 1
                   },
                   {
                     "name": {
@@ -70,8 +68,7 @@
                       "span": {
                         "start": 15,
                         "end": 16
-                      },
-                      "id": 4
+                      }
                     },
                     "ty": {
                       "kind": "I64",
@@ -79,14 +76,14 @@
                         "start": 18,
                         "end": 21
                       },
-                      "id": 5
+                      "id": 2
                     },
                     "mutability": "Immutable",
                     "span": {
                       "start": 15,
                       "end": 21
                     },
-                    "id": 6
+                    "id": 3
                   }
                 ]
               },
@@ -96,7 +93,7 @@
                   "start": 26,
                   "end": 29
                 },
-                "id": 7
+                "id": 4
               }
             },
             "body": {
@@ -119,8 +116,7 @@
                                         "span": {
                                           "start": 36,
                                           "end": 37
-                                        },
-                                        "id": 8
+                                        }
                                       },
                                       "generics": null
                                     }
@@ -131,7 +127,7 @@
                                 "start": 36,
                                 "end": 37
                               },
-                              "id": 9
+                              "id": 5
                             },
                             "rhs": {
                               "kind": {
@@ -144,8 +140,7 @@
                                         "span": {
                                           "start": 40,
                                           "end": 41
-                                        },
-                                        "id": 10
+                                        }
                                       },
                                       "generics": null
                                     }
@@ -156,7 +151,7 @@
                                 "start": 40,
                                 "end": 41
                               },
-                              "id": 11
+                              "id": 6
                             }
                           }
                         },
@@ -164,7 +159,7 @@
                           "start": 36,
                           "end": 41
                         },
-                        "id": 12
+                        "id": 7
                       },
                       "implicit_return": false
                     }
@@ -173,14 +168,14 @@
                     "start": 36,
                     "end": 41
                   },
-                  "id": 13
+                  "id": 8
                 }
               ],
               "span": {
                 "start": 30,
                 "end": 43
               },
-              "id": 14
+              "id": 9
             }
           }
         },
@@ -188,7 +183,7 @@
           "start": 0,
           "end": 43
         },
-        "id": 15
+        "id": 10
       }
     ]
   }

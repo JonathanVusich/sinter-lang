@@ -13,8 +13,7 @@
           "span": {
             "start": 0,
             "end": 4
-          },
-          "id": 0
+          }
         },
         "generics": {
           "generics": [
@@ -30,8 +29,7 @@
                           "span": {
                             "start": 7,
                             "end": 11
-                          },
-                          "id": 1
+                          }
                         }
                       ]
                     },
@@ -43,7 +41,7 @@
                             "start": 12,
                             "end": 15
                           },
-                          "id": 2
+                          "id": 0
                         }
                       ]
                     }
@@ -54,7 +52,7 @@
                 "start": 7,
                 "end": 16
               },
-              "id": 3
+              "id": 1
             }
           ]
         }
@@ -65,8 +63,7 @@
           "span": {
             "start": 19,
             "end": 22
-          },
-          "id": 4
+          }
         },
         "generics": null
       }

@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
-use std::mem::discriminant;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -17,22 +16,22 @@ use crate::compiler::ast::{
     DestructurePattern as AstDestructurePattern, EnumMember as AstEnumMember,
     EnumStmt as AstEnumStmt, Expr as AstExpr, ExprKind as AstExprKind, Field as AstField,
     Fields as AstFields, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
-    FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt,
-    IdentType, Item as AstItem, Item, ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm,
-    Module, Params as AstParams, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
-    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
-    TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
-    TyKind as AstTyKind,
+    FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics,
+    GlobalLetStmt as AstGlobalLetStmt, IdentType, Item as AstItem, Item, ItemKind as AstItemKind,
+    ItemKind, MatchArm as AstMatchArm, Module, Params as AstParams, PathTy as AstPathTy,
+    Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt, StmtKind as AstStmtKind,
+    TraitBound as AstTraitBound, TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt,
+    Ty as AstTy, TyKind, TyKind as AstTyKind,
 };
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::{
     Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
     ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember, EnumMembers, EnumStmt,
     Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam,
-    GenericParams, Generics, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt,
-    LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern,
-    PatternLocal, ReturnStmt, Segment, Stmt, Stmts, TraitBound, TraitImplStmt, TraitStmt, Ty,
-    TyPattern, UnaryExpr, WhileStmt,
+    GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr,
+    InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param, Params,
+    PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt, Segment, Stmt, Stmts, TraitBound,
+    TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use crate::compiler::krate::{Crate, CrateDef};
 use crate::compiler::path::ModulePath;
@@ -319,10 +318,8 @@ impl<'a> Resolver<'a> {
                                     .map(|member| (member.name, member.id.to_def_id(krate_id)))
                                     .collect::<StrMap<DefId>>(),
                             );
-                            ns.enums.insert(
-                                enum_stmt.name.ident,
-                                EnumDef::new(enum_stmt.name.id.to_def_id(krate_id), members),
-                            );
+                            ns.enums
+                                .insert(enum_stmt.name.ident, EnumDef::new(def_id, members));
                         }
                         ItemKind::Trait(trait_stmt) => {
                             ns.values.insert(trait_stmt.name.ident, def_id);
@@ -483,12 +480,21 @@ impl<'a> CrateResolver<'a> {
 
     fn resolve_global_let_stmt(
         &mut self,
-        let_stmt: &GlobalLetStmt,
+        let_stmt: &AstGlobalLetStmt,
         span: Span,
         id: LocalDefId,
     ) -> ResolveResult {
         // Lower expression
-        let expr_id = self.resolve_expr(&let_stmt.initializer)?;
+        let ty = self.maybe_resolve_ty(&let_stmt.ty)?;
+        let expr = self.resolve_expr(&let_stmt.initializer)?;
+
+        // We don't need to insert constants into a local scope since it is already part of the module ns.
+        let hir_node = HirNode::new(
+            HirNodeKind::GlobalLet(GlobalLetStmt::new(let_stmt.name.ident, ty, expr)),
+            span,
+            id,
+        );
+        self.insert_node(id, hir_node)?;
         Ok(())
     }
 
@@ -1137,9 +1143,11 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_stmt(&mut self, stmt: &AstStmt) -> Result<LocalDefId, ResolveError> {
+        let span = stmt.span;
+        let id = stmt.id;
         let hir_stmt = match &stmt.kind {
             AstStmtKind::Let(let_stmt) => {
-                self.insert_var(let_stmt.ident.ident, let_stmt.ident.id);
+                self.insert_var(let_stmt.ident.ident, id);
 
                 let resolved_ty = self.maybe_resolve_ty(&let_stmt.ty)?;
                 let resolved_initializer = self.maybe_resolve_expr(&let_stmt.initializer)?;
@@ -1155,7 +1163,7 @@ impl<'a> CrateResolver<'a> {
                 self.scopes.push(Scope::Block {
                     vars: HashMap::default(),
                 });
-                self.insert_var(for_stmt.ident.ident, for_stmt.ident.id);
+                self.insert_var(for_stmt.ident.ident, id);
 
                 let range = self.resolve_expr(&for_stmt.range)?;
                 let body = self.resolve_block(&for_stmt.body)?;
