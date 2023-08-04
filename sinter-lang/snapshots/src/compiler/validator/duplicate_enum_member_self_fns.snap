@@ -1,0 +1,21 @@
+[
+  [
+    "Planet",
+    "Mercury",
+    "relative_gravity",
+    "planet",
+    "crate",
+    "module"
+  ],
+  [
+    {
+      "DuplicateFns": [
+        3,
+        [
+          3,
+          5
+        ]
+      ]
+    }
+  ]
+]

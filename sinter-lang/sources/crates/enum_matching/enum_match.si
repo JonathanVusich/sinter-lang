@@ -1,0 +1,9 @@
+use crate::enum_message::Message;
+
+let message = Message::Text("null");
+
+let extracted_text = match message {
+    Message::Text("null") | Message::Photo("null", photo) => "",
+    Message::Text(str) => str,
+    Message::Photo(caption, photo) => caption,
+};

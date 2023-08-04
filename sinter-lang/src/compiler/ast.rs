@@ -1,36 +1,34 @@
-use crate::compiler::parser::{ClassType, ParseError};
-use crate::compiler::path::ModulePath;
-use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::types::InternedStr;
-use crate::traits::traits::Trait;
-use serde::{Deserialize, Serialize};
+use std::alloc::Global;
 use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, Prefix};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-/// This is a unique identifier for a parsed module.
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash, Serialize, Deserialize)]
-pub struct NodeId {
-    id: u32,
-}
+use serde::{Deserialize, Serialize};
 
-impl NodeId {
-    pub fn new(id: u32) -> Self {
-        Self { id }
-    }
-}
-
-impl From<u32> for NodeId {
-    fn from(value: u32) -> Self {
-        NodeId { id: value }
-    }
-}
+use crate::compiler::hir::{LocalDefId, ModuleId};
+use crate::compiler::krate::CrateId;
+use crate::compiler::parser::{ClassType, ParseError};
+use crate::compiler::path::ModulePath;
+use crate::compiler::resolver::ModuleNS;
+use crate::compiler::tokens::tokenized_file::Span;
+use crate::compiler::types::InternedStr;
+use crate::traits::traits::Trait;
 
 /// This trait describes a visitor that can traverse the AST and collect information.
-pub trait AstVisitor<T> {
-    fn visit_node(&mut self, node: &Item);
-    fn visit_expr(&mut self, expr: &Expr);
+pub trait AstPass<T>: Default
+where
+    T: From<Self>,
+{
+    fn visit(ast: &Module) -> T {
+        let mut pass = Self::default();
+        for item in &ast.items {
+            pass.visit_item(item);
+        }
+        pass.into()
+    }
+
+    fn visit_item(&mut self, node: &Item);
 }
 
 /// This enum represents the various types of nodes in the AST.
@@ -48,13 +46,13 @@ pub enum ItemKind {
 /// This struct represents the node plus diagnostic information.
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Item {
-    kind: ItemKind,
-    span: Span,
-    id: NodeId,
+    pub(crate) kind: ItemKind,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
 }
 
 impl Item {
-    pub fn new(kind: ItemKind, span: Span, id: NodeId) -> Self {
+    pub fn new(kind: ItemKind, span: Span, id: LocalDefId) -> Self {
         Self { kind, span, id }
     }
 }
@@ -63,14 +61,14 @@ impl Item {
 pub enum ExprKind {
     Array(ArrayExpr),
     Call(CallExpr),
-    Constructor(CallExpr),
     Infix(InfixExpr),
     Unary(UnaryExpr),
-    None,
-    Boolean(bool),
-    Integer(i64),
+    True,
+    False,
     Float(f64),
+    Integer(i64),
     String(InternedStr),
+    None,
     Match(MatchExpr),
     Closure(ClosureExpr),
     Assign(AssignExpr),
@@ -84,26 +82,26 @@ pub enum ExprKind {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expr {
-    kind: ExprKind,
-    span: Span,
-    id: NodeId,
+    pub(crate) kind: ExprKind,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
 }
 
 impl Expr {
-    pub fn new(kind: ExprKind, span: Span, id: NodeId) -> Self {
+    pub fn new(kind: ExprKind, span: Span, id: LocalDefId) -> Self {
         Self { kind, span, id }
     }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Ty {
-    kind: TyKind,
-    span: Span,
-    id: NodeId,
+    pub(crate) kind: TyKind,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
 }
 
 impl Ty {
-    pub fn new(kind: TyKind, span: Span, id: NodeId) -> Self {
+    pub fn new(kind: TyKind, span: Span, id: LocalDefId) -> Self {
         Self { kind, span, id }
     }
 }
@@ -112,7 +110,6 @@ impl Ty {
 pub enum TyKind {
     Array { ty: Box<Ty> },
     Path { path: PathTy },
-    Union { tys: Vec<Ty> },
     TraitBound { trait_bound: TraitBound },
     Closure { params: Vec<Ty>, ret_ty: Box<Ty> },
     Infer,
@@ -128,22 +125,25 @@ pub enum TyKind {
     F32,
     F64,
     Str,
+    Boolean,
     None,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct AstModule {
-    // pub(crate) path: ModulePath,
+#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
+pub struct Module {
+    pub(crate) path: ModulePath,
+    pub(crate) id: ModuleId,
+    pub(crate) ns: ModuleNS,
     pub(crate) items: Vec<Item>,
-    pub(crate) parse_errors: Vec<ParseError>,
 }
 
-impl AstModule {
-    pub fn new(items: Vec<Item>, parse_errors: Vec<ParseError>) -> Self {
+impl Module {
+    pub fn new(items: Vec<Item>) -> Self {
         Self {
-            // path: ModulePath::new(vec![]),
+            path: Default::default(),
+            id: Default::default(),
+            ns: Default::default(),
             items,
-            parse_errors,
         }
     }
 }
@@ -152,42 +152,60 @@ impl AstModule {
 pub struct Ident {
     pub ident: InternedStr,
     pub span: Span,
-    pub id: NodeId,
 }
 
 impl Ident {
-    pub fn new(ident: InternedStr, span: Span, id: NodeId) -> Self {
-        Self { ident, span, id }
+    pub fn new(ident: InternedStr, span: Span) -> Self {
+        Self { ident, span }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct QualifiedIdent {
-    idents: Vec<Ident>,
+    pub(crate) ident_type: IdentType,
+    pub(crate) idents: Vec<Ident>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum IdentType {
+    Crate,
+    LocalOrUse,
 }
 
 impl QualifiedIdent {
-    pub fn new(idents: Vec<Ident>) -> Self {
-        if idents.len() < 1 {
+    pub fn new(ident_type: IdentType, idents: Vec<Ident>) -> Self {
+        if idents.is_empty() {
             panic!("QualifiedIdent must have at least one identifier!")
         }
-        Self { idents }
+        Self { ident_type, idents }
     }
 
-    pub fn first(&self) -> Ident {
-        // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
-        self.idents.first().copied().unwrap()
+    pub fn len(&self) -> usize {
+        self.idents.len()
     }
 
-    pub fn last(&self) -> Ident {
+    pub fn first(&self) -> InternedStr {
         // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
-        self.idents.last().copied().unwrap()
+        self.idents.first().map(|ident| ident.ident).unwrap()
+    }
+
+    pub fn last(&self) -> InternedStr {
+        // It is safe to unwrap here since a QualifiedIdent should always have at least one element.
+        self.idents.last().map(|ident| ident.ident).unwrap()
+    }
+
+    pub fn is_single(&self) -> Option<InternedStr> {
+        if self.idents.len() == 1 {
+            Some(self.idents[0].ident)
+        } else {
+            None
+        }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TraitBound {
-    bounds: Vec<PathTy>,
+    pub(crate) bounds: Vec<PathTy>,
 }
 
 impl TraitBound {
@@ -220,7 +238,7 @@ impl Deref for Generics {
     type Target = [Ty];
 
     fn deref(&self) -> &Self::Target {
-        &self.generics.as_slice()
+        self.generics.as_slice()
     }
 }
 
@@ -243,13 +261,14 @@ impl PathTy {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct UseStmt {
-    pub ident: QualifiedIdent,
+    pub(crate) path: QualifiedIdent,
 }
 
 impl UseStmt {
-    pub fn new(ident: QualifiedIdent) -> Self {
-        Self { ident }
+    pub fn new(path: QualifiedIdent) -> Self {
+        Self { path }
     }
 }
 
@@ -277,7 +296,7 @@ impl Deref for GenericParams {
     type Target = [GenericParam];
 
     fn deref(&self) -> &Self::Target {
-        &self.params.as_slice()
+        self.params.as_slice()
     }
 }
 
@@ -289,16 +308,17 @@ impl DerefMut for GenericParams {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GenericParam {
-    pub(crate) ident: Ident,
-    pub(crate) trait_bound: Option<TraitBound>,
+    pub(crate) name: Ident,
+    // Must be of type TraitBound, but need the entire Ty to store span + id.
+    pub(crate) trait_bound: Option<Ty>,
     pub(crate) span: Span,
-    pub(crate) id: NodeId,
+    pub(crate) id: LocalDefId,
 }
 
 impl GenericParam {
-    pub fn new(ident: Ident, trait_bound: Option<TraitBound>, span: Span, id: NodeId) -> Self {
+    pub fn new(ident: Ident, trait_bound: Option<Ty>, span: Span, id: LocalDefId) -> Self {
         Self {
-            ident,
+            name: ident,
             trait_bound,
             span,
             id,
@@ -437,7 +457,7 @@ pub struct ClassStmt {
     pub(crate) class_type: ClassType,
     pub(crate) generic_params: GenericParams,
     pub(crate) fields: Fields,
-    pub(crate) fn_stmts: Vec<FnStmt>,
+    pub(crate) self_fns: Vec<FnSelfStmt>,
 }
 
 impl ClassStmt {
@@ -446,14 +466,14 @@ impl ClassStmt {
         class_type: ClassType,
         generic_params: GenericParams,
         fields: Fields,
-        fn_stmts: Vec<FnStmt>,
+        fn_stmts: Vec<FnSelfStmt>,
     ) -> Self {
         Self {
             name,
             class_type,
             generic_params,
             fields,
-            fn_stmts,
+            self_fns: fn_stmts,
         }
     }
 }
@@ -463,7 +483,7 @@ pub struct EnumStmt {
     pub name: Ident,
     pub generic_params: GenericParams,
     pub members: Vec<EnumMember>,
-    pub member_fns: Vec<FnStmt>,
+    pub self_fns: Vec<FnSelfStmt>,
 }
 
 impl EnumStmt {
@@ -471,13 +491,13 @@ impl EnumStmt {
         name: Ident,
         generic_params: GenericParams,
         members: Vec<EnumMember>,
-        fn_stmts: Vec<FnStmt>,
+        member_fns: Vec<FnSelfStmt>,
     ) -> Self {
         Self {
             name,
             generic_params,
             members,
-            member_fns: fn_stmts,
+            self_fns: member_fns,
         }
     }
 
@@ -494,15 +514,15 @@ impl EnumStmt {
 pub struct TraitStmt {
     pub name: Ident,
     pub generic_params: GenericParams,
-    pub member_fns: Vec<FnStmt>,
+    pub self_fns: Vec<FnSelfStmt>,
 }
 
 impl TraitStmt {
-    pub fn new(ident: Ident, generic_params: GenericParams, functions: Vec<FnStmt>) -> Self {
+    pub fn new(ident: Ident, generic_params: GenericParams, member_fns: Vec<FnSelfStmt>) -> Self {
         Self {
             name: ident,
             generic_params,
-            member_fns: functions,
+            self_fns: member_fns,
         }
     }
 }
@@ -511,15 +531,19 @@ impl TraitStmt {
 pub struct TraitImplStmt {
     pub trait_to_impl: PathTy,
     pub target_ty: QualifiedIdent,
-    pub member_fns: Vec<FnStmt>,
+    pub self_fns: Vec<FnSelfStmt>,
 }
 
 impl TraitImplStmt {
-    pub fn new(trait_to_impl: PathTy, target_ty: QualifiedIdent, fns: Vec<FnStmt>) -> Self {
+    pub fn new(
+        trait_to_impl: PathTy,
+        target_ty: QualifiedIdent,
+        member_fns: Vec<FnSelfStmt>,
+    ) -> Self {
         Self {
             trait_to_impl,
             target_ty,
-            member_fns: fns,
+            self_fns: member_fns,
         }
     }
 }
@@ -533,6 +557,25 @@ pub struct FnStmt {
 impl FnStmt {
     pub fn new(sig: FnSig, body: Option<Block>) -> Self {
         Self { sig, body }
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct FnSelfStmt {
+    pub(crate) sig: FnSig,
+    pub(crate) body: Option<Block>,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
+}
+
+impl FnSelfStmt {
+    pub fn new(sig: FnSig, body: Option<Block>, span: Span, id: LocalDefId) -> Self {
+        Self {
+            sig,
+            body,
+            span,
+            id,
+        }
     }
 }
 
@@ -561,7 +604,7 @@ pub struct ReturnStmt {
 impl ReturnStmt {
     pub fn new(value: Option<Expr>) -> Self {
         Self {
-            value: value.map(|expr| Box::new(expr)),
+            value: value.map(Box::new),
         }
     }
 }
@@ -587,23 +630,23 @@ impl IfStmt {
 pub struct EnumMember {
     pub name: InternedStr,
     pub fields: Fields,
-    pub member_fns: Vec<FnStmt>,
+    pub self_fns: Vec<FnSelfStmt>,
     pub span: Span,
-    pub id: NodeId,
+    pub id: LocalDefId,
 }
 
 impl EnumMember {
     pub fn new(
         name: InternedStr,
         parameters: Fields,
-        member_functions: Vec<FnStmt>,
+        member_functions: Vec<FnSelfStmt>,
         span: Span,
-        id: NodeId,
+        id: LocalDefId,
     ) -> Self {
         Self {
             name,
             fields: parameters,
-            member_fns: member_functions,
+            self_fns: member_functions,
             id,
             span,
         }
@@ -636,33 +679,37 @@ impl FnSig {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Param {
-    pub(crate) ident: Ident,
+    pub(crate) name: Ident,
     pub(crate) ty: Ty,
     pub(crate) mutability: Mutability,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
 }
 
 impl Param {
-    pub fn new(ident: Ident, ty: Ty, mutability: Mutability) -> Self {
+    pub fn new(ident: Ident, ty: Ty, mutability: Mutability, span: Span, id: LocalDefId) -> Self {
         Self {
-            ident,
+            name: ident,
             ty,
             mutability,
+            span,
+            id,
         }
     }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Field {
-    pub(crate) ident: Ident,
+    pub(crate) name: Ident,
     pub(crate) ty: Ty,
     pub(crate) span: Span,
-    pub(crate) id: NodeId,
+    pub(crate) id: LocalDefId,
 }
 
 impl Field {
-    pub fn new(ident: Ident, ty: Ty, span: Span, id: NodeId) -> Self {
+    pub fn new(ident: Ident, ty: Ty, span: Span, id: LocalDefId) -> Self {
         Self {
-            ident,
+            name: ident,
             ty,
             span,
             id,
@@ -672,21 +719,17 @@ impl Field {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
-    pub ident: Ident,
+    pub name: Ident,
     pub ty: Option<Ty>,
     pub initializer: Expr,
-    pub span: Span,
-    pub id: NodeId,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: Ident, ty: Option<Ty>, initializer: Expr, span: Span, id: NodeId) -> Self {
+    pub fn new(ident: Ident, ty: Option<Ty>, initializer: Expr) -> Self {
         Self {
-            ident,
+            name: ident,
             ty,
             initializer,
-            span,
-            id,
         }
     }
 }
@@ -710,7 +753,7 @@ impl LetStmt {
             ident,
             mutability,
             ty,
-            initializer: initializer.map(|expr| Box::new(expr)),
+            initializer: initializer.map(Box::new),
         }
     }
 }
@@ -787,11 +830,18 @@ impl MatchExpr {
 pub struct MatchArm {
     pub pattern: Pattern,
     pub body: Stmt,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 impl MatchArm {
-    pub fn new(pattern: Pattern, body: Stmt) -> Self {
-        Self { pattern, body }
+    pub fn new(pattern: Pattern, body: Stmt, span: Span, id: LocalDefId) -> Self {
+        Self {
+            pattern,
+            body,
+            span,
+            id,
+        }
     }
 }
 
@@ -876,35 +926,21 @@ impl Segment {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PathExpr {
+    pub ident_type: IdentType,
     pub segments: Vec<Segment>,
 }
 
 impl PathExpr {
-    pub fn new(segments: Vec<Segment>) -> Self {
-        Self { segments }
-    }
-
-    pub fn prefix(self, module: &QualifiedIdent) -> Self {
-        // Verify that this is an appropriate module to prefix
-        debug_assert_eq!(module.last(), self.first());
-        let mut segments = Vec::with_capacity(module.idents.len() - 1 + self.segments.len());
-        for ident in &module.idents {
-            segments.push(Segment::new(*ident, None));
+    pub fn new(ident_type: IdentType, segments: Vec<Segment>) -> Self {
+        Self {
+            ident_type,
+            segments,
         }
-        segments.pop();
-        for segment in self.segments {
-            segments.push(segment);
-        }
-        Self { segments }
-    }
-
-    pub fn first(&self) -> Ident {
-        self.segments.first().unwrap().ident
     }
 
     pub fn var_identifier(&self) -> Option<Ident> {
         if self.segments.len() == 1 {
-            Some(self.first())
+            Some(self.segments.first().unwrap().ident)
         } else {
             None
         }
@@ -918,7 +954,7 @@ impl PathExpr {
             .collect::<Vec<Ident>>();
         // Remove the last ident because it is not part of the module path.
         idents.pop();
-        QualifiedIdent::new(idents)
+        QualifiedIdent::new(self.ident_type, idents)
     }
 }
 
@@ -956,11 +992,12 @@ pub enum Pattern {
     // _
     Or(OrPattern),
     // pat | pat
-    Boolean(bool),
-    // true/false
+    True,
+    False,
+    Float(f64),
     Integer(i64),
-    // 100
     String(InternedStr),
+    None,
     // "true"
     Ty(TyPattern),
     // Logical logical => { }
@@ -993,41 +1030,66 @@ impl OrPattern {
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-#[repr(transparent)]
-#[serde(transparent)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PatternLocal {
     pub ident: InternedStr,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 impl PatternLocal {
-    pub fn new(ident: InternedStr) -> Self {
-        Self { ident }
+    pub fn new(ident: InternedStr, span: Span, id: LocalDefId) -> Self {
+        Self { ident, span, id }
     }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TyPattern {
-    pub ty: Ty,
+    pub ty: PathTy,
     pub ident: Option<PatternLocal>,
 }
 
 impl TyPattern {
-    pub fn new(ty: Ty, ident: Option<PatternLocal>) -> Self {
+    pub fn new(ty: PathTy, ident: Option<PatternLocal>) -> Self {
         Self { ty, ident }
     }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct DestructurePattern {
-    pub ty: Ty,
-    pub exprs: Vec<Expr>,
+    pub ty: PathTy,
+    pub exprs: Vec<DestructureExpr>,
 }
 
 impl DestructurePattern {
-    pub fn new(ty: Ty, exprs: Vec<Expr>) -> Self {
+    pub fn new(ty: PathTy, exprs: Vec<DestructureExpr>) -> Self {
         Self { ty, exprs }
     }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct DestructureExpr {
+    pub(crate) kind: DestructureExprKind,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
+}
+
+impl DestructureExpr {
+    pub fn new(kind: DestructureExprKind, span: Span, id: LocalDefId) -> Self {
+        Self { kind, span, id }
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub enum DestructureExprKind {
+    Pattern(DestructurePattern),
+    Identifier(InternedStr),
+    True,
+    False,
+    Float(f64),
+    Integer(i64),
+    String(InternedStr),
+    None,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -1049,19 +1111,19 @@ impl WhileStmt {
 pub struct Block {
     pub stmts: Vec<Stmt>,
     pub span: Span,
-    pub id: NodeId,
+    pub id: LocalDefId,
 }
 
 impl Block {
-    pub fn new(stmts: Vec<Stmt>, span: Span, id: NodeId) -> Self {
+    pub fn new(stmts: Vec<Stmt>, span: Span, id: LocalDefId) -> Self {
         Self { stmts, span, id }
     }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expression {
-    expr: Box<Expr>,
-    implicit_return: bool,
+    pub(crate) expr: Box<Expr>,
+    pub(crate) implicit_return: bool,
 }
 
 impl Expression {
@@ -1166,7 +1228,20 @@ impl InfixOp {
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub enum Stmt {
+pub struct Stmt {
+    pub(crate) kind: StmtKind,
+    pub(crate) span: Span,
+    pub(crate) id: LocalDefId,
+}
+
+impl Stmt {
+    pub fn new(kind: StmtKind, span: Span, id: LocalDefId) -> Self {
+        Self { kind, span, id }
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub enum StmtKind {
     Let(LetStmt),
     For(ForStmt),
     If(IfStmt),

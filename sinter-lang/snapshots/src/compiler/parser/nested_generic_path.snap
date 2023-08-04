@@ -5,6 +5,7 @@
     "new"
   ],
   {
+    "ident_type": "LocalOrUse",
     "segments": [
       {
         "ident": {
@@ -12,9 +13,6 @@
           "span": {
             "start": 0,
             "end": 4
-          },
-          "id": {
-            "id": 0
           }
         },
         "generics": {
@@ -24,15 +22,13 @@
                 "Path": {
                   "path": {
                     "ident": {
+                      "ident_type": "LocalOrUse",
                       "idents": [
                         {
                           "ident": 1,
                           "span": {
                             "start": 7,
                             "end": 11
-                          },
-                          "id": {
-                            "id": 1
                           }
                         }
                       ]
@@ -45,9 +41,7 @@
                             "start": 12,
                             "end": 15
                           },
-                          "id": {
-                            "id": 2
-                          }
+                          "id": 0
                         }
                       ]
                     }
@@ -55,12 +49,10 @@
                 }
               },
               "span": {
-                "start": 12,
+                "start": 7,
                 "end": 16
               },
-              "id": {
-                "id": 3
-              }
+              "id": 1
             }
           ]
         }
@@ -71,9 +63,6 @@
           "span": {
             "start": 19,
             "end": 22
-          },
-          "id": {
-            "id": 4
           }
         },
         "generics": null

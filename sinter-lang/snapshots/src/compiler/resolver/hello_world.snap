@@ -1,0 +1,126 @@
+[
+  [
+    "hello_world",
+    "main",
+    "print",
+    "Hello world!"
+  ],
+  {
+    "1": {
+      "name": 1,
+      "id": {
+        "id": 0
+      },
+      "items": [],
+      "nodes": {
+        "0": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 3,
+                      "span": {
+                        "start": 16,
+                        "end": 21
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 16,
+            "end": 21
+          },
+          "id": 0
+        },
+        "1": {
+          "kind": {
+            "Expr": {
+              "String": 4
+            }
+          },
+          "span": {
+            "start": 22,
+            "end": 36
+          },
+          "id": 1
+        },
+        "2": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 0,
+                "args": [
+                  1
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 16,
+            "end": 37
+          },
+          "id": 2
+        },
+        "3": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 2,
+                "implicit_return": true
+              }
+            }
+          },
+          "span": {
+            "start": 16,
+            "end": 38
+          },
+          "id": 3
+        },
+        "4": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                3
+              ]
+            }
+          },
+          "span": {
+            "start": 10,
+            "end": 40
+          },
+          "id": 4
+        },
+        "5": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 2,
+                  "span": {
+                    "start": 3,
+                    "end": 7
+                  }
+                },
+                "generic_params": {},
+                "params": {},
+                "return_type": null
+              },
+              "body": 4
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 40
+          },
+          "id": 5
+        }
+      }
+    }
+  }
+]

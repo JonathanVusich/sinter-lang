@@ -1,0 +1,21 @@
+[
+  [
+    "Planet",
+    "Mercury",
+    "diameter",
+    "u64",
+    "crate",
+    "module"
+  ],
+  [
+    {
+      "DuplicateField": [
+        3,
+        [
+          1,
+          3
+        ]
+      ]
+    }
+  ]
+]

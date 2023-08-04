@@ -4,21 +4,32 @@
       "a",
       "i64",
       "b"
-    ]
+    ],
+    "crate_id": 0,
+    "local_def_id": 5
   },
   {
+    "path": {
+      "module_path": []
+    },
+    "id": {
+      "crate_id": 0,
+      "module_id": 0
+    },
+    "ns": {
+      "modules": {},
+      "values": {},
+      "enums": {}
+    },
     "items": [
       {
         "kind": {
           "GlobalLet": {
-            "ident": {
+            "name": {
               "ident": 1,
               "span": {
                 "start": 4,
                 "end": 5
-              },
-              "id": {
-                "id": 0
               }
             },
             "ty": {
@@ -27,9 +38,7 @@
                 "start": 7,
                 "end": 10
               },
-              "id": {
-                "id": 1
-              }
+              "id": 0
             },
             "initializer": {
               "kind": {
@@ -39,16 +48,7 @@
                 "start": 13,
                 "end": 14
               },
-              "id": {
-                "id": 2
-              }
-            },
-            "span": {
-              "start": 7,
-              "end": 15
-            },
-            "id": {
-              "id": 3
+              "id": 1
             }
           }
         },
@@ -56,21 +56,16 @@
           "start": 0,
           "end": 15
         },
-        "id": {
-          "id": 4
-        }
+        "id": 2
       },
       {
         "kind": {
           "GlobalLet": {
-            "ident": {
+            "name": {
               "ident": 3,
               "span": {
                 "start": 44,
                 "end": 45
-              },
-              "id": {
-                "id": 5
               }
             },
             "ty": null,
@@ -82,16 +77,7 @@
                 "start": 48,
                 "end": 49
               },
-              "id": {
-                "id": 6
-              }
-            },
-            "span": {
-              "start": 40,
-              "end": 50
-            },
-            "id": {
-              "id": 7
+              "id": 3
             }
           }
         },
@@ -99,11 +85,8 @@
           "start": 40,
           "end": 50
         },
-        "id": {
-          "id": 8
-        }
+        "id": 4
       }
-    ],
-    "parse_errors": []
+    ]
   }
 ]

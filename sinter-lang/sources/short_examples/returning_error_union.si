@@ -1,4 +1,4 @@
-fn write<T: Serializable>(value: T) => None | WriteError {
+fn write<T: Serializable>(value: T) => Result<None> {
     let bytes = value.to_bytes();
     if (buffer.remaining() < bytes.len()) {
         WriteError::BufferOverflow
@@ -12,4 +12,18 @@ fn write<T: Serializable>(value: T) => None | WriteError {
 enum WriteError {
     BufferOverflow,
     MalformedBytes,
+}
+
+impl Error for WriteError {
+
+    fn message(self) => str {
+        match self {
+            BufferOverFlow => "BufferOverFlow",
+            MalformedBytes => "MalformedBytes",
+        }
+    }
+
+    fn source(self) => Option<Error> {
+        None
+    }
 }

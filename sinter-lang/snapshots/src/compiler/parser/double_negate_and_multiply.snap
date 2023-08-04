@@ -1,6 +1,8 @@
 [
   {
-    "string_interner": []
+    "string_interner": [],
+    "crate_id": 0,
+    "local_def_id": 4
   },
   {
     "kind": {
@@ -18,9 +20,7 @@
                   "start": 1,
                   "end": 3
                 },
-                "id": {
-                  "id": 0
-                }
+                "id": 0
               }
             }
           },
@@ -28,9 +28,7 @@
             "start": 0,
             "end": 3
           },
-          "id": {
-            "id": 1
-          }
+          "id": 1
         },
         "rhs": {
           "kind": {
@@ -40,9 +38,7 @@
             "start": 6,
             "end": 7
           },
-          "id": {
-            "id": 2
-          }
+          "id": 2
         }
       }
     },
@@ -50,8 +46,6 @@
       "start": 0,
       "end": 7
     },
-    "id": {
-      "id": 3
-    }
+    "id": 3
   }
 ]

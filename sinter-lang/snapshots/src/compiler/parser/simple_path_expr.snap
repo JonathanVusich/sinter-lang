@@ -4,6 +4,7 @@
     "Clone"
   ],
   {
+    "ident_type": "LocalOrUse",
     "segments": [
       {
         "ident": {
@@ -12,9 +13,7 @@
             "start": 0,
             "end": 3
           },
-          "id": {
-            "id": 0
-          }
+          "id": 0
         },
         "generics": null
       },
@@ -25,9 +24,7 @@
             "start": 5,
             "end": 10
           },
-          "id": {
-            "id": 1
-          }
+          "id": 1
         },
         "generics": null
       }

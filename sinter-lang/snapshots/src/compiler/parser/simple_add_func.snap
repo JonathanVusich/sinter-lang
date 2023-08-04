@@ -5,9 +5,23 @@
       "a",
       "i64",
       "b"
-    ]
+    ],
+    "crate_id": 0,
+    "local_def_id": 11
   },
   {
+    "path": {
+      "module_path": []
+    },
+    "id": {
+      "crate_id": 0,
+      "module_id": 0
+    },
+    "ns": {
+      "modules": {},
+      "values": {},
+      "enums": {}
+    },
     "items": [
       {
         "kind": {
@@ -18,9 +32,6 @@
                 "span": {
                   "start": 3,
                   "end": 6
-                },
-                "id": {
-                  "id": 0
                 }
               },
               "generic_params": {
@@ -29,14 +40,11 @@
               "params": {
                 "params": [
                   {
-                    "ident": {
+                    "name": {
                       "ident": 2,
                       "span": {
                         "start": 7,
                         "end": 8
-                      },
-                      "id": {
-                        "id": 1
                       }
                     },
                     "ty": {
@@ -45,21 +53,21 @@
                         "start": 10,
                         "end": 13
                       },
-                      "id": {
-                        "id": 2
-                      }
+                      "id": 0
                     },
-                    "mutability": "Immutable"
+                    "mutability": "Immutable",
+                    "span": {
+                      "start": 7,
+                      "end": 13
+                    },
+                    "id": 1
                   },
                   {
-                    "ident": {
+                    "name": {
                       "ident": 4,
                       "span": {
                         "start": 15,
                         "end": 16
-                      },
-                      "id": {
-                        "id": 3
                       }
                     },
                     "ty": {
@@ -68,11 +76,14 @@
                         "start": 18,
                         "end": 21
                       },
-                      "id": {
-                        "id": 4
-                      }
+                      "id": 2
                     },
-                    "mutability": "Immutable"
+                    "mutability": "Immutable",
+                    "span": {
+                      "start": 15,
+                      "end": 21
+                    },
+                    "id": 3
                   }
                 ]
               },
@@ -82,108 +93,98 @@
                   "start": 26,
                   "end": 29
                 },
-                "id": {
-                  "id": 5
-                }
+                "id": 4
               }
             },
             "body": {
               "stmts": [
                 {
-                  "Expression": {
-                    "expr": {
-                      "kind": {
-                        "Infix": {
-                          "operator": "Add",
-                          "lhs": {
-                            "kind": {
-                              "Path": {
-                                "segments": [
-                                  {
-                                    "ident": {
-                                      "ident": 2,
-                                      "span": {
-                                        "start": 36,
-                                        "end": 37
+                  "kind": {
+                    "Expression": {
+                      "expr": {
+                        "kind": {
+                          "Infix": {
+                            "operator": "Add",
+                            "lhs": {
+                              "kind": {
+                                "Path": {
+                                  "ident_type": "LocalOrUse",
+                                  "segments": [
+                                    {
+                                      "ident": {
+                                        "ident": 2,
+                                        "span": {
+                                          "start": 36,
+                                          "end": 37
+                                        }
                                       },
-                                      "id": {
-                                        "id": 6
-                                      }
-                                    },
-                                    "generics": null
-                                  }
-                                ]
-                              }
+                                      "generics": null
+                                    }
+                                  ]
+                                }
+                              },
+                              "span": {
+                                "start": 36,
+                                "end": 37
+                              },
+                              "id": 5
                             },
-                            "span": {
-                              "start": 36,
-                              "end": 37
-                            },
-                            "id": {
-                              "id": 7
-                            }
-                          },
-                          "rhs": {
-                            "kind": {
-                              "Path": {
-                                "segments": [
-                                  {
-                                    "ident": {
-                                      "ident": 4,
-                                      "span": {
-                                        "start": 40,
-                                        "end": 41
+                            "rhs": {
+                              "kind": {
+                                "Path": {
+                                  "ident_type": "LocalOrUse",
+                                  "segments": [
+                                    {
+                                      "ident": {
+                                        "ident": 4,
+                                        "span": {
+                                          "start": 40,
+                                          "end": 41
+                                        }
                                       },
-                                      "id": {
-                                        "id": 8
-                                      }
-                                    },
-                                    "generics": null
-                                  }
-                                ]
-                              }
-                            },
-                            "span": {
-                              "start": 40,
-                              "end": 41
-                            },
-                            "id": {
-                              "id": 9
+                                      "generics": null
+                                    }
+                                  ]
+                                }
+                              },
+                              "span": {
+                                "start": 40,
+                                "end": 41
+                              },
+                              "id": 6
                             }
                           }
-                        }
+                        },
+                        "span": {
+                          "start": 36,
+                          "end": 41
+                        },
+                        "id": 7
                       },
-                      "span": {
-                        "start": 36,
-                        "end": 41
-                      },
-                      "id": {
-                        "id": 10
-                      }
-                    },
-                    "implicit_return": false
-                  }
+                      "implicit_return": false
+                    }
+                  },
+                  "span": {
+                    "start": 36,
+                    "end": 41
+                  },
+                  "id": 8
                 }
               ],
               "span": {
                 "start": 30,
                 "end": 43
               },
-              "id": {
-                "id": 11
-              }
+              "id": 9
             }
           }
         },
         "span": {
-          "start": 26,
+          "start": 0,
           "end": 43
         },
-        "id": {
-          "id": 12
-        }
+        "id": 10
       }
-    ],
-    "parse_errors": []
+    ]
   }
 ]

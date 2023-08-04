@@ -2,6 +2,7 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #![feature(allocator_api)]
+#![feature(assert_matches)]
 
 extern crate core;
 

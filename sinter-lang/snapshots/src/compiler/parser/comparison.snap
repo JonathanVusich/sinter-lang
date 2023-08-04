@@ -1,6 +1,8 @@
 [
   {
-    "string_interner": []
+    "string_interner": [],
+    "crate_id": 0,
+    "local_def_id": 3
   },
   {
     "kind": {
@@ -14,9 +16,7 @@
             "start": 0,
             "end": 1
           },
-          "id": {
-            "id": 0
-          }
+          "id": 0
         },
         "rhs": {
           "kind": {
@@ -26,9 +26,7 @@
             "start": 4,
             "end": 5
           },
-          "id": {
-            "id": 1
-          }
+          "id": 1
         }
       }
     },
@@ -36,8 +34,6 @@
       "start": 0,
       "end": 5
     },
-    "id": {
-      "id": 2
-    }
+    "id": 2
   }
 ]

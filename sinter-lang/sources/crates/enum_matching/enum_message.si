@@ -1,0 +1,15 @@
+class SerializedPhoto {
+
+    fn size(self) => u64 {
+        return 0;
+    }
+}
+
+enum Message {
+    Text(message: str),
+    Photo(caption: str, photo: SerializedPhoto) {
+        fn size(self) => u64 {
+            return self.photo.size();
+        }
+    },
+}

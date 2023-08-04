@@ -1,0 +1,53 @@
+[
+  [
+    "y"
+  ],
+  {
+    "kind": {
+      "Block": {
+        "stmts": [
+          {
+            "kind": {
+              "Let": {
+                "ident": {
+                  "ident": 1,
+                  "span": {
+                    "start": 6,
+                    "end": 7
+                  }
+                },
+                "mutability": "Immutable",
+                "ty": null,
+                "initializer": {
+                  "kind": {
+                    "Integer": 30
+                  },
+                  "span": {
+                    "start": 10,
+                    "end": 12
+                  },
+                  "id": 0
+                }
+              }
+            },
+            "span": {
+              "start": 2,
+              "end": 13
+            },
+            "id": 1
+          }
+        ],
+        "span": {
+          "start": 0,
+          "end": 15
+        },
+        "id": 2
+      }
+    },
+    "span": {
+      "start": 0,
+      "end": 15
+    },
+    "id": 3
+  }
+]

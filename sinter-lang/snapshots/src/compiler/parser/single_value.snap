@@ -1,6 +1,8 @@
 [
   {
-    "string_interner": []
+    "string_interner": [],
+    "crate_id": 0,
+    "local_def_id": 1
   },
   {
     "kind": {
@@ -10,8 +12,6 @@
       "start": 0,
       "end": 1
     },
-    "id": {
-      "id": 0
-    }
+    "id": 0
   }
 ]

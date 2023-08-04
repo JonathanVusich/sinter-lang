@@ -145,9 +145,15 @@ _________________________________
 
 `orPattern => pattern ( "|" pattern )*`
 
-`pattern => matcher`
+`pattern => tyPattern | destructurePattern | literal | wildcard | `
 
-`matcher => "_" | string | boolean | number | ( ty identifier? ) `
+`wildcard = "_"`
+
+`tyPattern => pathType identifier?`
+
+`destructurePattern => pathType "(" destructureExpr ("," destructureExpr)* ")"`
+
+`destructureExpr => literal | wildcard | identifier | destructurePattern`
 
 _________________________________
 ### Type Definitions
@@ -156,9 +162,7 @@ _________________________________
 
 `boolean => "true" | "false"`
 
-`ty => anyType ("|" anyType)*`
-
-`anyType => basicType | arrayType | traitBoundType | closureType`
+`ty => basicType | arrayType | traitBoundType | closureType`
 
 `basicType => "bool" | "None" | "u8" | "u16" | "u64" | 
               "i8" | "i16" | "i32" | i64" | "f32" | "f64"`
@@ -169,13 +173,13 @@ _________________________________
 
 `pathType => qualifiedIdent generics?`
 
-`closureType => "(" (ty ( , ty )* )? ")" "=>" ( "(" closureType ")" | (basicType | arrayType | path) )`
+`closureType => "(" (ty ( , ty )* )? ")" "=>" ( "(" closureType ")" | (basicType | arrayType | pathType) )`
 
 
 _________________________________
 ### General Definitions
 
-`path => ident ( "::" ( genericCallsite "::" ident | ident ) )*`
+`path => ident ( "::" ident )* ( "::" generics "::" ident )`
 
 `qualifiedIdent => ident ("::" ident)*`
 

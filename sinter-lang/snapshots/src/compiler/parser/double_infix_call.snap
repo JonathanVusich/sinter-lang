@@ -3,7 +3,9 @@
     "string_interner": [
       "f",
       "g"
-    ]
+    ],
+    "crate_id": 0,
+    "local_def_id": 5
   },
   {
     "kind": {
@@ -19,6 +21,7 @@
                     "target": {
                       "kind": {
                         "Path": {
+                          "ident_type": "LocalOrUse",
                           "segments": [
                             {
                               "ident": {
@@ -26,9 +29,6 @@
                                 "span": {
                                   "start": 2,
                                   "end": 3
-                                },
-                                "id": {
-                                  "id": 0
                                 }
                               },
                               "generics": null
@@ -40,15 +40,14 @@
                         "start": 2,
                         "end": 3
                       },
-                      "id": {
-                        "id": 1
-                      }
+                      "id": 0
                     },
                     "args": {
                       "args": [
                         {
                           "kind": {
                             "Path": {
+                              "ident_type": "LocalOrUse",
                               "segments": [
                                 {
                                   "ident": {
@@ -56,9 +55,6 @@
                                     "span": {
                                       "start": 4,
                                       "end": 5
-                                    },
-                                    "id": {
-                                      "id": 2
                                     }
                                   },
                                   "generics": null
@@ -70,9 +66,7 @@
                             "start": 4,
                             "end": 5
                           },
-                          "id": {
-                            "id": 3
-                          }
+                          "id": 1
                         }
                       ]
                     }
@@ -82,9 +76,7 @@
                   "start": 2,
                   "end": 6
                 },
-                "id": {
-                  "id": 4
-                }
+                "id": 2
               }
             }
           },
@@ -92,9 +84,7 @@
             "start": 1,
             "end": 6
           },
-          "id": {
-            "id": 5
-          }
+          "id": 3
         }
       }
     },
@@ -102,8 +92,6 @@
       "start": 0,
       "end": 6
     },
-    "id": {
-      "id": 6
-    }
+    "id": 4
   }
 ]

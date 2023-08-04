@@ -4,7 +4,9 @@
       "f",
       "g",
       "h"
-    ]
+    ],
+    "crate_id": 0,
+    "local_def_id": 6
   },
   {
     "kind": {
@@ -12,6 +14,7 @@
         "target": {
           "kind": {
             "Path": {
+              "ident_type": "LocalOrUse",
               "segments": [
                 {
                   "ident": {
@@ -19,9 +22,6 @@
                     "span": {
                       "start": 0,
                       "end": 1
-                    },
-                    "id": {
-                      "id": 0
                     }
                   },
                   "generics": null
@@ -33,9 +33,7 @@
             "start": 0,
             "end": 1
           },
-          "id": {
-            "id": 1
-          }
+          "id": 0
         },
         "args": {
           "args": [
@@ -45,6 +43,7 @@
                   "target": {
                     "kind": {
                       "Path": {
+                        "ident_type": "LocalOrUse",
                         "segments": [
                           {
                             "ident": {
@@ -52,9 +51,6 @@
                               "span": {
                                 "start": 2,
                                 "end": 3
-                              },
-                              "id": {
-                                "id": 2
                               }
                             },
                             "generics": null
@@ -66,9 +62,7 @@
                       "start": 2,
                       "end": 3
                     },
-                    "id": {
-                      "id": 3
-                    }
+                    "id": 1
                   },
                   "args": {
                     "args": [
@@ -78,6 +72,7 @@
                             "target": {
                               "kind": {
                                 "Path": {
+                                  "ident_type": "LocalOrUse",
                                   "segments": [
                                     {
                                       "ident": {
@@ -85,9 +80,6 @@
                                         "span": {
                                           "start": 4,
                                           "end": 5
-                                        },
-                                        "id": {
-                                          "id": 4
                                         }
                                       },
                                       "generics": null
@@ -99,9 +91,7 @@
                                 "start": 4,
                                 "end": 5
                               },
-                              "id": {
-                                "id": 5
-                              }
+                              "id": 2
                             },
                             "args": {
                               "args": []
@@ -112,9 +102,7 @@
                           "start": 4,
                           "end": 7
                         },
-                        "id": {
-                          "id": 6
-                        }
+                        "id": 3
                       }
                     ]
                   }
@@ -124,9 +112,7 @@
                 "start": 2,
                 "end": 8
               },
-              "id": {
-                "id": 7
-              }
+              "id": 4
             }
           ]
         }
@@ -136,8 +122,6 @@
       "start": 0,
       "end": 9
     },
-    "id": {
-      "id": 8
-    }
+    "id": 5
   }
 ]

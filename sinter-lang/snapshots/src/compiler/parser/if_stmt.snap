@@ -1,0 +1,179 @@
+[
+  [
+    "x",
+    "y",
+    "print"
+  ],
+  {
+    "kind": {
+      "If": {
+        "condition": {
+          "kind": {
+            "Infix": {
+              "operator": "Less",
+              "lhs": {
+                "kind": {
+                  "Path": {
+                    "ident_type": "LocalOrUse",
+                    "segments": [
+                      {
+                        "ident": {
+                          "ident": 1,
+                          "span": {
+                            "start": 3,
+                            "end": 4
+                          }
+                        },
+                        "generics": null
+                      }
+                    ]
+                  }
+                },
+                "span": {
+                  "start": 3,
+                  "end": 4
+                },
+                "id": 0
+              },
+              "rhs": {
+                "kind": {
+                  "Integer": 100
+                },
+                "span": {
+                  "start": 7,
+                  "end": 10
+                },
+                "id": 1
+              }
+            }
+          },
+          "span": {
+            "start": 3,
+            "end": 10
+          },
+          "id": 2
+        },
+        "if_true": {
+          "stmts": [
+            {
+              "kind": {
+                "Let": {
+                  "ident": {
+                    "ident": 2,
+                    "span": {
+                      "start": 17,
+                      "end": 18
+                    }
+                  },
+                  "mutability": "Immutable",
+                  "ty": null,
+                  "initializer": {
+                    "kind": {
+                      "Integer": 30
+                    },
+                    "span": {
+                      "start": 21,
+                      "end": 23
+                    },
+                    "id": 3
+                  }
+                }
+              },
+              "span": {
+                "start": 13,
+                "end": 24
+              },
+              "id": 4
+            },
+            {
+              "kind": {
+                "Expression": {
+                  "expr": {
+                    "kind": {
+                      "Call": {
+                        "target": {
+                          "kind": {
+                            "Path": {
+                              "ident_type": "LocalOrUse",
+                              "segments": [
+                                {
+                                  "ident": {
+                                    "ident": 3,
+                                    "span": {
+                                      "start": 25,
+                                      "end": 30
+                                    }
+                                  },
+                                  "generics": null
+                                }
+                              ]
+                            }
+                          },
+                          "span": {
+                            "start": 25,
+                            "end": 30
+                          },
+                          "id": 5
+                        },
+                        "args": {
+                          "args": [
+                            {
+                              "kind": {
+                                "Path": {
+                                  "ident_type": "LocalOrUse",
+                                  "segments": [
+                                    {
+                                      "ident": {
+                                        "ident": 2,
+                                        "span": {
+                                          "start": 31,
+                                          "end": 32
+                                        }
+                                      },
+                                      "generics": null
+                                    }
+                                  ]
+                                }
+                              },
+                              "span": {
+                                "start": 31,
+                                "end": 32
+                              },
+                              "id": 6
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "span": {
+                      "start": 25,
+                      "end": 33
+                    },
+                    "id": 7
+                  },
+                  "implicit_return": true
+                }
+              },
+              "span": {
+                "start": 25,
+                "end": 34
+              },
+              "id": 8
+            }
+          ],
+          "span": {
+            "start": 11,
+            "end": 36
+          },
+          "id": 9
+        },
+        "if_false": null
+      }
+    },
+    "span": {
+      "start": 0,
+      "end": 36
+    },
+    "id": 10
+  }
+]

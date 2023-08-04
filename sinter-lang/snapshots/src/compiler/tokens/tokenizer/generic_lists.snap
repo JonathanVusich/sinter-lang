@@ -12,9 +12,7 @@
     "f64",
     "trait_bounds",
     "Loggable",
-    "Serializable",
-    "unions",
-    "str"
+    "Serializable"
   ],
   {
     "tokens": [
@@ -667,151 +665,6 @@
           "start": 251,
           "end": 252
         }
-      },
-      {
-        "token_type": "Let",
-        "span": {
-          "start": 253,
-          "end": 256
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 14
-        },
-        "span": {
-          "start": 257,
-          "end": 263
-        }
-      },
-      {
-        "token_type": "Equal",
-        "span": {
-          "start": 264,
-          "end": 265
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 1
-        },
-        "span": {
-          "start": 266,
-          "end": 270
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 270,
-          "end": 271
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 271,
-          "end": 272
-        }
-      },
-      {
-        "token_type": "Less",
-        "span": {
-          "start": 272,
-          "end": 273
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 15
-        },
-        "span": {
-          "start": 273,
-          "end": 276
-        }
-      },
-      {
-        "token_type": "BitwiseOr",
-        "span": {
-          "start": 277,
-          "end": 278
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 8
-        },
-        "span": {
-          "start": 279,
-          "end": 282
-        }
-      },
-      {
-        "token_type": "BitwiseOr",
-        "span": {
-          "start": 283,
-          "end": 284
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 10
-        },
-        "span": {
-          "start": 285,
-          "end": 288
-        }
-      },
-      {
-        "token_type": "Greater",
-        "span": {
-          "start": 288,
-          "end": 289
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 289,
-          "end": 290
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 290,
-          "end": 291
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 6
-        },
-        "span": {
-          "start": 291,
-          "end": 294
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 294,
-          "end": 295
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 295,
-          "end": 296
-        }
-      },
-      {
-        "token_type": "Semicolon",
-        "span": {
-          "start": 296,
-          "end": 297
-        }
       }
     ],
     "line_map": [
@@ -826,9 +679,8 @@
       108,
       147,
       193,
-      252,
-      297
+      252
     ],
-    "line_counter": 13
+    "line_counter": 12
   }
 ]

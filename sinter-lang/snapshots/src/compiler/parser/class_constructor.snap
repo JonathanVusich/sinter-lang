@@ -2,7 +2,9 @@
   {
     "string_interner": [
       "Point"
-    ]
+    ],
+    "crate_id": 0,
+    "local_def_id": 4
   },
   {
     "kind": {
@@ -10,6 +12,7 @@
         "target": {
           "kind": {
             "Path": {
+              "ident_type": "LocalOrUse",
               "segments": [
                 {
                   "ident": {
@@ -17,9 +20,6 @@
                     "span": {
                       "start": 0,
                       "end": 5
-                    },
-                    "id": {
-                      "id": 0
                     }
                   },
                   "generics": null
@@ -31,9 +31,7 @@
             "start": 0,
             "end": 5
           },
-          "id": {
-            "id": 1
-          }
+          "id": 0
         },
         "args": {
           "args": [
@@ -45,9 +43,7 @@
                 "start": 6,
                 "end": 9
               },
-              "id": {
-                "id": 2
-              }
+              "id": 1
             },
             {
               "kind": {
@@ -57,9 +53,7 @@
                 "start": 11,
                 "end": 14
               },
-              "id": {
-                "id": 3
-              }
+              "id": 2
             }
           ]
         }
@@ -69,8 +63,6 @@
       "start": 0,
       "end": 15
     },
-    "id": {
-      "id": 4
-    }
+    "id": 3
   }
 ]

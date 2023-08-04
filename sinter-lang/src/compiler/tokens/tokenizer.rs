@@ -6,26 +6,29 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 
-use anyhow::Result;
 use phf::phf_map;
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::compiler::{CompileError, CompilerCtxt};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
-use crate::compiler::types::types::InternedStr;
+use crate::compiler::types::InternedStr;
 use crate::compiler::StringInterner;
 
-pub fn tokenize_file(path: &Path) -> Result<(CompilerCtxt, TokenizedInput)> {
-    let source_file = fs::read_to_string(path)?;
-    let tokenizer = Tokenizer::new(&source_file);
-    tokenizer.tokenize()
+pub fn tokenize_file(
+    compiler_ctxt: &mut CompilerCtxt,
+    path: &Path,
+) -> Result<TokenizedInput, CompileError> {
+    let source_file =
+        fs::read_to_string(path).map_err(|err| CompileError::Generic(Box::new(err)))?;
+    let tokenizer = Tokenizer::new(compiler_ctxt, &source_file);
+    Ok(tokenizer.tokenize())
 }
 
-pub fn tokenize<T: AsRef<str>>(input: T) -> Result<(CompilerCtxt, TokenizedInput)> {
+pub fn tokenize<T: AsRef<str>>(compiler_ctxt: &mut CompilerCtxt, input: T) -> TokenizedInput {
     let source_file = input.as_ref();
-    let tokenizer = Tokenizer::new(source_file);
+    let tokenizer = Tokenizer::new(compiler_ctxt, source_file);
     tokenizer.tokenize()
 }
 
@@ -61,20 +64,20 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
 };
 
 #[derive(Debug)]
-struct Tokenizer<'this> {
-    compiler_ctxt: CompilerCtxt,
+struct Tokenizer<'ctxt, 'this> {
+    compiler_ctxt: &'ctxt mut CompilerCtxt,
     chars: Vec<&'this str>,
     tokenized_file: TokenizedInput,
     start: usize,
     current: usize,
 }
 
-impl<'this> Tokenizer<'this> {
-    pub fn new(source: &'this str) -> Self {
+impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
+    pub fn new(compiler_ctxt: &'ctxt mut CompilerCtxt, source: &'this str) -> Self {
         let chars = source.graphemes(true).collect::<Vec<&'this str>>();
 
         Self {
-            compiler_ctxt: CompilerCtxt::default(),
+            compiler_ctxt,
             chars,
             tokenized_file: TokenizedInput::new(),
             start: 0,
@@ -82,12 +85,12 @@ impl<'this> Tokenizer<'this> {
         }
     }
 
-    pub fn tokenize(mut self) -> Result<(CompilerCtxt, TokenizedInput)> {
+    pub fn tokenize(mut self) -> TokenizedInput {
         while self.current <= self.chars.len() {
             self.skip_whitespace();
             self.scan_token();
         }
-        Ok((self.compiler_ctxt, self.tokenized_file))
+        self.tokenized_file
     }
 
     fn scan_token(&mut self) {
@@ -259,7 +262,7 @@ impl<'this> Tokenizer<'this> {
                 }
                 "/" => {
                     if let Some("/") = self.peek_next() {
-                        while let Some(char) = self.peek().filter(|char| !is_line_break(*char)) {
+                        while let Some(char) = self.peek().filter(|char| !is_line_break(char)) {
                             self.next();
                         }
                     } else {
@@ -385,8 +388,9 @@ mod tests {
 
     #[cfg(test)]
     fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner, TokenizedInput) {
-        let (ctxt, tokens) = tokenize(code).unwrap();
-        (StringInterner::from(ctxt), tokens)
+        let mut compiler_ctxt = CompilerCtxt::default();
+        let tokens = tokenize(&mut compiler_ctxt, code);
+        (StringInterner::from(compiler_ctxt), tokens)
     }
 
     #[test]
@@ -639,57 +643,54 @@ mod tests {
     #[test]
     #[snapshot]
     pub fn returning_error_union() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file([
-            "short_examples",
-            "returning_error_union.si",
-        ]))
+        tokenize_str(utils::read_code_example("returning_error_union.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn vector_enum() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "vector_enum.si"]))
+        tokenize_str(utils::read_code_example("vector_enum.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn trait_vs_generic() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "trait_vs_generic.si"]))
+        tokenize_str(utils::read_code_example("trait_vs_generic.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn generic_lists() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "generic_lists.si"]))
+        tokenize_str(utils::read_code_example("generic_lists.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn rectangle_class() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "rectangle_class.si"]))
+        tokenize_str(utils::read_code_example("rectangle_class.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn enum_message() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "enum_message.si"]))
+        tokenize_str(utils::read_code_example("enum_message.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn int_match() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "int_match.si"]))
+        tokenize_str(utils::read_code_example("int_match.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn enum_match() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "enum_match.si"]))
+        tokenize_str(utils::read_code_example("enum_match.si"))
     }
 
     #[test]
     #[snapshot]
     pub fn impl_trait() -> (StringInterner, TokenizedInput) {
-        tokenize_str(utils::read_file(["short_examples", "impl_trait.si"]))
+        tokenize_str(utils::read_code_example("impl_trait.si"))
     }
 }

@@ -3,6 +3,7 @@
     "std"
   ],
   {
+    "ident_type": "LocalOrUse",
     "segments": [
       {
         "ident": {
@@ -11,9 +12,7 @@
             "start": 0,
             "end": 3
           },
-          "id": {
-            "id": 0
-          }
+          "id": 0
         },
         "generics": null
       }

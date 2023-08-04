@@ -14,12 +14,24 @@
       "trait_bounds",
       "Loggable",
       "Serializable",
-      "unions",
-      "str",
       "Self"
-    ]
+    ],
+    "crate_id": 0,
+    "local_def_id": 30
   },
   {
+    "path": {
+      "module_path": []
+    },
+    "id": {
+      "crate_id": 0,
+      "module_id": 0
+    },
+    "ns": {
+      "modules": {},
+      "values": {},
+      "enums": {}
+    },
     "items": [
       {
         "kind": {
@@ -29,23 +41,17 @@
               "span": {
                 "start": 10,
                 "end": 14
-              },
-              "id": {
-                "id": 0
               }
             },
             "class_type": "Reference",
             "generic_params": {
               "params": [
                 {
-                  "ident": {
+                  "name": {
                     "ident": 2,
                     "span": {
                       "start": 15,
                       "end": 16
-                    },
-                    "id": {
-                      "id": 1
                     }
                   },
                   "trait_bound": null,
@@ -53,23 +59,18 @@
                     "start": 15,
                     "end": 16
                   },
-                  "id": {
-                    "id": 2
-                  }
+                  "id": 0
                 }
               ]
             },
             "fields": {
               "params": [
                 {
-                  "ident": {
+                  "name": {
                     "ident": 3,
                     "span": {
                       "start": 24,
                       "end": 29
-                    },
-                    "id": {
-                      "id": 3
                     }
                   },
                   "ty": {
@@ -80,15 +81,13 @@
                             "Path": {
                               "path": {
                                 "ident": {
+                                  "ident_type": "LocalOrUse",
                                   "idents": [
                                     {
                                       "ident": 2,
                                       "span": {
                                         "start": 32,
                                         "end": 33
-                                      },
-                                      "id": {
-                                        "id": 4
                                       }
                                     }
                                   ]
@@ -103,37 +102,28 @@
                             "start": 32,
                             "end": 33
                           },
-                          "id": {
-                            "id": 5
-                          }
+                          "id": 1
                         }
                       }
                     },
                     "span": {
-                      "start": 32,
+                      "start": 31,
                       "end": 33
                     },
-                    "id": {
-                      "id": 6
-                    }
+                    "id": 2
                   },
                   "span": {
-                    "start": 31,
+                    "start": 24,
                     "end": 34
                   },
-                  "id": {
-                    "id": 7
-                  }
+                  "id": 3
                 },
                 {
-                  "ident": {
+                  "name": {
                     "ident": 4,
                     "span": {
                       "start": 40,
                       "end": 44
-                    },
-                    "id": {
-                      "id": 8
                     }
                   },
                   "ty": {
@@ -142,21 +132,17 @@
                       "start": 46,
                       "end": 49
                     },
-                    "id": {
-                      "id": 9
-                    }
+                    "id": 4
                   },
                   "span": {
-                    "start": 46,
+                    "start": 40,
                     "end": 49
                   },
-                  "id": {
-                    "id": 10
-                  }
+                  "id": 5
                 }
               ]
             },
-            "fn_stmts": [
+            "self_fns": [
               {
                 "sig": {
                   "name": {
@@ -164,9 +150,6 @@
                     "span": {
                       "start": 59,
                       "end": 62
-                    },
-                    "id": {
-                      "id": 11
                     }
                   },
                   "generic_params": {
@@ -181,162 +164,149 @@
                       "start": 68,
                       "end": 72
                     },
-                    "id": {
-                      "id": 12
-                    }
+                    "id": 6
                   }
                 },
                 "body": {
                   "stmts": [
                     {
-                      "Expression": {
-                        "expr": {
-                          "kind": {
-                            "Call": {
-                              "target": {
-                                "kind": {
-                                  "Path": {
-                                    "segments": [
-                                      {
-                                        "ident": {
-                                          "ident": 16,
-                                          "span": {
-                                            "start": 83,
-                                            "end": 87
-                                          },
-                                          "id": {
-                                            "id": 13
-                                          }
-                                        },
-                                        "generics": null
-                                      }
-                                    ]
-                                  }
-                                },
-                                "span": {
-                                  "start": 83,
-                                  "end": 87
-                                },
-                                "id": {
-                                  "id": 14
-                                }
-                              },
-                              "args": {
-                                "args": [
-                                  {
-                                    "kind": {
-                                      "Array": {
-                                        "SizedInitializer": [
-                                          {
-                                            "kind": {
-                                              "Path": {
-                                                "segments": [
-                                                  {
-                                                    "ident": {
-                                                      "ident": 2,
-                                                      "span": {
-                                                        "start": 89,
-                                                        "end": 90
-                                                      },
-                                                      "id": {
-                                                        "id": 15
-                                                      }
-                                                    },
-                                                    "generics": null
-                                                  }
-                                                ]
-                                              }
-                                            },
+                      "kind": {
+                        "Expression": {
+                          "expr": {
+                            "kind": {
+                              "Call": {
+                                "target": {
+                                  "kind": {
+                                    "Path": {
+                                      "ident_type": "LocalOrUse",
+                                      "segments": [
+                                        {
+                                          "ident": {
+                                            "ident": 14,
                                             "span": {
-                                              "start": 89,
-                                              "end": 90
-                                            },
-                                            "id": {
-                                              "id": 16
+                                              "start": 83,
+                                              "end": 87
                                             }
                                           },
-                                          {
-                                            "kind": {
-                                              "Integer": 10
-                                            },
-                                            "span": {
-                                              "start": 92,
-                                              "end": 94
-                                            },
-                                            "id": {
-                                              "id": 17
-                                            }
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "span": {
-                                      "start": 88,
-                                      "end": 95
-                                    },
-                                    "id": {
-                                      "id": 18
+                                          "generics": null
+                                        }
+                                      ]
                                     }
                                   },
-                                  {
-                                    "kind": {
-                                      "Integer": 0
+                                  "span": {
+                                    "start": 83,
+                                    "end": 87
+                                  },
+                                  "id": 7
+                                },
+                                "args": {
+                                  "args": [
+                                    {
+                                      "kind": {
+                                        "Array": {
+                                          "SizedInitializer": [
+                                            {
+                                              "kind": {
+                                                "Path": {
+                                                  "ident_type": "LocalOrUse",
+                                                  "segments": [
+                                                    {
+                                                      "ident": {
+                                                        "ident": 2,
+                                                        "span": {
+                                                          "start": 89,
+                                                          "end": 90
+                                                        }
+                                                      },
+                                                      "generics": null
+                                                    }
+                                                  ]
+                                                }
+                                              },
+                                              "span": {
+                                                "start": 89,
+                                                "end": 90
+                                              },
+                                              "id": 8
+                                            },
+                                            {
+                                              "kind": {
+                                                "Integer": 10
+                                              },
+                                              "span": {
+                                                "start": 92,
+                                                "end": 94
+                                              },
+                                              "id": 9
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      "span": {
+                                        "start": 88,
+                                        "end": 95
+                                      },
+                                      "id": 10
                                     },
-                                    "span": {
-                                      "start": 97,
-                                      "end": 98
-                                    },
-                                    "id": {
-                                      "id": 19
+                                    {
+                                      "kind": {
+                                        "Integer": 0
+                                      },
+                                      "span": {
+                                        "start": 97,
+                                        "end": 98
+                                      },
+                                      "id": 11
                                     }
-                                  }
-                                ]
+                                  ]
+                                }
                               }
-                            }
+                            },
+                            "span": {
+                              "start": 83,
+                              "end": 99
+                            },
+                            "id": 12
                           },
-                          "span": {
-                            "start": 83,
-                            "end": 99
-                          },
-                          "id": {
-                            "id": 20
-                          }
-                        },
-                        "implicit_return": false
-                      }
+                          "implicit_return": false
+                        }
+                      },
+                      "span": {
+                        "start": 83,
+                        "end": 99
+                      },
+                      "id": 13
                     }
                   ],
                   "span": {
                     "start": 73,
                     "end": 105
                   },
-                  "id": {
-                    "id": 21
-                  }
-                }
+                  "id": 14
+                },
+                "span": {
+                  "start": 56,
+                  "end": 105
+                },
+                "id": 15
               }
             ]
           }
         },
         "span": {
-          "start": 68,
+          "start": 0,
           "end": 107
         },
-        "id": {
-          "id": 22
-        }
+        "id": 16
       },
       {
         "kind": {
           "GlobalLet": {
-            "ident": {
+            "name": {
               "ident": 7,
               "span": {
                 "start": 113,
                 "end": 125
-              },
-              "id": {
-                "id": 23
               }
             },
             "ty": null,
@@ -346,6 +316,7 @@
                   "target": {
                     "kind": {
                       "Path": {
+                        "ident_type": "LocalOrUse",
                         "segments": [
                           {
                             "ident": {
@@ -353,9 +324,6 @@
                               "span": {
                                 "start": 128,
                                 "end": 132
-                              },
-                              "id": {
-                                "id": 24
                               }
                             },
                             "generics": {
@@ -366,9 +334,7 @@
                                     "start": 135,
                                     "end": 138
                                   },
-                                  "id": {
-                                    "id": 25
-                                  }
+                                  "id": 17
                                 }
                               ]
                             }
@@ -379,9 +345,6 @@
                               "span": {
                                 "start": 141,
                                 "end": 144
-                              },
-                              "id": {
-                                "id": 26
                               }
                             },
                             "generics": null
@@ -393,9 +356,7 @@
                       "start": 128,
                       "end": 144
                     },
-                    "id": {
-                      "id": 27
-                    }
+                    "id": 18
                   },
                   "args": {
                     "args": []
@@ -406,16 +367,7 @@
                 "start": 128,
                 "end": 146
               },
-              "id": {
-                "id": 28
-              }
-            },
-            "span": {
-              "start": 135,
-              "end": 147
-            },
-            "id": {
-              "id": 29
+              "id": 19
             }
           }
         },
@@ -423,21 +375,16 @@
           "start": 109,
           "end": 147
         },
-        "id": {
-          "id": 30
-        }
+        "id": 20
       },
       {
         "kind": {
           "GlobalLet": {
-            "ident": {
+            "name": {
               "ident": 9,
               "span": {
                 "start": 152,
                 "end": 165
-              },
-              "id": {
-                "id": 31
               }
             },
             "ty": null,
@@ -447,6 +394,7 @@
                   "target": {
                     "kind": {
                       "Path": {
+                        "ident_type": "LocalOrUse",
                         "segments": [
                           {
                             "ident": {
@@ -454,9 +402,6 @@
                               "span": {
                                 "start": 168,
                                 "end": 172
-                              },
-                              "id": {
-                                "id": 32
                               }
                             },
                             "generics": {
@@ -466,15 +411,13 @@
                                     "Path": {
                                       "path": {
                                         "ident": {
+                                          "ident_type": "LocalOrUse",
                                           "idents": [
                                             {
                                               "ident": 1,
                                               "span": {
                                                 "start": 175,
                                                 "end": 179
-                                              },
-                                              "id": {
-                                                "id": 33
                                               }
                                             }
                                           ]
@@ -487,9 +430,7 @@
                                                 "start": 180,
                                                 "end": 183
                                               },
-                                              "id": {
-                                                "id": 34
-                                              }
+                                              "id": 21
                                             }
                                           ]
                                         }
@@ -497,12 +438,10 @@
                                     }
                                   },
                                   "span": {
-                                    "start": 180,
+                                    "start": 175,
                                     "end": 184
                                   },
-                                  "id": {
-                                    "id": 35
-                                  }
+                                  "id": 22
                                 }
                               ]
                             }
@@ -513,9 +452,6 @@
                               "span": {
                                 "start": 187,
                                 "end": 190
-                              },
-                              "id": {
-                                "id": 36
                               }
                             },
                             "generics": null
@@ -527,9 +463,7 @@
                       "start": 168,
                       "end": 190
                     },
-                    "id": {
-                      "id": 37
-                    }
+                    "id": 23
                   },
                   "args": {
                     "args": []
@@ -540,38 +474,24 @@
                 "start": 168,
                 "end": 192
               },
-              "id": {
-                "id": 38
-              }
-            },
-            "span": {
-              "start": 175,
-              "end": 193
-            },
-            "id": {
-              "id": 39
+              "id": 24
             }
           }
         },
         "span": {
-          "start": 175,
+          "start": 148,
           "end": 193
         },
-        "id": {
-          "id": 40
-        }
+        "id": 25
       },
       {
         "kind": {
           "GlobalLet": {
-            "ident": {
+            "name": {
               "ident": 11,
               "span": {
                 "start": 198,
                 "end": 210
-              },
-              "id": {
-                "id": 41
               }
             },
             "ty": null,
@@ -581,6 +501,7 @@
                   "target": {
                     "kind": {
                       "Path": {
+                        "ident_type": "LocalOrUse",
                         "segments": [
                           {
                             "ident": {
@@ -588,9 +509,6 @@
                               "span": {
                                 "start": 213,
                                 "end": 217
-                              },
-                              "id": {
-                                "id": 42
                               }
                             },
                             "generics": {
@@ -602,15 +520,13 @@
                                         "bounds": [
                                           {
                                             "ident": {
+                                              "ident_type": "LocalOrUse",
                                               "idents": [
                                                 {
                                                   "ident": 12,
                                                   "span": {
                                                     "start": 220,
                                                     "end": 228
-                                                  },
-                                                  "id": {
-                                                    "id": 43
                                                   }
                                                 }
                                               ]
@@ -621,15 +537,13 @@
                                           },
                                           {
                                             "ident": {
+                                              "ident_type": "LocalOrUse",
                                               "idents": [
                                                 {
                                                   "ident": 13,
                                                   "span": {
                                                     "start": 231,
                                                     "end": 243
-                                                  },
-                                                  "id": {
-                                                    "id": 44
                                                   }
                                                 }
                                               ]
@@ -646,9 +560,7 @@
                                     "start": 220,
                                     "end": 243
                                   },
-                                  "id": {
-                                    "id": 45
-                                  }
+                                  "id": 26
                                 }
                               ]
                             }
@@ -659,9 +571,6 @@
                               "span": {
                                 "start": 246,
                                 "end": 249
-                              },
-                              "id": {
-                                "id": 46
                               }
                             },
                             "generics": null
@@ -673,9 +582,7 @@
                       "start": 213,
                       "end": 249
                     },
-                    "id": {
-                      "id": 47
-                    }
+                    "id": 27
                   },
                   "args": {
                     "args": []
@@ -686,16 +593,7 @@
                 "start": 213,
                 "end": 251
               },
-              "id": {
-                "id": 48
-              }
-            },
-            "span": {
-              "start": 220,
-              "end": 252
-            },
-            "id": {
-              "id": 49
+              "id": 28
             }
           }
         },
@@ -703,147 +601,8 @@
           "start": 194,
           "end": 252
         },
-        "id": {
-          "id": 50
-        }
-      },
-      {
-        "kind": {
-          "GlobalLet": {
-            "ident": {
-              "ident": 14,
-              "span": {
-                "start": 257,
-                "end": 263
-              },
-              "id": {
-                "id": 51
-              }
-            },
-            "ty": null,
-            "initializer": {
-              "kind": {
-                "Call": {
-                  "target": {
-                    "kind": {
-                      "Path": {
-                        "segments": [
-                          {
-                            "ident": {
-                              "ident": 1,
-                              "span": {
-                                "start": 266,
-                                "end": 270
-                              },
-                              "id": {
-                                "id": 52
-                              }
-                            },
-                            "generics": {
-                              "generics": [
-                                {
-                                  "kind": {
-                                    "Union": {
-                                      "tys": [
-                                        {
-                                          "kind": "Str",
-                                          "span": {
-                                            "start": 273,
-                                            "end": 276
-                                          },
-                                          "id": {
-                                            "id": 53
-                                          }
-                                        },
-                                        {
-                                          "kind": "I64",
-                                          "span": {
-                                            "start": 279,
-                                            "end": 282
-                                          },
-                                          "id": {
-                                            "id": 54
-                                          }
-                                        },
-                                        {
-                                          "kind": "F64",
-                                          "span": {
-                                            "start": 285,
-                                            "end": 288
-                                          },
-                                          "id": {
-                                            "id": 55
-                                          }
-                                        }
-                                      ]
-                                    }
-                                  },
-                                  "span": {
-                                    "start": 273,
-                                    "end": 288
-                                  },
-                                  "id": {
-                                    "id": 56
-                                  }
-                                }
-                              ]
-                            }
-                          },
-                          {
-                            "ident": {
-                              "ident": 6,
-                              "span": {
-                                "start": 291,
-                                "end": 294
-                              },
-                              "id": {
-                                "id": 57
-                              }
-                            },
-                            "generics": null
-                          }
-                        ]
-                      }
-                    },
-                    "span": {
-                      "start": 266,
-                      "end": 294
-                    },
-                    "id": {
-                      "id": 58
-                    }
-                  },
-                  "args": {
-                    "args": []
-                  }
-                }
-              },
-              "span": {
-                "start": 266,
-                "end": 296
-              },
-              "id": {
-                "id": 59
-              }
-            },
-            "span": {
-              "start": 253,
-              "end": 297
-            },
-            "id": {
-              "id": 60
-            }
-          }
-        },
-        "span": {
-          "start": 253,
-          "end": 297
-        },
-        "id": {
-          "id": 61
-        }
+        "id": 29
       }
-    ],
-    "parse_errors": []
+    ]
   }
 ]

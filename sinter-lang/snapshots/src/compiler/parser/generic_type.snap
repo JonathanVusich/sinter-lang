@@ -8,15 +8,13 @@
       "Path": {
         "path": {
           "ident": {
+            "ident_type": "LocalOrUse",
             "idents": [
               {
                 "ident": 1,
                 "span": {
                   "start": 0,
                   "end": 4
-                },
-                "id": {
-                  "id": 0
                 }
               }
             ]
@@ -28,15 +26,13 @@
                   "Path": {
                     "path": {
                       "ident": {
+                        "ident_type": "LocalOrUse",
                         "idents": [
                           {
                             "ident": 1,
                             "span": {
                               "start": 5,
                               "end": 9
-                            },
-                            "id": {
-                              "id": 1
                             }
                           }
                         ]
@@ -49,9 +45,7 @@
                               "start": 10,
                               "end": 13
                             },
-                            "id": {
-                              "id": 2
-                            }
+                            "id": 0
                           }
                         ]
                       }
@@ -59,12 +53,10 @@
                   }
                 },
                 "span": {
-                  "start": 10,
+                  "start": 5,
                   "end": 14
                 },
-                "id": {
-                  "id": 3
-                }
+                "id": 1
               }
             ]
           }
@@ -72,11 +64,9 @@
       }
     },
     "span": {
-      "start": 5,
+      "start": 0,
       "end": 15
     },
-    "id": {
-      "id": 4
-    }
+    "id": 2
   }
 ]
