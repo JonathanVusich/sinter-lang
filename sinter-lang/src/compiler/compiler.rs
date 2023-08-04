@@ -2,28 +2,21 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::error::Error;
 use std::ffi::{OsStr, OsString};
 use std::fmt::{Display, Formatter};
-use std::fs::File;
-use std::mem::discriminant;
-use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
 
-use lasso::{Key as K, LargeSpur, Rodeo};
+use itertools::Itertools;
+use lasso::Key as K;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
-use crate::compiler::ast::{AstPass, Item, ItemKind, Module, QualifiedIdent, Stmt, UseStmt};
-use crate::compiler::ast_passes::{NameCollector, UsedCrateCollector};
-use crate::compiler::codegen::code_generator::emit_code;
-use crate::compiler::hir::{HirCrate, LocalDefId, ModuleId};
-use crate::compiler::interner::{Interner, Key};
+use crate::compiler::ast::{AstPass, Module};
+use crate::compiler::hir::{HirCrate, LocalDefId};
 use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseError};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{resolve, ResolveError};
-use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
-use crate::compiler::ty_checker::ty_check;
+use crate::compiler::tokens::tokenizer::tokenize_file;
 use crate::compiler::types::{InternedStr, StrMap};
 use crate::compiler::validator::{validate, ValidationError};
 use crate::compiler::StringInterner;
@@ -222,7 +215,7 @@ impl Compiler {
             })?;
         let krate_name = self.compiler_ctxt.intern_str(krate_name);
 
-        let code_files: Vec<DirEntry> = WalkDir::new(path)
+        let mut code_files: Vec<DirEntry> = WalkDir::new(path)
             .follow_links(true)
             .into_iter()
             .filter_map(Result::ok)
@@ -235,6 +228,7 @@ impl Compiler {
                     .is_some();
                 is_code_file
             })
+            .sorted_by_key(|entry| entry.file_name().to_os_string()) // TODO: Maybe make this only apply to tests?
             .collect();
 
         let mut krate = Crate::new(krate_name, self.compiler_ctxt.crate_id());
@@ -296,14 +290,10 @@ fn local_to_root(path: &Path, root: &Path) -> Result<PathBuf, CompileError> {
 }
 
 mod tests {
-    use std::assert_matches::assert_matches;
-
     use snap::snapshot;
 
-    use crate::compiler::ast::ItemKind;
-    use crate::compiler::compiler::{Compiler, CompilerCtxt};
-    use crate::compiler::krate::{Crate, CrateId};
-    use crate::compiler::path::ModulePath;
+    use crate::compiler::compiler::Compiler;
+    use crate::compiler::krate::Crate;
     #[cfg(test)]
     use crate::util::utils::resolve_test_krate_path;
 
