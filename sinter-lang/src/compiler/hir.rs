@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +12,7 @@ use crate::compiler::parser::ClassType;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::{InternedStr, StrMap};
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub struct DefId {
     crate_id: u32,
     local_id: u32,
@@ -347,9 +348,6 @@ pub enum Ty {
     Path {
         path: PathTy,
     },
-    Union {
-        tys: Vec<LocalDefId>,
-    },
     TraitBound {
         trait_bound: TraitBound,
     },
@@ -400,19 +398,27 @@ impl PathTy {
     }
 }
 
-#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitBound {
-    bounds: Vec<PathTy>,
+    bounds: Arc<[PathTy]>,
+}
+
+impl From<Vec<PathTy>> for TraitBound {
+    fn from(value: Vec<PathTy>) -> Self {
+        Self::new(value)
+    }
 }
 
 impl TraitBound {
     pub fn new(bounds: Vec<PathTy>) -> Self {
-        Self { bounds }
+        Self {
+            bounds: bounds.into(),
+        }
     }
 }
 
 impl Deref for TraitBound {
-    type Target = Vec<PathTy>;
+    type Target = Arc<[PathTy]>;
 
     fn deref(&self) -> &Self::Target {
         &self.bounds
@@ -594,12 +600,15 @@ impl PatternLocal {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct DestructurePattern {
     pub ty: PathTy,
-    pub exprs: Vec<LocalDefId>,
+    pub exprs: Arc<[LocalDefId]>,
 }
 
 impl DestructurePattern {
     pub fn new(ty: PathTy, exprs: Vec<LocalDefId>) -> Self {
-        Self { ty, exprs }
+        Self {
+            ty,
+            exprs: exprs.into(),
+        }
     }
 }
 
@@ -653,12 +662,14 @@ impl IndexExpr {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct PathExpr {
-    pub segments: Vec<Segment>,
+    pub segments: Arc<[Segment]>,
 }
 
 impl PathExpr {
     pub fn new(segments: Vec<Segment>) -> Self {
-        Self { segments }
+        Self {
+            segments: segments.into(),
+        }
     }
 }
 
@@ -783,14 +794,30 @@ impl DerefMut for FnStmts {
     }
 }
 
-#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Stmts {
-    stmts: Vec<LocalDefId>,
+    stmts: Arc<[LocalDefId]>,
+}
+
+impl From<Vec<LocalDefId>> for Stmts {
+    fn from(value: Vec<LocalDefId>) -> Self {
+        Self {
+            stmts: value.into(),
+        }
+    }
+}
+
+impl Default for Stmts {
+    fn default() -> Self {
+        Self {
+            stmts: Arc::new([]),
+        }
+    }
 }
 
 impl Deref for Stmts {
-    type Target = Vec<LocalDefId>;
+    type Target = Arc<[LocalDefId]>;
 
     fn deref(&self) -> &Self::Target {
         &self.stmts
@@ -806,12 +833,12 @@ impl DerefMut for Stmts {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Args {
-    args: Vec<LocalDefId>,
+    args: Arc<[LocalDefId]>,
 }
 
 impl Args {
     pub fn new(args: Vec<LocalDefId>) -> Self {
-        Self { args }
+        Self { args: args.into() }
     }
 }
 
@@ -925,19 +952,25 @@ impl GenericParam {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Generics {
-    generics: Vec<LocalDefId>,
+    generics: Arc<[LocalDefId]>,
+}
+
+impl From<Vec<LocalDefId>> for Generics {
+    fn from(value: Vec<LocalDefId>) -> Self {
+        Self::new(value)
+    }
 }
 
 impl Generics {
-    pub fn with_capacity(len: usize) -> Self {
+    pub fn new(generics: Vec<LocalDefId>) -> Self {
         Self {
-            generics: Vec::with_capacity(len),
+            generics: generics.into(),
         }
     }
 }
 
 impl Deref for Generics {
-    type Target = Vec<LocalDefId>;
+    type Target = Arc<[LocalDefId]>;
 
     fn deref(&self) -> &Self::Target {
         &self.generics
@@ -975,6 +1008,24 @@ impl HirCrate {
             id,
             items,
             nodes,
+        }
+    }
+
+    pub fn iter_items(&self) -> impl Iterator<Item = &LocalDefId> {
+        self.items.iter()
+    }
+
+    pub fn get_node(&self, node: &LocalDefId) -> &HirNodeKind {
+        self.nodes.get(node).map(|node| &node.kind).unwrap()
+    }
+
+    pub fn get_ty(&self, ty: &LocalDefId) -> &Ty {
+        match self.nodes.get(ty) {
+            Some(HirNode {
+                kind: HirNodeKind::Ty(ty),
+                ..
+            }) => ty,
+            _ => panic!(),
         }
     }
 }

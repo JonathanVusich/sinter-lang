@@ -529,11 +529,11 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_generics(&mut self, generics: &AstGenerics) -> Result<Generics, ResolveError> {
-        let mut hir_generics = Generics::with_capacity(generics.len());
+        let mut hir_generics = Vec::with_capacity(generics.len());
         for generic in generics.iter() {
             hir_generics.push(self.resolve_ty(generic)?);
         }
-        Ok(hir_generics)
+        Ok(hir_generics.into())
     }
 
     fn resolve_params(&mut self, params: &AstParams) -> Result<Params, ResolveError> {
@@ -997,11 +997,11 @@ impl<'a> CrateResolver<'a> {
                     let generics = match &segment.generics {
                         None => None,
                         Some(generics) => {
-                            let mut resolved_generics = Generics::with_capacity(generics.len());
+                            let mut resolved_generics = Vec::with_capacity(generics.len());
                             for generic in generics.iter() {
                                 resolved_generics.push(self.resolve_ty(generic)?);
                             }
-                            Some(resolved_generics)
+                            Some(resolved_generics.into())
                         }
                     };
                     segments.push(Segment::new(ident, generics))
@@ -1122,7 +1122,7 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> Result<LocalDefId, ResolveError> {
-        let mut hir_bound = TraitBound::default();
+        let mut hir_bound = Vec::with_capacity(trait_bound.bounds.len());
         for ty in trait_bound.bounds.iter() {
             let resolved_ty = self.resolve_path_ty(ty)?;
             hir_bound.push(resolved_ty);
@@ -1132,7 +1132,7 @@ impl<'a> CrateResolver<'a> {
             id,
             HirNode::new(
                 HirNodeKind::Ty(Ty::TraitBound {
-                    trait_bound: hir_bound,
+                    trait_bound: hir_bound.into(),
                 }),
                 span,
                 id,
@@ -1236,14 +1236,18 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_block(&mut self, block: &AstBlock) -> Result<LocalDefId, ResolveError> {
-        let mut stmts = Stmts::default();
+        let mut stmts = Vec::with_capacity(block.stmts.len());
         for stmt in &block.stmts {
             stmts.push(self.resolve_stmt(stmt)?);
         }
 
         self.insert_node(
             block.id,
-            HirNode::new(HirNodeKind::Block(Block::new(stmts)), block.span, block.id),
+            HirNode::new(
+                HirNodeKind::Block(Block::new(stmts.into())),
+                block.span,
+                block.id,
+            ),
         )?;
 
         Ok(block.id)

@@ -215,7 +215,7 @@ impl Compiler {
             })?;
         let krate_name = self.compiler_ctxt.intern_str(krate_name);
 
-        let mut code_files: Vec<DirEntry> = WalkDir::new(path)
+        let code_files: Vec<DirEntry> = WalkDir::new(path)
             .follow_links(true)
             .into_iter()
             .filter_map(Result::ok)
