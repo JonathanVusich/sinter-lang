@@ -10,6 +10,7 @@ use crate::compiler::ast::{Ident, InfixOp, Mutability, UnaryOp};
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::ClassType;
 use crate::compiler::tokens::tokenized_file::Span;
+use crate::compiler::ty_infer::TyVar;
 use crate::compiler::types::{InternedStr, StrMap};
 
 #[derive(PartialEq, Eq, Debug, Default, Clone, Copy, Serialize, Deserialize)]
@@ -116,9 +117,9 @@ pub enum HirNodeKind {
     EnumMember(EnumMember),
 
     Expr(Expr),
+    DefinedTy(DefinedTy),
     DestructureExpr(DestructureExpr),
     Stmt(Stmt),
-    Ty(Ty),
     Block(Block),
 
     Param(Param),
@@ -131,12 +132,12 @@ pub enum HirNodeKind {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
     pub ident: InternedStr,
-    pub ty: Option<LocalDefId>,
+    pub ty: Option<Ty>,
     pub initializer: LocalDefId,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: InternedStr, ty: Option<LocalDefId>, initializer: LocalDefId) -> Self {
+    pub fn new(ident: InternedStr, ty: Option<Ty>, initializer: LocalDefId) -> Self {
         Self {
             ident,
             ty,
@@ -277,7 +278,7 @@ pub struct FnSig {
     pub(crate) name: Ident,
     pub(crate) generic_params: GenericParams,
     pub(crate) params: Params,
-    pub(crate) return_type: Option<LocalDefId>,
+    pub(crate) return_type: Option<Ty>,
 }
 
 impl FnSig {
@@ -285,7 +286,7 @@ impl FnSig {
         name: Ident,
         generic_params: GenericParams,
         params: Params,
-        return_type: Option<LocalDefId>,
+        return_type: Option<Ty>,
     ) -> Self {
         Self {
             name,
@@ -340,23 +341,13 @@ impl Expression {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-//noinspection DuplicatedCode
 pub enum Ty {
-    Array {
-        ty: LocalDefId,
-    },
-    Path {
-        path: PathTy,
-    },
-    TraitBound {
-        trait_bound: TraitBound,
-    },
-    Closure {
-        params: Vec<LocalDefId>,
-        ret_ty: LocalDefId,
-    },
-    Infer,
-    QSelf,
+    Defined(LocalDefId),
+    Builtin(Builtin),
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub enum Builtin {
     U8,
     U16,
     U32,
@@ -370,6 +361,54 @@ pub enum Ty {
     Str,
     Boolean,
     None,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+//noinspection DuplicatedCode
+pub enum DefinedTy {
+    Array {
+        ty: LocalDefId,
+    },
+    Path {
+        path: PathTy,
+    },
+    TraitBound {
+        trait_bound: TraitBound,
+    },
+    Closure {
+        params: Arc<[LocalDefId]>,
+        ret_ty: LocalDefId,
+    },
+    Builtin {
+        builtin: Builtin,
+    },
+}
+
+impl DefinedTy {
+    fn contains_ty(&self, other: &DefinedTy) -> bool {
+        todo!()
+        // match self {
+        //     Ty::Array { .. } => {}
+        //     Ty::Path { .. } => {}
+        //     Ty::TraitBound { .. } => {}
+        //     Ty::Closure { .. } => {}
+        //     Ty::Infer => {}
+        //     Ty::QSelf => {}
+        //     Ty::U8 => {}
+        //     Ty::U16 => {}
+        //     Ty::U32 => {}
+        //     Ty::U64 => {}
+        //     Ty::I8 => {}
+        //     Ty::I16 => {}
+        //     Ty::I32 => {}
+        //     Ty::I64 => {}
+        //     Ty::F32 => {}
+        //     Ty::F64 => {}
+        //     Ty::Str => {}
+        //     Ty::Boolean => {}
+        //     Ty::None => {}
+        // }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -701,7 +740,7 @@ impl Field {
 pub struct LetStmt {
     pub ident: Ident,
     pub mutability: Mutability,
-    pub ty: Option<LocalDefId>,
+    pub ty: Option<Ty>,
     pub initializer: Option<LocalDefId>,
 }
 
@@ -709,7 +748,7 @@ impl LetStmt {
     pub fn new(
         ident: Ident,
         mutability: Mutability,
-        ty: Option<LocalDefId>,
+        ty: Option<Ty>,
         initializer: Option<LocalDefId>,
     ) -> Self {
         Self {
@@ -955,6 +994,12 @@ pub struct Generics {
     generics: Arc<[LocalDefId]>,
 }
 
+impl Default for Generics {
+    fn default() -> Self {
+        Self::new(Vec::default())
+    }
+}
+
 impl From<Vec<LocalDefId>> for Generics {
     fn from(value: Vec<LocalDefId>) -> Self {
         Self::new(value)
@@ -1019,13 +1064,17 @@ impl HirCrate {
         self.nodes.get(node).map(|node| &node.kind).unwrap()
     }
 
-    pub fn get_ty(&self, ty: &LocalDefId) -> &Ty {
+    pub fn get_defined_ty(&self, ty: &LocalDefId) -> &DefinedTy {
         match self.nodes.get(ty) {
             Some(HirNode {
-                kind: HirNodeKind::Ty(ty),
+                kind: HirNodeKind::DefinedTy(ty),
                 ..
             }) => ty,
             _ => panic!(),
         }
+    }
+
+    pub fn get_node_mut(&mut self, node: &LocalDefId) -> &mut HirNodeKind {
+        self.nodes.get_mut(node).map(|node| &mut node.kind).unwrap()
     }
 }

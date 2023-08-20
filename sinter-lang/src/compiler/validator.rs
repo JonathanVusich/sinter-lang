@@ -225,7 +225,7 @@ mod tests {
         let krate_name = compiler_ctxt.intern_str("crate");
         let mut krate = Crate::new(krate_name, CrateId::new(0));
         krate.add_module(
-            ModulePath::from_array([compiler_ctxt.intern_str("module")]),
+            ModulePath::from_iter([compiler_ctxt.intern_str("module")]),
             module,
         );
         let krates = StrMap::from([(krate_name, krate)]);

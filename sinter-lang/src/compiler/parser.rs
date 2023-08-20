@@ -931,7 +931,7 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Ok(Ty::new(TyKind::QSelf, span, self.get_id()))
             }
-            Some(token) => Ok(Ty::new(TyKind::QSelf, Span::default(), self.get_id())),
+            Some(token) => self.unexpected_token(token.token_type),
             None => self.unexpected_end(),
         }
     }

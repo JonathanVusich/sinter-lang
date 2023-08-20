@@ -143,7 +143,6 @@ where
 pub struct Crate {
     pub(crate) name: InternedStr,
     pub(crate) crate_id: CrateId,
-    pub(crate) local_def_id: u32,
     module_lookup: ModuleMap<ModuleId>,
     modules: Vec<Module>,
 }
@@ -153,7 +152,6 @@ impl Crate {
         Self {
             name,
             crate_id,
-            local_def_id: 0,
             module_lookup: Default::default(),
             modules: Default::default(),
         }

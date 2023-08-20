@@ -17,6 +17,7 @@ use crate::compiler::parser::{parse, ParseError};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{resolve, ResolveError};
 use crate::compiler::tokens::tokenizer::tokenize_file;
+use crate::compiler::ty_infer::TypeError;
 use crate::compiler::types::{InternedStr, StrMap};
 use crate::compiler::validator::{validate, ValidationError};
 use crate::compiler::StringInterner;
@@ -57,14 +58,17 @@ pub enum CompileError {
     InvalidCrateName(OsString),
     /// Module name contains non UTF-8 characters
     InvalidModuleName(OsString),
+    /// Errors found while parsing
+    ParseErrors(Vec<ParseError>),
 
+    /// Errors found while validating the AST.
     ValidationErrors(Vec<ValidationError>),
 
     /// Errors found during initial resolution
     ResolveErrors(Vec<ResolveError>),
 
-    /// Errors found while parsing
-    ParseErrors(Vec<ParseError>),
+    /// Errors found while inferring types
+    TypeErrors(Vec<TypeError>),
 
     /// Duplicate definition found while parsing
     DuplicateDefinition,
@@ -131,7 +135,7 @@ impl CompilerCtxt {
             segments.push(interned_segment);
         }
 
-        Ok(ModulePath::from_vec(segments))
+        Ok(ModulePath::from_iter(segments))
     }
 }
 
@@ -244,8 +248,6 @@ impl Compiler {
         }
 
         // Assign the last used local def id to the crate
-        krate.local_def_id = self.compiler_ctxt.crate_local_def_id();
-
         Ok(krate)
     }
 

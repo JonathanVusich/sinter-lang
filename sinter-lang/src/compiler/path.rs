@@ -6,6 +6,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{Ident, IdentType, QualifiedIdent, Segment};
+use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::InternedStr;
 
 use crate::gc::block::BLOCK_SIZE;
@@ -16,16 +17,20 @@ pub struct ModulePath {
 }
 
 impl ModulePath {
-    pub fn from_vec(module_path: Vec<InternedStr>) -> Self {
+    pub fn from_iter<T: IntoIterator<Item = InternedStr>>(module_path: T) -> Self {
         Self {
-            module_path: VecDeque::from(module_path),
+            module_path: VecDeque::from_iter(module_path),
         }
     }
 
-    pub fn from_array<const N: usize>(module_path: [InternedStr; N]) -> Self {
-        Self {
-            module_path: VecDeque::from(module_path),
-        }
+    pub fn as_crate_local_ident(&self) -> QualifiedIdent {
+        QualifiedIdent::new(
+            IdentType::Crate,
+            self.module_path
+                .iter()
+                .map(|seg| Ident::new(*seg, Span::default()))
+                .collect(),
+        )
     }
 
     pub fn pop_back(&mut self) -> Option<InternedStr> {
