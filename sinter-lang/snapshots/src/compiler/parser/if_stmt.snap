@@ -115,34 +115,32 @@
                           },
                           "id": 5
                         },
-                        "args": {
-                          "args": [
-                            {
-                              "kind": {
-                                "Path": {
-                                  "ident_type": "LocalOrUse",
-                                  "segments": [
-                                    {
-                                      "ident": {
-                                        "ident": 2,
-                                        "span": {
-                                          "start": 31,
-                                          "end": 32
-                                        }
-                                      },
-                                      "generics": null
-                                    }
-                                  ]
-                                }
-                              },
-                              "span": {
-                                "start": 31,
-                                "end": 32
-                              },
-                              "id": 6
-                            }
-                          ]
-                        }
+                        "args": [
+                          {
+                            "kind": {
+                              "Path": {
+                                "ident_type": "LocalOrUse",
+                                "segments": [
+                                  {
+                                    "ident": {
+                                      "ident": 2,
+                                      "span": {
+                                        "start": 31,
+                                        "end": 32
+                                      }
+                                    },
+                                    "generics": null
+                                  }
+                                ]
+                              }
+                            },
+                            "span": {
+                              "start": 31,
+                              "end": 32
+                            },
+                            "id": 6
+                          }
+                        ]
                       }
                     },
                     "span": {

@@ -39,57 +39,53 @@
               }
             },
             "class_type": "Inline",
-            "generic_params": {
-              "params": []
-            },
-            "fields": {
-              "params": [
-                {
-                  "name": {
-                    "ident": 2,
-                    "span": {
-                      "start": 18,
-                      "end": 19
-                    }
-                  },
-                  "ty": {
-                    "kind": "F64",
-                    "span": {
-                      "start": 21,
-                      "end": 24
-                    },
-                    "id": 0
-                  },
+            "generic_params": [],
+            "fields": [
+              {
+                "name": {
+                  "ident": 2,
                   "span": {
                     "start": 18,
+                    "end": 19
+                  }
+                },
+                "ty": {
+                  "kind": "F64",
+                  "span": {
+                    "start": 21,
                     "end": 24
                   },
-                  "id": 1
+                  "id": 0
                 },
-                {
-                  "name": {
-                    "ident": 4,
-                    "span": {
-                      "start": 30,
-                      "end": 31
-                    }
-                  },
-                  "ty": {
-                    "kind": "F64",
-                    "span": {
-                      "start": 33,
-                      "end": 36
-                    },
-                    "id": 2
-                  },
+                "span": {
+                  "start": 18,
+                  "end": 24
+                },
+                "id": 1
+              },
+              {
+                "name": {
+                  "ident": 4,
                   "span": {
                     "start": 30,
+                    "end": 31
+                  }
+                },
+                "ty": {
+                  "kind": "F64",
+                  "span": {
+                    "start": 33,
                     "end": 36
                   },
-                  "id": 3
-                }
-              ]
-            },
+                  "id": 2
+                },
+                "span": {
+                  "start": 30,
+                  "end": 36
+                },
+                "id": 3
+              }
+            ],
             "self_fns": []
           }
         },
@@ -110,12 +106,8 @@
               }
             },
             "class_type": "Reference",
-            "generic_params": {
-              "params": []
-            },
-            "fields": {
-              "params": []
-            },
+            "generic_params": [],
+            "fields": [],
             "self_fns": []
           }
         },
@@ -247,30 +239,28 @@
                             },
                             "id": 13
                           },
-                          "args": {
-                            "args": [
-                              {
-                                "kind": {
-                                  "Float": 1.0
-                                },
-                                "span": {
-                                  "start": 115,
-                                  "end": 118
-                                },
-                                "id": 14
+                          "args": [
+                            {
+                              "kind": {
+                                "Float": 1.0
                               },
-                              {
-                                "kind": {
-                                  "Float": 2.0
-                                },
-                                "span": {
-                                  "start": 120,
-                                  "end": 123
-                                },
-                                "id": 15
-                              }
-                            ]
-                          }
+                              "span": {
+                                "start": 115,
+                                "end": 118
+                              },
+                              "id": 14
+                            },
+                            {
+                              "kind": {
+                                "Float": 2.0
+                              },
+                              "span": {
+                                "start": 120,
+                                "end": 123
+                              },
+                              "id": 15
+                            }
+                          ]
                         }
                       },
                       "span": {
@@ -306,30 +296,28 @@
                             },
                             "id": 17
                           },
-                          "args": {
-                            "args": [
-                              {
-                                "kind": {
-                                  "Float": 1.5
-                                },
-                                "span": {
-                                  "start": 132,
-                                  "end": 135
-                                },
-                                "id": 18
+                          "args": [
+                            {
+                              "kind": {
+                                "Float": 1.5
                               },
-                              {
-                                "kind": {
-                                  "Float": 2.5
-                                },
-                                "span": {
-                                  "start": 137,
-                                  "end": 140
-                                },
-                                "id": 19
-                              }
-                            ]
-                          }
+                              "span": {
+                                "start": 132,
+                                "end": 135
+                              },
+                              "id": 18
+                            },
+                            {
+                              "kind": {
+                                "Float": 2.5
+                              },
+                              "span": {
+                                "start": 137,
+                                "end": 140
+                              },
+                              "id": 19
+                            }
+                          ]
                         }
                       },
                       "span": {
@@ -397,9 +385,7 @@
                             },
                             "id": 23
                           },
-                          "args": {
-                            "args": []
-                          }
+                          "args": []
                         }
                       },
                       "span": {
@@ -435,9 +421,7 @@
                             },
                             "id": 25
                           },
-                          "args": {
-                            "args": []
-                          }
+                          "args": []
                         }
                       },
                       "span": {

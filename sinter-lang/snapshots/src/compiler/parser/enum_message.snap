@@ -40,38 +40,34 @@
                 "end": 12
               }
             },
-            "generic_params": {
-              "params": []
-            },
+            "generic_params": [],
             "members": [
               {
                 "name": 2,
-                "fields": {
-                  "params": [
-                    {
-                      "name": {
-                        "ident": 3,
-                        "span": {
-                          "start": 24,
-                          "end": 31
-                        }
-                      },
-                      "ty": {
-                        "kind": "Str",
-                        "span": {
-                          "start": 33,
-                          "end": 36
-                        },
-                        "id": 0
-                      },
+                "fields": [
+                  {
+                    "name": {
+                      "ident": 3,
                       "span": {
                         "start": 24,
+                        "end": 31
+                      }
+                    },
+                    "ty": {
+                      "kind": "Str",
+                      "span": {
+                        "start": 33,
                         "end": 36
                       },
-                      "id": 1
-                    }
-                  ]
-                },
+                      "id": 0
+                    },
+                    "span": {
+                      "start": 24,
+                      "end": 36
+                    },
+                    "id": 1
+                  }
+                ],
                 "self_fns": [],
                 "span": {
                   "start": 19,
@@ -81,74 +77,70 @@
               },
               {
                 "name": 5,
-                "fields": {
-                  "params": [
-                    {
-                      "name": {
-                        "ident": 6,
-                        "span": {
-                          "start": 49,
-                          "end": 56
-                        }
-                      },
-                      "ty": {
-                        "kind": "Str",
-                        "span": {
-                          "start": 58,
-                          "end": 61
-                        },
-                        "id": 3
-                      },
+                "fields": [
+                  {
+                    "name": {
+                      "ident": 6,
                       "span": {
                         "start": 49,
+                        "end": 56
+                      }
+                    },
+                    "ty": {
+                      "kind": "Str",
+                      "span": {
+                        "start": 58,
                         "end": 61
                       },
-                      "id": 4
+                      "id": 3
                     },
-                    {
-                      "name": {
-                        "ident": 7,
-                        "span": {
-                          "start": 63,
-                          "end": 68
-                        }
-                      },
-                      "ty": {
-                        "kind": {
-                          "Path": {
-                            "path": {
-                              "ident": {
-                                "ident_type": "LocalOrUse",
-                                "idents": [
-                                  {
-                                    "ident": 8,
-                                    "span": {
-                                      "start": 70,
-                                      "end": 85
-                                    }
-                                  }
-                                ]
-                              },
-                              "generics": {
-                                "generics": []
-                              }
-                            }
-                          }
-                        },
-                        "span": {
-                          "start": 70,
-                          "end": 85
-                        },
-                        "id": 5
-                      },
+                    "span": {
+                      "start": 49,
+                      "end": 61
+                    },
+                    "id": 4
+                  },
+                  {
+                    "name": {
+                      "ident": 7,
                       "span": {
                         "start": 63,
+                        "end": 68
+                      }
+                    },
+                    "ty": {
+                      "kind": {
+                        "Path": {
+                          "path": {
+                            "ident": {
+                              "ident_type": "LocalOrUse",
+                              "idents": [
+                                {
+                                  "ident": 8,
+                                  "span": {
+                                    "start": 70,
+                                    "end": 85
+                                  }
+                                }
+                              ]
+                            },
+                            "generics": []
+                          }
+                        }
+                      },
+                      "span": {
+                        "start": 70,
                         "end": 85
                       },
-                      "id": 6
-                    }
-                  ]
-                },
+                      "id": 5
+                    },
+                    "span": {
+                      "start": 63,
+                      "end": 85
+                    },
+                    "id": 6
+                  }
+                ],
                 "self_fns": [
                   {
                     "sig": {
@@ -159,36 +151,32 @@
                           "end": 104
                         }
                       },
-                      "generic_params": {
-                        "params": []
-                      },
-                      "params": {
-                        "params": [
-                          {
-                            "name": {
-                              "ident": 11,
-                              "span": {
-                                "start": 105,
-                                "end": 109
-                              }
-                            },
-                            "ty": {
-                              "kind": "QSelf",
-                              "span": {
-                                "start": 105,
-                                "end": 109
-                              },
-                              "id": 7
-                            },
-                            "mutability": "Immutable",
+                      "generic_params": [],
+                      "params": [
+                        {
+                          "name": {
+                            "ident": 11,
+                            "span": {
+                              "start": 105,
+                              "end": 109
+                            }
+                          },
+                          "ty": {
+                            "kind": "QSelf",
                             "span": {
                               "start": 105,
                               "end": 109
                             },
-                            "id": 8
-                          }
-                        ]
-                      },
+                            "id": 7
+                          },
+                          "mutability": "Immutable",
+                          "span": {
+                            "start": 105,
+                            "end": 109
+                          },
+                          "id": 8
+                        }
+                      ],
                       "return_type": {
                         "kind": "U64",
                         "span": {
@@ -266,9 +254,7 @@
                                       },
                                       "id": 12
                                     },
-                                    "args": {
-                                      "args": []
-                                    }
+                                    "args": []
                                   }
                                 },
                                 "span": {

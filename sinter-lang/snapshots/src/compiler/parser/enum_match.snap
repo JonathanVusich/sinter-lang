@@ -94,9 +94,7 @@
                                       }
                                     ]
                                   },
-                                  "generics": {
-                                    "generics": []
-                                  }
+                                  "generics": []
                                 },
                                 "exprs": [
                                   {
@@ -134,9 +132,7 @@
                                       }
                                     ]
                                   },
-                                  "generics": {
-                                    "generics": []
-                                  }
+                                  "generics": []
                                 },
                                 "exprs": [
                                   {
@@ -216,9 +212,7 @@
                                 }
                               ]
                             },
-                            "generics": {
-                              "generics": []
-                            }
+                            "generics": []
                           },
                           "exprs": [
                             {
@@ -299,9 +293,7 @@
                                 }
                               ]
                             },
-                            "generics": {
-                              "generics": []
-                            }
+                            "generics": []
                           },
                           "exprs": [
                             {

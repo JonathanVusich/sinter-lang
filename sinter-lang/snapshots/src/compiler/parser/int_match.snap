@@ -72,20 +72,18 @@
                           },
                           "id": 1
                         },
-                        "args": {
-                          "args": [
-                            {
-                              "kind": {
-                                "String": 3
-                              },
-                              "span": {
-                                "start": 30,
-                                "end": 36
-                              },
-                              "id": 2
-                            }
-                          ]
-                        }
+                        "args": [
+                          {
+                            "kind": {
+                              "String": 3
+                            },
+                            "span": {
+                              "start": 30,
+                              "end": 36
+                            },
+                            "id": 2
+                          }
+                        ]
                       }
                     },
                     "span": {
@@ -161,20 +159,18 @@
                           },
                           "id": 6
                         },
-                        "args": {
-                          "args": [
-                            {
-                              "kind": {
-                                "String": 4
-                              },
-                              "span": {
-                                "start": 71,
-                                "end": 88
-                              },
-                              "id": 7
-                            }
-                          ]
-                        }
+                        "args": [
+                          {
+                            "kind": {
+                              "String": 4
+                            },
+                            "span": {
+                              "start": 71,
+                              "end": 88
+                            },
+                            "id": 7
+                          }
+                        ]
                       }
                     },
                     "span": {
@@ -230,20 +226,18 @@
                           },
                           "id": 11
                         },
-                        "args": {
-                          "args": [
-                            {
-                              "kind": {
-                                "String": 5
-                              },
-                              "span": {
-                                "start": 106,
-                                "end": 120
-                              },
-                              "id": 12
-                            }
-                          ]
-                        }
+                        "args": [
+                          {
+                            "kind": {
+                              "String": 5
+                            },
+                            "span": {
+                              "start": 106,
+                              "end": 120
+                            },
+                            "id": 12
+                          }
+                        ]
                       }
                     },
                     "span": {

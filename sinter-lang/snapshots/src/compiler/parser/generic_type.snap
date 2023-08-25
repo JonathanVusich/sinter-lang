@@ -19,47 +19,43 @@
               }
             ]
           },
-          "generics": {
-            "generics": [
-              {
-                "kind": {
-                  "Path": {
-                    "path": {
-                      "ident": {
-                        "ident_type": "LocalOrUse",
-                        "idents": [
-                          {
-                            "ident": 1,
-                            "span": {
-                              "start": 5,
-                              "end": 9
-                            }
+          "generics": [
+            {
+              "kind": {
+                "Path": {
+                  "path": {
+                    "ident": {
+                      "ident_type": "LocalOrUse",
+                      "idents": [
+                        {
+                          "ident": 1,
+                          "span": {
+                            "start": 5,
+                            "end": 9
                           }
-                        ]
-                      },
-                      "generics": {
-                        "generics": [
-                          {
-                            "kind": "I64",
-                            "span": {
-                              "start": 10,
-                              "end": 13
-                            },
-                            "id": 0
-                          }
-                        ]
+                        }
+                      ]
+                    },
+                    "generics": [
+                      {
+                        "kind": "I64",
+                        "span": {
+                          "start": 10,
+                          "end": 13
+                        },
+                        "id": 0
                       }
-                    }
+                    ]
                   }
-                },
-                "span": {
-                  "start": 5,
-                  "end": 14
-                },
-                "id": 1
-              }
-            ]
-          }
+                }
+              },
+              "span": {
+                "start": 5,
+                "end": 14
+              },
+              "id": 1
+            }
+          ]
         }
       }
     },

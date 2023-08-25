@@ -42,34 +42,32 @@
                       },
                       "id": 0
                     },
-                    "args": {
-                      "args": [
-                        {
-                          "kind": {
-                            "Path": {
-                              "ident_type": "LocalOrUse",
-                              "segments": [
-                                {
-                                  "ident": {
-                                    "ident": 2,
-                                    "span": {
-                                      "start": 4,
-                                      "end": 5
-                                    }
-                                  },
-                                  "generics": null
-                                }
-                              ]
-                            }
-                          },
-                          "span": {
-                            "start": 4,
-                            "end": 5
-                          },
-                          "id": 1
-                        }
-                      ]
-                    }
+                    "args": [
+                      {
+                        "kind": {
+                          "Path": {
+                            "ident_type": "LocalOrUse",
+                            "segments": [
+                              {
+                                "ident": {
+                                  "ident": 2,
+                                  "span": {
+                                    "start": 4,
+                                    "end": 5
+                                  }
+                                },
+                                "generics": null
+                              }
+                            ]
+                          }
+                        },
+                        "span": {
+                          "start": 4,
+                          "end": 5
+                        },
+                        "id": 1
+                      }
+                    ]
                   }
                 },
                 "span": {

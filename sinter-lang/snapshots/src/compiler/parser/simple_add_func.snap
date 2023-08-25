@@ -34,59 +34,55 @@
                   "end": 6
                 }
               },
-              "generic_params": {
-                "params": []
-              },
-              "params": {
-                "params": [
-                  {
-                    "name": {
-                      "ident": 2,
-                      "span": {
-                        "start": 7,
-                        "end": 8
-                      }
-                    },
-                    "ty": {
-                      "kind": "I64",
-                      "span": {
-                        "start": 10,
-                        "end": 13
-                      },
-                      "id": 0
-                    },
-                    "mutability": "Immutable",
+              "generic_params": [],
+              "params": [
+                {
+                  "name": {
+                    "ident": 2,
                     "span": {
                       "start": 7,
+                      "end": 8
+                    }
+                  },
+                  "ty": {
+                    "kind": "I64",
+                    "span": {
+                      "start": 10,
                       "end": 13
                     },
-                    "id": 1
+                    "id": 0
                   },
-                  {
-                    "name": {
-                      "ident": 4,
-                      "span": {
-                        "start": 15,
-                        "end": 16
-                      }
-                    },
-                    "ty": {
-                      "kind": "I64",
-                      "span": {
-                        "start": 18,
-                        "end": 21
-                      },
-                      "id": 2
-                    },
-                    "mutability": "Immutable",
+                  "mutability": "Immutable",
+                  "span": {
+                    "start": 7,
+                    "end": 13
+                  },
+                  "id": 1
+                },
+                {
+                  "name": {
+                    "ident": 4,
                     "span": {
                       "start": 15,
+                      "end": 16
+                    }
+                  },
+                  "ty": {
+                    "kind": "I64",
+                    "span": {
+                      "start": 18,
                       "end": 21
                     },
-                    "id": 3
-                  }
-                ]
-              },
+                    "id": 2
+                  },
+                  "mutability": "Immutable",
+                  "span": {
+                    "start": 15,
+                    "end": 21
+                  },
+                  "id": 3
+                }
+              ],
               "return_type": {
                 "kind": "I64",
                 "span": {

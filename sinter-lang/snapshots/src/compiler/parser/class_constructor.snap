@@ -33,30 +33,28 @@
           },
           "id": 0
         },
-        "args": {
-          "args": [
-            {
-              "kind": {
-                "Float": 1.0
-              },
-              "span": {
-                "start": 6,
-                "end": 9
-              },
-              "id": 1
+        "args": [
+          {
+            "kind": {
+              "Float": 1.0
             },
-            {
-              "kind": {
-                "Float": 2.0
-              },
-              "span": {
-                "start": 11,
-                "end": 14
-              },
-              "id": 2
-            }
-          ]
-        }
+            "span": {
+              "start": 6,
+              "end": 9
+            },
+            "id": 1
+          },
+          {
+            "kind": {
+              "Float": 2.0
+            },
+            "span": {
+              "start": 11,
+              "end": 14
+            },
+            "id": 2
+          }
+        ]
       }
     },
     "span": {

@@ -35,87 +35,81 @@
           },
           "id": 0
         },
-        "args": {
-          "args": [
-            {
-              "kind": {
-                "Call": {
-                  "target": {
+        "args": [
+          {
+            "kind": {
+              "Call": {
+                "target": {
+                  "kind": {
+                    "Path": {
+                      "ident_type": "LocalOrUse",
+                      "segments": [
+                        {
+                          "ident": {
+                            "ident": 2,
+                            "span": {
+                              "start": 2,
+                              "end": 3
+                            }
+                          },
+                          "generics": null
+                        }
+                      ]
+                    }
+                  },
+                  "span": {
+                    "start": 2,
+                    "end": 3
+                  },
+                  "id": 1
+                },
+                "args": [
+                  {
                     "kind": {
-                      "Path": {
-                        "ident_type": "LocalOrUse",
-                        "segments": [
-                          {
-                            "ident": {
-                              "ident": 2,
-                              "span": {
-                                "start": 2,
-                                "end": 3
-                              }
-                            },
-                            "generics": null
-                          }
-                        ]
+                      "Call": {
+                        "target": {
+                          "kind": {
+                            "Path": {
+                              "ident_type": "LocalOrUse",
+                              "segments": [
+                                {
+                                  "ident": {
+                                    "ident": 3,
+                                    "span": {
+                                      "start": 4,
+                                      "end": 5
+                                    }
+                                  },
+                                  "generics": null
+                                }
+                              ]
+                            }
+                          },
+                          "span": {
+                            "start": 4,
+                            "end": 5
+                          },
+                          "id": 2
+                        },
+                        "args": []
                       }
                     },
                     "span": {
-                      "start": 2,
-                      "end": 3
+                      "start": 4,
+                      "end": 7
                     },
-                    "id": 1
-                  },
-                  "args": {
-                    "args": [
-                      {
-                        "kind": {
-                          "Call": {
-                            "target": {
-                              "kind": {
-                                "Path": {
-                                  "ident_type": "LocalOrUse",
-                                  "segments": [
-                                    {
-                                      "ident": {
-                                        "ident": 3,
-                                        "span": {
-                                          "start": 4,
-                                          "end": 5
-                                        }
-                                      },
-                                      "generics": null
-                                    }
-                                  ]
-                                }
-                              },
-                              "span": {
-                                "start": 4,
-                                "end": 5
-                              },
-                              "id": 2
-                            },
-                            "args": {
-                              "args": []
-                            }
-                          }
-                        },
-                        "span": {
-                          "start": 4,
-                          "end": 7
-                        },
-                        "id": 3
-                      }
-                    ]
+                    "id": 3
                   }
-                }
-              },
-              "span": {
-                "start": 2,
-                "end": 8
-              },
-              "id": 4
-            }
-          ]
-        }
+                ]
+              }
+            },
+            "span": {
+              "start": 2,
+              "end": 8
+            },
+            "id": 4
+          }
+        ]
       }
     },
     "span": {

@@ -16,59 +16,51 @@
             "end": 4
           }
         },
-        "generics": {
-          "generics": [
-            {
-              "kind": {
-                "TraitBound": {
-                  "trait_bound": {
-                    "bounds": [
-                      {
-                        "ident": {
-                          "ident_type": "LocalOrUse",
-                          "idents": [
-                            {
-                              "ident": 2,
-                              "span": {
-                                "start": 7,
-                                "end": 15
-                              }
-                            }
-                          ]
-                        },
-                        "generics": {
-                          "generics": []
+        "generics": [
+          {
+            "kind": {
+              "TraitBound": {
+                "trait_bound": [
+                  {
+                    "ident": {
+                      "ident_type": "LocalOrUse",
+                      "idents": [
+                        {
+                          "ident": 2,
+                          "span": {
+                            "start": 7,
+                            "end": 15
+                          }
                         }
-                      },
-                      {
-                        "ident": {
-                          "ident_type": "LocalOrUse",
-                          "idents": [
-                            {
-                              "ident": 3,
-                              "span": {
-                                "start": 18,
-                                "end": 30
-                              }
-                            }
-                          ]
-                        },
-                        "generics": {
-                          "generics": []
+                      ]
+                    },
+                    "generics": []
+                  },
+                  {
+                    "ident": {
+                      "ident_type": "LocalOrUse",
+                      "idents": [
+                        {
+                          "ident": 3,
+                          "span": {
+                            "start": 18,
+                            "end": 30
+                          }
                         }
-                      }
-                    ]
+                      ]
+                    },
+                    "generics": []
                   }
-                }
-              },
-              "span": {
-                "start": 7,
-                "end": 30
-              },
-              "id": 0
-            }
-          ]
-        }
+                ]
+              }
+            },
+            "span": {
+              "start": 7,
+              "end": 30
+            },
+            "id": 0
+          }
+        ]
       },
       {
         "ident": {

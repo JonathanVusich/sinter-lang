@@ -73,9 +73,7 @@
                 "end": 38
               }
             },
-            "generic_params": {
-              "params": []
-            },
+            "generic_params": [],
             "self_fns": [
               {
                 "sig": {
@@ -86,36 +84,32 @@
                       "end": 57
                     }
                   },
-                  "generic_params": {
-                    "params": []
-                  },
-                  "params": {
-                    "params": [
-                      {
-                        "name": {
-                          "ident": 9,
-                          "span": {
-                            "start": 58,
-                            "end": 62
-                          }
-                        },
-                        "ty": {
-                          "kind": "QSelf",
-                          "span": {
-                            "start": 58,
-                            "end": 62
-                          },
-                          "id": 1
-                        },
-                        "mutability": "Immutable",
+                  "generic_params": [],
+                  "params": [
+                    {
+                      "name": {
+                        "ident": 9,
+                        "span": {
+                          "start": 58,
+                          "end": 62
+                        }
+                      },
+                      "ty": {
+                        "kind": "QSelf",
                         "span": {
                           "start": 58,
                           "end": 62
                         },
-                        "id": 2
-                      }
-                    ]
-                  },
+                        "id": 1
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 58,
+                        "end": 62
+                      },
+                      "id": 2
+                    }
+                  ],
                   "return_type": {
                     "kind": "Str",
                     "span": {
@@ -157,9 +151,7 @@
                   }
                 ]
               },
-              "generics": {
-                "generics": []
-              }
+              "generics": []
             },
             "target_ty": {
               "ident_type": "LocalOrUse",
@@ -183,36 +175,32 @@
                       "end": 116
                     }
                   },
-                  "generic_params": {
-                    "params": []
-                  },
-                  "params": {
-                    "params": [
-                      {
-                        "name": {
-                          "ident": 9,
-                          "span": {
-                            "start": 117,
-                            "end": 121
-                          }
-                        },
-                        "ty": {
-                          "kind": "QSelf",
-                          "span": {
-                            "start": 117,
-                            "end": 121
-                          },
-                          "id": 6
-                        },
-                        "mutability": "Immutable",
+                  "generic_params": [],
+                  "params": [
+                    {
+                      "name": {
+                        "ident": 9,
+                        "span": {
+                          "start": 117,
+                          "end": 121
+                        }
+                      },
+                      "ty": {
+                        "kind": "QSelf",
                         "span": {
                           "start": 117,
                           "end": 121
                         },
-                        "id": 7
-                      }
-                    ]
-                  },
+                        "id": 6
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 117,
+                        "end": 121
+                      },
+                      "id": 7
+                    }
+                  ],
                   "return_type": {
                     "kind": "Str",
                     "span": {

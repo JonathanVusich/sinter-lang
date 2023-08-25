@@ -33,12 +33,8 @@
                   "end": 7
                 }
               },
-              "generic_params": {
-                "params": []
-              },
-              "params": {
-                "params": []
-              },
+              "generic_params": [],
+              "params": [],
               "return_type": null
             },
             "body": {
@@ -73,20 +69,18 @@
                               },
                               "id": 0
                             },
-                            "args": {
-                              "args": [
-                                {
-                                  "kind": {
-                                    "String": 3
-                                  },
-                                  "span": {
-                                    "start": 22,
-                                    "end": 36
-                                  },
-                                  "id": 1
-                                }
-                              ]
-                            }
+                            "args": [
+                              {
+                                "kind": {
+                                  "String": 3
+                                },
+                                "span": {
+                                  "start": 22,
+                                  "end": 36
+                                },
+                                "id": 1
+                              }
+                            ]
                           }
                         },
                         "span": {

@@ -39,9 +39,7 @@
                 "end": 14
               }
             },
-            "generic_params": {
-              "params": []
-            },
+            "generic_params": [],
             "self_fns": [
               {
                 "sig": {
@@ -52,36 +50,32 @@
                       "end": 42
                     }
                   },
-                  "generic_params": {
-                    "params": []
-                  },
-                  "params": {
-                    "params": [
-                      {
-                        "name": {
-                          "ident": 10,
-                          "span": {
-                            "start": 43,
-                            "end": 47
-                          }
-                        },
-                        "ty": {
-                          "kind": "QSelf",
-                          "span": {
-                            "start": 43,
-                            "end": 47
-                          },
-                          "id": 0
-                        },
-                        "mutability": "Immutable",
+                  "generic_params": [],
+                  "params": [
+                    {
+                      "name": {
+                        "ident": 10,
+                        "span": {
+                          "start": 43,
+                          "end": 47
+                        }
+                      },
+                      "ty": {
+                        "kind": "QSelf",
                         "span": {
                           "start": 43,
                           "end": 47
                         },
-                        "id": 1
-                      }
-                    ]
-                  },
+                        "id": 0
+                      },
+                      "mutability": "Immutable",
+                      "span": {
+                        "start": 43,
+                        "end": 47
+                      },
+                      "id": 1
+                    }
+                  ],
                   "return_type": {
                     "kind": "Str",
                     "span": {
@@ -118,120 +112,108 @@
                   "end": 86
                 }
               },
-              "generic_params": {
-                "params": [
-                  {
-                    "name": {
-                      "ident": 5,
-                      "span": {
-                        "start": 87,
-                        "end": 88
-                      }
-                    },
-                    "trait_bound": {
-                      "kind": {
-                        "TraitBound": {
-                          "trait_bound": {
-                            "bounds": [
-                              {
-                                "ident": {
-                                  "ident_type": "LocalOrUse",
-                                  "idents": [
-                                    {
-                                      "ident": 1,
-                                      "span": {
-                                        "start": 90,
-                                        "end": 98
-                                      }
-                                    }
-                                  ]
-                                },
-                                "generics": {
-                                  "generics": []
-                                }
-                              },
-                              {
-                                "ident": {
-                                  "ident_type": "LocalOrUse",
-                                  "idents": [
-                                    {
-                                      "ident": 6,
-                                      "span": {
-                                        "start": 101,
-                                        "end": 113
-                                      }
-                                    }
-                                  ]
-                                },
-                                "generics": {
-                                  "generics": []
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      },
-                      "span": {
-                        "start": 90,
-                        "end": 113
-                      },
-                      "id": 5
-                    },
+              "generic_params": [
+                {
+                  "name": {
+                    "ident": 5,
                     "span": {
                       "start": 87,
-                      "end": 113
-                    },
-                    "id": 6
-                  }
-                ]
-              },
-              "params": {
-                "params": [
-                  {
-                    "name": {
-                      "ident": 7,
-                      "span": {
-                        "start": 115,
-                        "end": 122
-                      }
-                    },
-                    "ty": {
-                      "kind": {
-                        "Path": {
-                          "path": {
+                      "end": 88
+                    }
+                  },
+                  "trait_bound": {
+                    "kind": {
+                      "TraitBound": {
+                        "trait_bound": [
+                          {
                             "ident": {
                               "ident_type": "LocalOrUse",
                               "idents": [
                                 {
-                                  "ident": 5,
+                                  "ident": 1,
                                   "span": {
-                                    "start": 124,
-                                    "end": 125
+                                    "start": 90,
+                                    "end": 98
                                   }
                                 }
                               ]
                             },
-                            "generics": {
-                              "generics": []
-                            }
+                            "generics": []
+                          },
+                          {
+                            "ident": {
+                              "ident_type": "LocalOrUse",
+                              "idents": [
+                                {
+                                  "ident": 6,
+                                  "span": {
+                                    "start": 101,
+                                    "end": 113
+                                  }
+                                }
+                              ]
+                            },
+                            "generics": []
                           }
-                        }
-                      },
-                      "span": {
-                        "start": 124,
-                        "end": 125
-                      },
-                      "id": 7
+                        ]
+                      }
                     },
-                    "mutability": "Immutable",
+                    "span": {
+                      "start": 90,
+                      "end": 113
+                    },
+                    "id": 5
+                  },
+                  "span": {
+                    "start": 87,
+                    "end": 113
+                  },
+                  "id": 6
+                }
+              ],
+              "params": [
+                {
+                  "name": {
+                    "ident": 7,
                     "span": {
                       "start": 115,
+                      "end": 122
+                    }
+                  },
+                  "ty": {
+                    "kind": {
+                      "Path": {
+                        "path": {
+                          "ident": {
+                            "ident_type": "LocalOrUse",
+                            "idents": [
+                              {
+                                "ident": 5,
+                                "span": {
+                                  "start": 124,
+                                  "end": 125
+                                }
+                              }
+                            ]
+                          },
+                          "generics": []
+                        }
+                      }
+                    },
+                    "span": {
+                      "start": 124,
                       "end": 125
                     },
-                    "id": 8
-                  }
-                ]
-              },
+                    "id": 7
+                  },
+                  "mutability": "Immutable",
+                  "span": {
+                    "start": 115,
+                    "end": 125
+                  },
+                  "id": 8
+                }
+              ],
               "return_type": null
             },
             "body": {
@@ -266,66 +248,62 @@
                               },
                               "id": 9
                             },
-                            "args": {
-                              "args": [
-                                {
-                                  "kind": {
-                                    "Call": {
-                                      "target": {
-                                        "kind": {
-                                          "Field": {
-                                            "lhs": {
-                                              "kind": {
-                                                "Path": {
-                                                  "ident_type": "LocalOrUse",
-                                                  "segments": [
-                                                    {
-                                                      "ident": {
-                                                        "ident": 7,
-                                                        "span": {
-                                                          "start": 141,
-                                                          "end": 148
-                                                        }
-                                                      },
-                                                      "generics": null
-                                                    }
-                                                  ]
-                                                }
-                                              },
-                                              "span": {
-                                                "start": 141,
-                                                "end": 148
-                                              },
-                                              "id": 10
-                                            },
-                                            "ident": {
-                                              "ident": 2,
-                                              "span": {
-                                                "start": 149,
-                                                "end": 167
+                            "args": [
+                              {
+                                "kind": {
+                                  "Call": {
+                                    "target": {
+                                      "kind": {
+                                        "Field": {
+                                          "lhs": {
+                                            "kind": {
+                                              "Path": {
+                                                "ident_type": "LocalOrUse",
+                                                "segments": [
+                                                  {
+                                                    "ident": {
+                                                      "ident": 7,
+                                                      "span": {
+                                                        "start": 141,
+                                                        "end": 148
+                                                      }
+                                                    },
+                                                    "generics": null
+                                                  }
+                                                ]
                                               }
+                                            },
+                                            "span": {
+                                              "start": 141,
+                                              "end": 148
+                                            },
+                                            "id": 10
+                                          },
+                                          "ident": {
+                                            "ident": 2,
+                                            "span": {
+                                              "start": 149,
+                                              "end": 167
                                             }
                                           }
-                                        },
-                                        "span": {
-                                          "start": 141,
-                                          "end": 167
-                                        },
-                                        "id": 11
+                                        }
                                       },
-                                      "args": {
-                                        "args": []
-                                      }
-                                    }
-                                  },
-                                  "span": {
-                                    "start": 141,
-                                    "end": 169
-                                  },
-                                  "id": 12
-                                }
-                              ]
-                            }
+                                      "span": {
+                                        "start": 141,
+                                        "end": 167
+                                      },
+                                      "id": 11
+                                    },
+                                    "args": []
+                                  }
+                                },
+                                "span": {
+                                  "start": 141,
+                                  "end": 169
+                                },
+                                "id": 12
+                              }
+                            ]
                           }
                         },
                         "span": {
@@ -369,77 +347,67 @@
                   "end": 195
                 }
               },
-              "generic_params": {
-                "params": []
-              },
-              "params": {
-                "params": [
-                  {
-                    "name": {
-                      "ident": 7,
-                      "span": {
-                        "start": 196,
-                        "end": 203
-                      }
-                    },
-                    "ty": {
-                      "kind": {
-                        "TraitBound": {
-                          "trait_bound": {
-                            "bounds": [
-                              {
-                                "ident": {
-                                  "ident_type": "LocalOrUse",
-                                  "idents": [
-                                    {
-                                      "ident": 1,
-                                      "span": {
-                                        "start": 205,
-                                        "end": 213
-                                      }
-                                    }
-                                  ]
-                                },
-                                "generics": {
-                                  "generics": []
-                                }
-                              },
-                              {
-                                "ident": {
-                                  "ident_type": "LocalOrUse",
-                                  "idents": [
-                                    {
-                                      "ident": 6,
-                                      "span": {
-                                        "start": 216,
-                                        "end": 228
-                                      }
-                                    }
-                                  ]
-                                },
-                                "generics": {
-                                  "generics": []
-                                }
-                              }
-                            ]
-                          }
-                        }
-                      },
-                      "span": {
-                        "start": 205,
-                        "end": 228
-                      },
-                      "id": 17
-                    },
-                    "mutability": "Immutable",
+              "generic_params": [],
+              "params": [
+                {
+                  "name": {
+                    "ident": 7,
                     "span": {
                       "start": 196,
+                      "end": 203
+                    }
+                  },
+                  "ty": {
+                    "kind": {
+                      "TraitBound": {
+                        "trait_bound": [
+                          {
+                            "ident": {
+                              "ident_type": "LocalOrUse",
+                              "idents": [
+                                {
+                                  "ident": 1,
+                                  "span": {
+                                    "start": 205,
+                                    "end": 213
+                                  }
+                                }
+                              ]
+                            },
+                            "generics": []
+                          },
+                          {
+                            "ident": {
+                              "ident_type": "LocalOrUse",
+                              "idents": [
+                                {
+                                  "ident": 6,
+                                  "span": {
+                                    "start": 216,
+                                    "end": 228
+                                  }
+                                }
+                              ]
+                            },
+                            "generics": []
+                          }
+                        ]
+                      }
+                    },
+                    "span": {
+                      "start": 205,
                       "end": 228
                     },
-                    "id": 18
-                  }
-                ]
-              },
+                    "id": 17
+                  },
+                  "mutability": "Immutable",
+                  "span": {
+                    "start": 196,
+                    "end": 228
+                  },
+                  "id": 18
+                }
+              ],
               "return_type": null
             },
             "body": {
@@ -474,66 +442,62 @@
                               },
                               "id": 19
                             },
-                            "args": {
-                              "args": [
-                                {
-                                  "kind": {
-                                    "Call": {
-                                      "target": {
-                                        "kind": {
-                                          "Field": {
-                                            "lhs": {
-                                              "kind": {
-                                                "Path": {
-                                                  "ident_type": "LocalOrUse",
-                                                  "segments": [
-                                                    {
-                                                      "ident": {
-                                                        "ident": 7,
-                                                        "span": {
-                                                          "start": 244,
-                                                          "end": 251
-                                                        }
-                                                      },
-                                                      "generics": null
-                                                    }
-                                                  ]
-                                                }
-                                              },
-                                              "span": {
-                                                "start": 244,
-                                                "end": 251
-                                              },
-                                              "id": 20
-                                            },
-                                            "ident": {
-                                              "ident": 2,
-                                              "span": {
-                                                "start": 252,
-                                                "end": 270
+                            "args": [
+                              {
+                                "kind": {
+                                  "Call": {
+                                    "target": {
+                                      "kind": {
+                                        "Field": {
+                                          "lhs": {
+                                            "kind": {
+                                              "Path": {
+                                                "ident_type": "LocalOrUse",
+                                                "segments": [
+                                                  {
+                                                    "ident": {
+                                                      "ident": 7,
+                                                      "span": {
+                                                        "start": 244,
+                                                        "end": 251
+                                                      }
+                                                    },
+                                                    "generics": null
+                                                  }
+                                                ]
                                               }
+                                            },
+                                            "span": {
+                                              "start": 244,
+                                              "end": 251
+                                            },
+                                            "id": 20
+                                          },
+                                          "ident": {
+                                            "ident": 2,
+                                            "span": {
+                                              "start": 252,
+                                              "end": 270
                                             }
                                           }
-                                        },
-                                        "span": {
-                                          "start": 244,
-                                          "end": 270
-                                        },
-                                        "id": 21
+                                        }
                                       },
-                                      "args": {
-                                        "args": []
-                                      }
-                                    }
-                                  },
-                                  "span": {
-                                    "start": 244,
-                                    "end": 272
-                                  },
-                                  "id": 22
-                                }
-                              ]
-                            }
+                                      "span": {
+                                        "start": 244,
+                                        "end": 270
+                                      },
+                                      "id": 21
+                                    },
+                                    "args": []
+                                  }
+                                },
+                                "span": {
+                                  "start": 244,
+                                  "end": 272
+                                },
+                                "id": 22
+                              }
+                            ]
                           }
                         },
                         "span": {

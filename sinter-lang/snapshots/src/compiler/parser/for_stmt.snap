@@ -40,30 +40,28 @@
                 },
                 "id": 0
               },
-              "args": {
-                "args": [
-                  {
-                    "kind": {
-                      "Integer": 0
-                    },
-                    "span": {
-                      "start": 19,
-                      "end": 20
-                    },
-                    "id": 1
+              "args": [
+                {
+                  "kind": {
+                    "Integer": 0
                   },
-                  {
-                    "kind": {
-                      "Integer": 100
-                    },
-                    "span": {
-                      "start": 22,
-                      "end": 25
-                    },
-                    "id": 2
-                  }
-                ]
-              }
+                  "span": {
+                    "start": 19,
+                    "end": 20
+                  },
+                  "id": 1
+                },
+                {
+                  "kind": {
+                    "Integer": 100
+                  },
+                  "span": {
+                    "start": 22,
+                    "end": 25
+                  },
+                  "id": 2
+                }
+              ]
             }
           },
           "span": {

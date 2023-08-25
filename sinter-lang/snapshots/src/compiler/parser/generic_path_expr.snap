@@ -26,38 +26,34 @@
             "end": 12
           }
         },
-        "generics": {
-          "generics": [
-            {
-              "kind": {
-                "Path": {
-                  "path": {
-                    "ident": {
-                      "ident_type": "LocalOrUse",
-                      "idents": [
-                        {
-                          "ident": 3,
-                          "span": {
-                            "start": 15,
-                            "end": 16
-                          }
+        "generics": [
+          {
+            "kind": {
+              "Path": {
+                "path": {
+                  "ident": {
+                    "ident_type": "LocalOrUse",
+                    "idents": [
+                      {
+                        "ident": 3,
+                        "span": {
+                          "start": 15,
+                          "end": 16
                         }
-                      ]
-                    },
-                    "generics": {
-                      "generics": []
-                    }
-                  }
+                      }
+                    ]
+                  },
+                  "generics": []
                 }
-              },
-              "span": {
-                "start": 15,
-                "end": 16
-              },
-              "id": 0
-            }
-          ]
-        }
+              }
+            },
+            "span": {
+              "start": 15,
+              "end": 16
+            },
+            "id": 0
+          }
+        ]
       },
       {
         "ident": {

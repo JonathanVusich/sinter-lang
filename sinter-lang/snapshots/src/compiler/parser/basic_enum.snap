@@ -39,15 +39,11 @@
                 "end": 11
               }
             },
-            "generic_params": {
-              "params": []
-            },
+            "generic_params": [],
             "members": [
               {
                 "name": 2,
-                "fields": {
-                  "params": []
-                },
+                "fields": [],
                 "self_fns": [],
                 "span": {
                   "start": 18,
@@ -57,9 +53,7 @@
               },
               {
                 "name": 3,
-                "fields": {
-                  "params": []
-                },
+                "fields": [],
                 "self_fns": [],
                 "span": {
                   "start": 31,
@@ -69,9 +63,7 @@
               },
               {
                 "name": 4,
-                "fields": {
-                  "params": []
-                },
+                "fields": [],
                 "self_fns": [],
                 "span": {
                   "start": 42,
@@ -81,9 +73,7 @@
               },
               {
                 "name": 5,
-                "fields": {
-                  "params": []
-                },
+                "fields": [],
                 "self_fns": [],
                 "span": {
                   "start": 53,
@@ -93,9 +83,7 @@
               },
               {
                 "name": 6,
-                "fields": {
-                  "params": []
-                },
+                "fields": [],
                 "self_fns": [],
                 "span": {
                   "start": 63,
@@ -105,9 +93,7 @@
               },
               {
                 "name": 7,
-                "fields": {
-                  "params": []
-                },
+                "fields": [],
                 "self_fns": [],
                 "span": {
                   "start": 76,
@@ -117,9 +103,7 @@
               },
               {
                 "name": 8,
-                "fields": {
-                  "params": []
-                },
+                "fields": [],
                 "self_fns": [],
                 "span": {
                   "start": 88,
@@ -129,9 +113,7 @@
               },
               {
                 "name": 9,
-                "fields": {
-                  "params": []
-                },
+                "fields": [],
                 "self_fns": [],
                 "span": {
                   "start": 100,
@@ -141,9 +123,7 @@
               },
               {
                 "name": 10,
-                "fields": {
-                  "params": []
-                },
+                "fields": [],
                 "self_fns": [],
                 "span": {
                   "start": 113,

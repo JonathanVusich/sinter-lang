@@ -79,87 +79,81 @@
                             },
                             "id": 3
                           },
-                          "args": {
-                            "args": [
-                              {
-                                "kind": {
-                                  "Call": {
-                                    "target": {
+                          "args": [
+                            {
+                              "kind": {
+                                "Call": {
+                                  "target": {
+                                    "kind": {
+                                      "Path": {
+                                        "ident_type": "LocalOrUse",
+                                        "segments": [
+                                          {
+                                            "ident": {
+                                              "ident": 2,
+                                              "span": {
+                                                "start": 10,
+                                                "end": 11
+                                              }
+                                            },
+                                            "generics": null
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "span": {
+                                      "start": 10,
+                                      "end": 11
+                                    },
+                                    "id": 4
+                                  },
+                                  "args": [
+                                    {
                                       "kind": {
-                                        "Path": {
-                                          "ident_type": "LocalOrUse",
-                                          "segments": [
-                                            {
-                                              "ident": {
-                                                "ident": 2,
-                                                "span": {
-                                                  "start": 10,
-                                                  "end": 11
-                                                }
-                                              },
-                                              "generics": null
-                                            }
-                                          ]
+                                        "Call": {
+                                          "target": {
+                                            "kind": {
+                                              "Path": {
+                                                "ident_type": "LocalOrUse",
+                                                "segments": [
+                                                  {
+                                                    "ident": {
+                                                      "ident": 3,
+                                                      "span": {
+                                                        "start": 12,
+                                                        "end": 13
+                                                      }
+                                                    },
+                                                    "generics": null
+                                                  }
+                                                ]
+                                              }
+                                            },
+                                            "span": {
+                                              "start": 12,
+                                              "end": 13
+                                            },
+                                            "id": 5
+                                          },
+                                          "args": []
                                         }
                                       },
                                       "span": {
-                                        "start": 10,
-                                        "end": 11
+                                        "start": 12,
+                                        "end": 15
                                       },
-                                      "id": 4
-                                    },
-                                    "args": {
-                                      "args": [
-                                        {
-                                          "kind": {
-                                            "Call": {
-                                              "target": {
-                                                "kind": {
-                                                  "Path": {
-                                                    "ident_type": "LocalOrUse",
-                                                    "segments": [
-                                                      {
-                                                        "ident": {
-                                                          "ident": 3,
-                                                          "span": {
-                                                            "start": 12,
-                                                            "end": 13
-                                                          }
-                                                        },
-                                                        "generics": null
-                                                      }
-                                                    ]
-                                                  }
-                                                },
-                                                "span": {
-                                                  "start": 12,
-                                                  "end": 13
-                                                },
-                                                "id": 5
-                                              },
-                                              "args": {
-                                                "args": []
-                                              }
-                                            }
-                                          },
-                                          "span": {
-                                            "start": 12,
-                                            "end": 15
-                                          },
-                                          "id": 6
-                                        }
-                                      ]
+                                      "id": 6
                                     }
-                                  }
-                                },
-                                "span": {
-                                  "start": 10,
-                                  "end": 16
-                                },
-                                "id": 7
-                              }
-                            ]
-                          }
+                                  ]
+                                }
+                              },
+                              "span": {
+                                "start": 10,
+                                "end": 16
+                              },
+                              "id": 7
+                            }
+                          ]
                         }
                       },
                       "span": {

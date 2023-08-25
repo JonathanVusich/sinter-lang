@@ -312,15 +312,48 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::compiler::compiler::{Application, CompileError, Compiler, CompilerCtxt};
-    use crate::compiler::hir::{Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, Ty};
+    use crate::compiler::hir::{
+        Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, LocalDefId, Ty,
+    };
     use crate::compiler::krate::CrateId;
     use crate::compiler::tokens::tokenized_file::Span;
     use crate::compiler::ty_infer::{CrateInference, TypeInference};
-    use crate::compiler::types::{InternedStr, StrMap};
+    use crate::compiler::types::{InternedStr, LDefMap, StrMap};
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
     type TypedResult = (StringInterner, StrMap<HirCrate>);
+
+    #[derive(Default)]
+    struct CrateBuilder {
+        ctxt: CompilerCtxt,
+        items: Vec<LocalDefId>,
+        nodes: LDefMap<HirNode>,
+    }
+
+    impl CrateBuilder {
+        fn add(&mut self, hir_node: HirNodeKind) -> LocalDefId {
+            let def_id = self.ctxt.local_def_id();
+            match &hir_node {
+                HirNodeKind::Class(_) | HirNodeKind::Enum(_) | HirNodeKind::Trait(_) => {
+                    self.items.push(def_id);
+                }
+                _ => {}
+            }
+            let hir_node = HirNode::new(hir_node, Span::default(), def_id);
+            self.nodes.insert(def_id, hir_node);
+            def_id
+        }
+
+        fn build(self) -> HirCrate {
+            HirCrate::new(
+                InternedStr::default(),
+                CrateId::default(),
+                self.items,
+                self.nodes,
+            )
+        }
+    }
 
     #[cfg(test)]
     fn infer_types(name: &str) -> TypedResult {
@@ -339,39 +372,20 @@ mod tests {
 
     #[test]
     pub fn infer_crate_tys() {
-        let mut compiler_ctxt = CompilerCtxt::default();
+        let mut crate_builder = CrateBuilder::default();
 
-        let initializer_id = compiler_ctxt.local_def_id();
-        let global_let_id = compiler_ctxt.local_def_id();
-
-        let global_let = HirNode::new(
-            HirNodeKind::GlobalLet(GlobalLetStmt::new(
-                InternedStr::default(),
-                None,
-                initializer_id,
-            )),
-            Span::default(),
-            global_let_id,
-        );
-
-        let initializer = HirNode::new(
-            HirNodeKind::Expr(Expr::Integer(123)),
-            Span::default(),
-            initializer_id,
-        );
-
-        let mut krate = HirCrate::new(
+        let initializer = crate_builder.add(HirNodeKind::Expr(Expr::Integer(123)));
+        let global_let = crate_builder.add(HirNodeKind::GlobalLet(GlobalLetStmt::new(
             InternedStr::default(),
-            CrateId::default(),
-            vec![global_let_id],
-            HashMap::from([(global_let_id, global_let), (initializer_id, initializer)]),
-        );
-
+            None,
+            initializer,
+        )));
+        let mut krate = crate_builder.build();
         let crate_inference = CrateInference::new(&mut krate);
         match crate_inference.infer_tys() {
             Err(_) => panic!(),
             Ok(map) => {
-                let ty = map.get(&global_let_id);
+                let ty = map.get(&global_let);
                 match ty {
                     Some(&Ty::I64) => {}
                     _ => panic!(),

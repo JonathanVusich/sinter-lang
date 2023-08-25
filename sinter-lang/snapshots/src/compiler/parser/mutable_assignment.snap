@@ -32,12 +32,8 @@
                   "end": 10
                 }
               },
-              "generic_params": {
-                "params": []
-              },
-              "params": {
-                "params": []
-              },
+              "generic_params": [],
+              "params": [],
               "return_type": null
             },
             "body": {
