@@ -26,12 +26,12 @@ use crate::compiler::ast::{
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::{
     Args, ArrayExpr, AssignExpr, Block, Builtin, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, DefinedTy, DestructureExpr, DestructurePattern, EnumMember, EnumMembers,
+    ClosureParams, DefId, Ty, DestructureExpr, DestructurePattern, EnumMember, EnumMembers,
     EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt,
     GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt,
     IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param,
     Params, PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt, Segment, Stmt, Stmts, TraitBound,
-    TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
+    TraitImplStmt, TraitStmt, TyPattern, UnaryExpr, WhileStmt,
 };
 use crate::compiler::krate::{Crate, CrateDef};
 use crate::compiler::path::ModulePath;
@@ -1064,9 +1064,9 @@ impl<'a> CrateResolver<'a> {
         Ok(id)
     }
 
-    fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Result<Option<Ty>, ResolveError> {
+    fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Result<Option<LocalDefId>, ResolveError> {
         if let Some(ty) = ty {
-            self.resolve_ty(ty).map(Ty::Defined).map(Some)
+            self.resolve_ty(ty).map(Some)
         } else {
             Ok(None)
         }
@@ -1076,10 +1076,10 @@ impl<'a> CrateResolver<'a> {
         let span = ty.span;
         let id = ty.id;
         let hir_ty = match &ty.kind {
-            TyKind::Array { ty } => DefinedTy::Array {
+            TyKind::Array { ty } => Ty::Array {
                 ty: self.resolve_ty(ty)?,
             },
-            TyKind::Path { path } => DefinedTy::Path {
+            TyKind::Path { path } => Ty::Path {
                 path: self.resolve_path_ty(path)?,
             },
             TyKind::TraitBound { trait_bound } => {
@@ -1089,7 +1089,7 @@ impl<'a> CrateResolver<'a> {
                     let generics = self.resolve_generics(&path.generics)?;
                     paths.push(PathTy::new(def, generics));
                 }
-                DefinedTy::TraitBound {
+                Ty::TraitBound {
                     trait_bound: TraitBound::new(paths),
                 }
             }
@@ -1099,7 +1099,7 @@ impl<'a> CrateResolver<'a> {
                     .map(|param| self.resolve_ty(param))
                     .collect::<Result<Arc<[LocalDefId]>, ResolveError>>()?;
                 let ret_ty = self.resolve_ty(ret_ty)?;
-                DefinedTy::Closure { params, ret_ty }
+                Ty::Closure { params, ret_ty }
             }
             TyKind::QSelf => {
                 // TODO: Convert to path type
@@ -1117,49 +1117,23 @@ impl<'a> CrateResolver<'a> {
                     .copied()
                     .unwrap();
 
-                DefinedTy::Path {
+                Ty::Path {
                     path: PathTy::new(item_def, Generics::default()),
                 }
             }
-            TyKind::U8 => DefinedTy::Builtin {
-                builtin: Builtin::U8,
-            },
-            TyKind::U16 => DefinedTy::Builtin {
-                builtin: Builtin::U16,
-            },
-            TyKind::U32 => DefinedTy::Builtin {
-                builtin: Builtin::U32,
-            },
-            TyKind::U64 => DefinedTy::Builtin {
-                builtin: Builtin::U64,
-            },
-            TyKind::I8 => DefinedTy::Builtin {
-                builtin: Builtin::I8,
-            },
-            TyKind::I16 => DefinedTy::Builtin {
-                builtin: Builtin::I16,
-            },
-            TyKind::I32 => DefinedTy::Builtin {
-                builtin: Builtin::I32,
-            },
-            TyKind::I64 => DefinedTy::Builtin {
-                builtin: Builtin::I64,
-            },
-            TyKind::F32 => DefinedTy::Builtin {
-                builtin: Builtin::F32,
-            },
-            TyKind::F64 => DefinedTy::Builtin {
-                builtin: Builtin::F64,
-            },
-            TyKind::Boolean => DefinedTy::Builtin {
-                builtin: Builtin::Boolean,
-            },
-            TyKind::Str => DefinedTy::Builtin {
-                builtin: Builtin::Str,
-            },
-            TyKind::None => DefinedTy::Builtin {
-                builtin: Builtin::None,
-            },
+            TyKind::U8 => Ty::U8,
+            TyKind::U16 => Ty::U16,
+            TyKind::U32 => Ty::U32,
+            TyKind::U64 => Ty::U64,
+            TyKind::I8 => Ty::I8,
+            TyKind::I16 => Ty::I16,
+            TyKind::I32 => Ty::I32,
+            TyKind::I64 => Ty::I64,
+            TyKind::F32 => Ty::F32,
+            TyKind::F64 => Ty::F64,
+            TyKind::Boolean => Ty::Boolean,
+            TyKind::Str => Ty::Str,
+            TyKind::None => Ty::None,
         };
 
         self.insert_node(id, HirNode::new(HirNodeKind::DefinedTy(hir_ty), span, id))?;
@@ -1187,7 +1161,7 @@ impl<'a> CrateResolver<'a> {
         self.insert_node(
             id,
             HirNode::new(
-                HirNodeKind::DefinedTy(DefinedTy::TraitBound {
+                HirNodeKind::DefinedTy(Ty::TraitBound {
                     trait_bound: hir_bound.into(),
                 }),
                 span,

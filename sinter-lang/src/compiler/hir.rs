@@ -117,7 +117,7 @@ pub enum HirNodeKind {
     EnumMember(EnumMember),
 
     Expr(Expr),
-    DefinedTy(DefinedTy),
+    DefinedTy(Ty),
     DestructureExpr(DestructureExpr),
     Stmt(Stmt),
     Block(Block),
@@ -132,12 +132,12 @@ pub enum HirNodeKind {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
     pub ident: InternedStr,
-    pub ty: Option<Ty>,
+    pub ty: Option<LocalDefId>,
     pub initializer: LocalDefId,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: InternedStr, ty: Option<Ty>, initializer: LocalDefId) -> Self {
+    pub fn new(ident: InternedStr, ty: Option<LocalDefId>, initializer: LocalDefId) -> Self {
         Self {
             ident,
             ty,
@@ -278,7 +278,7 @@ pub struct FnSig {
     pub(crate) name: Ident,
     pub(crate) generic_params: GenericParams,
     pub(crate) params: Params,
-    pub(crate) return_type: Option<Ty>,
+    pub(crate) return_type: Option<LocalDefId>,
 }
 
 impl FnSig {
@@ -286,7 +286,7 @@ impl FnSig {
         name: Ident,
         generic_params: GenericParams,
         params: Params,
-        return_type: Option<Ty>,
+        return_type: Option<LocalDefId>,
     ) -> Self {
         Self {
             name,
@@ -341,13 +341,25 @@ impl Expression {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum Ty {
-    Defined(LocalDefId),
-    Builtin(Builtin),
+pub enum Builtin {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum Builtin {
+//noinspection DuplicatedCode
+pub enum Ty {
+    Array {
+        ty: LocalDefId,
+    },
+    Path {
+        path: PathTy,
+    },
+    TraitBound {
+        trait_bound: TraitBound,
+    },
+    Closure {
+        params: Arc<[LocalDefId]>,
+        ret_ty: LocalDefId,
+    },
     U8,
     U16,
     U32,
@@ -363,29 +375,8 @@ pub enum Builtin {
     None,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-//noinspection DuplicatedCode
-pub enum DefinedTy {
-    Array {
-        ty: LocalDefId,
-    },
-    Path {
-        path: PathTy,
-    },
-    TraitBound {
-        trait_bound: TraitBound,
-    },
-    Closure {
-        params: Arc<[LocalDefId]>,
-        ret_ty: LocalDefId,
-    },
-    Builtin {
-        builtin: Builtin,
-    },
-}
-
-impl DefinedTy {
-    fn contains_ty(&self, other: &DefinedTy) -> bool {
+impl Ty {
+    fn contains_ty(&self, other: &Ty) -> bool {
         todo!()
         // match self {
         //     Ty::Array { .. } => {}
@@ -740,7 +731,7 @@ impl Field {
 pub struct LetStmt {
     pub ident: Ident,
     pub mutability: Mutability,
-    pub ty: Option<Ty>,
+    pub ty: Option<LocalDefId>,
     pub initializer: Option<LocalDefId>,
 }
 
@@ -748,7 +739,7 @@ impl LetStmt {
     pub fn new(
         ident: Ident,
         mutability: Mutability,
-        ty: Option<Ty>,
+        ty: Option<LocalDefId>,
         initializer: Option<LocalDefId>,
     ) -> Self {
         Self {
@@ -1056,25 +1047,27 @@ impl HirCrate {
         }
     }
 
-    pub fn iter_items(&self) -> impl Iterator<Item = &LocalDefId> {
-        self.items.iter()
+    pub fn iter_items(&self) -> impl Iterator<Item = LocalDefId> + '_ {
+        self.items.iter().copied()
     }
 
-    pub fn get_node(&self, node: &LocalDefId) -> &HirNodeKind {
-        self.nodes.get(node).map(|node| &node.kind).unwrap()
+    pub fn get_node(&self, node: LocalDefId) -> &HirNodeKind {
+        self.nodes.get(&node).map(|node| &node.kind).unwrap()
     }
 
-    pub fn get_defined_ty(&self, ty: &LocalDefId) -> &DefinedTy {
-        match self.nodes.get(ty) {
+    pub fn get_ty(&self, ty: LocalDefId) -> Ty {
+        match self.nodes.get(&ty) {
             Some(HirNode {
                 kind: HirNodeKind::DefinedTy(ty),
                 ..
-            }) => ty,
+            }) => ty.clone(),
             _ => panic!(),
         }
     }
 
-    pub fn get_node_mut(&mut self, node: &LocalDefId) -> &mut HirNodeKind {
-        self.nodes.get_mut(node).map(|node| &mut node.kind).unwrap()
+    pub fn get_node_mut(&mut self, node: LocalDefId) -> &mut HirNodeKind {
+        self.nodes.get_mut(&node)
+            .map(|node| &mut node.kind)
+            .unwrap()
     }
 }

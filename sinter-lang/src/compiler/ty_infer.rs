@@ -7,13 +7,13 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::compiler::CompileError::TypeErrors;
 use crate::compiler::hir::{
-    ArrayExpr, Builtin, DefinedTy, Expr, HirCrate, HirNodeKind, LocalDefId, Ty,
+    ArrayExpr, Builtin, Expr, HirCrate, HirNodeKind, LocalDefId, Ty,
 };
 use crate::compiler::types::StrMap;
 
 #[derive(Debug)]
 pub enum TypeError {
-    TypesNotEqual(DefinedTy, DefinedTy),
+    TypesNotEqual(Ty, Ty),
     UnificationError,
     CyclicType,
 }
@@ -59,9 +59,9 @@ impl<'a> CrateInference<'a> {
 
     fn infer_tys(mut self) -> Result<(), CompileError> {
         let mut errors = Vec::default();
-        for item in self.krate.iter_items() {
-            let node = self.krate.get_node(item);
-            let (constraints, ty) = self.infer(node);
+        let items = self.krate.iter_items().collect_vec();
+        for item in items {
+            let (constraints, ty) = self.infer(item);
 
             if let Err(error) = self.unify(constraints) {
                 errors.push(error)
@@ -76,66 +76,74 @@ impl<'a> CrateInference<'a> {
         Ok(())
     }
 
-    fn infer(&mut self, node: &HirNodeKind) -> (Constraints, Type) {
+    fn infer(&mut self, node: LocalDefId) -> (Constraints, Type) {
+        let node = self.krate.get_node(node);
         match &node {
             HirNodeKind::GlobalLet(global_let) => {
-                let initializer = self.krate.get_node(&global_let.initializer);
                 match global_let.ty {
-                    Ty::Defined(defined) => {
-                        let ty = self.krate.get_defined_ty(&defined);
-                        let constraints = self.check(initializer, ty);
-                        (constraints, Type::Concrete(ty.clone()))
+                    Some(ty) => {
+                        let ty = self.krate.get_ty(ty);
+                        let constraints = self.check(global_let.initializer, ty.clone());
+                        (constraints, Type::Concrete(ty))
                     }
                     // We do not need a separate check for built in types since they are not present until after type inference.
-                    _ => self.infer(initializer),
+                    _ => self.infer(global_let.initializer),
                 }
             }
             HirNodeKind::Expr(expr) => match expr {
-                Expr::Float(float) => (Constraints::default(), Type::Concrete(DefinedTy::F64)),
-                Expr::Integer(int) => (Constraints::default(), Type::Concrete(DefinedTy::I64)),
+                Expr::Float(float) => (Constraints::default(), Type::Concrete(Ty::F64)),
+                Expr::Integer(int) => (Constraints::default(), Type::Concrete(Ty::I64)),
                 _ => (Constraints::default(), self.fresh_ty()),
             },
             _ => (Constraints::default(), self.fresh_ty()),
         }
     }
 
-    fn check(&mut self, node: &HirNodeKind, expected_ty: &DefinedTy) -> Constraints {
-        match (node, expected_ty) {
+    fn check(&mut self, node_id: LocalDefId, ty: Ty) -> Constraints {
+        enum Op {
+            Check(LocalDefId, Ty),
+            Infer(LocalDefId),
+        }
+
+        let node = self.krate.get_node(node_id);
+        let op = match (node, ty) {
             (
                 HirNodeKind::Expr(Expr::Array(ArrayExpr::Unsized { initializers })),
-                DefinedTy::Array { ty },
-            ) => initializers
-                .iter()
-                .flat_map(|expr| {
-                    let expr = self.krate.get_node(expr);
-                    let ty = self.krate.get_defined_ty(ty);
-                    self.check(expr, ty)
-                })
-                .collect_vec(),
+                Ty::Array { ty },
+            ) => {
+                Op()
+                let ty = self.krate.get_ty(ty);
+                initializers
+                    .iter()
+                    .copied()
+                    .flat_map(|expr| {
+                        self.check(expr, ty)
+                    })
+                    .collect_vec()
+            },
             (
                 HirNodeKind::Expr(Expr::Array(ArrayExpr::Sized { initializer, size })),
-                DefinedTy::Array { ty },
+                Ty::Array { ty },
             ) => {
-                let initializer = self.krate.get_node(initializer);
-                let size = self.krate.get_node(size);
-                let ty = self.krate.get_defined_ty(ty);
-
-                let mut constraints = self.check(initializer, ty);
-                constraints.extend(self.check(size, &DefinedTy::I64));
+                let ty = self.krate.get_ty(ty).clone();
+                let mut constraints = self.check(*initializer, ty);
+                constraints.extend(self.check(*size, Ty::I64));
                 constraints
             }
-            (HirNodeKind::Expr(Expr::Float(float)), DefinedTy::F32 | DefinedTy::F64) => {
+            (HirNodeKind::Expr(Expr::Float(float)), Ty::F32 | Ty::F64) => {
                 Constraints::default()
             }
-            (HirNodeKind::Expr(Expr::Integer(int)), DefinedTy::I64) => Constraints::default(),
+            (HirNodeKind::Expr(Expr::Integer(int)), Ty::I64) => Constraints::default(),
             // TODO: Cover other explicit cases
             // TODO: Implement fallthrough case that asserts the types are equal
             (node, ty) => {
-                let (mut constraints, inferred_ty) = self.infer(node);
+                let (mut constraints, inferred_ty) = self.infer(node_id);
                 constraints.push(Constraint::Equal(Type::Concrete(ty.clone()), inferred_ty));
                 constraints
             }
         }
+
+
     }
 
     fn unify(&mut self, constraints: Constraints) -> Result<(), TypeError> {
@@ -184,7 +192,7 @@ impl<'a> CrateInference<'a> {
         }
     }
 
-    fn substitute_tys(&mut self, node: &LocalDefId, ty: Type) {
+    fn substitute_tys(&mut self, node: LocalDefId, ty: Type) {
         let node = self.krate.get_node_mut(node);
         let substituted_ty = match ty {
             Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
@@ -206,7 +214,7 @@ struct UnificationTable {
 
 struct Entry {
     parent: TyVar,
-    value: Option<DefinedTy>,
+    value: Option<Ty>,
 }
 
 impl Entry {
@@ -231,7 +239,7 @@ impl UnificationTable {
         }
     }
 
-    fn unify_var_ty(&mut self, var: TyVar, ty: DefinedTy) -> Result<(), TypeError> {
+    fn unify_var_ty(&mut self, var: TyVar, ty: Ty) -> Result<(), TypeError> {
         let root = self.get_root_key(var);
         if self.entry(root).value == Some(ty) {
             Ok(())
@@ -240,7 +248,7 @@ impl UnificationTable {
         }
     }
 
-    fn probe(&mut self, key: TyVar) -> Option<DefinedTy> {
+    fn probe(&mut self, key: TyVar) -> Option<Ty> {
         let root_key = self.get_root_key(key);
         self.entry(root_key).value.clone()
     }
@@ -296,7 +304,7 @@ impl TyVar {
 
 enum Type {
     Infer(TyVar),
-    Concrete(DefinedTy),
+    Concrete(Ty),
 }
 
 mod tests {
@@ -338,7 +346,7 @@ mod tests {
         let global_let = HirNode::new(
             HirNodeKind::GlobalLet(GlobalLetStmt::new(
                 InternedStr::default(),
-                Ty::None,
+                None,
                 initializer_id,
             )),
             Span::default(),
