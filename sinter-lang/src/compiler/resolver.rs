@@ -39,7 +39,7 @@ use crate::compiler::resolver::ResolveError::{
     DuplicateLocalDefIds, ExpectedValueWasModule, QualifiedIdentNotFound, VarNotFound,
 };
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::{IStrMap, InternedStr, LocalDefIdMap, StrMap};
+use crate::compiler::types::{IStrMap, InternedStr, LDefMap, StrMap};
 
 pub fn resolve(crates: &mut StrMap<Crate>) -> Result<StrMap<HirCrate>, CompileError> {
     let resolver = Resolver::new(crates);
@@ -408,7 +408,7 @@ struct CrateResolver<'a> {
     module: Option<&'a Module>,
     errors: Vec<ResolveError>,
     items: Vec<LocalDefId>,
-    nodes: LocalDefIdMap<HirNode>,
+    nodes: LDefMap<HirNode>,
     scopes: Vec<Scope>,
 }
 

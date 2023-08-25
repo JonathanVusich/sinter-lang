@@ -8,7 +8,9 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 #[repr(transparent)]
-#[derive(Copy, Clone, PartialEq, Eq, Default, Debug, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Copy, Clone, PartialEq, Eq, Default, Debug, PartialOrd, Ord, Hash, Serialize, Deserialize,
+)]
 #[serde(transparent)]
 pub struct InternedStr {
     str: Spur,
@@ -53,7 +55,7 @@ impl InternedTy {
 pub(crate) type StrSet = HashSet<InternedStr>;
 pub(crate) type StrMap<T> = HashMap<InternedStr, T>;
 pub(crate) type IStrMap<T> = Arc<StrMap<T>>;
-pub(crate) type LocalDefIdMap<T> = HashMap<LocalDefId, T>;
+pub(crate) type LDefMap<T> = HashMap<LocalDefId, T>;
 
 pub(crate) trait Named {
     fn name(&self) -> InternedStr;

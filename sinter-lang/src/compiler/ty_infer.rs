@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::compiler::CompileError::TypeErrors;
 use crate::compiler::hir::{ArrayExpr, Expr, HirCrate, HirNodeKind, LocalDefId, Ty};
-use crate::compiler::types::StrMap;
+use crate::compiler::types::{LDefMap, StrMap};
 
 #[derive(Debug)]
 pub enum TypeError {
@@ -45,6 +45,7 @@ impl<'a> TypeInference<'a> {
 
 struct CrateInference<'a> {
     unify_table: UnificationTable,
+    ty_map: LDefMap<Ty>,
     krate: &'a mut HirCrate,
 }
 
@@ -52,11 +53,12 @@ impl<'a> CrateInference<'a> {
     fn new(krate: &'a mut HirCrate) -> Self {
         Self {
             unify_table: Default::default(),
+            ty_map: Default::default(),
             krate,
         }
     }
 
-    fn infer_tys(mut self) -> Result<(), CompileError> {
+    fn infer_tys(mut self) -> Result<LDefMap<Ty>, CompileError> {
         let mut errors = Vec::default();
         let items = self.krate.iter_items().collect_vec();
         for item in items {
@@ -65,14 +67,14 @@ impl<'a> CrateInference<'a> {
             if let Err(error) = self.unify(constraints) {
                 errors.push(error)
             } else {
-                self.substitute_tys(item, ty);
+                self.substitute(item, ty);
             }
         }
 
         if !errors.is_empty() {
             return Err(TypeErrors(errors));
         }
-        Ok(())
+        Ok(self.ty_map)
     }
 
     fn infer(&mut self, node: LocalDefId) -> (Constraints, Type) {
@@ -192,14 +194,13 @@ impl<'a> CrateInference<'a> {
         }
     }
 
-    fn substitute_tys(&mut self, node: LocalDefId, ty: Type) {
-        let node = self.krate.get_node_mut(node);
+    fn substitute(&mut self, node_id: LocalDefId, ty: Type) {
+        let node = self.krate.get_node_mut(node_id);
         let substituted_ty = match ty {
             Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
             Type::Concrete(ty) => ty,
         };
-        // Need to figure out some way to add type nodes like when a float or int is inferred.
-        todo!()
+        self.ty_map.insert(node_id, substituted_ty);
     }
 
     fn fresh_ty(&mut self) -> Type {
@@ -311,7 +312,7 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::compiler::compiler::{Application, CompileError, Compiler, CompilerCtxt};
-    use crate::compiler::hir::{Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind};
+    use crate::compiler::hir::{Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, Ty};
     use crate::compiler::krate::CrateId;
     use crate::compiler::tokens::tokenized_file::Span;
     use crate::compiler::ty_infer::{CrateInference, TypeInference};
@@ -369,27 +370,13 @@ mod tests {
         let crate_inference = CrateInference::new(&mut krate);
         match crate_inference.infer_tys() {
             Err(_) => panic!(),
-            _ => match krate.get_node(global_let_id) {
-                HirNodeKind::GlobalLet(global_let) => {
-                    assert!(global_let.ty == Some())
+            Ok(map) => {
+                let ty = map.get(&global_let_id);
+                match ty {
+                    Some(&Ty::I64) => {}
+                    _ => panic!(),
                 }
-                HirNodeKind::Class(_) => {}
-                HirNodeKind::Enum(_) => {}
-                HirNodeKind::Trait(_) => {}
-                HirNodeKind::TraitImpl(_) => {}
-                HirNodeKind::Fn(_) => {}
-                HirNodeKind::EnumMember(_) => {}
-                HirNodeKind::Expr(_) => {}
-                HirNodeKind::Ty(_) => {}
-                HirNodeKind::DestructureExpr(_) => {}
-                HirNodeKind::Stmt(_) => {}
-                HirNodeKind::Block(_) => {}
-                HirNodeKind::Param(_) => {}
-                HirNodeKind::GenericParam(_) => {}
-                HirNodeKind::Field(_) => {}
-                HirNodeKind::Pattern(_) => {}
-                HirNodeKind::MatchArm(_) => {}
-            },
+            }
         }
     }
 }

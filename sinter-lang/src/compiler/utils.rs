@@ -1,10 +1,11 @@
 macro_rules! named_slice {
     ($ident:ident, $ty:ty) => {
         #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+        #[serde(transparent)]
         pub struct $ident {
             inner: Arc<[$ty]>,
         }
-        
+
         impl From<Vec<$ty>> for $ident {
             fn from(value: Vec<$ty>) -> Self {
                 Self {
@@ -19,7 +20,7 @@ macro_rules! named_slice {
                     inner: Vec::new().into(),
                 }
             }
-            
+
             pub fn len(&self) -> usize {
                 self.inner.len()
             }
@@ -30,12 +31,6 @@ macro_rules! named_slice {
 
             fn deref(&self) -> &Self::Target {
                 &self.inner
-            }
-        }
-
-        impl DerefMut for $ident {
-            fn deref_mut(&mut self) -> &mut Self::Target {
-                &mut self.inner
             }
         }
     };
