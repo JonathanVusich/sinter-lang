@@ -25,13 +25,13 @@ use crate::compiler::ast::{
 };
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::{
-    Args, ArrayExpr, AssignExpr, Block, Builtin, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, Ty, DestructureExpr, DestructurePattern, EnumMember, EnumMembers,
-    EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt,
-    GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt,
-    IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param,
-    Params, PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt, Segment, Stmt, Stmts, TraitBound,
-    TraitImplStmt, TraitStmt, TyPattern, UnaryExpr, WhileStmt,
+    AnonParams, Args, ArrayExpr, AssignExpr, Block, Builtin, CallExpr, ClassStmt, ClosureExpr,
+    ClosureParam, ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember,
+    EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts,
+    ForStmt, GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind,
+    IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern,
+    Param, Params, PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt, Segment, Stmt, Stmts,
+    TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use crate::compiler::krate::{Crate, CrateDef};
 use crate::compiler::path::ModulePath;
@@ -539,11 +539,11 @@ impl<'a> CrateResolver<'a> {
         for generic in generics.iter() {
             hir_generics.push(self.resolve_ty(generic)?);
         }
-        Ok(hir_generics.into())
+        Ok(Generics::from(hir_generics))
     }
 
     fn resolve_params(&mut self, params: &AstParams) -> Result<Params, ResolveError> {
-        let mut hir_params = Params::default();
+        let mut hir_params = StrMap::default();
         for param in params.iter() {
             self.insert_param(param.name.ident, param.id)?;
 
@@ -560,14 +560,14 @@ impl<'a> CrateResolver<'a> {
 
             hir_params.insert(param.name.ident, param.id);
         }
-        Ok(hir_params)
+        Ok(Params::from(hir_params))
     }
 
     fn resolve_generic_params(
         &mut self,
         generic_params: &AstGenericParams,
     ) -> Result<GenericParams, ResolveError> {
-        let mut generics = GenericParams::default();
+        let mut generics = StrMap::default();
         for param in generic_params.iter() {
             self.insert_generic_param(param.name.ident, param.id)?;
 
@@ -595,11 +595,11 @@ impl<'a> CrateResolver<'a> {
 
             generics.insert(param.name.ident, param.id);
         }
-        Ok(generics)
+        Ok(GenericParams::from(generics))
     }
 
     fn get_module(&self, id: ModuleId) -> &Module {
-        self.crate_lookup.get(id.crate_id()).unwrap().module(id)
+        self.crate_lookup[id.crate_id()].module(id)
     }
 
     fn insert_field(&mut self, field_name: InternedStr, id: LocalDefId) -> ResolveResult {
@@ -690,7 +690,7 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_fields(&mut self, ast_fields: &AstFields) -> Result<Fields, ResolveError> {
-        let mut fields = Fields::default();
+        let mut fields = StrMap::default();
         for field in ast_fields.iter() {
             let AstField {
                 name: ident,
@@ -716,7 +716,7 @@ impl<'a> CrateResolver<'a> {
             )?;
             fields.insert(ident.ident, *id);
         }
-        Ok(fields)
+        Ok(Fields::from(fields))
     }
 
     fn resolve_enum_stmt(
@@ -898,12 +898,12 @@ impl<'a> CrateResolver<'a> {
         }
 
         // This is safe because we have already checked to ensure that there are no name collisions.
-        let mut fn_stmts = FnStmts::default();
+        let mut fn_stmts = StrMap::default();
         for fn_stmt in stmts {
             let (name, stmt) = self.resolve_self_fn_stmt(fn_stmt)?;
             fn_stmts.insert(name, stmt);
         }
-        Ok(fn_stmts)
+        Ok(FnStmts::from(fn_stmts))
     }
 
     fn resolve_fn_sig(&mut self, fn_sig: &AstFnSig) -> Result<FnSig, ResolveError> {
@@ -941,7 +941,8 @@ impl<'a> CrateResolver<'a> {
                     let initializers = initializers
                         .iter()
                         .map(|expr| self.resolve_expr(expr))
-                        .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
+                        .collect::<Result<Vec<LocalDefId>, ResolveError>>()?
+                        .into();
 
                     Expr::Array(ArrayExpr::Unsized { initializers })
                 }
@@ -954,7 +955,7 @@ impl<'a> CrateResolver<'a> {
                     .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
                 let target = self.resolve_expr(&call.target)?;
 
-                Expr::Call(CallExpr::new(target, Args::new(args)))
+                Expr::Call(CallExpr::new(target, Args::from(args)))
             }
             AstExprKind::Infix(infix) => {
                 let lhs = self.resolve_expr(&infix.lhs)?;
@@ -1083,26 +1084,28 @@ impl<'a> CrateResolver<'a> {
                 path: self.resolve_path_ty(path)?,
             },
             TyKind::TraitBound { trait_bound } => {
-                let mut paths = Vec::with_capacity(trait_bound.bounds.len());
-                for path in trait_bound.bounds.iter() {
+                let mut paths = Vec::with_capacity(trait_bound.len());
+                for path in trait_bound.iter() {
                     let def = self.resolve_qualified_ident(&path.ident)?;
                     let generics = self.resolve_generics(&path.generics)?;
                     paths.push(PathTy::new(def, generics));
                 }
                 Ty::TraitBound {
-                    trait_bound: TraitBound::new(paths),
+                    trait_bound: TraitBound::from(paths),
                 }
             }
             TyKind::Closure { params, ret_ty } => {
                 let params = params
                     .iter()
                     .map(|param| self.resolve_ty(param))
-                    .collect::<Result<Arc<[LocalDefId]>, ResolveError>>()?;
+                    .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
                 let ret_ty = self.resolve_ty(ret_ty)?;
-                Ty::Closure { params, ret_ty }
+                Ty::Closure {
+                    params: AnonParams::from(params),
+                    ret_ty,
+                }
             }
             TyKind::QSelf => {
-                // TODO: Convert to path type
                 let item_def = self
                     .scopes
                     .iter()
@@ -1118,7 +1121,7 @@ impl<'a> CrateResolver<'a> {
                     .unwrap();
 
                 Ty::Path {
-                    path: PathTy::new(item_def, Generics::default()),
+                    path: PathTy::new(item_def, Generics::empty()),
                 }
             }
             TyKind::U8 => Ty::U8,
@@ -1136,7 +1139,7 @@ impl<'a> CrateResolver<'a> {
             TyKind::None => Ty::None,
         };
 
-        self.insert_node(id, HirNode::new(HirNodeKind::DefinedTy(hir_ty), span, id))?;
+        self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id))?;
         Ok(id)
     }
 
@@ -1152,8 +1155,8 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> Result<LocalDefId, ResolveError> {
-        let mut hir_bound = Vec::with_capacity(trait_bound.bounds.len());
-        for ty in trait_bound.bounds.iter() {
+        let mut hir_bound = Vec::with_capacity(trait_bound.len());
+        for ty in trait_bound.iter() {
             let resolved_ty = self.resolve_path_ty(ty)?;
             hir_bound.push(resolved_ty);
         }
@@ -1161,7 +1164,7 @@ impl<'a> CrateResolver<'a> {
         self.insert_node(
             id,
             HirNode::new(
-                HirNodeKind::DefinedTy(Ty::TraitBound {
+                HirNodeKind::Ty(Ty::TraitBound {
                     trait_bound: hir_bound.into(),
                 }),
                 span,
@@ -1396,11 +1399,11 @@ impl<'a> CrateResolver<'a> {
         params: &[AstClosureParam],
     ) -> Result<ClosureParams, ResolveError> {
         // TODO: Add vars to scope
-        let params = params
+        let params: StrMap<ClosureParam> = params
             .iter()
             .map(|param| (param.ident.ident, ClosureParam::new(param.ident)))
             .collect();
-        Ok(ClosureParams::new(params))
+        Ok(ClosureParams::from(params))
     }
 }
 

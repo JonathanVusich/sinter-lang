@@ -1,14 +1,13 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::sync::Arc;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::compiler::CompileError;
 use crate::compiler::compiler::CompileError::TypeErrors;
-use crate::compiler::hir::{
-    ArrayExpr, Builtin, Expr, HirCrate, HirNodeKind, LocalDefId, Ty,
-};
+use crate::compiler::hir::{ArrayExpr, Expr, HirCrate, HirNodeKind, LocalDefId, Ty};
 use crate::compiler::types::StrMap;
 
 #[derive(Debug)]
@@ -82,7 +81,7 @@ impl<'a> CrateInference<'a> {
             HirNodeKind::GlobalLet(global_let) => {
                 match global_let.ty {
                     Some(ty) => {
-                        let ty = self.krate.get_ty(ty);
+                        let ty = self.krate.get_ty(ty).clone();
                         let constraints = self.check(global_let.initializer, ty.clone());
                         (constraints, Type::Concrete(ty))
                     }
@@ -102,7 +101,9 @@ impl<'a> CrateInference<'a> {
     fn check(&mut self, node_id: LocalDefId, ty: Ty) -> Constraints {
         enum Op {
             Check(LocalDefId, Ty),
-            Infer(LocalDefId),
+            CheckMultiple(Arc<[LocalDefId]>, Ty),
+            None,
+            Infer(LocalDefId, Ty),
         }
 
         let node = self.krate.get_node(node_id);
@@ -111,39 +112,38 @@ impl<'a> CrateInference<'a> {
                 HirNodeKind::Expr(Expr::Array(ArrayExpr::Unsized { initializers })),
                 Ty::Array { ty },
             ) => {
-                Op()
-                let ty = self.krate.get_ty(ty);
-                initializers
-                    .iter()
-                    .copied()
-                    .flat_map(|expr| {
-                        self.check(expr, ty)
-                    })
-                    .collect_vec()
-            },
+                let ty = self.krate.get_ty(ty).clone();
+                let exprs_to_check = initializers.clone();
+                Op::CheckMultiple(exprs_to_check, ty)
+            }
             (
                 HirNodeKind::Expr(Expr::Array(ArrayExpr::Sized { initializer, size })),
                 Ty::Array { ty },
             ) => {
                 let ty = self.krate.get_ty(ty).clone();
-                let mut constraints = self.check(*initializer, ty);
-                constraints.extend(self.check(*size, Ty::I64));
-                constraints
+                Op::Check(*initializer, ty)
             }
-            (HirNodeKind::Expr(Expr::Float(float)), Ty::F32 | Ty::F64) => {
-                Constraints::default()
-            }
-            (HirNodeKind::Expr(Expr::Integer(int)), Ty::I64) => Constraints::default(),
+            (HirNodeKind::Expr(Expr::Float(float)), Ty::F32 | Ty::F64) => Op::None,
+            (HirNodeKind::Expr(Expr::Integer(int)), Ty::I64) => Op::None,
             // TODO: Cover other explicit cases
             // TODO: Implement fallthrough case that asserts the types are equal
-            (node, ty) => {
-                let (mut constraints, inferred_ty) = self.infer(node_id);
-                constraints.push(Constraint::Equal(Type::Concrete(ty.clone()), inferred_ty));
+            (node, ty) => Op::Infer(node_id, ty),
+        };
+
+        match op {
+            Op::Check(node, ty) => self.check(node, ty),
+            Op::CheckMultiple(nodes, ty) => nodes
+                .iter()
+                .copied()
+                .flat_map(|expr| self.check(expr, ty.clone()))
+                .collect_vec(),
+            Op::None => Constraints::default(),
+            Op::Infer(node, ty) => {
+                let (mut constraints, inferred_ty) = self.infer(node);
+                constraints.push(Constraint::Equal(Type::Concrete(ty), inferred_ty));
                 constraints
             }
         }
-
-
     }
 
     fn unify(&mut self, constraints: Constraints) -> Result<(), TypeError> {
@@ -310,8 +310,8 @@ enum Type {
 mod tests {
     use std::collections::HashMap;
 
-    use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
-    use crate::compiler::hir::{Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, Ty};
+    use crate::compiler::compiler::{Application, CompileError, Compiler, CompilerCtxt};
+    use crate::compiler::hir::{Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind};
     use crate::compiler::krate::CrateId;
     use crate::compiler::tokens::tokenized_file::Span;
     use crate::compiler::ty_infer::{CrateInference, TypeInference};
@@ -367,6 +367,29 @@ mod tests {
         );
 
         let crate_inference = CrateInference::new(&mut krate);
-        crate_inference.infer_tys();
+        match crate_inference.infer_tys() {
+            Err(_) => panic!(),
+            _ => match krate.get_node(global_let_id) {
+                HirNodeKind::GlobalLet(global_let) => {
+                    assert!(global_let.ty == Some())
+                }
+                HirNodeKind::Class(_) => {}
+                HirNodeKind::Enum(_) => {}
+                HirNodeKind::Trait(_) => {}
+                HirNodeKind::TraitImpl(_) => {}
+                HirNodeKind::Fn(_) => {}
+                HirNodeKind::EnumMember(_) => {}
+                HirNodeKind::Expr(_) => {}
+                HirNodeKind::Ty(_) => {}
+                HirNodeKind::DestructureExpr(_) => {}
+                HirNodeKind::Stmt(_) => {}
+                HirNodeKind::Block(_) => {}
+                HirNodeKind::Param(_) => {}
+                HirNodeKind::GenericParam(_) => {}
+                HirNodeKind::Field(_) => {}
+                HirNodeKind::Pattern(_) => {}
+                HirNodeKind::MatchArm(_) => {}
+            },
+        }
     }
 }

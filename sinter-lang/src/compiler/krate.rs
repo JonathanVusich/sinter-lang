@@ -169,10 +169,6 @@ impl Crate {
         self.modules.push(module);
     }
 
-    pub fn find_module(&self, module_path: &ModulePath) -> Option<ModuleId> {
-        self.module_lookup.get(module_path).copied()
-    }
-
     pub fn find_definition(
         &self,
         ident: &QualifiedIdent,
@@ -220,9 +216,14 @@ impl Crate {
             }
         }
     }
+    
+    fn find_module(&self, module_path: &ModulePath) -> Option<ModuleId> {
+        self.module_lookup.get(module_path).copied()
+    }
+
 
     pub fn module(&self, mod_id: ModuleId) -> &Module {
-        self.modules.get(mod_id.module_id()).unwrap()
+        &self.modules[mod_id.module_id()]
     }
 
     pub fn module_mut(&mut self, module_id: usize) -> &mut Module {

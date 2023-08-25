@@ -12,6 +12,7 @@ use crate::compiler::parser::ClassType;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::ty_infer::TyVar;
 use crate::compiler::types::{InternedStr, StrMap};
+use crate::compiler::utils::{named_slice, named_strmap};
 
 #[derive(PartialEq, Eq, Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub struct DefId {
@@ -117,7 +118,7 @@ pub enum HirNodeKind {
     EnumMember(EnumMember),
 
     Expr(Expr),
-    DefinedTy(Ty),
+    Ty(Ty),
     DestructureExpr(DestructureExpr),
     Stmt(Stmt),
     Block(Block),
@@ -341,8 +342,7 @@ impl Expression {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum Builtin {
-}
+pub enum Builtin {}
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 //noinspection DuplicatedCode
@@ -357,7 +357,7 @@ pub enum Ty {
         trait_bound: TraitBound,
     },
     Closure {
-        params: Arc<[LocalDefId]>,
+        params: AnonParams,
         ret_ty: LocalDefId,
     },
     U8,
@@ -428,38 +428,16 @@ impl PathTy {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct TraitBound {
-    bounds: Arc<[PathTy]>,
-}
-
-impl From<Vec<PathTy>> for TraitBound {
-    fn from(value: Vec<PathTy>) -> Self {
-        Self::new(value)
-    }
-}
-
-impl TraitBound {
-    pub fn new(bounds: Vec<PathTy>) -> Self {
-        Self {
-            bounds: bounds.into(),
-        }
-    }
-}
-
-impl Deref for TraitBound {
-    type Target = Arc<[PathTy]>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.bounds
-    }
-}
-
-impl DerefMut for TraitBound {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.bounds
-    }
-}
+named_slice!(TraitBound, PathTy);
+named_slice!(Generics, LocalDefId);
+named_slice!(Args, LocalDefId);
+named_slice!(Stmts, LocalDefId);
+named_slice!(AnonParams, LocalDefId);
+named_strmap!(ClosureParams, ClosureParam);
+named_strmap!(GenericParams, LocalDefId);
+named_strmap!(Params, LocalDefId);
+named_strmap!(Fields, LocalDefId);
+named_strmap!(FnStmts, LocalDefId);
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Expr {
@@ -513,7 +491,7 @@ pub enum ArrayExpr {
         size: LocalDefId,
     },
     Unsized {
-        initializers: Vec<LocalDefId>,
+        initializers: Arc<[LocalDefId]>,
     },
 }
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -630,6 +608,7 @@ impl PatternLocal {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct DestructurePattern {
     pub ty: PathTy,
+    // TODO: Replace with Exprs struct
     pub exprs: Arc<[LocalDefId]>,
 }
 
@@ -804,94 +783,6 @@ impl IfStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct FnStmts {
-    fields: StrMap<LocalDefId>,
-}
-
-impl Deref for FnStmts {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.fields
-    }
-}
-
-impl DerefMut for FnStmts {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.fields
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Stmts {
-    stmts: Arc<[LocalDefId]>,
-}
-
-impl From<Vec<LocalDefId>> for Stmts {
-    fn from(value: Vec<LocalDefId>) -> Self {
-        Self {
-            stmts: value.into(),
-        }
-    }
-}
-
-impl Default for Stmts {
-    fn default() -> Self {
-        Self {
-            stmts: Arc::new([]),
-        }
-    }
-}
-
-impl Deref for Stmts {
-    type Target = Arc<[LocalDefId]>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.stmts
-    }
-}
-
-impl DerefMut for Stmts {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.stmts
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Args {
-    args: Arc<[LocalDefId]>,
-}
-
-impl Args {
-    pub fn new(args: Vec<LocalDefId>) -> Self {
-        Self { args: args.into() }
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Fields {
-    fields: StrMap<LocalDefId>,
-}
-
-impl Deref for Fields {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.fields
-    }
-}
-
-impl DerefMut for Fields {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.fields
-    }
-}
-
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 #[repr(transparent)]
 #[serde(transparent)]
@@ -905,68 +796,6 @@ impl ClosureParam {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Params {
-    params: StrMap<LocalDefId>,
-}
-
-impl Deref for Params {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.params
-    }
-}
-
-impl DerefMut for Params {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.params
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct ClosureParams {
-    closure_params: StrMap<ClosureParam>,
-}
-
-impl ClosureParams {
-    pub fn new(fields: StrMap<ClosureParam>) -> Self {
-        Self {
-            closure_params: fields,
-        }
-    }
-}
-
-impl Deref for ClosureParams {
-    type Target = StrMap<ClosureParam>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.closure_params
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct GenericParams {
-    generic_params: StrMap<LocalDefId>,
-}
-
-impl Deref for GenericParams {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.generic_params
-    }
-}
-
-impl DerefMut for GenericParams {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.generic_params
-    }
-}
-
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericParam {
     pub(crate) ident: Ident,
@@ -976,46 +805,6 @@ pub struct GenericParam {
 impl GenericParam {
     pub fn new(ident: Ident, trait_bound: Option<LocalDefId>) -> Self {
         Self { ident, trait_bound }
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Generics {
-    generics: Arc<[LocalDefId]>,
-}
-
-impl Default for Generics {
-    fn default() -> Self {
-        Self::new(Vec::default())
-    }
-}
-
-impl From<Vec<LocalDefId>> for Generics {
-    fn from(value: Vec<LocalDefId>) -> Self {
-        Self::new(value)
-    }
-}
-
-impl Generics {
-    pub fn new(generics: Vec<LocalDefId>) -> Self {
-        Self {
-            generics: generics.into(),
-        }
-    }
-}
-
-impl Deref for Generics {
-    type Target = Arc<[LocalDefId]>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.generics
-    }
-}
-
-impl DerefMut for Generics {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.generics
     }
 }
 
@@ -1055,18 +844,19 @@ impl HirCrate {
         self.nodes.get(&node).map(|node| &node.kind).unwrap()
     }
 
-    pub fn get_ty(&self, ty: LocalDefId) -> Ty {
+    pub fn get_ty(&self, ty: LocalDefId) -> &Ty {
         match self.nodes.get(&ty) {
             Some(HirNode {
-                kind: HirNodeKind::DefinedTy(ty),
+                kind: HirNodeKind::Ty(ty),
                 ..
-            }) => ty.clone(),
+            }) => ty,
             _ => panic!(),
         }
     }
 
     pub fn get_node_mut(&mut self, node: LocalDefId) -> &mut HirNodeKind {
-        self.nodes.get_mut(&node)
+        self.nodes
+            .get_mut(&node)
             .map(|node| &mut node.kind)
             .unwrap()
     }

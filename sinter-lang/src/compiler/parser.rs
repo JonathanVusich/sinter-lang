@@ -253,13 +253,7 @@ impl<'ctxt> Parser<'ctxt> {
             (Vec::new(), Vec::new())
         };
 
-        let class_stmt = ClassStmt::new(
-            name,
-            class_type,
-            generic_types,
-            Fields::new(fields),
-            fn_stmts,
-        );
+        let class_stmt = ClassStmt::new(name, class_type, generic_types, fields.into(), fn_stmts);
         Ok(class_stmt)
     }
 
@@ -607,23 +601,27 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn generic_call_site(&mut self) -> ParseResult<GenericCallSite> {
-        let generic_tys = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
-            |parser| parser.parse_ty(),
-            TokenType::Comma,
-            TokenType::Less,
-            TokenType::Greater,
-        )?;
-        Ok(GenericCallSite::new(generic_tys))
+        let generic_call_site = self
+            .parse_multiple_with_scope_delimiter::<Ty, 1>(
+                |parser| parser.parse_ty(),
+                TokenType::Comma,
+                TokenType::Less,
+                TokenType::Greater,
+            )?
+            .into();
+        Ok(generic_call_site)
     }
 
     fn generic_params(&mut self) -> ParseResult<GenericParams> {
-        let generic_tys = self.parse_multiple_with_scope_delimiter::<GenericParam, 1>(
-            |parser| parser.generic_param(),
-            TokenType::Comma,
-            TokenType::Less,
-            TokenType::Greater,
-        )?;
-        Ok(GenericParams::new(generic_tys))
+        let generic_params = self
+            .parse_multiple_with_scope_delimiter::<GenericParam, 1>(
+                |parser| parser.generic_param(),
+                TokenType::Comma,
+                TokenType::Less,
+                TokenType::Greater,
+            )?
+            .into();
+        Ok(generic_params)
     }
 
     fn generic_param(&mut self) -> ParseResult<GenericParam> {
@@ -672,8 +670,7 @@ impl<'ctxt> Parser<'ctxt> {
             self.advance();
             paths.push(self.parse_path_ty()?);
         }
-        let trait_bound = TraitBound::new(paths);
-        Ok(trait_bound)
+        Ok(TraitBound::from(paths))
     }
 
     fn enum_member(&mut self) -> ParseResult<EnumMember> {
@@ -707,7 +704,7 @@ impl<'ctxt> Parser<'ctxt> {
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
         )?;
-        Ok(Fields::new(fields))
+        Ok(Fields::from(fields))
     }
 
     fn params(&mut self) -> ParseResult<Params> {
@@ -717,7 +714,7 @@ impl<'ctxt> Parser<'ctxt> {
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
         )?;
-        Ok(Params::new(params))
+        Ok(Params::from(params))
     }
 
     fn self_params(&mut self) -> ParseResult<Params> {
@@ -731,7 +728,7 @@ impl<'ctxt> Parser<'ctxt> {
             );
         }
         self.expect(TokenType::RightParentheses)?;
-        Ok(Params::new(params))
+        Ok(Params::from(params))
     }
 
     fn field(&mut self) -> ParseResult<Field> {
@@ -994,7 +991,7 @@ impl<'ctxt> Parser<'ctxt> {
             let span = self.get_span();
             Ok(Ty::new(
                 TyKind::TraitBound {
-                    trait_bound: TraitBound::new(paths),
+                    trait_bound: TraitBound::from(paths),
                 },
                 span,
                 self.get_id(),
@@ -1093,7 +1090,7 @@ impl<'ctxt> Parser<'ctxt> {
                             TokenType::Greater,
                         )?;
                         path_segments.last_mut().unwrap().generics =
-                            Some(Generics::new(generic_paths));
+                            Some(Generics::from(generic_paths));
                         self.expect(TokenType::Colon)?;
                         self.expect(TokenType::Colon)?;
 
@@ -1271,7 +1268,7 @@ impl<'ctxt> Parser<'ctxt> {
                             TokenType::LeftParentheses,
                             TokenType::RightParentheses,
                         )?;
-                        let expr_kind = ExprKind::Call(CallExpr::new(lhs_expr, Args::new(args)));
+                        let expr_kind = ExprKind::Call(CallExpr::new(lhs_expr, Args::from(args)));
                         Expr::new(expr_kind, self.compute_span(start), self.get_id())
                     }
                     PostfixOp::LeftBracket => {
@@ -1558,7 +1555,7 @@ impl<'ctxt> Parser<'ctxt> {
             TokenType::Less,
             TokenType::Greater,
         )?;
-        Ok(PathTy::new(ident, Generics::new(generics)))
+        Ok(PathTy::new(ident, Generics::from(generics)))
     }
 
     fn parse_multiple<T>(
