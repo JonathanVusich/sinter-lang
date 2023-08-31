@@ -1155,9 +1155,13 @@ impl<'ctxt> Parser<'ctxt> {
                     self.advance();
                     ExprKind::False
                 }
-                TokenType::SignedInteger(int) => {
+                TokenType::Int(int) => {
                     self.advance();
-                    ExprKind::Integer(int)
+                    ExprKind::Int(int)
+                }
+                TokenType::UInt(uint) => {
+                    self.advance();
+                    ExprKind::UInt(uint)
                 }
                 TokenType::Float(float) => {
                     self.advance();
@@ -1408,9 +1412,13 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Ok(Pattern::String(str))
             }
-            Some(TokenType::SignedInteger(integer)) => {
+            Some(TokenType::Int(int)) => {
                 self.advance();
-                Ok(Pattern::Integer(integer))
+                Ok(Pattern::Int(int))
+            }
+            Some(TokenType::UInt(uint)) => {
+                self.advance();
+                Ok(Pattern::UInt(uint))
             }
             Some(TokenType::True) => {
                 self.advance();
@@ -1518,10 +1526,18 @@ impl<'ctxt> Parser<'ctxt> {
                     self.get_id(),
                 ))
             }
-            Some(TokenType::SignedInteger(integer)) => {
+            Some(TokenType::Int(integer)) => {
                 self.advance();
                 Ok(DestructureExpr::new(
-                    DestructureExprKind::Integer(integer),
+                    DestructureExprKind::Int(integer),
+                    self.get_span(),
+                    self.get_id(),
+                ))
+            }
+            Some(TokenType::UInt(uinteger)) => {
+                self.advance();
+                Ok(DestructureExpr::new(
+                    DestructureExprKind::UInt(uinteger),
                     self.get_span(),
                     self.get_id(),
                 ))

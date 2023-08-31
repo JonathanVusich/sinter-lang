@@ -224,7 +224,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
         let token_type = tokens
             .join("")
             .parse::<i64>()
-            .map(TokenType::SignedInteger)
+            .map(TokenType::Int)
             .unwrap_or_else(|_| TokenType::Unrecognized(self.intern("Invalid integer.")));
         self.create_token(token_type);
     }

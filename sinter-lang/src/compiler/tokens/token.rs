@@ -49,7 +49,8 @@ pub enum TokenType {
 
     Identifier(InternedStr),
     String(InternedStr),
-    SignedInteger(i64),
+    Int(i64),
+    UInt(u64),
     Float(f64),
 
     // Keywords
@@ -134,7 +135,8 @@ impl Display for TokenType {
             TokenType::LessEqual => write!(f, "<="),
             TokenType::Identifier(identifier) => write!(f, "identifier"),
             TokenType::String(_) => write!(f, "string"),
-            TokenType::SignedInteger(i) => write!(f, "signed integer"),
+            TokenType::Int(i) => write!(f, "signed integer"),
+            TokenType::UInt(i) => write!(f, "unsigned integer"),
             TokenType::Float(_) => write!(f, "float"),
             TokenType::Class => write!(f, "class"),
             TokenType::Fn => write!(f, "fn"),

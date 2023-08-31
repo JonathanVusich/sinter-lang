@@ -24,6 +24,10 @@ macro_rules! named_slice {
             pub fn len(&self) -> usize {
                 self.inner.len()
             }
+
+            pub fn is_empty(&self) -> bool {
+                self.inner.is_empty()
+            }
         }
 
         impl Deref for $ident {
@@ -41,12 +45,14 @@ macro_rules! named_strmap {
         #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
         #[serde(transparent)]
         pub struct $ident {
-            inner: StrMap<$ty>,
+            inner: Arc<StrMap<$ty>>,
         }
 
         impl From<StrMap<$ty>> for $ident {
             fn from(inner: StrMap<$ty>) -> Self {
-                Self { inner }
+                Self {
+                    inner: Arc::new(inner),
+                }
             }
         }
 

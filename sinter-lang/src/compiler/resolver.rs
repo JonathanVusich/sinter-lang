@@ -969,7 +969,8 @@ impl<'a> CrateResolver<'a> {
                 Expr::Unary(UnaryExpr::new(unary.operator, expr))
             }
             AstExprKind::String(string) => Expr::String(*string),
-            AstExprKind::Integer(integer) => Expr::Integer(*integer),
+            AstExprKind::Int(int) => Expr::Int(*int),
+            AstExprKind::UInt(uint) => Expr::UInt(*uint),
             AstExprKind::Float(float) => Expr::Float(*float),
             AstExprKind::False => Expr::False,
             AstExprKind::True => Expr::True,
@@ -1053,7 +1054,8 @@ impl<'a> CrateResolver<'a> {
             DestructureExprKind::True => DestructureExpr::True,
             DestructureExprKind::False => DestructureExpr::False,
             DestructureExprKind::Float(float) => DestructureExpr::Float(*float),
-            DestructureExprKind::Integer(integer) => DestructureExpr::Integer(*integer),
+            DestructureExprKind::Int(int) => DestructureExpr::Int(*int),
+            DestructureExprKind::UInt(uint) => DestructureExpr::UInt(*uint),
             DestructureExprKind::String(string) => DestructureExpr::String(*string),
             DestructureExprKind::None => DestructureExpr::None,
         };
@@ -1326,7 +1328,8 @@ impl<'a> CrateResolver<'a> {
             AstPattern::True => Pattern::True,
             AstPattern::False => Pattern::False,
             AstPattern::Float(float) => Pattern::Float(*float),
-            AstPattern::Integer(integer) => Pattern::Integer(*integer),
+            AstPattern::Int(int) => Pattern::Int(*int),
+            AstPattern::UInt(uint) => Pattern::UInt(*uint),
             AstPattern::String(string) => Pattern::String(*string),
             AstPattern::None => Pattern::None,
         };

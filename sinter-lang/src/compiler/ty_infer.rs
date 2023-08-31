@@ -1,18 +1,21 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::ops::Deref;
 use std::sync::Arc;
 
 use itertools::Itertools;
+use region::page::size;
 use serde::{Deserialize, Serialize};
 
+use crate::compiler::ast::{InfixOp, UnaryOp};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::compiler::CompileError::TypeErrors;
-use crate::compiler::hir::{ArrayExpr, Expr, HirCrate, HirNodeKind, LocalDefId, Ty};
+use crate::compiler::hir::{ArrayExpr, DefId, Expr, HirCrate, HirNodeKind, LocalDefId, PathTy, Ty};
 use crate::compiler::types::{LDefMap, StrMap};
 
 #[derive(Debug)]
 pub enum TypeError {
-    TypesNotEqual(Ty, Ty),
+    TypesNotEqual(Type, Type),
     UnificationError,
     CyclicType,
 }
@@ -45,12 +48,12 @@ impl<'a> TypeInference<'a> {
 
 struct CrateInference<'a> {
     unify_table: UnificationTable,
-    ty_map: LDefMap<Ty>,
-    krate: &'a mut HirCrate,
+    ty_map: LDefMap<Type>,
+    krate: &'a HirCrate,
 }
 
 impl<'a> CrateInference<'a> {
-    fn new(krate: &'a mut HirCrate) -> Self {
+    fn new(krate: &'a HirCrate) -> Self {
         Self {
             unify_table: Default::default(),
             ty_map: Default::default(),
@@ -58,7 +61,7 @@ impl<'a> CrateInference<'a> {
         }
     }
 
-    fn infer_tys(mut self) -> Result<LDefMap<Ty>, CompileError> {
+    fn infer_tys(mut self) -> Result<LDefMap<Type>, CompileError> {
         let mut errors = Vec::default();
         let items = self.krate.iter_items().collect_vec();
         for item in items {
@@ -79,57 +82,105 @@ impl<'a> CrateInference<'a> {
 
     fn infer(&mut self, node: LocalDefId) -> (Constraints, Type) {
         let node = self.krate.get_node(node);
-        match &node {
+        match node {
             HirNodeKind::GlobalLet(global_let) => {
                 match global_let.ty {
                     Some(ty) => {
-                        let ty = self.krate.get_ty(ty).clone();
+                        let ty = Type::from(self.krate, ty);
                         let constraints = self.check(global_let.initializer, ty.clone());
-                        (constraints, Type::Concrete(ty))
+                        (constraints, ty)
                     }
                     // We do not need a separate check for built in types since they are not present until after type inference.
                     _ => self.infer(global_let.initializer),
                 }
             }
             HirNodeKind::Expr(expr) => match expr {
-                Expr::Float(float) => (Constraints::default(), Type::Concrete(Ty::F64)),
-                Expr::Integer(int) => (Constraints::default(), Type::Concrete(Ty::I64)),
+                Expr::Array(array) => match array {
+                    ArrayExpr::Sized { initializer, size } => {
+                        let size_c = self.check(*size, Type::U64); // Should always be zero?
+                        let (mut constraints, init_ty) = self.infer(*initializer);
+                        constraints.extend(size_c);
+                        (constraints, Type::Array(Array::new(init_ty)))
+                    }
+                    ArrayExpr::Unsized { initializers } => {
+                        let inferred_ty = self.fresh_ty();
+                        let mut constraints = Vec::default();
+                        for initializer in initializers.iter() {
+                            let (c, ty) = self.infer(*initializer);
+                            constraints.extend(c);
+                            constraints.push(Constraint::Equal(ty, inferred_ty.clone()));
+                        }
+                        (constraints, Type::Array(Array::new(inferred_ty)))
+                    }
+                },
+                Expr::Infix(infix) => {
+                    let (lhs_c, lhs_ty) = self.infer(infix.lhs);
+                    let (rhs_c, rhs_ty) = self.infer(infix.rhs);
+                    let mut new_constr = Vec::with_capacity(lhs_c.len() + rhs_c.len() + 1);
+                    new_constr.extend(lhs_c);
+                    new_constr.extend(rhs_c);
+                    new_constr.push(Constraint::Infix(lhs_ty.clone(), rhs_ty, infix.operator));
+                    (new_constr, lhs_ty)
+                }
+                Expr::Unary(unary) => {
+                    let (mut constraints, ty) = self.infer(unary.expr);
+                    constraints.push(Constraint::Unary(ty.clone(), unary.operator));
+                    (constraints, ty)
+                }
+                Expr::None => (Constraints::default(), Type::None),
+                Expr::True => (Constraints::default(), Type::Boolean),
+                Expr::False => (Constraints::default(), Type::Boolean),
+                Expr::Int(int) => (Constraints::default(), Type::I64),
+                Expr::UInt(int) => (Constraints::default(), Type::U64),
+                Expr::Float(float) => (Constraints::default(), Type::F64),
+                Expr::String(str) => (Constraints::default(), Type::Str),
+                Expr::Closure(closure) => {
+                    let ty = self.fresh_ty();
+                    let constraints = vec![Constraint::Fn(ty.clone())];
+                    (constraints, ty)
+                }
+                Expr::Assign(assign) => {
+                    let lhs_ty = self.fresh_ty();
+                    let rhs_ty = self.fresh_ty();
+
+                    let constraints = vec![Constraint::Equal(lhs_ty.clone(), rhs_ty)];
+                    (constraints, lhs_ty)
+                }
+                // TODO: Figure out how to handle index expressions
                 _ => (Constraints::default(), self.fresh_ty()),
             },
             _ => (Constraints::default(), self.fresh_ty()),
         }
     }
 
-    fn check(&mut self, node_id: LocalDefId, ty: Ty) -> Constraints {
+    fn check(&mut self, node_id: LocalDefId, ty: Type) -> Constraints {
         enum Op {
-            Check(LocalDefId, Ty),
-            CheckMultiple(Arc<[LocalDefId]>, Ty),
+            Check(LocalDefId, Type),
+            CheckMultiple(Arc<[LocalDefId]>, Type),
             None,
-            Infer(LocalDefId, Ty),
+            Infer(LocalDefId, Type),
         }
 
         let node = self.krate.get_node(node_id);
-        let op = match (node, ty) {
+        let op = match (node, &ty) {
             (
                 HirNodeKind::Expr(Expr::Array(ArrayExpr::Unsized { initializers })),
-                Ty::Array { ty },
+                Type::Array(array),
             ) => {
-                let ty = self.krate.get_ty(ty).clone();
                 let exprs_to_check = initializers.clone();
-                Op::CheckMultiple(exprs_to_check, ty)
+                Op::CheckMultiple(exprs_to_check, *array.ty.clone())
             }
             (
                 HirNodeKind::Expr(Expr::Array(ArrayExpr::Sized { initializer, size })),
-                Ty::Array { ty },
-            ) => {
-                let ty = self.krate.get_ty(ty).clone();
-                Op::Check(*initializer, ty)
-            }
-            (HirNodeKind::Expr(Expr::Float(float)), Ty::F32 | Ty::F64) => Op::None,
-            (HirNodeKind::Expr(Expr::Integer(int)), Ty::I64) => Op::None,
+                Type::Array(array),
+            ) => Op::Check(*initializer, *array.ty.clone()),
+            (HirNodeKind::Expr(Expr::Float(_)), Type::F32 | Type::F64) => Op::None,
+            (HirNodeKind::Expr(Expr::Int(_)), Type::I64) => Op::None,
+            (HirNodeKind::Expr(Expr::String(_)), Type::Str) => Op::None,
+            (HirNodeKind::Expr(Expr::True), Type::Boolean) => Op::None,
+            (HirNodeKind::Expr(Expr::False), Type::Boolean) => Op::None,
             // TODO: Cover other explicit cases
-            // TODO: Implement fallthrough case that asserts the types are equal
-            (node, ty) => Op::Infer(node_id, ty),
+            (node, ty) => Op::Infer(node_id, ty.clone()), // Why do we have to clone here?
         };
 
         match op {
@@ -142,7 +193,7 @@ impl<'a> CrateInference<'a> {
             Op::None => Constraints::default(),
             Op::Infer(node, ty) => {
                 let (mut constraints, inferred_ty) = self.infer(node);
-                constraints.push(Constraint::Equal(Type::Concrete(ty), inferred_ty));
+                constraints.push(Constraint::Equal(ty, inferred_ty));
                 constraints
             }
         }
@@ -152,6 +203,10 @@ impl<'a> CrateInference<'a> {
         for constr in constraints {
             match constr {
                 Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs)?,
+                Constraint::Array(ty) => {}
+                Constraint::Infix(lhs, rhs, op) => {}
+                Constraint::Unary(_, _) => {}
+                Constraint::Fn(_) => {}
             }
         }
         Ok(())
@@ -165,13 +220,12 @@ impl<'a> CrateInference<'a> {
         match (lhs, rhs) {
             // If any type is unknown, we have to unify it against the other types.
             (Type::Infer(lhs), Type::Infer(rhs)) => self.unify_table.unify_var_var(lhs, rhs),
-            (Type::Infer(unknown), Type::Concrete(ty))
-            | (Type::Concrete(ty), Type::Infer(unknown)) => {
+            (Type::Infer(unknown), ty) | (ty, Type::Infer(unknown)) => {
                 // TODO:  Check for cyclic type
                 self.unify_table.unify_var_ty(unknown, ty)
             }
             // If both types are known, then we need to check for type compatibility.
-            (Type::Concrete(lhs), Type::Concrete(rhs)) => {
+            (lhs, rhs) => {
                 if lhs != rhs {
                     return Err(TypeError::TypesNotEqual(lhs, rhs));
                 }
@@ -186,7 +240,7 @@ impl<'a> CrateInference<'a> {
                 // Probe for the most recent parent of this value and update the path if it is no
                 // no longer correct.
                 match self.unify_table.probe(ty_var) {
-                    Some(ty) => self.normalize_ty(Type::Concrete(ty)),
+                    Some(ty) => self.normalize_ty(ty),
                     None => Type::Infer(ty_var),
                 }
             }
@@ -195,10 +249,9 @@ impl<'a> CrateInference<'a> {
     }
 
     fn substitute(&mut self, node_id: LocalDefId, ty: Type) {
-        let node = self.krate.get_node_mut(node_id);
         let substituted_ty = match ty {
             Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
-            Type::Concrete(ty) => ty,
+            ty => ty,
         };
         self.ty_map.insert(node_id, substituted_ty);
     }
@@ -215,7 +268,7 @@ struct UnificationTable {
 
 struct Entry {
     parent: TyVar,
-    value: Option<Ty>,
+    value: Option<Type>,
 }
 
 impl Entry {
@@ -240,7 +293,7 @@ impl UnificationTable {
         }
     }
 
-    fn unify_var_ty(&mut self, var: TyVar, ty: Ty) -> Result<(), TypeError> {
+    fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> Result<(), TypeError> {
         let root = self.get_root_key(var);
         if self.entry(root).value == Some(ty) {
             Ok(())
@@ -249,7 +302,7 @@ impl UnificationTable {
         }
     }
 
-    fn probe(&mut self, key: TyVar) -> Option<Ty> {
+    fn probe(&mut self, key: TyVar) -> Option<Type> {
         let root_key = self.get_root_key(key);
         self.entry(root_key).value.clone()
     }
@@ -288,9 +341,13 @@ type Constraints = Vec<Constraint>;
 
 enum Constraint {
     Equal(Type, Type),
+    Array(Type),
+    Infix(Type, Type, InfixOp),
+    Unary(Type, UnaryOp),
+    Fn(Type),
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct TyVar {
@@ -303,21 +360,141 @@ impl TyVar {
     }
 }
 
-enum Type {
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct Array {
+    ty: Box<Type>,
+}
+
+impl Array {
+    pub fn new(array_ty: Type) -> Self {
+        Self {
+            ty: Box::new(array_ty),
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct Path {
+    path: DefId,
+    generics: Vec<Type>,
+}
+
+impl Path {
+    pub fn new(path: DefId, generics: Vec<Type>) -> Self {
+        Self { path, generics }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct TraitBound {
+    trait_bound: Vec<Type>,
+}
+
+impl TraitBound {
+    pub fn new(trait_bound: Vec<Type>) -> Self {
+        Self { trait_bound }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct Closure {
+    params: Vec<Type>,
+    ret_ty: Box<Type>,
+}
+
+impl Closure {
+    pub fn new(params: Vec<Type>, ret_ty: Type) -> Self {
+        Self {
+            params,
+            ret_ty: Box::new(ret_ty),
+        }
+    }
+}
+
+/// This enum supports recursive types whose inner types are not yet known.
+/// Allows full type definitions to be built incrementally from partial information.
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum Type {
+    Array(Array),
+    Path(Path),
+    TraitBound(TraitBound),
+    Closure(Closure),
+    U8,
+    U16,
+    U32,
+    U64,
+    I8,
+    I16,
+    I32,
+    I64,
+    F32,
+    F64,
+    Str,
+    Boolean,
+    None,
     Infer(TyVar),
-    Concrete(Ty),
+}
+
+impl Type {
+    fn from_path(krate: &HirCrate, path: &PathTy) -> Self {
+        let generics = path
+            .generics
+            .iter()
+            .copied()
+            .map(|generic| Self::from(krate, generic))
+            .collect();
+        Self::Path(Path::new(path.definition, generics))
+    }
+
+    pub fn from(krate: &HirCrate, ty: LocalDefId) -> Self {
+        let ty = krate.get_ty(ty);
+        match ty {
+            Ty::Array { ty } => {
+                let inner_ty = Self::from(krate, *ty);
+                Self::Array(Array::new(inner_ty))
+            }
+            Ty::Path { path } => Self::from_path(krate, path),
+            Ty::TraitBound { trait_bound } => {
+                let traits = trait_bound
+                    .iter()
+                    .map(|bound| Self::from_path(krate, bound))
+                    .collect();
+                Self::TraitBound(TraitBound::new(traits))
+            }
+            Ty::Closure { params, ret_ty } => {
+                let params = params
+                    .iter()
+                    .copied()
+                    .map(|param| Self::from(krate, param))
+                    .collect();
+                let ret_ty = Self::from(krate, *ret_ty);
+                Self::Closure(Closure::new(params, ret_ty))
+            }
+            Ty::U8 => Self::U8,
+            Ty::U16 => Self::U16,
+            Ty::U32 => Self::U32,
+            Ty::U64 => Self::U64,
+            Ty::I8 => Self::I8,
+            Ty::I16 => Self::I16,
+            Ty::I32 => Self::I32,
+            Ty::I64 => Self::I64,
+            Ty::F32 => Self::F32,
+            Ty::F64 => Self::F64,
+            Ty::Str => Self::Str,
+            Ty::Boolean => Self::Boolean,
+            Ty::None => Self::None,
+        }
+    }
 }
 
 mod tests {
-    use std::collections::HashMap;
-
-    use crate::compiler::compiler::{Application, CompileError, Compiler, CompilerCtxt};
+    use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
     use crate::compiler::hir::{
-        Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, LocalDefId, Ty,
+        ArrayExpr, Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, LocalDefId, Ty,
     };
     use crate::compiler::krate::CrateId;
     use crate::compiler::tokens::tokenized_file::Span;
-    use crate::compiler::ty_infer::{CrateInference, TypeInference};
+    use crate::compiler::ty_infer::{CrateInference, Type, TypeInference};
     use crate::compiler::types::{InternedStr, LDefMap, StrMap};
     use crate::compiler::StringInterner;
     use crate::util::utils;
@@ -325,13 +502,13 @@ mod tests {
     type TypedResult = (StringInterner, StrMap<HirCrate>);
 
     #[derive(Default)]
-    struct CrateBuilder {
+    struct HirBuilder {
         ctxt: CompilerCtxt,
         items: Vec<LocalDefId>,
         nodes: LDefMap<HirNode>,
     }
 
-    impl CrateBuilder {
+    impl HirBuilder {
         fn add(&mut self, hir_node: HirNodeKind) -> LocalDefId {
             let def_id = self.ctxt.local_def_id();
             match &hir_node {
@@ -371,23 +548,51 @@ mod tests {
     }
 
     #[test]
-    pub fn infer_crate_tys() {
-        let mut crate_builder = CrateBuilder::default();
+    pub fn infer_integer() {
+        let mut hir = HirBuilder::default();
 
-        let initializer = crate_builder.add(HirNodeKind::Expr(Expr::Integer(123)));
-        let global_let = crate_builder.add(HirNodeKind::GlobalLet(GlobalLetStmt::new(
+        let initializer = hir.add(HirNodeKind::Expr(Expr::Int(123)));
+        let global_let = hir.add(HirNodeKind::GlobalLet(GlobalLetStmt::new(
             InternedStr::default(),
             None,
             initializer,
         )));
-        let mut krate = crate_builder.build();
+        let mut krate = hir.build();
         let crate_inference = CrateInference::new(&mut krate);
         match crate_inference.infer_tys() {
             Err(_) => panic!(),
             Ok(map) => {
                 let ty = map.get(&global_let);
                 match ty {
-                    Some(&Ty::I64) => {}
+                    Some(&Type::I64) => {}
+                    _ => panic!(),
+                }
+            }
+        }
+    }
+
+    #[test]
+    pub fn infer_array_usize() {
+        let mut hir = HirBuilder::default();
+        let one = hir.add(HirNodeKind::Expr(Expr::Int(1)));
+        let two = hir.add(HirNodeKind::Expr(Expr::Int(2)));
+        let initializer = hir.add(HirNodeKind::Expr(Expr::Array(ArrayExpr::Unsized {
+            initializers: vec![one, two].into(),
+        })));
+        let global_let = hir.add(HirNodeKind::GlobalLet(GlobalLetStmt::new(
+            InternedStr::default(),
+            None,
+            initializer,
+        )));
+
+        let mut krate = hir.build();
+        let crate_inference = CrateInference::new(&mut krate);
+        match crate_inference.infer_tys() {
+            Err(_) => panic!(),
+            Ok(map) => {
+                let ty = map.get(&global_let);
+                match ty {
+                    Some(&Type::Array(ref array)) => {}
                     _ => panic!(),
                 }
             }
