@@ -8,7 +8,7 @@
     "tokens": [
       {
         "token_type": {
-          "SignedInteger": 1
+          "Int": 1
         },
         "span": {
           "start": 0,
@@ -24,7 +24,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 2
+          "Int": 2
         },
         "span": {
           "start": 4,
@@ -116,7 +116,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 3
+          "Int": 3
         },
         "span": {
           "start": 20,
@@ -132,7 +132,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 4
+          "Int": 4
         },
         "span": {
           "start": 24,

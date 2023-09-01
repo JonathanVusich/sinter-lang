@@ -52,7 +52,7 @@
                       "ty": null,
                       "initializer": {
                         "kind": {
-                          "Integer": 5
+                          "Int": 5
                         },
                         "span": {
                           "start": 31,
@@ -129,7 +129,7 @@
                                   },
                                   "rhs": {
                                     "kind": {
-                                      "Integer": 1
+                                      "Int": 1
                                     },
                                     "span": {
                                       "start": 72,

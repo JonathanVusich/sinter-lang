@@ -48,7 +48,7 @@
                           },
                           "rhs": {
                             "kind": {
-                              "Integer": 4
+                              "Int": 4
                             },
                             "span": {
                               "start": 7,
@@ -66,7 +66,7 @@
                     },
                     "rhs": {
                       "kind": {
-                        "Integer": 0
+                        "Int": 0
                       },
                       "span": {
                         "start": 12,
@@ -116,7 +116,7 @@
                           },
                           "rhs": {
                             "kind": {
-                              "Integer": 100
+                              "Int": 100
                             },
                             "span": {
                               "start": 24,
@@ -134,7 +134,7 @@
                     },
                     "rhs": {
                       "kind": {
-                        "Integer": 0
+                        "Int": 0
                       },
                       "span": {
                         "start": 31,
@@ -192,7 +192,7 @@
                     },
                     "rhs": {
                       "kind": {
-                        "Integer": 400
+                        "Int": 400
                       },
                       "span": {
                         "start": 43,
@@ -210,7 +210,7 @@
               },
               "rhs": {
                 "kind": {
-                  "Integer": 0
+                  "Int": 0
                 },
                 "span": {
                   "start": 50,

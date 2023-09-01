@@ -74,7 +74,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 0
+          "Int": 0
         },
         "span": {
           "start": 26,

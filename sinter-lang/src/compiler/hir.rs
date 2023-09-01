@@ -814,11 +814,11 @@ impl GenericParam {
 pub struct HirCrate {
     pub(crate) name: InternedStr,
     pub(crate) id: CrateId,
-    items: Vec<LocalDefId>,
+    pub(crate) items: Vec<LocalDefId>,
     #[cfg(not(test))]
-    nodes: HashMap<LocalDefId, HirNode>,
+    pub(crate) nodes: HashMap<LocalDefId, HirNode>,
     #[cfg(test)]
-    nodes: BTreeMap<LocalDefId, HirNode>,
+    pub(crate) nodes: BTreeMap<LocalDefId, HirNode>,
 }
 
 impl HirCrate {
@@ -838,15 +838,11 @@ impl HirCrate {
         }
     }
 
-    pub fn iter_items(&self) -> impl Iterator<Item = LocalDefId> + '_ {
-        self.items.iter().copied()
-    }
-
-    pub fn get_node(&self, node: LocalDefId) -> &HirNodeKind {
+    pub fn node(&self, node: LocalDefId) -> &HirNodeKind {
         self.nodes.get(&node).map(|node| &node.kind).unwrap()
     }
 
-    pub fn get_ty(&self, ty: LocalDefId) -> &Ty {
+    pub fn ty(&self, ty: LocalDefId) -> &Ty {
         match self.nodes.get(&ty) {
             Some(HirNode {
                 kind: HirNodeKind::Ty(ty),
@@ -854,12 +850,5 @@ impl HirCrate {
             }) => ty,
             _ => panic!(),
         }
-    }
-
-    pub fn get_node_mut(&mut self, node: LocalDefId) -> &mut HirNodeKind {
-        self.nodes
-            .get_mut(&node)
-            .map(|node| &mut node.kind)
-            .unwrap()
     }
 }

@@ -10,7 +10,7 @@
         "operator": "Less",
         "lhs": {
           "kind": {
-            "Integer": 1
+            "Int": 1
           },
           "span": {
             "start": 0,
@@ -20,7 +20,7 @@
         },
         "rhs": {
           "kind": {
-            "Integer": 2
+            "Int": 2
           },
           "span": {
             "start": 4,

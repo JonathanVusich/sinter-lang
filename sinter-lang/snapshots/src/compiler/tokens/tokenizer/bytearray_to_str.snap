@@ -110,7 +110,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 72
+          "Int": 72
         },
         "span": {
           "start": 80,
@@ -126,7 +126,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 101
+          "Int": 101
         },
         "span": {
           "start": 84,
@@ -142,7 +142,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 108
+          "Int": 108
         },
         "span": {
           "start": 89,
@@ -158,7 +158,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 108
+          "Int": 108
         },
         "span": {
           "start": 94,
@@ -174,7 +174,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 111
+          "Int": 111
         },
         "span": {
           "start": 99,
@@ -190,7 +190,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 32
+          "Int": 32
         },
         "span": {
           "start": 104,
@@ -206,7 +206,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 119
+          "Int": 119
         },
         "span": {
           "start": 108,
@@ -222,7 +222,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 111
+          "Int": 111
         },
         "span": {
           "start": 113,
@@ -238,7 +238,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 114
+          "Int": 114
         },
         "span": {
           "start": 118,
@@ -254,7 +254,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 108
+          "Int": 108
         },
         "span": {
           "start": 123,
@@ -270,7 +270,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 100
+          "Int": 100
         },
         "span": {
           "start": 128,
@@ -286,7 +286,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 33
+          "Int": 33
         },
         "span": {
           "start": 133,

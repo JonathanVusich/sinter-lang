@@ -10,7 +10,7 @@
         "operator": "Add",
         "lhs": {
           "kind": {
-            "Integer": 1
+            "Int": 1
           },
           "span": {
             "start": 0,
@@ -24,7 +24,7 @@
               "operator": "Multiply",
               "lhs": {
                 "kind": {
-                  "Integer": 2
+                  "Int": 2
                 },
                 "span": {
                   "start": 4,
@@ -34,7 +34,7 @@
               },
               "rhs": {
                 "kind": {
-                  "Integer": 3
+                  "Int": 3
                 },
                 "span": {
                   "start": 8,

@@ -192,7 +192,7 @@
                                             },
                                             "rhs": {
                                               "kind": {
-                                                "Integer": 2
+                                                "Int": 2
                                               },
                                               "span": {
                                                 "start": 113,
@@ -267,7 +267,7 @@
                                             },
                                             "rhs": {
                                               "kind": {
-                                                "Integer": 2
+                                                "Int": 2
                                               },
                                               "span": {
                                                 "start": 133,

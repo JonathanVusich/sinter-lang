@@ -63,8 +63,7 @@ impl<'a> CrateInference<'a> {
 
     fn infer_tys(mut self) -> Result<LDefMap<Type>, CompileError> {
         let mut errors = Vec::default();
-        let items = self.krate.iter_items().collect_vec();
-        for item in items {
+        for item in self.krate.items.iter().copied() {
             let (constraints, ty) = self.infer(item);
 
             if let Err(error) = self.unify(constraints) {
@@ -81,7 +80,7 @@ impl<'a> CrateInference<'a> {
     }
 
     fn infer(&mut self, node: LocalDefId) -> (Constraints, Type) {
-        let node = self.krate.get_node(node);
+        let node = self.krate.node(node);
         match node {
             HirNodeKind::GlobalLet(global_let) => {
                 match global_let.ty {
@@ -161,7 +160,7 @@ impl<'a> CrateInference<'a> {
             Infer(LocalDefId, Type),
         }
 
-        let node = self.krate.get_node(node_id);
+        let node = self.krate.node(node_id);
         let op = match (node, &ty) {
             (
                 HirNodeKind::Expr(Expr::Array(ArrayExpr::Unsized { initializers })),
@@ -201,6 +200,7 @@ impl<'a> CrateInference<'a> {
 
     fn unify(&mut self, constraints: Constraints) -> Result<(), TypeError> {
         for constr in constraints {
+            dbg!(&constr);
             match constr {
                 Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs)?,
                 Constraint::Array(ty) => {}
@@ -266,6 +266,7 @@ struct UnificationTable {
     table: Vec<Entry>,
 }
 
+#[derive(Debug)]
 struct Entry {
     parent: TyVar,
     value: Option<Type>,
@@ -295,10 +296,19 @@ impl UnificationTable {
 
     fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> Result<(), TypeError> {
         let root = self.get_root_key(var);
-        if self.entry(root).value == Some(ty) {
-            Ok(())
-        } else {
-            Err(TypeError::UnificationError)
+        let entry = self.entry(root);
+        dbg!(&entry);
+        match &entry.value {
+            None => {
+                entry.value = Some(ty);
+                Ok(())
+            }
+            Some(prev_ty) => {
+                if prev_ty != &ty {
+                    return Err(TypeError::UnificationError);
+                }
+                Ok(())
+            }
         }
     }
 
@@ -339,6 +349,7 @@ impl UnificationTable {
 
 type Constraints = Vec<Constraint>;
 
+#[derive(Debug)]
 enum Constraint {
     Equal(Type, Type),
     Array(Type),
@@ -447,7 +458,7 @@ impl Type {
     }
 
     pub fn from(krate: &HirCrate, ty: LocalDefId) -> Self {
-        let ty = krate.get_ty(ty);
+        let ty = krate.ty(ty);
         match ty {
             Ty::Array { ty } => {
                 let inner_ty = Self::from(krate, *ty);
@@ -512,7 +523,12 @@ mod tests {
         fn add(&mut self, hir_node: HirNodeKind) -> LocalDefId {
             let def_id = self.ctxt.local_def_id();
             match &hir_node {
-                HirNodeKind::Class(_) | HirNodeKind::Enum(_) | HirNodeKind::Trait(_) => {
+                HirNodeKind::GlobalLet(_)
+                | HirNodeKind::Class(_)
+                | HirNodeKind::Enum(_)
+                | HirNodeKind::Trait(_)
+                | HirNodeKind::TraitImpl(_)
+                | HirNodeKind::Fn(_) => {
                     self.items.push(def_id);
                 }
                 _ => {}

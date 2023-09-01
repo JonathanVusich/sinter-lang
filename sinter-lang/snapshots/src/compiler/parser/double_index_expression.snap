@@ -38,7 +38,7 @@
               },
               "key": {
                 "kind": {
-                  "Integer": 0
+                  "Int": 0
                 },
                 "span": {
                   "start": 2,
@@ -56,7 +56,7 @@
         },
         "key": {
           "kind": {
-            "Integer": 1
+            "Int": 1
           },
           "span": {
             "start": 5,

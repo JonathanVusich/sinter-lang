@@ -4,7 +4,7 @@
     "tokens": [
       {
         "token_type": {
-          "SignedInteger": -123
+          "Int": -123
         },
         "span": {
           "start": 0,

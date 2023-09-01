@@ -37,7 +37,7 @@
               },
               "rhs": {
                 "kind": {
-                  "Integer": 100
+                  "Int": 100
                 },
                 "span": {
                   "start": 7,
@@ -69,7 +69,7 @@
                   "ty": null,
                   "initializer": {
                     "kind": {
-                      "Integer": 30
+                      "Int": 30
                     },
                     "span": {
                       "start": 21,

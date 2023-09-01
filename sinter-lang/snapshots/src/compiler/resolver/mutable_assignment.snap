@@ -15,7 +15,7 @@
         "0": {
           "kind": {
             "Expr": {
-              "Integer": 5
+              "Int": 5
             }
           },
           "span": {
@@ -100,7 +100,7 @@
         "4": {
           "kind": {
             "Expr": {
-              "Integer": 1
+              "Int": 1
             }
           },
           "span": {

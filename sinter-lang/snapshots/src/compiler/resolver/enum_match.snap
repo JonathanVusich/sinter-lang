@@ -468,7 +468,7 @@
         "26": {
           "kind": {
             "Expr": {
-              "Integer": 0
+              "Int": 0
             }
           },
           "span": {

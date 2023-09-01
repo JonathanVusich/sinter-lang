@@ -33,7 +33,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 1
+          "Int": 1
         },
         "span": {
           "start": 19,
@@ -88,7 +88,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 2
+          "Int": 2
         },
         "span": {
           "start": 43,
@@ -104,7 +104,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 3
+          "Int": 3
         },
         "span": {
           "start": 47,
@@ -120,7 +120,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 5
+          "Int": 5
         },
         "span": {
           "start": 51,
@@ -136,7 +136,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 7
+          "Int": 7
         },
         "span": {
           "start": 55,
@@ -152,7 +152,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 11
+          "Int": 11
         },
         "span": {
           "start": 59,

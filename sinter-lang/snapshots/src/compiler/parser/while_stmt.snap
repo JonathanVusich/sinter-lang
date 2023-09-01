@@ -35,7 +35,7 @@
               },
               "rhs": {
                 "kind": {
-                  "Integer": 100
+                  "Int": 100
                 },
                 "span": {
                   "start": 10,

@@ -43,7 +43,7 @@
               "args": [
                 {
                   "kind": {
-                    "Integer": 0
+                    "Int": 0
                   },
                   "span": {
                     "start": 19,
@@ -53,7 +53,7 @@
                 },
                 {
                   "kind": {
-                    "Integer": 100
+                    "Int": 100
                   },
                   "span": {
                     "start": 22,

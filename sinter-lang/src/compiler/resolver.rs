@@ -498,6 +498,7 @@ impl<'a> CrateResolver<'a> {
             span,
             id,
         );
+        self.items.push(id);
         self.insert_node(id, hir_node)?;
         Ok(())
     }
@@ -817,6 +818,7 @@ impl<'a> CrateResolver<'a> {
 
         let self_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
 
+        self.items.push(id);
         self.insert_node(
             id,
             HirNode::new(
@@ -847,6 +849,7 @@ impl<'a> CrateResolver<'a> {
 
         let name = resolved_sig.name.ident;
 
+        self.items.push(id);
         self.insert_node(
             id,
             HirNode::new(

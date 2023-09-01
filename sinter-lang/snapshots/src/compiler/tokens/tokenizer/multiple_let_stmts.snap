@@ -47,7 +47,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 1
+          "Int": 1
         },
         "span": {
           "start": 13,
@@ -86,7 +86,7 @@
       },
       {
         "token_type": {
-          "SignedInteger": 2
+          "Int": 2
         },
         "span": {
           "start": 48,

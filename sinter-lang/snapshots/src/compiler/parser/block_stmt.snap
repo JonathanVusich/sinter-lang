@@ -20,7 +20,7 @@
                 "ty": null,
                 "initializer": {
                   "kind": {
-                    "Integer": 30
+                    "Int": 30
                   },
                   "span": {
                     "start": 10,

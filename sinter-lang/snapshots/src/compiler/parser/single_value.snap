@@ -6,7 +6,7 @@
   },
   {
     "kind": {
-      "Integer": 1
+      "Int": 1
     },
     "span": {
       "start": 0,

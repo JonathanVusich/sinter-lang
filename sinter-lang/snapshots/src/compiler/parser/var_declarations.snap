@@ -42,7 +42,7 @@
             },
             "initializer": {
               "kind": {
-                "Integer": 1
+                "Int": 1
               },
               "span": {
                 "start": 13,
@@ -71,7 +71,7 @@
             "ty": null,
             "initializer": {
               "kind": {
-                "Integer": 2
+                "Int": 2
               },
               "span": {
                 "start": 48,
