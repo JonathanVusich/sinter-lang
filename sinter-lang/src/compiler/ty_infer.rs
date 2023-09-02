@@ -11,6 +11,7 @@ use crate::compiler::ast::{InfixOp, UnaryOp};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::compiler::CompileError::TypeErrors;
 use crate::compiler::hir::{ArrayExpr, DefId, Expr, HirCrate, HirNodeKind, LocalDefId, PathTy, Ty};
+use crate::compiler::resolver::Scope::Trait;
 use crate::compiler::types::{LDefMap, StrMap};
 
 #[derive(Debug)]
@@ -29,16 +30,16 @@ impl Display for TypeError {
 impl Error for TypeError {}
 
 pub struct TypeInference<'a> {
-    crates: &'a mut StrMap<HirCrate>,
+    crates: &'a StrMap<HirCrate>,
 }
 
 impl<'a> TypeInference<'a> {
-    pub fn new(crates: &'a mut StrMap<HirCrate>) -> Self {
+    pub fn new(crates: &'a StrMap<HirCrate>) -> Self {
         Self { crates }
     }
 
     pub fn infer_tys(self) -> Result<(), CompileError> {
-        for krate in self.crates.values_mut() {
+        for krate in self.crates.values() {
             let crate_inference = CrateInference::new(krate);
             crate_inference.infer_tys()?;
         }
@@ -46,14 +47,15 @@ impl<'a> TypeInference<'a> {
     }
 }
 
-struct CrateInference<'a> {
+#[derive(Debug)]
+pub struct CrateInference<'a> {
     unify_table: UnificationTable,
     ty_map: LDefMap<Type>,
     krate: &'a HirCrate,
 }
 
 impl<'a> CrateInference<'a> {
-    fn new(krate: &'a HirCrate) -> Self {
+    pub fn new(krate: &'a HirCrate) -> Self {
         Self {
             unify_table: Default::default(),
             ty_map: Default::default(),
@@ -61,11 +63,12 @@ impl<'a> CrateInference<'a> {
         }
     }
 
-    fn infer_tys(mut self) -> Result<LDefMap<Type>, CompileError> {
+    pub fn infer_tys(mut self) -> Result<LDefMap<Type>, CompileError> {
+        dbg!(&self);
         let mut errors = Vec::default();
         for item in self.krate.items.iter().copied() {
+            // TODO: Find a way to skip inferring types for classes, enums, etc.
             let (constraints, ty) = self.infer(item);
-
             if let Err(error) = self.unify(constraints) {
                 errors.push(error)
             } else {
@@ -249,11 +252,41 @@ impl<'a> CrateInference<'a> {
     }
 
     fn substitute(&mut self, node_id: LocalDefId, ty: Type) {
-        let substituted_ty = match ty {
+        let ty = self.probe_ty(ty);
+        self.ty_map.insert(node_id, ty);
+    }
+
+    fn probe_ty(&mut self, ty: Type) -> Type {
+        match ty {
+            Type::Array(array) => Type::Array(Array::new(self.probe_ty(*array.ty))),
+            Type::Path(path) => {
+                let generics = path
+                    .generics
+                    .into_iter()
+                    .map(|ty| self.probe_ty(ty))
+                    .collect();
+                Type::Path(Path::new(path.path, generics))
+            }
+            Type::TraitBound(trait_bound) => {
+                let traits = trait_bound
+                    .bounds
+                    .into_iter()
+                    .map(|ty| self.probe_ty(ty))
+                    .collect();
+                Type::TraitBound(TraitBound::new(traits))
+            }
+            Type::Closure(closure) => {
+                let params = closure
+                    .params
+                    .into_iter()
+                    .map(|ty| self.probe_ty(ty))
+                    .collect();
+                let ret_ty = self.probe_ty(*closure.ret_ty);
+                Type::Closure(Closure::new(params, ret_ty))
+            }
             Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
             ty => ty,
-        };
-        self.ty_map.insert(node_id, substituted_ty);
+        }
     }
 
     fn fresh_ty(&mut self) -> Type {
@@ -261,7 +294,7 @@ impl<'a> CrateInference<'a> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct UnificationTable {
     table: Vec<Entry>,
 }
@@ -371,7 +404,7 @@ impl TyVar {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Array {
     ty: Box<Type>,
 }
@@ -384,7 +417,7 @@ impl Array {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Path {
     path: DefId,
     generics: Vec<Type>,
@@ -396,18 +429,20 @@ impl Path {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct TraitBound {
-    trait_bound: Vec<Type>,
+    bounds: Vec<Type>,
 }
 
 impl TraitBound {
     pub fn new(trait_bound: Vec<Type>) -> Self {
-        Self { trait_bound }
+        Self {
+            bounds: trait_bound,
+        }
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Closure {
     params: Vec<Type>,
     ret_ty: Box<Type>,
@@ -424,7 +459,7 @@ impl Closure {
 
 /// This enum supports recursive types whose inner types are not yet known.
 /// Allows full type definitions to be built incrementally from partial information.
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Type {
     Array(Array),
     Path(Path),
@@ -499,18 +534,23 @@ impl Type {
 }
 
 mod tests {
+    use crate::compiler::ast::{GenericParams, Ident};
     use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
     use crate::compiler::hir::{
-        ArrayExpr, Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, LocalDefId, Ty,
+        ArrayExpr, ClassStmt, EnumMembers, EnumStmt, Expr, Fields, FnSig, FnStmt, FnStmts,
+        GenericParam, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, LocalDefId, Ty,
     };
     use crate::compiler::krate::CrateId;
+    use crate::compiler::parser::ClassType;
     use crate::compiler::tokens::tokenized_file::Span;
-    use crate::compiler::ty_infer::{CrateInference, Type, TypeInference};
+    use crate::compiler::ty_infer::{Array, CrateInference, Type, TypeInference};
     use crate::compiler::types::{InternedStr, LDefMap, StrMap};
     use crate::compiler::StringInterner;
     use crate::util::utils;
+    use snap::snapshot;
+    use std::collections::HashMap;
 
-    type TypedResult = (StringInterner, StrMap<HirCrate>);
+    type TypedResult = (StringInterner, StrMap<HirCrate>, StrMap<LDefMap<Type>>);
 
     #[derive(Default)]
     struct HirBuilder {
@@ -520,6 +560,9 @@ mod tests {
     }
 
     impl HirBuilder {
+        fn ident(&self) -> Ident {
+            Ident::new(InternedStr::default(), Span::default())
+        }
         fn add(&mut self, hir_node: HirNodeKind) -> LocalDefId {
             let def_id = self.ctxt.local_def_id();
             match &hir_node {
@@ -538,13 +581,15 @@ mod tests {
             def_id
         }
 
-        fn build(self) -> HirCrate {
-            HirCrate::new(
+        fn infer_tys(self) -> LDefMap<Type> {
+            let mut hir_crate = HirCrate::new(
                 InternedStr::default(),
                 CrateId::default(),
                 self.items,
                 self.nodes,
-            )
+            );
+            let crate_infer = CrateInference::new(&mut hir_crate);
+            crate_infer.infer_tys().unwrap()
         }
     }
 
@@ -557,10 +602,10 @@ mod tests {
         let mut crates = compiler.parse_crates(&application).unwrap();
         compiler.validate_crates(&crates).unwrap();
 
-        let mut resolved_crates = compiler.resolve_crates(&mut crates).unwrap();
-        TypeInference::new(&mut resolved_crates).infer_tys();
+        let resolved_crates = compiler.resolve_crates(&mut crates).unwrap();
+        let tys = compiler.infer_types(&resolved_crates).unwrap();
         let string_interner = StringInterner::from(CompilerCtxt::from(compiler));
-        (string_interner, resolved_crates)
+        (string_interner, resolved_crates, tys)
     }
 
     #[test]
@@ -573,25 +618,29 @@ mod tests {
             None,
             initializer,
         )));
-        let mut krate = hir.build();
-        let crate_inference = CrateInference::new(&mut krate);
-        match crate_inference.infer_tys() {
-            Err(_) => panic!(),
-            Ok(map) => {
-                let ty = map.get(&global_let);
-                match ty {
-                    Some(&Type::I64) => {}
-                    _ => panic!(),
-                }
-            }
-        }
+        let krate = hir.infer_tys();
+        assert_eq!(&Type::I64, krate.get(&global_let).unwrap());
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn infer_integer_mismatch() {
+        let mut hir = HirBuilder::default();
+        let initializer = hir.add(HirNodeKind::Expr(Expr::Int(123)));
+        let f64_ty = hir.add(HirNodeKind::Ty(Ty::F64));
+        let global_let = hir.add(HirNodeKind::GlobalLet(GlobalLetStmt::new(
+            InternedStr::default(),
+            Some(f64_ty),
+            initializer,
+        )));
+        let krate = hir.infer_tys();
     }
 
     #[test]
     pub fn infer_array_usize() {
         let mut hir = HirBuilder::default();
         let one = hir.add(HirNodeKind::Expr(Expr::Int(1)));
-        let two = hir.add(HirNodeKind::Expr(Expr::Int(2)));
+        let two = hir.add(HirNodeKind::Expr(Expr::Int(-2)));
         let initializer = hir.add(HirNodeKind::Expr(Expr::Array(ArrayExpr::Unsized {
             initializers: vec![one, two].into(),
         })));
@@ -601,17 +650,16 @@ mod tests {
             initializer,
         )));
 
-        let mut krate = hir.build();
-        let crate_inference = CrateInference::new(&mut krate);
-        match crate_inference.infer_tys() {
-            Err(_) => panic!(),
-            Ok(map) => {
-                let ty = map.get(&global_let);
-                match ty {
-                    Some(&Type::Array(ref array)) => {}
-                    _ => panic!(),
-                }
-            }
-        }
+        let types = hir.infer_tys();
+        assert_eq!(
+            &Type::Array(Array::new(Type::I64)),
+            types.get(&global_let).unwrap()
+        );
+    }
+
+    #[test]
+    #[snapshot]
+    pub fn infer_generics() -> TypedResult {
+        infer_types("generic_inference")
     }
 }

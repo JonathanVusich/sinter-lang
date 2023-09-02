@@ -17,8 +17,8 @@ use crate::compiler::parser::{parse, ParseError};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{resolve, ResolveError};
 use crate::compiler::tokens::tokenizer::tokenize_file;
-use crate::compiler::ty_infer::TypeError;
-use crate::compiler::types::{InternedStr, StrMap};
+use crate::compiler::ty_infer::{CrateInference, Type, TypeError};
+use crate::compiler::types::{InternedStr, LDefMap, StrMap};
 use crate::compiler::validator::{validate, ValidationError};
 use crate::compiler::StringInterner;
 
@@ -156,10 +156,7 @@ impl Compiler {
         self.validate_crates(&crates)?;
         let resolved_crates = self.resolve_crates(&mut crates)?;
 
-        // TODO: Implement type inference algorithm
-        self.infer_types(resolved_crates)?;
-        // TODO: Do type checking to ensure that all expressions evaluate to correct types
-
+        self.infer_types(&resolved_crates)?;
         // TODO: Lower the AST to MIR with the provided metadata.
 
         // TODO: Generate bytecode
@@ -279,9 +276,13 @@ impl Compiler {
 
     pub(crate) fn infer_types(
         &mut self,
-        crates: StrMap<HirCrate>,
-    ) -> Result<StrMap<HirCrate>, CompileError> {
-        Ok(crates)
+        crates: &StrMap<HirCrate>,
+    ) -> Result<StrMap<LDefMap<Type>>, CompileError> {
+        let mut ty_map = StrMap::default();
+        for (key, krate) in crates {
+            ty_map.insert(*key, CrateInference::new(krate).infer_tys()?);
+        }
+        Ok(ty_map)
     }
 }
 

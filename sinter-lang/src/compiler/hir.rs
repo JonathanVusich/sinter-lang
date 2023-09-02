@@ -215,19 +215,6 @@ impl EnumMember {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-pub struct EnumMembers {
-    members: StrMap<LocalDefId>,
-}
-
-impl Deref for EnumMembers {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.members
-    }
-}
-
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitStmt {
     pub name: Ident,
@@ -438,6 +425,7 @@ named_strmap!(GenericParams, LocalDefId);
 named_strmap!(Params, LocalDefId);
 named_strmap!(Fields, LocalDefId);
 named_strmap!(FnStmts, LocalDefId);
+named_strmap!(EnumMembers, LocalDefId);
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Expr {

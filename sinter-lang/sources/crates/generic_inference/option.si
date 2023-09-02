@@ -1,0 +1,6 @@
+class Option<T> {
+    field: T,
+}
+
+let option_f64 = Option(1.23);
+let option_str = Option("Hello");

@@ -47,6 +47,14 @@ macro_rules! named_strmap {
         pub struct $ident {
             inner: Arc<StrMap<$ty>>,
         }
+        
+        impl $ident {
+            pub fn empty() -> Self {
+                Self {
+                    inner: Arc::new(HashMap::new())
+                }
+            }
+        }
 
         impl From<StrMap<$ty>> for $ident {
             fn from(inner: StrMap<$ty>) -> Self {

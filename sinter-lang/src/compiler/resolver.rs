@@ -751,7 +751,7 @@ impl<'a> CrateResolver<'a> {
         &mut self,
         enum_stmt_members: &Vec<AstEnumMember>,
     ) -> Result<EnumMembers, ResolveError> {
-        let enum_members = EnumMembers::default();
+        let mut enum_members = HashMap::default();
         for member in enum_stmt_members {
             self.insert_enum_member(member.name, member.id)?;
 
@@ -762,6 +762,8 @@ impl<'a> CrateResolver<'a> {
 
             let self_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
             let fields = self.resolve_fields(&member.fields)?;
+
+            enum_members.insert(member.name, member.id);
 
             self.nodes.insert(
                 member.id,
@@ -774,7 +776,7 @@ impl<'a> CrateResolver<'a> {
 
             self.scopes.pop();
         }
-        Ok(enum_members)
+        Ok(enum_members.into())
     }
 
     fn resolve_trait_stmt(
