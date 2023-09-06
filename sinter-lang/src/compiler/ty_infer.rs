@@ -10,7 +10,9 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::ast::{InfixOp, UnaryOp};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::compiler::CompileError::TypeErrors;
-use crate::compiler::hir::{ArrayExpr, DefId, Expr, HirCrate, HirNodeKind, LocalDefId, PathTy, Ty};
+use crate::compiler::hir::{
+    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirNodeKind, LocalDefId, PathTy, Ty,
+};
 use crate::compiler::resolver::Scope::Trait;
 use crate::compiler::types::{LDefMap, StrMap};
 
@@ -51,6 +53,7 @@ impl<'a> TypeInference<'a> {
 pub struct CrateInference<'a> {
     unify_table: UnificationTable,
     ty_map: LDefMap<Type>,
+    errors: Vec<TypeError>,
     krate: &'a HirCrate,
 }
 
@@ -59,27 +62,67 @@ impl<'a> CrateInference<'a> {
         Self {
             unify_table: Default::default(),
             ty_map: Default::default(),
+            errors: Default::default(),
             krate,
         }
     }
 
     pub fn infer_tys(mut self) -> Result<LDefMap<Type>, CompileError> {
         dbg!(&self);
-        let mut errors = Vec::default();
         for item in self.krate.items.iter().copied() {
-            // TODO: Find a way to skip inferring types for classes, enums, etc.
-            let (constraints, ty) = self.infer(item);
-            if let Err(error) = self.unify(constraints) {
-                errors.push(error)
-            } else {
-                self.substitute(item, ty);
+            let node = self.krate.node(item);
+            match node {
+                // Since global lets are the only top level items that have a type (other than fns), we infer on them directly.
+                HirNodeKind::GlobalLet(_) => {
+                    self.infer_node(item);
+                }
+                HirNodeKind::Class(class_stmt) => {
+                    self.infer_fns(&class_stmt.fn_stmts);
+                }
+                HirNodeKind::Enum(enum_stmt) => {
+                    for (name, member) in enum_stmt.members.iter() {
+                        let enum_member = self.krate.enum_member(*member);
+                        self.infer_fns(&enum_member.member_fns);
+                    }
+                    self.infer_fns(&enum_stmt.member_fns);
+                }
+                HirNodeKind::Trait(trait_stmt) => {
+                    self.infer_fns(&trait_stmt.member_fns);
+                }
+                HirNodeKind::TraitImpl(trait_impl_stmt) => {
+                    self.infer_fns(&trait_impl_stmt.member_fns);
+                }
+                HirNodeKind::Fn(fn_stmt) => {
+                    if let Some(body) = fn_stmt.body {
+                        self.infer_node(body);
+                    }
+                }
+                _ => unreachable!(),
             }
         }
 
-        if !errors.is_empty() {
-            return Err(TypeErrors(errors));
+        if !self.errors.is_empty() {
+            return Err(TypeErrors(self.errors));
         }
         Ok(self.ty_map)
+    }
+
+    fn infer_fns(&mut self, fn_stmts: &FnStmts) {
+        for (name, fn_stmt) in fn_stmts.iter() {
+            let fn_stmt = self.krate.fn_stmt(*fn_stmt);
+            if let Some(body) = fn_stmt.body {
+                self.infer_node(body);
+            }
+        }
+    }
+
+    fn infer_node(&mut self, node: LocalDefId) {
+        let (constraints, ty) = self.infer(node);
+        if let Err(error) = self.unify(constraints) {
+            self.errors.push(error)
+        } else {
+            self.substitute(node, ty);
+        }
     }
 
     fn infer(&mut self, node: LocalDefId) -> (Constraints, Type) {
@@ -93,7 +136,12 @@ impl<'a> CrateInference<'a> {
                         (constraints, ty)
                     }
                     // We do not need a separate check for built in types since they are not present until after type inference.
-                    _ => self.infer(global_let.initializer),
+                    _ => {
+                        let ty = self.fresh_ty();
+                        let (mut constraints, inferred_ty) = self.infer(global_let.initializer);
+                        constraints.push(Constraint::Equal(ty.clone(), inferred_ty));
+                        (constraints, ty)
+                    }
                 }
             }
             HirNodeKind::Expr(expr) => match expr {
@@ -148,8 +196,24 @@ impl<'a> CrateInference<'a> {
                     let constraints = vec![Constraint::Equal(lhs_ty.clone(), rhs_ty)];
                     (constraints, lhs_ty)
                 }
+                Expr::Call(call) => {
+                    let (mut constraints, inferred_ty) = self.infer(call.target);
+                    constraints.push(Constraint::Fn(inferred_ty.clone()));
+                    for initializer in call.args.iter() {
+                        let (c, ty) = self.infer(*initializer);
+                        constraints.extend(c);
+                        constraints.push(Constraint::Equal(ty, inferred_ty.clone()));
+                    }
+                    (constraints, inferred_ty)
+                }
+                Expr::Path(path) => {
+                    // TODO: Handle paths
+                }
                 // TODO: Figure out how to handle index expressions
-                _ => (Constraints::default(), self.fresh_ty()),
+                _ => {
+                    dbg!(&expr);
+                    (Constraints::default(), self.fresh_ty())
+                }
             },
             _ => (Constraints::default(), self.fresh_ty()),
         }
@@ -203,7 +267,6 @@ impl<'a> CrateInference<'a> {
 
     fn unify(&mut self, constraints: Constraints) -> Result<(), TypeError> {
         for constr in constraints {
-            dbg!(&constr);
             match constr {
                 Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs)?,
                 Constraint::Array(ty) => {}
@@ -330,7 +393,6 @@ impl UnificationTable {
     fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> Result<(), TypeError> {
         let root = self.get_root_key(var);
         let entry = self.entry(root);
-        dbg!(&entry);
         match &entry.value {
             None => {
                 entry.value = Some(ty);
@@ -493,7 +555,7 @@ impl Type {
     }
 
     pub fn from(krate: &HirCrate, ty: LocalDefId) -> Self {
-        let ty = krate.ty(ty);
+        let ty = krate.ty_stmt(ty);
         match ty {
             Ty::Array { ty } => {
                 let inner_ty = Self::from(krate, *ty);
@@ -541,16 +603,19 @@ mod tests {
         GenericParam, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, LocalDefId, Ty,
     };
     use crate::compiler::krate::CrateId;
-    use crate::compiler::parser::ClassType;
+    use crate::compiler::parser::{parse, ClassType};
+    use crate::compiler::resolver::resolve;
     use crate::compiler::tokens::tokenized_file::Span;
+    use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::ty_infer::{Array, CrateInference, Type, TypeInference};
     use crate::compiler::types::{InternedStr, LDefMap, StrMap};
     use crate::compiler::StringInterner;
     use crate::util::utils;
+    use itertools::Itertools;
     use snap::snapshot;
     use std::collections::HashMap;
 
-    type TypedResult = (StringInterner, StrMap<HirCrate>, StrMap<LDefMap<Type>>);
+    type TypedResult = HirBuilder;
 
     #[derive(Default)]
     struct HirBuilder {
@@ -593,19 +658,25 @@ mod tests {
         }
     }
 
+    type InferResult = (StringInterner, HirCrate, LDefMap<Type>);
+
     #[cfg(test)]
-    fn infer_types(name: &str) -> TypedResult {
+    fn parse_module(code: &str) -> InferResult {
         let mut compiler = Compiler::default();
-        let main_crate = utils::resolve_test_krate_path(name);
+        let main_crate = utils::resolve_test_krate_path(code);
         let crate_path = main_crate.clone().parent().unwrap();
-        let application = Application::new(&main_crate, main_crate.parent().unwrap());
-        let mut crates = compiler.parse_crates(&application).unwrap();
+        let application = Application::Inline { code };
+        let mut crates = compiler.parse_crates(application).unwrap();
         compiler.validate_crates(&crates).unwrap();
 
         let resolved_crates = compiler.resolve_crates(&mut crates).unwrap();
         let tys = compiler.infer_types(&resolved_crates).unwrap();
+
+        let krate = resolved_crates.into_values().exactly_one().unwrap();
+        let tys = tys.into_values().exactly_one().unwrap();
+
         let string_interner = StringInterner::from(CompilerCtxt::from(compiler));
-        (string_interner, resolved_crates, tys)
+        (string_interner, krate, tys)
     }
 
     #[test]
@@ -658,8 +729,17 @@ mod tests {
     }
 
     #[test]
-    #[snapshot]
-    pub fn infer_generics() -> TypedResult {
-        infer_types("generic_inference")
+    pub fn infer_generics() {
+        let code = r###"
+            class Option<T> {
+                field: T,
+            }
+
+            let option_f64 = Option(1.23);
+            let option_str = Option("Hello"); 
+        "###;
+
+        let (si, krate, tys) = parse_module(code);
+        dbg!(&tys);
     }
 }

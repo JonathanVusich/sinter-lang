@@ -1,0 +1,253 @@
+[
+  [
+    "generic_inference",
+    "option",
+    "Option",
+    "T",
+    "field",
+    "option_f64",
+    "option_str",
+    "Hello"
+  ],
+  {
+    "1": {
+      "name": 1,
+      "id": {
+        "id": 0
+      },
+      "items": [
+        3,
+        7,
+        11
+      ],
+      "nodes": {
+        "0": {
+          "kind": {
+            "GenericParam": {
+              "ident": {
+                "ident": 4,
+                "span": {
+                  "start": 13,
+                  "end": 14
+                }
+              },
+              "trait_bound": null
+            }
+          },
+          "span": {
+            "start": 13,
+            "end": 14
+          },
+          "id": 0
+        },
+        "1": {
+          "kind": {
+            "Ty": {
+              "Path": {
+                "path": {
+                  "definition": {
+                    "crate_id": 0,
+                    "local_id": 0
+                  },
+                  "generics": []
+                }
+              }
+            }
+          },
+          "span": {
+            "start": 29,
+            "end": 30
+          },
+          "id": 1
+        },
+        "2": {
+          "kind": {
+            "Field": {
+              "ident": {
+                "ident": 5,
+                "span": {
+                  "start": 22,
+                  "end": 27
+                }
+              },
+              "ty": 1
+            }
+          },
+          "span": {
+            "start": 22,
+            "end": 30
+          },
+          "id": 2
+        },
+        "3": {
+          "kind": {
+            "Class": {
+              "name": {
+                "ident": 3,
+                "span": {
+                  "start": 6,
+                  "end": 12
+                }
+              },
+              "class_type": "Inline",
+              "generic_params": {
+                "4": 0
+              },
+              "fields": {
+                "5": 2
+              },
+              "fn_stmts": {}
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 33
+          },
+          "id": 3
+        },
+        "4": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 3,
+                      "span": {
+                        "start": 52,
+                        "end": 58
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 52,
+            "end": 58
+          },
+          "id": 4
+        },
+        "5": {
+          "kind": {
+            "Expr": {
+              "Float": 1.23
+            }
+          },
+          "span": {
+            "start": 59,
+            "end": 63
+          },
+          "id": 5
+        },
+        "6": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 4,
+                "args": [
+                  5
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 52,
+            "end": 64
+          },
+          "id": 6
+        },
+        "7": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 6,
+              "ty": null,
+              "initializer": 6
+            }
+          },
+          "span": {
+            "start": 35,
+            "end": 65
+          },
+          "id": 7
+        },
+        "8": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "ident": {
+                      "ident": 3,
+                      "span": {
+                        "start": 83,
+                        "end": 89
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 83,
+            "end": 89
+          },
+          "id": 8
+        },
+        "9": {
+          "kind": {
+            "Expr": {
+              "String": 8
+            }
+          },
+          "span": {
+            "start": 90,
+            "end": 97
+          },
+          "id": 9
+        },
+        "10": {
+          "kind": {
+            "Expr": {
+              "Call": {
+                "target": 8,
+                "args": [
+                  9
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 83,
+            "end": 98
+          },
+          "id": 10
+        },
+        "11": {
+          "kind": {
+            "GlobalLet": {
+              "ident": 7,
+              "ty": null,
+              "initializer": 10
+            }
+          },
+          "span": {
+            "start": 66,
+            "end": 99
+          },
+          "id": 11
+        }
+      }
+    }
+  },
+  {
+    "1": {
+      "11": "Str",
+      "7": "F64"
+    }
+  }
+]

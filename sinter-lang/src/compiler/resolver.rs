@@ -25,13 +25,13 @@ use crate::compiler::ast::{
 };
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::{
-    AnonParams, Args, ArrayExpr, AssignExpr, Block, Builtin, CallExpr, ClassStmt, ClosureExpr,
-    ClosureParam, ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember,
-    EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts,
-    ForStmt, GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind,
-    IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern,
-    Param, Params, PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt, Segment, Stmt, Stmts,
-    TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
+    AnonParams, Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
+    ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember, EnumMembers, EnumStmt,
+    Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam,
+    GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr,
+    InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param, Params,
+    PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt,
+    TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use crate::compiler::krate::{Crate, CrateDef};
 use crate::compiler::path::ModulePath;
@@ -1433,10 +1433,13 @@ mod tests {
     #[cfg(test)]
     fn resolve_crate(name: &str) -> ResolvedCrates {
         let mut compiler = Compiler::default();
-        let main_crate = utils::resolve_test_krate_path(name);
-        let crate_path = main_crate.clone().parent().unwrap();
-        let application = Application::new(&main_crate, main_crate.parent().unwrap());
-        let mut crates = compiler.parse_crates(&application).unwrap();
+        let main_crate = &utils::resolve_test_krate_path(name);
+        let crate_path = main_crate.parent().unwrap();
+        let application = Application::Path {
+            main_crate,
+            crate_path,
+        };
+        let mut crates = compiler.parse_crates(application).unwrap();
         compiler.validate_crates(&crates).unwrap();
 
         let resolved_crates = compiler.resolve_crates(&mut crates);

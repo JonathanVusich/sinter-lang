@@ -830,13 +830,33 @@ impl HirCrate {
         self.nodes.get(&node).map(|node| &node.kind).unwrap()
     }
 
-    pub fn ty(&self, ty: LocalDefId) -> &Ty {
+    pub fn ty_stmt(&self, ty: LocalDefId) -> &Ty {
         match self.nodes.get(&ty) {
             Some(HirNode {
                 kind: HirNodeKind::Ty(ty),
                 ..
             }) => ty,
-            _ => panic!(),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn fn_stmt(&self, fn_id: LocalDefId) -> &FnStmt {
+        match self.nodes.get(&fn_id) {
+            Some(HirNode {
+                kind: HirNodeKind::Fn(fn_stmt),
+                ..
+            }) => fn_stmt,
+            _ => unreachable!(),
+        }
+    }
+    
+    pub fn enum_member(&self, enum_member: LocalDefId) -> &EnumMember {
+        match self.nodes.get(&enum_member) {
+            Some(HirNode {
+                kind: HirNodeKind::EnumMember(enum_member),
+                ..
+                 }) => enum_member,
+            _ => unreachable!(),
         }
     }
 }

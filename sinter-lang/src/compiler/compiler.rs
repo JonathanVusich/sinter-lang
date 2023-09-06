@@ -16,7 +16,7 @@ use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseError};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{resolve, ResolveError};
-use crate::compiler::tokens::tokenizer::tokenize_file;
+use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
 use crate::compiler::ty_infer::{CrateInference, Type, TypeError};
 use crate::compiler::types::{InternedStr, LDefMap, StrMap};
 use crate::compiler::validator::{validate, ValidationError};
@@ -34,18 +34,14 @@ impl From<Compiler> for CompilerCtxt {
     }
 }
 
-pub struct Application<'a> {
-    main_crate: &'a Path,
-    crate_path: &'a Path,
-}
-
-impl<'a> Application<'a> {
-    pub fn new(main_crate: &'a Path, crate_path: &'a Path) -> Self {
-        Application {
-            main_crate,
-            crate_path,
-        }
-    }
+pub enum Application<'a> {
+    Path {
+        main_crate: &'a Path,
+        crate_path: &'a Path,
+    },
+    Inline {
+        code: &'a str,
+    },
 }
 
 pub struct ByteCode {}
@@ -151,7 +147,7 @@ impl Compiler {
     }
 
     pub(crate) fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
-        let mut crates = self.parse_crates(&application)?;
+        let mut crates = self.parse_crates(application)?;
 
         self.validate_crates(&crates)?;
         let resolved_crates = self.resolve_crates(&mut crates)?;
@@ -165,45 +161,72 @@ impl Compiler {
 
     pub(crate) fn parse_crates(
         &mut self,
-        application: &Application,
+        application: Application,
     ) -> Result<StrMap<Crate>, CompileError> {
-        let mut crates = HashMap::default();
+        match application {
+            Application::Path {
+                main_crate,
+                crate_path,
+            } => {
+                let mut crates = HashMap::default();
 
-        // Parse main crate
-        let main_crate = self.parse_crate(application.main_crate)?;
-        let main_name = main_crate.name;
+                // Parse main crate
+                let main_crate = self.parse_crate(main_crate)?;
+                let main_name = main_crate.name;
 
-        // Insert crate into lookup map
-        crates.insert(main_name, main_crate);
+                // Insert crate into lookup map
+                crates.insert(main_name, main_crate);
 
-        // Collect all used crates from the main crate
-        let crates_visited = HashSet::from([main_name]);
-        let mut crates_to_visit: VecDeque<InternedStr> = VecDeque::from([main_name]);
+                // Collect all used crates from the main crate
+                let crates_visited = HashSet::from([main_name]);
+                let mut crates_to_visit: VecDeque<InternedStr> = VecDeque::from([main_name]);
 
-        while let Some(crate_name) = crates_to_visit.pop_front() {
-            let krate = crates.get(&crate_name).unwrap();
+                while let Some(crate_name) = crates_to_visit.pop_front() {
+                    let krate = crates.get(&crate_name).unwrap();
 
-            let mut new_crates = Vec::new();
-            for used_crate in krate.used_crates() {
-                if !crates_visited.contains(&used_crate.crate_name) {
-                    let crate_name = self.compiler_ctxt.resolve_str(used_crate.crate_name);
-                    let mut crate_path = application.crate_path.to_path_buf();
-                    crate_path.push(crate_name);
+                    let mut new_crates = Vec::new();
+                    for used_crate in krate.used_crates() {
+                        if !crates_visited.contains(&used_crate.crate_name) {
+                            let crate_name = self.compiler_ctxt.resolve_str(used_crate.crate_name);
+                            let mut crate_path = crate_path.to_path_buf();
+                            crate_path.push(crate_name);
 
-                    let krate = self.parse_crate(crate_path.as_path())?;
-                    crates_to_visit.push_back(krate.name);
+                            let krate = self.parse_crate(crate_path.as_path())?;
+                            crates_to_visit.push_back(krate.name);
 
-                    // Insert krate into lookup maps
-                    new_crates.push(krate);
+                            // Insert krate into lookup maps
+                            new_crates.push(krate);
+                        }
+                    }
+
+                    for krate in new_crates {
+                        crates.insert(krate.name, krate);
+                    }
                 }
-            }
 
-            for krate in new_crates {
-                crates.insert(krate.name, krate);
+                Ok(crates)
+            }
+            Application::Inline { code } => {
+                let krate = self.parse_inline_crate(code)?;
+                Ok(StrMap::from([(krate.name, krate)]))
             }
         }
+    }
 
-        Ok(crates)
+    pub(crate) fn parse_inline_crate(&mut self, code: &str) -> Result<Crate, CompileError> {
+        let krate_name = self.compiler_ctxt.intern_str("krate");
+
+        let mut krate = Crate::new(krate_name, self.compiler_ctxt.crate_id());
+
+        let tokens = tokenize(&mut self.compiler_ctxt, code);
+        let mut ast = parse(&mut self.compiler_ctxt, tokens)?;
+        let module_name = self.compiler_ctxt.intern_str("module");
+        let module_path = ModulePath::from_iter([module_name]);
+
+        ast.path = module_path.clone();
+        krate.add_module(module_path, ast);
+
+        Ok(krate)
     }
 
     pub(crate) fn parse_crate(&mut self, path: &Path) -> Result<Crate, CompileError> {
@@ -244,7 +267,6 @@ impl Compiler {
             krate.add_module(module_path, module);
         }
 
-        // Assign the last used local def id to the crate
         Ok(krate)
     }
 
