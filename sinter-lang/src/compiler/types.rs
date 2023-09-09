@@ -2,6 +2,7 @@ use crate::compiler::ast::{PathTy, QualifiedIdent, TraitBound, Ty};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::Key;
 use lasso::Spur;
+use radix_trie::TrieKey;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::{HashMap, HashSet};
@@ -25,6 +26,12 @@ impl From<InternedStr> for Spur {
 impl From<Spur> for InternedStr {
     fn from(value: Spur) -> Self {
         InternedStr { str: value }
+    }
+}
+
+impl TrieKey for InternedStr {
+    fn encode_bytes(&self) -> Vec<u8> {
+        self.str.into_inner().get().encode_bytes()
     }
 }
 
@@ -52,7 +59,6 @@ impl InternedTy {
     }
 }
 
-pub(crate) type StrSet = HashSet<InternedStr>;
 pub(crate) type StrMap<T> = HashMap<InternedStr, T>;
 pub(crate) type IStrMap<T> = Arc<StrMap<T>>;
 pub(crate) type LDefMap<T> = HashMap<LocalDefId, T>;

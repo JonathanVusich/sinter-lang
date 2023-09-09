@@ -4,16 +4,14 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 use itertools::Itertools;
-use region::page::size;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{InfixOp, UnaryOp};
 use crate::compiler::compiler::CompileError;
 use crate::compiler::compiler::CompileError::TypeErrors;
 use crate::compiler::hir::{
-    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirNodeKind, LocalDefId, PathTy, Ty,
+    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirNodeKind, LocalDefId, PathTy, Primitive, Ty,
 };
-use crate::compiler::resolver::Scope::Trait;
 use crate::compiler::types::{LDefMap, StrMap};
 
 #[derive(Debug)]
@@ -206,9 +204,9 @@ impl<'a> CrateInference<'a> {
                     }
                     (constraints, inferred_ty)
                 }
-                Expr::Path(path) => {
-                    // TODO: Handle paths
-                }
+                // Expr::Path(path) => {
+                //     // TODO: Handle paths
+                // }
                 // TODO: Figure out how to handle index expressions
                 _ => {
                     dbg!(&expr);
@@ -578,42 +576,37 @@ impl Type {
                 let ret_ty = Self::from(krate, *ret_ty);
                 Self::Closure(Closure::new(params, ret_ty))
             }
-            Ty::U8 => Self::U8,
-            Ty::U16 => Self::U16,
-            Ty::U32 => Self::U32,
-            Ty::U64 => Self::U64,
-            Ty::I8 => Self::I8,
-            Ty::I16 => Self::I16,
-            Ty::I32 => Self::I32,
-            Ty::I64 => Self::I64,
-            Ty::F32 => Self::F32,
-            Ty::F64 => Self::F64,
-            Ty::Str => Self::Str,
-            Ty::Boolean => Self::Boolean,
-            Ty::None => Self::None,
+            Ty::Primitive(Primitive::U8) => Self::U8,
+            Ty::Primitive(Primitive::U16) => Self::U16,
+            Ty::Primitive(Primitive::U32) => Self::U32,
+            Ty::Primitive(Primitive::U64) => Self::U64,
+            Ty::Primitive(Primitive::I8) => Self::I8,
+            Ty::Primitive(Primitive::I16) => Self::I16,
+            Ty::Primitive(Primitive::I32) => Self::I32,
+            Ty::Primitive(Primitive::I64) => Self::I64,
+            Ty::Primitive(Primitive::F32) => Self::F32,
+            Ty::Primitive(Primitive::F64) => Self::F64,
+            Ty::Primitive(Primitive::Str) => Self::Str,
+            Ty::Primitive(Primitive::Boolean) => Self::Boolean,
+            Ty::Primitive(Primitive::None) => Self::None,
         }
     }
 }
 
 mod tests {
-    use crate::compiler::ast::{GenericParams, Ident};
+    use itertools::Itertools;
+
+    use crate::compiler::ast::Ident;
     use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
     use crate::compiler::hir::{
-        ArrayExpr, ClassStmt, EnumMembers, EnumStmt, Expr, Fields, FnSig, FnStmt, FnStmts,
-        GenericParam, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, LocalDefId, Ty,
+        ArrayExpr, Expr, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, LocalDefId, Primitive, Ty,
     };
     use crate::compiler::krate::CrateId;
-    use crate::compiler::parser::{parse, ClassType};
-    use crate::compiler::resolver::resolve;
     use crate::compiler::tokens::tokenized_file::Span;
-    use crate::compiler::tokens::tokenizer::tokenize;
-    use crate::compiler::ty_infer::{Array, CrateInference, Type, TypeInference};
-    use crate::compiler::types::{InternedStr, LDefMap, StrMap};
+    use crate::compiler::ty_infer::{Array, CrateInference, Type};
+    use crate::compiler::types::{InternedStr, LDefMap};
     use crate::compiler::StringInterner;
     use crate::util::utils;
-    use itertools::Itertools;
-    use snap::snapshot;
-    use std::collections::HashMap;
 
     type TypedResult = HirBuilder;
 
@@ -698,7 +691,7 @@ mod tests {
     pub fn infer_integer_mismatch() {
         let mut hir = HirBuilder::default();
         let initializer = hir.add(HirNodeKind::Expr(Expr::Int(123)));
-        let f64_ty = hir.add(HirNodeKind::Ty(Ty::F64));
+        let f64_ty = hir.add(HirNodeKind::Ty(Ty::Primitive(Primitive::F64)));
         let global_let = hir.add(HirNodeKind::GlobalLet(GlobalLetStmt::new(
             InternedStr::default(),
             Some(f64_ty),

@@ -18,20 +18,20 @@ use crate::compiler::ast::{
     Fields as AstFields, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
     FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics,
     GlobalLetStmt as AstGlobalLetStmt, IdentType, Item as AstItem, Item, ItemKind as AstItemKind,
-    ItemKind, MatchArm as AstMatchArm, Module, Params as AstParams, PathTy as AstPathTy,
-    Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt, StmtKind as AstStmtKind,
-    TraitBound as AstTraitBound, TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt,
-    Ty as AstTy, TyKind, TyKind as AstTyKind,
+    ItemKind, MatchArm as AstMatchArm, Module, Params as AstParams, PathExpr as AstPathExpr,
+    PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt,
+    StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitImplStmt as AstTraitImplStmt,
+    TraitStmt as AstTraitStmt, Ty as AstTy, TyKind, TyKind as AstTyKind,
 };
 use crate::compiler::compiler::CompileError;
 use crate::compiler::hir::{
     AnonParams, Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember, EnumMembers, EnumStmt,
-    Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam,
-    GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr,
-    InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param, Params,
-    PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt,
-    TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
+    ClosureParams, DefId, DefTy, DestructureExpr, DestructurePattern, EnumMember, EnumMembers,
+    EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt,
+    GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt,
+    IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param,
+    Params, PathExpr, PathTy, Pattern, PatternLocal, Primitive, Res, ReturnStmt, Segment, Stmt,
+    TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use crate::compiler::krate::{Crate, CrateDef};
 use crate::compiler::path::ModulePath;
@@ -49,9 +49,9 @@ pub fn resolve(crates: &mut StrMap<Crate>) -> Result<StrMap<HirCrate>, CompileEr
 #[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct ModuleNS {
     pub(crate) modules: StrMap<ModuleId>,
-    // We have one namespace for structs, fns and constants because they are all callable and cannot
+    // We have one namespace for classes, fns and constants because they are all callable and cannot
     // be disambiguated at resolve time by their usage.
-    pub(crate) values: StrMap<DefId>,
+    pub(crate) values: StrMap<ValueDef>,
     pub(crate) enums: StrMap<EnumDef>,
 }
 
@@ -66,7 +66,7 @@ impl ModuleNS {
             module_path.front().and_then(|val| {
                 self.values
                     .get(&val)
-                    .copied()
+                    .map(|val| val.id)
                     .or_else(|| self.enums.get(&val).map(|def| def.id))
             })
         } else if module_path.len() == 2 {
@@ -85,16 +85,35 @@ impl ModuleNS {
         }
     }
 
-    pub fn find_value(&self, value: InternedStr) -> Option<DefId> {
-        self.values.get(&value).copied()
+    pub fn find_value(&self, value: InternedStr) -> Option<&ValueDef> {
+        self.values.get(&value)
     }
 
     pub fn find_enum(&self, value: InternedStr) -> Option<&EnumDef> {
         self.enums.get(&value)
     }
 
+    pub fn find_enum_member(&self, enum_name: InternedStr, member: InternedStr) -> Option<DefId> {
+        self.enums
+            .get(&enum_name)
+            .and_then(|m| m.members.get(&member))
+            .copied()
+    }
+
     pub fn find_module(&self, module: InternedStr) -> Option<ModuleId> {
         self.modules.get(&module).copied()
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct ValueDef {
+    pub(crate) id: DefId,
+    pub(crate) ty: DefTy,
+}
+
+impl ValueDef {
+    pub fn new(id: DefId, ty: DefTy) -> Self {
+        Self { id, ty }
     }
 }
 
@@ -309,10 +328,14 @@ impl<'a> Resolver<'a> {
                     let def_id = item.id.to_def_id(krate_id);
                     match &item.kind {
                         ItemKind::GlobalLet(global_let_stmt) => {
-                            ns.values.insert(global_let_stmt.name.ident, def_id);
+                            ns.values.insert(
+                                global_let_stmt.name.ident,
+                                ValueDef::new(def_id, DefTy::GlobalLet),
+                            );
                         }
                         ItemKind::Class(class_stmt) => {
-                            ns.values.insert(class_stmt.name.ident, def_id);
+                            ns.values
+                                .insert(class_stmt.name.ident, ValueDef::new(def_id, DefTy::Class));
                         }
                         ItemKind::Enum(enum_stmt) => {
                             let members = Arc::new(
@@ -326,10 +349,12 @@ impl<'a> Resolver<'a> {
                                 .insert(enum_stmt.name.ident, EnumDef::new(def_id, members));
                         }
                         ItemKind::Trait(trait_stmt) => {
-                            ns.values.insert(trait_stmt.name.ident, def_id);
+                            ns.values
+                                .insert(trait_stmt.name.ident, ValueDef::new(def_id, DefTy::Trait));
                         }
                         ItemKind::Fn(fn_stmt) => {
-                            ns.values.insert(fn_stmt.sig.name.ident, def_id);
+                            ns.values
+                                .insert(fn_stmt.sig.name.ident, ValueDef::new(def_id, DefTy::Fn));
                         }
                         ItemKind::Use(use_stmt) => {}
                         ItemKind::TraitImpl(trait_impl_stmt) => {}
@@ -382,6 +407,7 @@ impl<'a> Resolver<'a> {
                             CrateDef::Enum(name, enum_def) => {
                                 module.ns.enums.insert(name, enum_def);
                             }
+                            CrateDef::EnumMember(name, member) => {}
                         }
                     }
                 }
@@ -533,6 +559,16 @@ impl<'a> CrateResolver<'a> {
         self.items.push(id);
         self.insert_node(id, hir_node)?;
         Ok(())
+    }
+
+    fn maybe_resolve_generics(
+        &mut self,
+        generics: &Option<AstGenerics>,
+    ) -> Result<Option<Generics>, ResolveError> {
+        match generics {
+            None => Ok(None),
+            Some(generics) => Ok(Some(self.resolve_generics(generics)?)),
+        }
     }
 
     fn resolve_generics(&mut self, generics: &AstGenerics) -> Result<Generics, ResolveError> {
@@ -1010,23 +1046,27 @@ impl<'a> CrateResolver<'a> {
                 Expr::Index(IndexExpr::new(expr, key))
             }
             AstExprKind::Path(path) => {
-                let mut segments = Vec::with_capacity(path.segments.len());
-                for segment in path.segments.iter() {
-                    let ident = segment.ident;
-                    let generics = match &segment.generics {
-                        None => None,
-                        Some(generics) => {
-                            let mut resolved_generics = Vec::with_capacity(generics.len());
-                            for generic in generics.iter() {
-                                resolved_generics.push(self.resolve_ty(generic)?);
-                            }
-                            Some(resolved_generics.into())
+                // These paths are richer and we have to preserve generic info for type inference
+
+                fn Vec<T>() -> () {}
+                let val = Vec::<u32>();
+
+                let interner = crate::compiler::StringInterner::new();
+                pub mod hello {
+                    use std::marker::PhantomData;
+
+                    pub struct Hello<U> {
+                        marker: PhantomData<U>,
+                    }
+                    impl<U> Hello<U> {
+                        pub fn write<T>(val: U) {
+                            std::println!("Hi");
                         }
-                    };
-                    segments.push(Segment::new(ident, generics))
+                    }
                 }
+                let val = hello::Hello::<u64>::write::<Vec<u64>>(123);
                 // TODO: Need to actually resolve this path!!
-                Expr::Path(PathExpr::new(segments))
+                Expr::Path(PathExpr::new(Vec::new()))
             }
             AstExprKind::Parentheses(parentheses) => {
                 // Special logic for stripping parentheses (since they are just for pretty printing)
@@ -1039,6 +1079,43 @@ impl<'a> CrateResolver<'a> {
 
         self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id))?;
         Ok(id)
+    }
+
+    /// This method can resolve qualified idents as well.
+    /// This method is infallible, and will return a malformed PathExpr in failure modes.
+    /// We handle both here to keep the logic consistent.
+    fn resolve_path(&mut self, path_expr: &AstPathExpr) -> Result<PathExpr, ResolveError> {
+        let module_ns = &self.module.unwrap().ns;
+        let mut segments = Vec::with_capacity(path_expr.segments.len());
+        match path_expr.ident_type {
+            IdentType::Crate => {}
+            IdentType::LocalOrUse => {
+                if let Some(segment) = path_expr.is_single() {
+                    let ident = segment.ident.ident;
+                    let res = self
+                        .find_var(ident)
+                        .or_else(|| self.find_generic_param(ident))
+                        .or_else(|| self.find_enum_member(ident))
+                        .map(|var| Res::Local(var))
+                        .or_else(|| {
+                            // Search for value in ns
+                            module_ns
+                                .find_value(ident)
+                                .map(|val| Res::Def(val.id, val.ty))
+                                .or_else(|| {
+                                    module_ns
+                                        .find_enum(ident)
+                                        .map(|val| Res::Def(val.id, DefTy::Enum))
+                                })
+                        })
+                        .ok_or(VarNotFound(ident))?;
+                    let generics = self.maybe_resolve_generics(&segment.generics)?;
+                    segments.push(Segment::new(res, generics));
+                } else {
+                }
+            }
+        }
+        Ok(PathExpr::new(segments))
     }
 
     fn resolve_destructure_expr(
@@ -1131,19 +1208,19 @@ impl<'a> CrateResolver<'a> {
                     path: PathTy::new(item_def, Generics::empty()),
                 }
             }
-            TyKind::U8 => Ty::U8,
-            TyKind::U16 => Ty::U16,
-            TyKind::U32 => Ty::U32,
-            TyKind::U64 => Ty::U64,
-            TyKind::I8 => Ty::I8,
-            TyKind::I16 => Ty::I16,
-            TyKind::I32 => Ty::I32,
-            TyKind::I64 => Ty::I64,
-            TyKind::F32 => Ty::F32,
-            TyKind::F64 => Ty::F64,
-            TyKind::Boolean => Ty::Boolean,
-            TyKind::Str => Ty::Str,
-            TyKind::None => Ty::None,
+            TyKind::U8 => Ty::Primitive(Primitive::U8),
+            TyKind::U16 => Ty::Primitive(Primitive::U16),
+            TyKind::U32 => Ty::Primitive(Primitive::U32),
+            TyKind::U64 => Ty::Primitive(Primitive::U64),
+            TyKind::I8 => Ty::Primitive(Primitive::I8),
+            TyKind::I16 => Ty::Primitive(Primitive::I16),
+            TyKind::I32 => Ty::Primitive(Primitive::I32),
+            TyKind::I64 => Ty::Primitive(Primitive::I64),
+            TyKind::F32 => Ty::Primitive(Primitive::F32),
+            TyKind::F64 => Ty::Primitive(Primitive::F64),
+            TyKind::Boolean => Ty::Primitive(Primitive::Boolean),
+            TyKind::Str => Ty::Primitive(Primitive::Str),
+            TyKind::None => Ty::Primitive(Primitive::None),
         };
 
         self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id))?;
@@ -1363,18 +1440,20 @@ impl<'a> CrateResolver<'a> {
                 Some(crate_def) => match crate_def {
                     CrateDef::Module(_, _) => Err(ExpectedValueWasModule),
                     CrateDef::Enum(_, enum_def) => Ok(enum_def.id),
-                    CrateDef::Value(name, val) => Ok(val),
+                    CrateDef::EnumMember(_, id) => Ok(id),
+                    CrateDef::Value(_, val) => Ok(val.id),
                 },
             },
             IdentType::LocalOrUse => {
                 if let Some(ident) = ident.is_single() {
                     // Has to be a local type or generic
-                    // Check first if it is a generic and then if it is in the module ns
+                    // Check first if it is a var in scope, generic or enum member
+                    // and then if it is in the module ns
                     self.find_var(ident)
                         .or_else(|| self.find_generic_param(ident))
                         .or_else(|| self.find_enum_member(ident))
                         .map(|var| var.to_def_id(self.krate.crate_id))
-                        .or_else(|| module_ns.find_value(ident))
+                        .or_else(|| module_ns.find_value(ident).map(|val| val.id))
                         .ok_or(VarNotFound(ident))
                 } else if let Some(id) = module_ns.find_ident(ident, false) {
                     Ok(id)
@@ -1392,7 +1471,8 @@ impl<'a> CrateResolver<'a> {
                         Some(crate_def) => match crate_def {
                             CrateDef::Module(_, _) => Err(ExpectedValueWasModule),
                             CrateDef::Enum(_, enum_def) => Ok(enum_def.id),
-                            CrateDef::Value(_, val) => Ok(val),
+                            CrateDef::EnumMember(_, id) => Ok(id),
+                            CrateDef::Value(_, val) => Ok(val.id),
                         },
                     }
                 } else {

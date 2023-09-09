@@ -739,20 +739,28 @@ impl Segment {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PathExpr {
     pub ident_type: IdentType,
-    pub segments: Vec<Segment>,
+    pub segments: Arc<[Segment]>,
 }
 
 impl PathExpr {
     pub fn new(ident_type: IdentType, segments: Vec<Segment>) -> Self {
         Self {
             ident_type,
-            segments,
+            segments: segments.into(),
         }
     }
 
-    pub fn var_identifier(&self) -> Option<Ident> {
-        if self.segments.len() == 1 {
-            Some(self.segments.first().unwrap().ident)
+    pub fn is_single(&self) -> Option<&Segment> {
+        if let [first] = self.segments.as_ref() {
+            Some(first)
+        } else {
+            None
+        }
+    }
+
+    pub fn is_double(&self) -> Option<[&Segment; 2]> {
+        if let [first, second] = self.segments.as_ref() {
+            Some([first, second])
         } else {
             None
         }

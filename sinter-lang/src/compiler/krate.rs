@@ -1,3 +1,4 @@
+use radix_trie::Trie;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{format, Formatter};
 use std::marker::PhantomData;
@@ -7,13 +8,15 @@ use serde::de::{DeserializeOwned, SeqAccess, Visitor};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::compiler::ast::{AstPass, Field, Item, ItemKind, Module, QualifiedIdent};
+use crate::compiler::ast::{
+    AstPass, Field, Item, ItemKind, Module, PathExpr as AstPathExpr, QualifiedIdent,
+};
 use crate::compiler::ast_passes::{UsedCrate, UsedCrateCollector};
 use crate::compiler::compiler::CompileError;
-use crate::compiler::hir::{DefId, LocalDefId, ModuleId};
+use crate::compiler::hir::{DefId, LocalDefId, ModuleId, PathExpr, Segment};
 use crate::compiler::parser::ParseError;
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::{EnumDef, ResolveError};
+use crate::compiler::resolver::{EnumDef, ResolveError, ValueDef};
 use crate::compiler::types::{InternedStr, StrMap};
 
 #[derive(PartialEq, Eq, Debug, Default, Copy, Clone, PartialOrd, Ord, Serialize, Deserialize)]
@@ -188,7 +191,7 @@ impl Crate {
                         module
                             .ns
                             .find_value(value)
-                            .map(|val| CrateDef::Value(value, val))
+                            .map(|val| CrateDef::Value(value, val.clone()))
                             .or_else(|| {
                                 module
                                     .ns
@@ -207,7 +210,7 @@ impl Crate {
                                     .ns
                                     .find_enum(enum_name)
                                     .and_then(|enum_def| enum_def.members.get(&enum_discriminant))
-                                    .map(|val| CrateDef::Value(enum_discriminant, *val))
+                                    .map(|val| CrateDef::EnumMember(enum_discriminant, *val))
                             }
                             None => None,
                         }
@@ -216,11 +219,10 @@ impl Crate {
             }
         }
     }
-    
+
     fn find_module(&self, module_path: &ModulePath) -> Option<ModuleId> {
         self.module_lookup.get(module_path).copied()
     }
-
 
     pub fn module(&self, mod_id: ModuleId) -> &Module {
         &self.modules[mod_id.module_id()]
@@ -251,5 +253,6 @@ impl Crate {
 pub enum CrateDef {
     Module(InternedStr, ModuleId),
     Enum(InternedStr, EnumDef),
-    Value(InternedStr, DefId),
+    EnumMember(InternedStr, DefId),
+    Value(InternedStr, ValueDef),
 }

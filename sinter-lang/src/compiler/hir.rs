@@ -1,7 +1,7 @@
 use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::{Debug, Formatter};
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,6 @@ use crate::compiler::ast::{Ident, InfixOp, Mutability, UnaryOp};
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::ClassType;
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::ty_infer::TyVar;
 use crate::compiler::types::{InternedStr, StrMap};
 use crate::compiler::utils::{named_slice, named_strmap};
 
@@ -329,7 +328,21 @@ impl Expression {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum Builtin {}
+pub enum Primitive {
+    U8,
+    U16,
+    U32,
+    U64,
+    I8,
+    I16,
+    I32,
+    I64,
+    F32,
+    F64,
+    Str,
+    Boolean,
+    None,
+}
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 //noinspection DuplicatedCode
@@ -347,19 +360,7 @@ pub enum Ty {
         params: AnonParams,
         ret_ty: LocalDefId,
     },
-    U8,
-    U16,
-    U32,
-    U64,
-    I8,
-    I16,
-    I32,
-    I64,
-    F32,
-    F64,
-    Str,
-    Boolean,
-    None,
+    Primitive(Primitive),
 }
 
 impl Ty {
@@ -673,14 +674,33 @@ impl PathExpr {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub enum Res {
+    Module(ModuleId),
+    Def(DefId, DefTy),
+    Local(LocalDefId),
+    Primitive(Primitive),
+    SelfTy(LocalDefId),
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum DefTy {
+    GlobalLet,
+    Class,
+    Enum,
+    EnumMember,
+    Trait,
+    Fn,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Segment {
-    pub ident: Ident,
+    pub res: Res,
     pub generics: Option<Generics>,
 }
 
 impl Segment {
-    pub fn new(ident: Ident, generics: Option<Generics>) -> Self {
-        Self { ident, generics }
+    pub fn new(res: Res, generics: Option<Generics>) -> Self {
+        Self { res, generics }
     }
 }
 
@@ -849,13 +869,13 @@ impl HirCrate {
             _ => unreachable!(),
         }
     }
-    
+
     pub fn enum_member(&self, enum_member: LocalDefId) -> &EnumMember {
         match self.nodes.get(&enum_member) {
             Some(HirNode {
                 kind: HirNodeKind::EnumMember(enum_member),
                 ..
-                 }) => enum_member,
+            }) => enum_member,
             _ => unreachable!(),
         }
     }
