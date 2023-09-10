@@ -1,5 +1,5 @@
 use std::any::Any;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
@@ -35,6 +35,7 @@ use crate::compiler::hir::{
 };
 use crate::compiler::krate::{Crate, CrateDef};
 use crate::compiler::path::ModulePath;
+use crate::compiler::resolver;
 use crate::compiler::resolver::ResolveError::{
     DuplicateLocalDefIds, ExpectedValueWasModule, QualifiedIdentNotFound, VarNotFound,
 };
@@ -1059,9 +1060,7 @@ impl<'a> CrateResolver<'a> {
                         marker: PhantomData<U>,
                     }
                     impl<U> Hello<U> {
-                        pub fn write<T>(val: U) {
-                            std::println!("Hi");
-                        }
+                        pub fn write<T>(val: U) { }
                     }
                 }
                 let val = hello::Hello::<u64>::write::<Vec<u64>>(123);
@@ -1096,7 +1095,7 @@ impl<'a> CrateResolver<'a> {
                         .find_var(ident)
                         .or_else(|| self.find_generic_param(ident))
                         .or_else(|| self.find_enum_member(ident))
-                        .map(|var| Res::Local(var))
+                        .map(Res::Local)
                         .or_else(|| {
                             // Search for value in ns
                             module_ns
@@ -1112,6 +1111,19 @@ impl<'a> CrateResolver<'a> {
                     let generics = self.maybe_resolve_generics(&segment.generics)?;
                     segments.push(Segment::new(res, generics));
                 } else {
+                    let mut path = VecDeque::from_iter(path_expr.segments.iter());
+                    let current = path.pop_front().unwrap(); // Should be safe
+
+                    module_ns.find_value(current.ident.ident)
+                        .map(|val_def| Res::Def(val_def.id, val_def.ty))
+                        .or_else(|| {
+                            
+                        })
+
+                    while let Some(current) = current {
+                        let res = module_ns.find_value()
+                        // Search for value, then enum
+                    }
                 }
             }
         }

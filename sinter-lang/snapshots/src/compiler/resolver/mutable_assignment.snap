@@ -10,7 +10,9 @@
       "id": {
         "id": 0
       },
-      "items": [],
+      "items": [
+        9
+      ],
       "nodes": {
         "0": {
           "kind": {
@@ -51,18 +53,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 64,
-                        "end": 65
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -76,18 +67,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 68,
-                        "end": 69
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },

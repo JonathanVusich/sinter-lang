@@ -15,7 +15,10 @@
       "id": {
         "id": 0
       },
-      "items": [],
+      "items": [
+        11,
+        25
+      ],
       "nodes": {
         "0": {
           "kind": {
@@ -140,18 +143,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 38,
-                        "end": 39
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -165,18 +157,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 42,
-                        "end": 43
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -246,8 +227,8 @@
                   "4": 0
                 },
                 "params": {
-                  "6": 4,
-                  "5": 2
+                  "5": 2,
+                  "6": 4
                 },
                 "return_type": 5
               },
@@ -383,18 +364,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 74,
-                        "end": 82
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -408,18 +378,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 83,
-                        "end": 84
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -433,18 +392,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 86,
-                        "end": 87
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },

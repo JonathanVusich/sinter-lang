@@ -11,24 +11,15 @@
       "id": {
         "id": 0
       },
-      "items": [],
+      "items": [
+        5
+      ],
       "nodes": {
         "0": {
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 16,
-                        "end": 21
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },

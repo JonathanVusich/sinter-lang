@@ -26,6 +26,8 @@
         "id": 0
       },
       "items": [
+        4,
+        22,
         30,
         49
       ],
@@ -34,28 +36,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 49,
-                        "end": 56
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 7,
-                      "span": {
-                        "start": 58,
-                        "end": 62
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -112,18 +93,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 100,
-                        "end": 107
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -212,18 +182,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 13,
-                      "span": {
-                        "start": 201,
-                        "end": 204
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -276,18 +235,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 14,
-                      "span": {
-                        "start": 244,
-                        "end": 251
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -457,7 +405,9 @@
         },
         "25": {
           "kind": {
-            "Ty": "U64"
+            "Ty": {
+              "Primitive": "U64"
+            }
           },
           "span": {
             "start": 46,
@@ -557,7 +507,9 @@
         },
         "31": {
           "kind": {
-            "Ty": "Str"
+            "Ty": {
+              "Primitive": "Str"
+            }
           },
           "span": {
             "start": 112,
@@ -602,7 +554,9 @@
         },
         "34": {
           "kind": {
-            "Ty": "Str"
+            "Ty": {
+              "Primitive": "Str"
+            }
           },
           "span": {
             "start": 137,
@@ -710,7 +664,9 @@
         },
         "40": {
           "kind": {
-            "Ty": "U64"
+            "Ty": {
+              "Primitive": "U64"
+            }
           },
           "span": {
             "start": 193,
@@ -722,18 +678,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 18,
-                      "span": {
-                        "start": 218,
-                        "end": 222
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -885,7 +830,8 @@
               },
               "generic_params": {},
               "members": {
-                "members": {}
+                "7": 33,
+                "10": 48
               },
               "member_fns": {}
             }

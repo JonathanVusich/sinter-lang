@@ -111,7 +111,9 @@
         },
         "4": {
           "kind": {
-            "Ty": "Boolean"
+            "Ty": {
+              "Primitive": "Boolean"
+            }
           },
           "span": {
             "start": 81,
@@ -123,18 +125,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 96,
-                        "end": 100
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -190,18 +181,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 117,
-                        "end": 127
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -311,7 +291,9 @@
         },
         "14": {
           "kind": {
-            "Ty": "I32"
+            "Ty": {
+              "Primitive": "I32"
+            }
           },
           "span": {
             "start": 160,
@@ -340,7 +322,9 @@
         },
         "16": {
           "kind": {
-            "Ty": "I32"
+            "Ty": {
+              "Primitive": "I32"
+            }
           },
           "span": {
             "start": 172,
@@ -369,7 +353,9 @@
         },
         "18": {
           "kind": {
-            "Ty": "I32"
+            "Ty": {
+              "Primitive": "I32"
+            }
           },
           "span": {
             "start": 188,
@@ -398,7 +384,9 @@
         },
         "20": {
           "kind": {
-            "Ty": "I32"
+            "Ty": {
+              "Primitive": "I32"
+            }
           },
           "span": {
             "start": 205,
@@ -507,7 +495,9 @@
         },
         "26": {
           "kind": {
-            "Ty": "Boolean"
+            "Ty": {
+              "Primitive": "Boolean"
+            }
           },
           "span": {
             "start": 259,
@@ -519,18 +509,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 286,
-                        "end": 290
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -565,18 +544,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 295,
-                        "end": 299
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -650,18 +618,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 327,
-                        "end": 331
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -696,18 +653,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 336,
-                        "end": 340
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -781,18 +727,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 364,
-                        "end": 374
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -827,18 +762,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 15,
-                      "span": {
-                        "start": 379,
-                        "end": 384
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -868,18 +792,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 388,
-                        "end": 398
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -914,18 +827,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 403,
-                        "end": 407
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -992,18 +894,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 413,
-                        "end": 423
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -1038,18 +929,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 16,
-                      "span": {
-                        "start": 428,
-                        "end": 433
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -1095,18 +975,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 437,
-                        "end": 447
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -1141,18 +1010,7 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 452,
-                        "end": 456
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
+                "segments": []
               }
             }
           },
@@ -1258,8 +1116,8 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "6": 25,
-                  "17": 23
+                  "17": 23,
+                  "6": 25
                 },
                 "return_type": 26
               },
@@ -1303,7 +1161,9 @@
         },
         "64": {
           "kind": {
-            "Ty": "I32"
+            "Ty": {
+              "Primitive": "I32"
+            }
           },
           "span": {
             "start": 494,
@@ -1332,7 +1192,9 @@
         },
         "66": {
           "kind": {
-            "Ty": "I32"
+            "Ty": {
+              "Primitive": "I32"
+            }
           },
           "span": {
             "start": 506,
@@ -1372,8 +1234,8 @@
               "class_type": "Inline",
               "generic_params": {},
               "fields": {
-                "12": 67,
-                "10": 65
+                "10": 65,
+                "12": 67
               },
               "fn_stmts": {}
             }
