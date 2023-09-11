@@ -2,11 +2,12 @@ use crate::compiler::ast::{PathTy, QualifiedIdent, TraitBound, Ty};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::Key;
 use lasso::Spur;
-use radix_trie::TrieKey;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
+use multimap::MultiMap;
+use radix_trie::TrieKey;
 
 #[repr(transparent)]
 #[derive(
@@ -61,6 +62,7 @@ impl InternedTy {
 
 pub(crate) type StrMap<T> = HashMap<InternedStr, T>;
 pub(crate) type IStrMap<T> = Arc<StrMap<T>>;
+pub(crate) type IMultiMap<K, V> = Arc<MultiMap<K, V>>;
 pub(crate) type LDefMap<T> = HashMap<LocalDefId, T>;
 
 pub(crate) trait Named {

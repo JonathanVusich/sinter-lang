@@ -675,11 +675,12 @@ impl PathExpr {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Res {
+    Crate(CrateId),
     Module(ModuleId),
     Def(DefId, DefTy),
     Local(LocalDefId),
     Primitive(Primitive),
-    SelfTy(LocalDefId),
+    SelfTy(DefId),
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]

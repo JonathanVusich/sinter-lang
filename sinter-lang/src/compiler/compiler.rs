@@ -293,7 +293,7 @@ impl Compiler {
         &mut self,
         crates: &mut StrMap<Crate>,
     ) -> Result<StrMap<HirCrate>, CompileError> {
-        resolve(crates)
+        resolve(&self.compiler_ctxt, crates)
     }
 
     pub(crate) fn infer_types(

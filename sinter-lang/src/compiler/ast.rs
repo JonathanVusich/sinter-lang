@@ -758,14 +758,6 @@ impl PathExpr {
         }
     }
 
-    pub fn is_double(&self) -> Option<[&Segment; 2]> {
-        if let [first, second] = self.segments.as_ref() {
-            Some([first, second])
-        } else {
-            None
-        }
-    }
-
     pub fn to_module_path(&self) -> QualifiedIdent {
         let mut idents = self
             .segments
