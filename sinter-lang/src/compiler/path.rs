@@ -1,6 +1,8 @@
+use lasso::Spur;
+use radix_trie::TrieKey;
 use std::borrow::Borrow;
 use std::collections::VecDeque;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
@@ -22,35 +24,29 @@ impl ModulePath {
             module_path: VecDeque::from_iter(module_path),
         }
     }
+}
 
-    pub fn as_crate_local_ident(&self) -> QualifiedIdent {
-        QualifiedIdent::new(
-            IdentType::Crate,
-            self.module_path
-                .iter()
-                .map(|seg| Ident::new(*seg, Span::default()))
-                .collect(),
-        )
+impl Deref for ModulePath {
+    type Target = VecDeque<InternedStr>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.module_path
     }
+}
 
-    pub fn pop_back(&mut self) -> Option<InternedStr> {
-        self.module_path.pop_back()
+impl DerefMut for ModulePath {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.module_path
     }
+}
 
-    pub fn last(&mut self) -> Option<InternedStr> {
-        self.module_path.back().copied()
-    }
-
-    pub fn pop_front(&mut self) -> Option<InternedStr> {
-        self.module_path.pop_front()
-    }
-
-    pub fn front(&mut self) -> Option<InternedStr> {
-        self.module_path.front().copied()
-    }
-
-    pub fn len(&self) -> usize {
-        self.module_path.len()
+impl TrieKey for ModulePath {
+    fn encode_bytes(&self) -> Vec<u8> {
+        self.module_path
+            .iter()
+            .map(|ident| Spur::from(*ident).into_inner().get().to_be_bytes())
+            .flatten()
+            .collect()
     }
 }
 

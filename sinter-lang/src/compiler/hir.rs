@@ -1,12 +1,12 @@
 use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::{Debug, Formatter};
-use std::ops::Deref;
+use std::ops::{Deref, Index};
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{Ident, InfixOp, Mutability, UnaryOp};
+use crate::compiler::ast::{Ident, InfixOp, Module, Mutability, UnaryOp};
 use crate::compiler::krate::CrateId;
 use crate::compiler::parser::ClassType;
 use crate::compiler::tokens::tokenized_file::Span;
@@ -33,6 +33,14 @@ impl DefId {
 pub struct ModuleId {
     crate_id: u32,
     module_id: u32,
+}
+
+impl Index<ModuleId> for Vec<Module> {
+    type Output = Module;
+
+    fn index(&self, index: ModuleId) -> &Self::Output {
+        &self[index.module_id as usize]
+    }
 }
 
 impl ModuleId {

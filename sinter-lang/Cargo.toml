@@ -29,7 +29,7 @@ typed-arena = "2.0.2"
 hashbrown = "0.14.0"
 multimap = "0.9.0"
 itertools = "0.11.0"
-radix_trie = "0.2.1"
+radix_trie = { version = "0.2.1", features = ["serde"] }
 
 snap = { path = "../snap" }
 walkdir = "2.3.3"

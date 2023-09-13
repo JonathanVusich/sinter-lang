@@ -2,12 +2,12 @@ use crate::compiler::ast::{PathTy, QualifiedIdent, TraitBound, Ty};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::Key;
 use lasso::Spur;
+use multimap::MultiMap;
+use radix_trie::TrieKey;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
-use multimap::MultiMap;
-use radix_trie::TrieKey;
 
 #[repr(transparent)]
 #[derive(
@@ -27,12 +27,6 @@ impl From<InternedStr> for Spur {
 impl From<Spur> for InternedStr {
     fn from(value: Spur) -> Self {
         InternedStr { str: value }
-    }
-}
-
-impl TrieKey for InternedStr {
-    fn encode_bytes(&self) -> Vec<u8> {
-        self.str.into_inner().get().encode_bytes()
     }
 }
 
