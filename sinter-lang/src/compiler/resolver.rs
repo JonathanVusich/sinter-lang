@@ -17,8 +17,8 @@ use crate::compiler::ast::{
     EnumStmt as AstEnumStmt, Expr as AstExpr, ExprKind as AstExprKind, Field as AstField,
     Fields as AstFields, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
     FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics,
-    GlobalLetStmt as AstGlobalLetStmt, IdentType, Item, ItemKind as AstItemKind,
-    ItemKind, MatchArm as AstMatchArm, Module, Params as AstParams, PathExpr as AstPathExpr,
+    GlobalLetStmt as AstGlobalLetStmt, IdentType, Item, ItemKind as AstItemKind, ItemKind,
+    MatchArm as AstMatchArm, Module, Params as AstParams, PathExpr as AstPathExpr,
     PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Segment as AstSegment,
     Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
     TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
@@ -40,7 +40,7 @@ use crate::compiler::resolver::ResolveError::{
     DuplicateLocalDefIds, ExpectedValueWasModule, QualifiedIdentNotFound, VarNotFound,
 };
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::{InternedStr, IStrMap, LDefMap, StrMap};
+use crate::compiler::types::{IStrMap, InternedStr, LDefMap, StrMap};
 
 pub fn resolve(
     ctxt: &CompilerCtxt,
@@ -59,35 +59,6 @@ pub struct ModuleNS {
 }
 
 impl ModuleNS {
-    pub fn find_ident(&self, ident: &QualifiedIdent, trim_module_name: bool) -> Option<DefId> {
-        let mut module_path = ModulePath::from(ident);
-        if trim_module_name {
-            module_path.pop_front();
-        }
-        if module_path.len() == 1 {
-            // Resolve to either an enum or a value in the current scope.
-            module_path.front().and_then(|val| {
-                self.values
-                    .get(&val)
-                    .map(|val| val.id)
-                    .or_else(|| self.enums.get(&val).map(|def| def.id))
-            })
-        } else if module_path.len() == 2 {
-            module_path
-                .pop_front()
-                // Retrieve the enum
-                .and_then(|name| self.enums.get(&name))
-                // Retrieve the corresponding enum member
-                .and_then(|enum_def| {
-                    let member = module_path.front().unwrap();
-                    enum_def.members.get(&member)
-                })
-                .copied()
-        } else {
-            None
-        }
-    }
-
     pub fn find_value(&self, value: InternedStr) -> Option<&ValueDef> {
         self.values.get(&value)
     }
@@ -102,9 +73,20 @@ pub enum ValueDef {
     GlobalLet(GlobalLetDef),
     Class(ClassDef),
     Enum(EnumDef),
+    EnumMember(EnumMemberDef),
     Trait(TraitDef),
-    // Trait impls are coalesced into these defs
-    Fn(FnDef),
+}
+
+impl ValueDef {
+    pub fn id(&self) -> DefId {
+        match self {
+            ValueDef::GlobalLet(let_stmt) => let_stmt.id,
+            ValueDef::Class(class_stmt) => class_stmt.id,
+            ValueDef::Enum(enum_stmt) => enum_stmt.id,
+            ValueDef::EnumMember(enum_member) => enum_member.id,
+            ValueDef::Trait(trait_stmt) => trait_stmt.id,
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
@@ -114,9 +96,7 @@ pub struct FnDef {
 
 impl FnDef {
     pub fn new(id: DefId) -> Self {
-        Self {
-            id,
-        }
+        Self { id }
     }
 }
 
@@ -126,7 +106,6 @@ pub struct TraitFnDef {
     pub(crate) id: DefId,
 }
 
-
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitDef {
     pub(crate) id: DefId,
@@ -135,9 +114,7 @@ pub struct TraitDef {
 
 impl TraitDef {
     pub fn new(id: DefId, fns: IStrMap<DefId>) -> Self {
-        Self {
-            id, fns,
-        }
+        Self { id, fns }
     }
 }
 
@@ -148,9 +125,7 @@ pub struct GlobalLetDef {
 
 impl GlobalLetDef {
     pub fn new(id: DefId) -> Self {
-        Self {
-            id,
-        }
+        Self { id }
     }
 }
 
@@ -158,14 +133,11 @@ impl GlobalLetDef {
 pub struct ClassDef {
     pub(crate) id: DefId,
     pub(crate) fields: IStrMap<DefId>,
-    pub(crate) fns: IStrMap<DefId>,
 }
 
 impl ClassDef {
-    pub fn new(id: DefId, fields: IStrMap<DefId>, fns: IStrMap<DefId>) -> Self {
-        Self {
-            id, fields, fns,
-        }
+    pub fn new(id: DefId, fields: IStrMap<DefId>) -> Self {
+        Self { id, fields }
     }
 }
 
@@ -173,17 +145,26 @@ impl ClassDef {
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct EnumDef {
     pub(crate) id: DefId,
-    pub(crate) members: IStrMap<DefId>,
-    pub(crate) fns: IStrMap<DefId>,
+    pub(crate) members: IStrMap<EnumMemberDef>,
 }
 
 impl EnumDef {
-    pub fn new(id: DefId, members: IStrMap<DefId>, fns: IStrMap<DefId>) -> Self {
-        Self {
-            id, members, fns,
-        }
+    pub fn new(id: DefId, members: IStrMap<EnumMemberDef>) -> Self {
+        Self { id, members }
     }
 }
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct EnumMemberDef {
+    id: DefId,
+}
+
+impl EnumMemberDef {
+    pub fn new(id: DefId) -> Self {
+        Self { id }
+    }
+}
+
 #[derive(Debug)]
 pub enum Scope {
     Class {
@@ -314,6 +295,8 @@ pub enum ResolveError {
     QualifiedIdentNotFound(QualifiedIdent),
     /// Path not found
     PathNotFound(AstPathExpr),
+    /// Invalid generics
+    InvalidGenerics(Generics),
 
     VarNotFound(InternedStr),
     /// Error when resolving path, expected value but was module
@@ -379,7 +362,7 @@ impl<'a> Resolver<'a> {
 
     fn build_crate_ns(&mut self) -> Result<(), CompileError> {
         // Generate the initial module ns
-        let mut module_namespaces = HashMap::default();
+        let mut module_namespaces = HashMap::<ModuleId, ModuleNS>::new();
         for krate in self.krates.values() {
             let krate_id = krate.crate_id;
             for module in krate.modules() {
@@ -387,7 +370,6 @@ impl<'a> Resolver<'a> {
                 module_namespaces.insert(module.id, module_ns);
             }
         }
-
 
         // Second pass we need to process all use stmts since we now have all of the values
         // populated for each module.
@@ -451,32 +433,61 @@ impl<'a> Resolver<'a> {
                 ItemKind::GlobalLet(global_let_stmt) => {
                     values.insert(
                         global_let_stmt.name.ident,
-                        ValueDef::GlobalLet(GlobalLetDef::new(def_id))
+                        ValueDef::GlobalLet(GlobalLetDef::new(def_id)),
                     );
                 }
                 ItemKind::Class(class_stmt) => {
-                    let fields = Arc::new(class_stmt.fields.iter()
-                        .map(|field| (field.name.ident, field.id.to_def_id(krate_id)))
-                        .collect());
-                    let fns = Arc::new(class_stmt.self_fns.iter()
-                        .map(|self_fn| (self_fn.sig.name.ident, self_fn.id.to_def_id(krate_id)))
-                        .collect());
-                    values.insert(class_stmt.name.ident, ValueDef::Class(ClassDef::new(def_id, fields, fns)));
+                    let fields = Arc::new(
+                        class_stmt
+                            .fields
+                            .iter()
+                            .map(|field| (field.name.ident, field.id.to_def_id(krate_id)))
+                            .collect(),
+                    );
+                    let fns = Arc::new(
+                        class_stmt
+                            .self_fns
+                            .iter()
+                            .map(|self_fn| (self_fn.sig.name.ident, self_fn.id.to_def_id(krate_id)))
+                            .collect(),
+                    );
+                    values.insert(
+                        class_stmt.name.ident,
+                        ValueDef::Class(ClassDef::new(def_id, fields, fns)),
+                    );
                 }
                 ItemKind::Enum(enum_stmt) => {
-                    let members = Arc::new(enum_stmt.members.iter()
-                        .map(|member| (member.name, member.id.to_def_id(krate_id)))
-                        .collect());
-                    let fns = Arc::new(enum_stmt.self_fns.iter()
-                        .map(|self_fn| (self_fn.sig.name.ident, self_fn.id.to_def_id(krate_id)))
-                        .collect());
-                    values.insert(enum_stmt.name.ident, ValueDef::Enum(EnumDef::new(def_id, members, fns)));
+                    let members = Arc::new(
+                        enum_stmt
+                            .members
+                            .iter()
+                            .map(|member| (member.name, member.id.to_def_id(krate_id)))
+                            .collect(),
+                    );
+                    let fns = Arc::new(
+                        enum_stmt
+                            .self_fns
+                            .iter()
+                            .map(|self_fn| (self_fn.sig.name.ident, self_fn.id.to_def_id(krate_id)))
+                            .collect(),
+                    );
+                    values.insert(
+                        enum_stmt.name.ident,
+                        ValueDef::Enum(EnumDef::new(def_id, members, fns)),
+                    );
                 }
                 ItemKind::Trait(trait_stmt) => {
-                    let fns = Arc::new(trait_stmt.self_fns.iter()
-                        .map(|self_fn| (self_fn.sig.name.ident, self_fn.id.to_def_id(krate_id)))
-                        .collect());
-                    values.insert(trait_stmt.name.ident, ValueDef::Trait(TraitDef::new(def_id, fns)));
+                    let fns = Arc::new(
+                        trait_stmt
+                            .self_fns
+                            .iter()
+                            .map(|self_fn| (self_fn.sig.name.ident, self_fn.id.to_def_id(krate_id)))
+                            .collect(),
+                    );
+                    values.insert(
+                        trait_stmt.name.ident,
+                        ValueDef::Trait(TraitDef::new(def_id, fns)),
+                    );
                 }
                 ItemKind::Fn(fn_stmt) => {
                     values.insert(fn_stmt.sig.name.ident, ValueDef::Fn(FnDef::new(def_id)));
@@ -699,10 +710,6 @@ impl<'a> CrateResolver<'a> {
             generics.insert(param.name.ident, param.id);
         }
         Ok(GenericParams::from(generics))
-    }
-
-    fn get_module(&self, id: ModuleId) -> &Module {
-        self.crate_lookup[id.crate_id()].module(id)
     }
 
     fn insert_field(&mut self, field_name: InternedStr, id: LocalDefId) -> ResolveResult {
@@ -1168,36 +1175,19 @@ impl<'a> CrateResolver<'a> {
             IdentType::LocalOrUse => {
                 if let Some(segment) = path_expr.is_single() {
                     let candidate = self.find_primary_segment(segment)?;
+                    segments.push(candidate);
                 } else {
                     let mut path = VecDeque::from_iter(path_expr.segments.iter());
                     let first_seg = self.find_primary_segment(path.pop_front().unwrap())?;
+                    segments.push(first_seg);
 
                     while !path.is_empty() {
+                        let prev_seg = segments.last().unwrap(); // Should be safe
                         let current = path.pop_front().unwrap(); // Should be safe
                         let curr_ident = current.ident.ident;
-                        let res = self.find_secondary_segment()
-                        let res = module_ns
-                            // Check for class, fn, trait
-                            .find_value(curr_ident)
-                            .map(|val| Res::Def(val.id, val.ty))
-                            // Check for enum
-                            .or_else(|| {
-                                module_ns
-                                    .find_enum(curr_ident)
-                                    .map(|val| Res::Def(val.id, DefTy::Enum))
-                            })
-                            .or_else(|| module_ns.find_module(curr_ident).map(Res::Module))
-                            // Check if is from an external crate
-                            .or_else(|| {
-                                self.crates
-                                    .get(&curr_ident)
-                                    .map(|krate| krate.crate_id)
-                                    .map(Res::Crate)
-                            })
-                            .ok_or(VarNotFound(curr_ident))?;
-                        let generics = self.maybe_resolve_generics(&current.generics)?;
+                        let segment = self.find_secondary_segment(&prev_seg.res, current)?;
 
-                        segments.push(Segment::new(res, generics));
+                        segments.push(segment);
                     }
                 }
             }
@@ -1215,16 +1205,7 @@ impl<'a> CrateResolver<'a> {
             .or_else(|| self.find_enum_member(ident))
             .filter(|var| generics.is_none())
             .map(Res::Local)
-            .or_else(|| {
-                module_ns
-                    .find_value(ident)
-                    .map(|val| Res::Def(val.id, val.ty))
-            })
-            .or_else(|| {
-                module_ns
-                    .find_enum(ident)
-                    .map(|val| Res::Def(val.id, DefTy::Enum))
-            })
+            .or_else(|| module_ns.find_value(ident).cloned().map(Res::ValueDef))
             .or_else(|| {
                 self.matches_primitive(ident)
                     .filter(|prim| generics.is_none())
@@ -1233,6 +1214,7 @@ impl<'a> CrateResolver<'a> {
             .or_else(|| {
                 self.matches_self_ty(ident)
                     .and_then(|()| self.find_item_definition(ident))
+                    .and_then(|id| self.module.ns.values.values().find(|val_def| *val_def.id))
                     .map(Res::SelfTy)
             })
             .or_else(|| module_ns.find_module(ident).map(Res::Module))
@@ -1253,64 +1235,54 @@ impl<'a> CrateResolver<'a> {
     ) -> Result<Segment, ResolveError> {
         let module_ns = &self.module.ns;
         let ident = segment.ident.ident;
+        // TODO: Finish generics error handling
         let generics = self.maybe_resolve_generics(&segment.generics)?;
 
-        match previous {
+        let res = match previous {
             Res::Crate(krate_id) => {
-                self.crate_lookup[krate_id].find_module()
+                let krate = &self.crate_lookup[*krate_id];
+                krate
+                    .module_trie()
+                    .get(&ModulePath::Single(ident))
+                    .copied()
+                    .map(Res::Module)
+                    .unwrap_or_else(|| Res::ModuleSegment(*krate_id, ModulePath::Single(ident)))
             }
-            Res::Module(_) => {}
-            Res::Def(def_id, DefTy::Enum) => {
-                // If the previous member was an enum, check for either a member or a fn
-                // TODO: Consider using map here instead of linear search
-                let enum_def = module_ns.enums
-                    .values()
-                    .filter(|e| e.id == *def_id)
-                    .exactly_one()
-                    .ok();
-                let member_res = enum_def
-                    .and_then(|e| Res::Def(e.members.get(&ident).copied(), DefTy::EnumMember))
-                    .map(|id| Res::Def(id, DefTy::EnumMember));
-                let fn_res = enum_def.and_then(|e| e.members)
+            Res::ModuleSegment(krate_id, path) => {
+                let full_path = path.concat(ModulePath::Single(ident));
 
+                let krate = &self.crate_lookup[*krate_id];
+                krate
+                    .module_trie()
+                    .get(&full_path)
+                    .copied()
+                    .map(Res::Module)
+                    .unwrap_or_else(|| Res::ModuleSegment(*krate_id, full_path))
             }
-            Res::Def(_, DefTy::GlobalLet) => {}
-            Res::Def(_, DefTy::Class) => {}
-            Res::Def(_, DefTy::EnumMember) => {}
-            Res::Def(_, DefTy::Trait) => {}
-            Res::Def(_, DefTy::Fn) => {}
-            Res::Local(_) => {}
-            Res::Primitive(_) => {} // TODO: Implement primitives namespace?
-            Res::SelfTy(_) => {}
-        }
-
-        self.find_var(ident)
-            .or_else(|| self.find_generic_param(ident))
-            .or_else(|| self.find_enum_member(ident))
-            .filter(|var| generics.is_none())
-            .map(Res::Local)
-            .or_else(|| {
-                module_ns
+            Res::Module(mod_id) => {
+                let module = &self.crate_lookup[*mod_id];
+                module
+                    .ns
                     .find_value(ident)
-                    .map(|val| Res::Def(val.id, val.ty))
-                    .or_else(|| {
-                        module_ns
-                            .find_enum(ident)
-                            .map(|val| Res::Def(val.id, DefTy::Enum))
-                    })
-                    .or_else(|| {
-                        self.matches_primitive(ident)
-                            .filter(|prim| generics.is_none())
-                            .map(Res::Primitive)
-                    })
-                    .or_else(|| {
-                        self.matches_self_ty(ident)
-                            .and_then(|()| self.find_item_definition(ident))
-                            .map(Res::SelfTy)
-                    })
-            })
-            .map(|res| Segment::new(res, generics.clone()))
-            .ok_or(VarNotFound(ident))
+                    .cloned()
+                    .map(Res::ValueDef)
+                    .ok_or_else(|| VarNotFound(ident))?
+            }
+            Res::ValueDef(ValueDef::Enum(enum_def)) => {
+                // Check for enum member or else return blank Res::Fn
+                todo!()
+            }
+            Res::ValueDef(ValueDef::Class(_) | ValueDef::EnumMember(_) | ValueDef::Trait(_))
+            | Res::Primitive(_) => {
+                // We have to late resolve these fns after type checking since that might affect resolution.
+                Res::Fn(ident)
+            }
+            // Fns and locals cannot have paths!
+            Res::Fn(_) | Res::Local(_) => {
+                return Err(VarNotFound(ident));
+            }
+        };
+        Ok(Segment::new(res, generics))
     }
 
     fn matches_primitive(&self, ident: InternedStr) -> Option<Primitive> {
@@ -1724,8 +1696,8 @@ mod tests {
     use crate::compiler::compiler::{Application, CompileError, Compiler, CompilerCtxt};
     use crate::compiler::hir::HirCrate;
     use crate::compiler::resolver::ResolveError;
-    use crate::compiler::StringInterner;
     use crate::compiler::types::StrMap;
+    use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]

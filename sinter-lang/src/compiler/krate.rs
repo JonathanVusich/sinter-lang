@@ -26,6 +26,14 @@ impl CrateId {
     }
 }
 
+impl<'a> Index<CrateId> for Vec<&'a Crate> {
+    type Output = Crate;
+
+    fn index(&self, index: CrateId) -> &Self::Output {
+        &self[index.id as usize]
+    }
+}
+
 impl From<CrateId> for u32 {
     fn from(value: CrateId) -> Self {
         value.id
@@ -147,6 +155,14 @@ pub struct Crate {
     modules: Vec<Module>,
 }
 
+impl Index<ModuleId> for Crate {
+    type Output = Module;
+
+    fn index(&self, index: ModuleId) -> &Self::Output {
+        &self.modules[index]
+    }
+}
+
 impl Crate {
     pub fn new(name: InternedStr, crate_id: CrateId) -> Self {
         Self {
@@ -156,10 +172,6 @@ impl Crate {
             // module_lookup: Default::default(),
             modules: Default::default(),
         }
-    }
-
-    pub fn index(&self) -> usize {
-        self.crate_id.id as usize
     }
 
     pub fn add_module(&mut self, module_path: ModulePath, mut module: Module) {
@@ -209,6 +221,10 @@ impl Crate {
                             })
                     })
             })
+    }
+
+    pub fn module_trie(&self) -> &Trie<ModulePath, ModuleId> {
+        &self.module_trie
     }
 
     pub fn module(&self, mod_id: ModuleId) -> &Module {

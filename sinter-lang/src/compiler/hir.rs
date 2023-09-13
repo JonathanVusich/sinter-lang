@@ -7,8 +7,10 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{Ident, InfixOp, Module, Mutability, UnaryOp};
-use crate::compiler::krate::CrateId;
+use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::ClassType;
+use crate::compiler::path::ModulePath;
+use crate::compiler::resolver::ValueDef;
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::{InternedStr, StrMap};
 use crate::compiler::utils::{named_slice, named_strmap};
@@ -43,20 +45,20 @@ impl Index<ModuleId> for Vec<Module> {
     }
 }
 
+impl<'a> Index<ModuleId> for Vec<&'a Crate> {
+    type Output = Module;
+
+    fn index(&self, index: ModuleId) -> &Self::Output {
+        &self[index.crate_id as usize][index]
+    }
+}
+
 impl ModuleId {
     pub fn new(crate_id: u32, module_id: u32) -> Self {
         Self {
             crate_id,
             module_id,
         }
-    }
-
-    pub fn crate_id(&self) -> usize {
-        self.crate_id as usize
-    }
-
-    pub fn module_id(&self) -> usize {
-        self.module_id as usize
     }
 }
 
@@ -684,11 +686,12 @@ impl PathExpr {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Res {
     Crate(CrateId),
+    ModuleSegment(CrateId, ModulePath),
     Module(ModuleId),
-    Def(DefId, DefTy),
+    ValueDef(ValueDef),
+    Fn(InternedStr), // These have to be late resolved after type information is deduced?
     Local(LocalDefId),
     Primitive(Primitive),
-    SelfTy(DefId),
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
