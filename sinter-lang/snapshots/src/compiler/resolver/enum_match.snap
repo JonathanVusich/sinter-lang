@@ -36,7 +36,48 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "Enum": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 49
+                          },
+                          "members": {
+                            "7": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 33
+                              }
+                            },
+                            "10": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 48
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 33
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -93,7 +134,21 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "GlobalLet": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 4
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -182,7 +237,14 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 12
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -235,7 +297,14 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 16
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -678,7 +747,14 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 39
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -804,8 +880,8 @@
             "EnumMember": {
               "name": 10,
               "fields": {
-                "14": 35,
-                "11": 37
+                "11": 37,
+                "14": 35
               },
               "member_fns": {
                 "16": 47

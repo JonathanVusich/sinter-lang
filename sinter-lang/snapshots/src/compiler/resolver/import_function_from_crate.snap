@@ -143,7 +143,14 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 2
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -157,7 +164,14 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 4
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -227,8 +241,8 @@
                   "4": 0
                 },
                 "params": {
-                  "5": 2,
-                  "6": 4
+                  "6": 4,
+                  "5": 2
                 },
                 "return_type": 5
               },
@@ -364,7 +378,21 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "Fn": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 11
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -378,7 +406,14 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 15
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -392,7 +427,14 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 15
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },

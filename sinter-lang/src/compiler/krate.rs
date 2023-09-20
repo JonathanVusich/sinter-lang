@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut, Index};
 
 use radix_trie::Trie;
-use serde::de::{SeqAccess, Visitor};
+use serde::de::{DeserializeOwned, SeqAccess, Visitor};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -147,12 +147,35 @@ where
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[serde(from = "DeserCrate")]
 pub struct Crate {
     pub(crate) name: InternedStr,
     pub(crate) crate_id: CrateId,
+    #[serde(skip)]
     module_trie: Trie<ModulePath, ModuleId>,
-    // module_lookup: ModuleMap<ModuleId>,
     modules: Vec<Module>,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+struct DeserCrate {
+    pub(crate) name: InternedStr,
+    pub(crate) crate_id: CrateId,
+    modules: Vec<Module>,
+}
+
+impl From<DeserCrate> for Crate {
+    fn from(value: DeserCrate) -> Self {
+        let mut module_trie = Trie::default();
+        for module in &value.modules {
+            module_trie.insert(module.path.clone(), module.id);
+        }
+        Crate {
+            name: value.name,
+            crate_id: value.crate_id,
+            module_trie,
+            modules: value.modules,
+        }
+    }
 }
 
 impl Index<ModuleId> for Crate {
@@ -196,7 +219,7 @@ impl Crate {
             .get(&module_path)
             .copied()
             // The module is an exact match, return it directly
-            .map(|id| CrateDef::Module(module_path.front().copied().unwrap(), id))
+            .map(|id| CrateDef::Module(module_path.back().unwrap(), id))
             .or_else(|| {
                 // The module is not an exact match, we need to search the nearest match for the remaining path segments.
                 self.module_trie
@@ -204,7 +227,7 @@ impl Crate {
                     .copied()
                     .and_then(|id| {
                         // Search for a value in the given module namespace.
-                        let value = module_path.back().copied().unwrap();
+                        let value = module_path.back().unwrap();
                         let module = &self.modules[id];
                         module
                             .ns
@@ -213,7 +236,7 @@ impl Crate {
                             .or_else(|| {
                                 // Pop off a POTENTIAL enum discriminant and search for the enum.
                                 module_path.pop_back();
-                                let value = module_path.back().copied()?;
+                                let value = module_path.back()?;
                                 module
                                     .ns
                                     .find_value(value)
@@ -228,7 +251,7 @@ impl Crate {
     }
 
     pub fn module(&self, mod_id: ModuleId) -> &Module {
-        &self.modules[mod_id.module_id()]
+        &self.modules[mod_id]
     }
 
     pub fn module_mut(&mut self, module_id: usize) -> &mut Module {

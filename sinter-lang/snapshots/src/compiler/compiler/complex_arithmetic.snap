@@ -3,30 +3,6 @@
   "crate_id": {
     "id": 0
   },
-  "module_lookup": [
-    [
-      {
-        "module_path": [
-          2
-        ]
-      },
-      {
-        "crate_id": 0,
-        "module_id": 0
-      }
-    ],
-    [
-      {
-        "module_path": [
-          7
-        ]
-      },
-      {
-        "crate_id": 0,
-        "module_id": 1
-      }
-    ]
-  ],
   "modules": [
     {
       "path": {
@@ -40,8 +16,7 @@
       },
       "ns": {
         "modules": {},
-        "values": {},
-        "enums": {}
+        "values": {}
       },
       "items": [
         {
@@ -286,8 +261,7 @@
       },
       "ns": {
         "modules": {},
-        "values": {},
-        "enums": {}
+        "values": {}
       },
       "items": [
         {

@@ -347,9 +347,7 @@ mod tests {
                 5
             }
         }
-
         let diameter = Test::Var.diameter();
-        dbg!(diameter);
 
         let krate_path = resolve_test_krate_path("complex_arithmetic");
         let mut compiler = Compiler::default();
