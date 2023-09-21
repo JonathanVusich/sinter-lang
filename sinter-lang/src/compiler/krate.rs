@@ -227,7 +227,7 @@ impl Crate {
                     .copied()
                     .and_then(|id| {
                         // Search for a value in the given module namespace.
-                        let value = module_path.back().unwrap();
+                        let value = module_path.back()?;
                         let module = &self.modules[id];
                         module
                             .ns
@@ -235,12 +235,19 @@ impl Crate {
                             .map(|val_def| CrateDef::Value(value, val_def.clone()))
                             .or_else(|| {
                                 // Pop off a POTENTIAL enum discriminant and search for the enum.
-                                module_path.pop_back();
-                                let value = module_path.back()?;
-                                module
+                                let discriminant = module_path.pop_back()?;
+                                let enum_val = module_path.back()?;
+                                let val_def = module
                                     .ns
-                                    .find_value(value)
-                                    .map(|val_def| CrateDef::Value(value, val_def.clone()))
+                                    .find_value(enum_val)
+                                    .and_then(|val_def| match val_def {
+                                        ValueDef::Enum(enum_def) => Some(enum_def),
+                                        _ => None,
+                                    })
+                                    .and_then(|enum_def| enum_def.members.get(&discriminant))
+                                    .map(|member_def| ValueDef::EnumMember(member_def.clone()))
+                                    .map(|val_def| CrateDef::Value(discriminant, val_def));
+                                val_def
                             })
                     })
             })

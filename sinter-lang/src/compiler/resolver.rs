@@ -8,6 +8,7 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 use itertools::Itertools;
+use lasso::Spur;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{
@@ -1236,6 +1237,9 @@ impl<'a> CrateResolver<'a> {
     fn find_primary_segment(&mut self, segment: &AstSegment) -> Result<Segment, ResolveError> {
         let module_ns = &self.module.unwrap().ns;
         let ident = segment.ident.ident;
+        if Spur::from(ident).into_inner().get() == 6 {
+            // dbg!(module_ns);
+        }
         let generics = self.maybe_resolve_generics(&segment.generics)?;
 
         self.find_var(ident)

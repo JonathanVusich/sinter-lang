@@ -25,9 +25,9 @@
         "id": 0
       },
       "items": [
-        13,
-        63,
-        68
+        15,
+        65,
+        70
       ],
       "nodes": {
         "0": {
@@ -37,7 +37,7 @@
                 "path": {
                   "definition": {
                     "crate_id": 0,
-                    "local_id": 63
+                    "local_id": 65
                   },
                   "generics": []
                 }
@@ -76,7 +76,7 @@
                 "path": {
                   "definition": {
                     "crate_id": 0,
-                    "local_id": 68
+                    "local_id": 15
                   },
                   "generics": []
                 }
@@ -84,8 +84,8 @@
             }
           },
           "span": {
-            "start": 67,
-            "end": 76
+            "start": 55,
+            "end": 59
           },
           "id": 2
         },
@@ -93,10 +93,10 @@
           "kind": {
             "Param": {
               "ident": {
-                "ident": 6,
+                "ident": 17,
                 "span": {
                   "start": 55,
-                  "end": 65
+                  "end": 59
                 }
               },
               "ty": 2,
@@ -105,139 +105,193 @@
           },
           "span": {
             "start": 55,
-            "end": 76
+            "end": 59
           },
           "id": 3
         },
         "4": {
           "kind": {
             "Ty": {
-              "Primitive": "Boolean"
-            }
-          },
-          "span": {
-            "start": 81,
-            "end": 85
-          },
-          "id": 4
-        },
-        "5": {
-          "kind": {
-            "Expr": {
               "Path": {
-                "segments": []
-              }
-            }
-          },
-          "span": {
-            "start": 96,
-            "end": 100
-          },
-          "id": 5
-        },
-        "6": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 5,
-                "ident": {
-                  "ident": 3,
-                  "span": {
-                    "start": 101,
-                    "end": 107
-                  }
+                "path": {
+                  "definition": {
+                    "crate_id": 0,
+                    "local_id": 70
+                  },
+                  "generics": []
                 }
               }
             }
           },
           "span": {
-            "start": 96,
-            "end": 107
+            "start": 73,
+            "end": 82
+          },
+          "id": 4
+        },
+        "5": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 6,
+                "span": {
+                  "start": 61,
+                  "end": 71
+                }
+              },
+              "ty": 4,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 61,
+            "end": 82
+          },
+          "id": 5
+        },
+        "6": {
+          "kind": {
+            "Ty": {
+              "Primitive": "Boolean"
+            }
+          },
+          "span": {
+            "start": 87,
+            "end": 91
           },
           "id": 6
         },
         "7": {
           "kind": {
             "Expr": {
-              "Field": {
-                "lhs": 6,
-                "ident": {
-                  "ident": 9,
-                  "span": {
-                    "start": 108,
-                    "end": 116
+              "Path": {
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 3
+                    },
+                    "generics": null
                   }
-                }
+                ]
               }
             }
           },
           "span": {
-            "start": 96,
-            "end": 116
+            "start": 102,
+            "end": 106
           },
           "id": 7
         },
         "8": {
           "kind": {
             "Expr": {
-              "Path": {
-                "segments": []
+              "Field": {
+                "lhs": 7,
+                "ident": {
+                  "ident": 3,
+                  "span": {
+                    "start": 107,
+                    "end": 113
+                  }
+                }
               }
             }
           },
           "span": {
-            "start": 117,
-            "end": 127
+            "start": 102,
+            "end": 113
           },
           "id": 8
         },
         "9": {
           "kind": {
             "Expr": {
-              "Call": {
-                "target": 7,
-                "args": [
-                  8
-                ]
+              "Field": {
+                "lhs": 8,
+                "ident": {
+                  "ident": 9,
+                  "span": {
+                    "start": 114,
+                    "end": 122
+                  }
+                }
               }
             }
           },
           "span": {
-            "start": 96,
-            "end": 128
+            "start": 102,
+            "end": 122
           },
           "id": 9
         },
         "10": {
           "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 9,
-                "implicit_return": false
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 5
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 96,
-            "end": 128
+            "start": 123,
+            "end": 133
           },
           "id": 10
         },
         "11": {
           "kind": {
-            "Block": {
-              "stmts": [
-                10
-              ]
+            "Expr": {
+              "Call": {
+                "target": 9,
+                "args": [
+                  10
+                ]
+              }
             }
           },
           "span": {
-            "start": 86,
+            "start": 102,
             "end": 134
           },
           "id": 11
         },
         "12": {
+          "kind": {
+            "Stmt": {
+              "Expression": {
+                "expr": 11,
+                "implicit_return": false
+              }
+            }
+          },
+          "span": {
+            "start": 102,
+            "end": 134
+          },
+          "id": 12
+        },
+        "13": {
+          "kind": {
+            "Block": {
+              "stmts": [
+                12
+              ]
+            }
+          },
+          "span": {
+            "start": 92,
+            "end": 140
+          },
+          "id": 13
+        },
+        "14": {
           "kind": {
             "Fn": {
               "sig": {
@@ -250,20 +304,21 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "6": 3
+                  "17": 3,
+                  "6": 5
                 },
-                "return_type": 4
+                "return_type": 6
               },
-              "body": 11
+              "body": 13
             }
           },
           "span": {
             "start": 42,
-            "end": 134
+            "end": 140
           },
-          "id": 12
+          "id": 14
         },
-        "13": {
+        "15": {
           "kind": {
             "Class": {
               "name": {
@@ -279,44 +334,13 @@
                 "3": 1
               },
               "fn_stmts": {
-                "5": 12
+                "5": 14
               }
             }
           },
           "span": {
             "start": 0,
-            "end": 136
-          },
-          "id": 13
-        },
-        "14": {
-          "kind": {
-            "Ty": {
-              "Primitive": "I32"
-            }
-          },
-          "span": {
-            "start": 160,
-            "end": 163
-          },
-          "id": 14
-        },
-        "15": {
-          "kind": {
-            "Field": {
-              "ident": {
-                "ident": 10,
-                "span": {
-                  "start": 157,
-                  "end": 158
-                }
-              },
-              "ty": 14
-            }
-          },
-          "span": {
-            "start": 157,
-            "end": 163
+            "end": 142
           },
           "id": 15
         },
@@ -327,8 +351,8 @@
             }
           },
           "span": {
-            "start": 172,
-            "end": 175
+            "start": 166,
+            "end": 169
           },
           "id": 16
         },
@@ -336,18 +360,18 @@
           "kind": {
             "Field": {
               "ident": {
-                "ident": 12,
+                "ident": 10,
                 "span": {
-                  "start": 169,
-                  "end": 170
+                  "start": 163,
+                  "end": 164
                 }
               },
               "ty": 16
             }
           },
           "span": {
-            "start": 169,
-            "end": 175
+            "start": 163,
+            "end": 169
           },
           "id": 17
         },
@@ -358,8 +382,8 @@
             }
           },
           "span": {
-            "start": 188,
-            "end": 191
+            "start": 178,
+            "end": 181
           },
           "id": 18
         },
@@ -367,18 +391,18 @@
           "kind": {
             "Field": {
               "ident": {
-                "ident": 13,
+                "ident": 12,
                 "span": {
-                  "start": 181,
-                  "end": 186
+                  "start": 175,
+                  "end": 176
                 }
               },
               "ty": 18
             }
           },
           "span": {
-            "start": 181,
-            "end": 191
+            "start": 175,
+            "end": 181
           },
           "id": 19
         },
@@ -389,8 +413,8 @@
             }
           },
           "span": {
-            "start": 205,
-            "end": 208
+            "start": 194,
+            "end": 197
           },
           "id": 20
         },
@@ -398,58 +422,49 @@
           "kind": {
             "Field": {
               "ident": {
-                "ident": 14,
+                "ident": 13,
                 "span": {
-                  "start": 197,
-                  "end": 203
+                  "start": 187,
+                  "end": 192
                 }
               },
               "ty": 20
             }
           },
           "span": {
-            "start": 197,
-            "end": 208
+            "start": 187,
+            "end": 197
           },
           "id": 21
         },
         "22": {
           "kind": {
             "Ty": {
-              "Path": {
-                "path": {
-                  "definition": {
-                    "crate_id": 0,
-                    "local_id": 63
-                  },
-                  "generics": []
-                }
-              }
+              "Primitive": "I32"
             }
           },
           "span": {
-            "start": 227,
-            "end": 231
+            "start": 211,
+            "end": 214
           },
           "id": 22
         },
         "23": {
           "kind": {
-            "Param": {
+            "Field": {
               "ident": {
-                "ident": 17,
+                "ident": 14,
                 "span": {
-                  "start": 227,
-                  "end": 231
+                  "start": 203,
+                  "end": 209
                 }
               },
-              "ty": 22,
-              "mutability": "Immutable"
+              "ty": 22
             }
           },
           "span": {
-            "start": 227,
-            "end": 231
+            "start": 203,
+            "end": 214
           },
           "id": 23
         },
@@ -460,7 +475,7 @@
                 "path": {
                   "definition": {
                     "crate_id": 0,
-                    "local_id": 68
+                    "local_id": 65
                   },
                   "generics": []
                 }
@@ -468,8 +483,8 @@
             }
           },
           "span": {
-            "start": 245,
-            "end": 254
+            "start": 233,
+            "end": 237
           },
           "id": 24
         },
@@ -477,10 +492,10 @@
           "kind": {
             "Param": {
               "ident": {
-                "ident": 6,
+                "ident": 17,
                 "span": {
                   "start": 233,
-                  "end": 243
+                  "end": 237
                 }
               },
               "ty": 24,
@@ -489,54 +504,59 @@
           },
           "span": {
             "start": 233,
-            "end": 254
+            "end": 237
           },
           "id": 25
         },
         "26": {
           "kind": {
             "Ty": {
-              "Primitive": "Boolean"
-            }
-          },
-          "span": {
-            "start": 259,
-            "end": 263
-          },
-          "id": 26
-        },
-        "27": {
-          "kind": {
-            "Expr": {
               "Path": {
-                "segments": []
-              }
-            }
-          },
-          "span": {
-            "start": 286,
-            "end": 290
-          },
-          "id": 27
-        },
-        "28": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 27,
-                "ident": {
-                  "ident": 10,
-                  "span": {
-                    "start": 291,
-                    "end": 292
-                  }
+                "path": {
+                  "definition": {
+                    "crate_id": 0,
+                    "local_id": 70
+                  },
+                  "generics": []
                 }
               }
             }
           },
           "span": {
-            "start": 286,
-            "end": 292
+            "start": 251,
+            "end": 260
+          },
+          "id": 26
+        },
+        "27": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 6,
+                "span": {
+                  "start": 239,
+                  "end": 249
+                }
+              },
+              "ty": 26,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 239,
+            "end": 260
+          },
+          "id": 27
+        },
+        "28": {
+          "kind": {
+            "Ty": {
+              "Primitive": "Boolean"
+            }
+          },
+          "span": {
+            "start": 265,
+            "end": 269
           },
           "id": 28
         },
@@ -544,13 +564,20 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 25
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 295,
-            "end": 299
+            "start": 292,
+            "end": 296
           },
           "id": 29
         },
@@ -560,92 +587,99 @@
               "Field": {
                 "lhs": 29,
                 "ident": {
-                  "ident": 13,
+                  "ident": 10,
                   "span": {
-                    "start": 300,
-                    "end": 305
+                    "start": 297,
+                    "end": 298
                   }
                 }
               }
             }
           },
           "span": {
-            "start": 295,
-            "end": 305
+            "start": 292,
+            "end": 298
           },
           "id": 30
         },
         "31": {
           "kind": {
             "Expr": {
-              "Infix": {
-                "operator": "Add",
-                "lhs": 28,
-                "rhs": 30
+              "Path": {
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 25
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 286,
+            "start": 301,
             "end": 305
           },
           "id": 31
         },
         "32": {
           "kind": {
-            "Stmt": {
-              "Let": {
-                "ident": {
-                  "ident": 15,
-                  "span": {
-                    "start": 278,
-                    "end": 283
-                  }
-                },
-                "mutability": "Immutable",
-                "ty": null,
-                "initializer": 31
-              }
-            }
-          },
-          "span": {
-            "start": 274,
-            "end": 306
-          },
-          "id": 32
-        },
-        "33": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": []
-              }
-            }
-          },
-          "span": {
-            "start": 327,
-            "end": 331
-          },
-          "id": 33
-        },
-        "34": {
-          "kind": {
             "Expr": {
               "Field": {
-                "lhs": 33,
+                "lhs": 31,
                 "ident": {
-                  "ident": 12,
+                  "ident": 13,
                   "span": {
-                    "start": 332,
-                    "end": 333
+                    "start": 306,
+                    "end": 311
                   }
                 }
               }
             }
           },
           "span": {
-            "start": 327,
-            "end": 333
+            "start": 301,
+            "end": 311
+          },
+          "id": 32
+        },
+        "33": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Add",
+                "lhs": 30,
+                "rhs": 32
+              }
+            }
+          },
+          "span": {
+            "start": 292,
+            "end": 311
+          },
+          "id": 33
+        },
+        "34": {
+          "kind": {
+            "Stmt": {
+              "Let": {
+                "ident": {
+                  "ident": 15,
+                  "span": {
+                    "start": 284,
+                    "end": 289
+                  }
+                },
+                "mutability": "Immutable",
+                "ty": null,
+                "initializer": 33
+              }
+            }
+          },
+          "span": {
+            "start": 280,
+            "end": 312
           },
           "id": 34
         },
@@ -653,13 +687,20 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 25
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 336,
-            "end": 340
+            "start": 333,
+            "end": 337
           },
           "id": 35
         },
@@ -669,92 +710,99 @@
               "Field": {
                 "lhs": 35,
                 "ident": {
-                  "ident": 14,
+                  "ident": 12,
                   "span": {
-                    "start": 341,
-                    "end": 347
+                    "start": 338,
+                    "end": 339
                   }
                 }
               }
             }
           },
           "span": {
-            "start": 336,
-            "end": 347
+            "start": 333,
+            "end": 339
           },
           "id": 36
         },
         "37": {
           "kind": {
             "Expr": {
-              "Infix": {
-                "operator": "Add",
-                "lhs": 34,
-                "rhs": 36
+              "Path": {
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 25
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 327,
-            "end": 347
+            "start": 342,
+            "end": 346
           },
           "id": 37
         },
         "38": {
           "kind": {
-            "Stmt": {
-              "Let": {
-                "ident": {
-                  "ident": 16,
-                  "span": {
-                    "start": 319,
-                    "end": 324
-                  }
-                },
-                "mutability": "Immutable",
-                "ty": null,
-                "initializer": 37
-              }
-            }
-          },
-          "span": {
-            "start": 315,
-            "end": 348
-          },
-          "id": 38
-        },
-        "39": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": []
-              }
-            }
-          },
-          "span": {
-            "start": 364,
-            "end": 374
-          },
-          "id": 39
-        },
-        "40": {
-          "kind": {
             "Expr": {
               "Field": {
-                "lhs": 39,
+                "lhs": 37,
                 "ident": {
-                  "ident": 10,
+                  "ident": 14,
                   "span": {
-                    "start": 375,
-                    "end": 376
+                    "start": 347,
+                    "end": 353
                   }
                 }
               }
             }
           },
           "span": {
-            "start": 364,
-            "end": 376
+            "start": 342,
+            "end": 353
+          },
+          "id": 38
+        },
+        "39": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Add",
+                "lhs": 36,
+                "rhs": 38
+              }
+            }
+          },
+          "span": {
+            "start": 333,
+            "end": 353
+          },
+          "id": 39
+        },
+        "40": {
+          "kind": {
+            "Stmt": {
+              "Let": {
+                "ident": {
+                  "ident": 16,
+                  "span": {
+                    "start": 325,
+                    "end": 330
+                  }
+                },
+                "mutability": "Immutable",
+                "ty": null,
+                "initializer": 39
+              }
+            }
+          },
+          "span": {
+            "start": 321,
+            "end": 354
           },
           "id": 40
         },
@@ -762,29 +810,41 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 27
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 379,
-            "end": 384
+            "start": 370,
+            "end": 380
           },
           "id": 41
         },
         "42": {
           "kind": {
             "Expr": {
-              "Infix": {
-                "operator": "Less",
-                "lhs": 40,
-                "rhs": 41
+              "Field": {
+                "lhs": 41,
+                "ident": {
+                  "ident": 10,
+                  "span": {
+                    "start": 381,
+                    "end": 382
+                  }
+                }
               }
             }
           },
           "span": {
-            "start": 364,
-            "end": 384
+            "start": 370,
+            "end": 382
           },
           "id": 42
         },
@@ -792,34 +852,36 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 34
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 388,
-            "end": 398
+            "start": 385,
+            "end": 390
           },
           "id": 43
         },
         "44": {
           "kind": {
             "Expr": {
-              "Field": {
-                "lhs": 43,
-                "ident": {
-                  "ident": 10,
-                  "span": {
-                    "start": 399,
-                    "end": 400
-                  }
-                }
+              "Infix": {
+                "operator": "Less",
+                "lhs": 42,
+                "rhs": 43
               }
             }
           },
           "span": {
-            "start": 388,
-            "end": 400
+            "start": 370,
+            "end": 390
           },
           "id": 44
         },
@@ -827,13 +889,20 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 27
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 403,
-            "end": 407
+            "start": 394,
+            "end": 404
           },
           "id": 45
         },
@@ -845,83 +914,90 @@
                 "ident": {
                   "ident": 10,
                   "span": {
-                    "start": 408,
-                    "end": 409
+                    "start": 405,
+                    "end": 406
                   }
                 }
               }
             }
           },
           "span": {
-            "start": 403,
-            "end": 409
+            "start": 394,
+            "end": 406
           },
           "id": 46
         },
         "47": {
           "kind": {
             "Expr": {
-              "Infix": {
-                "operator": "Greater",
-                "lhs": 44,
-                "rhs": 46
+              "Path": {
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 25
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 388,
-            "end": 409
+            "start": 409,
+            "end": 413
           },
           "id": 47
         },
         "48": {
           "kind": {
             "Expr": {
-              "Infix": {
-                "operator": "And",
-                "lhs": 42,
-                "rhs": 47
-              }
-            }
-          },
-          "span": {
-            "start": 364,
-            "end": 409
-          },
-          "id": 48
-        },
-        "49": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": []
-              }
-            }
-          },
-          "span": {
-            "start": 413,
-            "end": 423
-          },
-          "id": 49
-        },
-        "50": {
-          "kind": {
-            "Expr": {
               "Field": {
-                "lhs": 49,
+                "lhs": 47,
                 "ident": {
-                  "ident": 12,
+                  "ident": 10,
                   "span": {
-                    "start": 424,
-                    "end": 425
+                    "start": 414,
+                    "end": 415
                   }
                 }
               }
             }
           },
           "span": {
-            "start": 413,
-            "end": 425
+            "start": 409,
+            "end": 415
+          },
+          "id": 48
+        },
+        "49": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Greater",
+                "lhs": 46,
+                "rhs": 48
+              }
+            }
+          },
+          "span": {
+            "start": 394,
+            "end": 415
+          },
+          "id": 49
+        },
+        "50": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "And",
+                "lhs": 44,
+                "rhs": 49
+              }
+            }
+          },
+          "span": {
+            "start": 370,
+            "end": 415
           },
           "id": 50
         },
@@ -929,80 +1005,94 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 27
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 428,
-            "end": 433
+            "start": 419,
+            "end": 429
           },
           "id": 51
         },
         "52": {
           "kind": {
             "Expr": {
-              "Infix": {
-                "operator": "Less",
-                "lhs": 50,
-                "rhs": 51
-              }
-            }
-          },
-          "span": {
-            "start": 413,
-            "end": 433
-          },
-          "id": 52
-        },
-        "53": {
-          "kind": {
-            "Expr": {
-              "Infix": {
-                "operator": "And",
-                "lhs": 48,
-                "rhs": 52
-              }
-            }
-          },
-          "span": {
-            "start": 364,
-            "end": 433
-          },
-          "id": 53
-        },
-        "54": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": []
-              }
-            }
-          },
-          "span": {
-            "start": 437,
-            "end": 447
-          },
-          "id": 54
-        },
-        "55": {
-          "kind": {
-            "Expr": {
               "Field": {
-                "lhs": 54,
+                "lhs": 51,
                 "ident": {
                   "ident": 12,
                   "span": {
-                    "start": 448,
-                    "end": 449
+                    "start": 430,
+                    "end": 431
                   }
                 }
               }
             }
           },
           "span": {
-            "start": 437,
-            "end": 449
+            "start": 419,
+            "end": 431
+          },
+          "id": 52
+        },
+        "53": {
+          "kind": {
+            "Expr": {
+              "Path": {
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 40
+                    },
+                    "generics": null
+                  }
+                ]
+              }
+            }
+          },
+          "span": {
+            "start": 434,
+            "end": 439
+          },
+          "id": 53
+        },
+        "54": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "Less",
+                "lhs": 52,
+                "rhs": 53
+              }
+            }
+          },
+          "span": {
+            "start": 419,
+            "end": 439
+          },
+          "id": 54
+        },
+        "55": {
+          "kind": {
+            "Expr": {
+              "Infix": {
+                "operator": "And",
+                "lhs": 50,
+                "rhs": 54
+              }
+            }
+          },
+          "span": {
+            "start": 370,
+            "end": 439
           },
           "id": 55
         },
@@ -1010,13 +1100,20 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 27
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 452,
-            "end": 456
+            "start": 443,
+            "end": 453
           },
           "id": 56
         },
@@ -1028,165 +1125,176 @@
                 "ident": {
                   "ident": 12,
                   "span": {
-                    "start": 457,
-                    "end": 458
+                    "start": 454,
+                    "end": 455
                   }
                 }
               }
             }
           },
           "span": {
-            "start": 452,
-            "end": 458
+            "start": 443,
+            "end": 455
           },
           "id": 57
         },
         "58": {
           "kind": {
             "Expr": {
-              "Infix": {
-                "operator": "Greater",
-                "lhs": 55,
-                "rhs": 57
+              "Path": {
+                "segments": [
+                  {
+                    "res": {
+                      "Local": 25
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
           "span": {
-            "start": 437,
-            "end": 458
+            "start": 458,
+            "end": 462
           },
           "id": 58
         },
         "59": {
           "kind": {
             "Expr": {
-              "Infix": {
-                "operator": "And",
-                "lhs": 53,
-                "rhs": 58
+              "Field": {
+                "lhs": 58,
+                "ident": {
+                  "ident": 12,
+                  "span": {
+                    "start": 463,
+                    "end": 464
+                  }
+                }
               }
             }
           },
           "span": {
-            "start": 364,
-            "end": 458
+            "start": 458,
+            "end": 464
           },
           "id": 59
         },
         "60": {
           "kind": {
-            "Stmt": {
-              "Return": {
-                "value": 59
+            "Expr": {
+              "Infix": {
+                "operator": "Greater",
+                "lhs": 57,
+                "rhs": 59
               }
             }
           },
           "span": {
-            "start": 357,
-            "end": 459
+            "start": 443,
+            "end": 464
           },
           "id": 60
         },
         "61": {
           "kind": {
-            "Block": {
-              "stmts": [
-                32,
-                38,
-                60
-              ]
+            "Expr": {
+              "Infix": {
+                "operator": "And",
+                "lhs": 55,
+                "rhs": 60
+              }
             }
           },
           "span": {
-            "start": 264,
-            "end": 465
+            "start": 370,
+            "end": 464
           },
           "id": 61
         },
         "62": {
           "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 9,
-                  "span": {
-                    "start": 218,
-                    "end": 226
-                  }
-                },
-                "generic_params": {},
-                "params": {
-                  "17": 23,
-                  "6": 25
-                },
-                "return_type": 26
-              },
-              "body": 61
+            "Stmt": {
+              "Return": {
+                "value": 61
+              }
             }
           },
           "span": {
-            "start": 215,
+            "start": 363,
             "end": 465
           },
           "id": 62
         },
         "63": {
           "kind": {
-            "Class": {
-              "name": {
-                "ident": 4,
-                "span": {
-                  "start": 144,
-                  "end": 150
-                }
-              },
-              "class_type": "Inline",
-              "generic_params": {},
-              "fields": {
-                "10": 15,
-                "13": 19,
-                "14": 21,
-                "12": 17
-              },
-              "fn_stmts": {
-                "9": 62
-              }
+            "Block": {
+              "stmts": [
+                34,
+                40,
+                62
+              ]
             }
           },
           "span": {
-            "start": 138,
-            "end": 467
+            "start": 270,
+            "end": 471
           },
           "id": 63
         },
         "64": {
           "kind": {
-            "Ty": {
-              "Primitive": "I32"
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 9,
+                  "span": {
+                    "start": 224,
+                    "end": 232
+                  }
+                },
+                "generic_params": {},
+                "params": {
+                  "6": 27,
+                  "17": 25
+                },
+                "return_type": 28
+              },
+              "body": 63
             }
           },
           "span": {
-            "start": 494,
-            "end": 497
+            "start": 221,
+            "end": 471
           },
           "id": 64
         },
         "65": {
           "kind": {
-            "Field": {
-              "ident": {
-                "ident": 10,
+            "Class": {
+              "name": {
+                "ident": 4,
                 "span": {
-                  "start": 491,
-                  "end": 492
+                  "start": 150,
+                  "end": 156
                 }
               },
-              "ty": 64
+              "class_type": "Inline",
+              "generic_params": {},
+              "fields": {
+                "10": 17,
+                "13": 21,
+                "14": 23,
+                "12": 19
+              },
+              "fn_stmts": {
+                "9": 64
+              }
             }
           },
           "span": {
-            "start": 491,
-            "end": 497
+            "start": 144,
+            "end": 473
           },
           "id": 65
         },
@@ -1197,8 +1305,8 @@
             }
           },
           "span": {
-            "start": 506,
-            "end": 509
+            "start": 500,
+            "end": 503
           },
           "id": 66
         },
@@ -1206,45 +1314,76 @@
           "kind": {
             "Field": {
               "ident": {
-                "ident": 12,
+                "ident": 10,
                 "span": {
-                  "start": 503,
-                  "end": 504
+                  "start": 497,
+                  "end": 498
                 }
               },
               "ty": 66
             }
           },
           "span": {
-            "start": 503,
-            "end": 509
+            "start": 497,
+            "end": 503
           },
           "id": 67
         },
         "68": {
           "kind": {
+            "Ty": {
+              "Primitive": "I32"
+            }
+          },
+          "span": {
+            "start": 512,
+            "end": 515
+          },
+          "id": 68
+        },
+        "69": {
+          "kind": {
+            "Field": {
+              "ident": {
+                "ident": 12,
+                "span": {
+                  "start": 509,
+                  "end": 510
+                }
+              },
+              "ty": 68
+            }
+          },
+          "span": {
+            "start": 509,
+            "end": 515
+          },
+          "id": 69
+        },
+        "70": {
+          "kind": {
             "Class": {
               "name": {
                 "ident": 7,
                 "span": {
-                  "start": 475,
-                  "end": 484
+                  "start": 481,
+                  "end": 490
                 }
               },
               "class_type": "Inline",
               "generic_params": {},
               "fields": {
-                "10": 65,
-                "12": 67
+                "12": 69,
+                "10": 67
               },
               "fn_stmts": {}
             }
           },
           "span": {
-            "start": 469,
-            "end": 512
+            "start": 475,
+            "end": 518
           },
-          "id": 68
+          "id": 70
         }
       }
     }
