@@ -374,7 +374,6 @@ mod tests {
     use std::io::{BufReader, BufWriter};
     use std::path::Path;
 
-    use anyhow::Result;
     use serde::de::Unexpected::Str;
 
     use snap::snapshot;

@@ -1,8 +1,11 @@
+use std::backtrace::Backtrace;
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::error::Error;
 use std::ffi::{OsStr, OsString};
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
+use std::ops::Deref;
+use std::os::windows::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use itertools::Itertools;
 use lasso::Key as K;
@@ -46,42 +49,117 @@ pub enum Application<'a> {
 
 pub struct ByteCode {}
 
-#[derive(Debug)]
 pub enum CompileError {
     /// Generic error type
-    Generic(Box<dyn Error>),
+    Generic(BacktraceErr<Box<dyn std::error::Error>>),
     /// Crate name contains non UTF-8 characters
-    InvalidCrateName(OsString),
+    InvalidCrateName(BacktraceErr<ErrorStr>),
     /// Module name contains non UTF-8 characters
-    InvalidModuleName(OsString),
+    InvalidModuleName(BacktraceErr<ErrorStr>),
     /// Errors found while parsing
-    ParseErrors(Vec<ParseError>),
+    ParseErrors(Errors<ParseError>),
 
     /// Errors found while validating the AST.
-    ValidationErrors(Vec<ValidationError>),
+    ValidationErrors(Errors<ValidationError>),
 
     /// Errors found during initial resolution
-    ResolveErrors(Vec<ResolveError>),
+    ResolveErrors(Errors<ResolveError>),
 
     /// Errors found while inferring types
-    TypeErrors(Vec<TypeError>),
+    TypeErrors(Errors<TypeError>),
+}
 
-    /// Duplicate definition found while parsing
-    DuplicateDefinition,
+pub struct Errors<T: Display> {
+    errors: Arc<[BacktraceErr<T>]>,
+}
+
+impl<T> From<Vec<BacktraceErr<T>>> for Errors<T>
+where
+    T: Display,
+{
+    fn from(value: Vec<BacktraceErr<T>>) -> Self {
+        Self {
+            errors: Arc::new(value),
+        }
+    }
+}
+
+impl<T> Display for Errors<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for error in self.errors.iter() {
+            error.fmt(f)?;
+        }
+        Ok(())
+    }
+}
+
+pub struct BacktraceErr<T: Display> {
+    error: T,
+    #[cfg(debug)]
+    backtrace: Backtrace,
+}
+
+impl<T> From<T> for BacktraceErr<T>
+where
+    T: Display,
+{
+    fn from(error: T) -> Self {
+        Self {
+            error,
+            #[cfg(debug)]
+            backtrace: Backtrace::force_capture(),
+        }
+    }
+}
+
+impl<T> Display for BacktraceErr<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.error.fmt(f)?;
+        #[cfg(debug)]
+        self.backtrace.fmt(f)?;
+        Ok(())
+    }
+}
+
+pub struct ErrorStr {
+    inner: OsString,
+}
+
+impl ErrorStr {
+    pub fn new(inner: OsString) -> Self {
+        Self { inner }
+    }
+}
+
+impl Display for ErrorStr {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Debug::fmt(&self.inner, f)
+    }
 }
 
 impl Display for CompileError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        match self {
+            CompileError::Generic(error) => Display::fmt(error, f),
+            CompileError::InvalidCrateName(error) => Display::fmt(error, f),
+            CompileError::InvalidModuleName(error) => Display::fmt(error, f),
+            CompileError::ParseErrors(errors) => errors.fmt(f),
+            CompileError::ValidationErrors(errors) => errors.fmt(f),
+            CompileError::ResolveErrors(errors) => errors.fmt(f),
+            CompileError::TypeErrors(errors) => errors.fmt(f),
+        }
     }
 }
 
-impl<T> From<T> for CompileError
-where
-    T: Error + Sized + 'static,
-{
-    fn from(error: T) -> Self {
-        CompileError::Generic(Box::new(error))
+impl Debug for CompileError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self, f)
     }
 }
 
@@ -124,9 +202,9 @@ impl CompilerCtxt {
     ) -> Result<ModulePath, CompileError> {
         let mut segments = Vec::new();
         for segment in path.as_ref().iter() {
-            let segment = segment
-                .to_str()
-                .ok_or_else(|| CompileError::InvalidModuleName(segment.to_os_string()))?;
+            let segment = segment.to_str().ok_or_else(|| {
+                CompileError::InvalidModuleName(ErrorStr::new(segment.to_os_string()).into())
+            })?;
             let interned_segment = self.intern_str(segment);
             segments.push(interned_segment);
         }
@@ -178,7 +256,7 @@ impl Compiler {
                 crates.insert(main_name, main_crate);
 
                 // Collect all used crates from the main crate
-                let crates_visited = HashSet::from([main_name]);
+                let mut crates_visited = HashSet::from([main_name]);
                 let mut crates_to_visit: VecDeque<InternedStr> = VecDeque::from([main_name]);
 
                 while let Some(crate_name) = crates_to_visit.pop_front() {
@@ -193,6 +271,7 @@ impl Compiler {
 
                             let krate = self.parse_crate(crate_path.as_path())?;
                             crates_to_visit.push_back(krate.name);
+                            crates_visited.insert(krate.name);
 
                             // Insert krate into lookup maps
                             new_crates.push(krate);
@@ -232,10 +311,15 @@ impl Compiler {
     pub(crate) fn parse_crate(&mut self, path: &Path) -> Result<Crate, CompileError> {
         let krate_name = path
             .file_name()
-            .ok_or_else(|| CompileError::InvalidCrateName(path.as_os_str().to_os_string()))
+            .ok_or_else(|| {
+                CompileError::InvalidCrateName(
+                    ErrorStr::new(path.as_os_str().to_os_string()).into(),
+                )
+            })
             .and_then(|name| {
-                name.to_str()
-                    .ok_or_else(|| CompileError::InvalidCrateName(name.to_os_string()))
+                name.to_str().ok_or_else(|| {
+                    CompileError::InvalidCrateName(ErrorStr::new(name.to_os_string()).into())
+                })
             })?;
         let krate_name = self.compiler_ctxt.intern_str(krate_name);
 
@@ -283,7 +367,9 @@ impl Compiler {
             }
         }
         if !validation_errors.is_empty() {
-            Err(CompileError::ValidationErrors(validation_errors))
+            Err(CompileError::ValidationErrors(Errors::from(
+                validation_errors,
+            )))
         } else {
             Ok(())
         }
@@ -311,7 +397,7 @@ impl Compiler {
 fn local_to_root(path: &Path, root: &Path) -> Result<PathBuf, CompileError> {
     path.strip_prefix(root)
         .map(|path| path.with_extension(""))
-        .map_err(|err| CompileError::Generic(Box::new(err)))
+        .map_err(|err| CompileError::Generic(Box::new(err).into()))
 }
 
 mod tests {

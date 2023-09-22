@@ -1,5 +1,6 @@
+use std::backtrace::Backtrace;
 use std::error::Error;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -23,11 +24,10 @@ pub enum TypeError {
 
 impl Display for TypeError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        // TODO: Implement pretty printing
+        Debug::fmt(self, f)
     }
 }
-
-impl Error for TypeError {}
 
 pub struct TypeInference<'a> {
     crates: &'a StrMap<HirCrate>,

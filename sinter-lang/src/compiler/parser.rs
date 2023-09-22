@@ -46,7 +46,7 @@ type ParseResult<T, E = ParseError> = Result<T, E>;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum ParseError {
-    UnexpectedEof(NormalizedSpan),
+    UnexpectedEof(NormalizedSpan, ),
     ExpectedToken(TokenType, NormalizedSpan),
     ExpectedTokens(TokenTypes, NormalizedSpan),
     UnexpectedToken(TokenType, NormalizedSpan),
@@ -1849,7 +1849,6 @@ mod tests {
     use std::path::{Path, PathBuf};
     use std::sync::Arc;
 
-    use anyhow::{anyhow, Result};
     use lasso::ThreadedRodeo;
 
     use snap::snapshot;

@@ -16,7 +16,7 @@ region = "3.0.0"
 winapi = "0.3.9"
 rustc-hash = "1.1.0"
 libc = "0.2.123"
-anyhow = "1.0.57"
+thiserror = "1.0.47"
 unicode-segmentation = "1.9.0"
 lasso = { version = "0.7.2", features = ["inline-more", "multi-threaded", "serialize"] }
 serde_json = "1.0.82"

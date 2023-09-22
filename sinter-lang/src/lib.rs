@@ -3,6 +3,7 @@
 #![allow(unused_variables)]
 #![feature(allocator_api)]
 #![feature(assert_matches)]
+#![feature(error_generic_member_access)]
 
 extern crate core;
 

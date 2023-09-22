@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::{Debug, Display, Formatter};
 
 use multimap::MultiMap;
 
@@ -7,7 +8,7 @@ use crate::compiler::ast::{
     GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, Stmt,
     StmtKind, UseStmt,
 };
-use crate::compiler::compiler::CompileError;
+use crate::compiler::compiler::{BacktraceErr, CompileError};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::Crate;
 use crate::compiler::types::{InternedStr, StrMap};
@@ -28,7 +29,18 @@ pub enum ValidationError {
     TooManyFns,
 }
 
-pub fn validate(crates: &StrMap<Crate>, krate: &Crate, module: &Module) -> Vec<ValidationError> {
+impl Display for ValidationError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        // TODO: Implement pretty printing
+        Debug::fmt(self, f)
+    }
+}
+
+pub fn validate(
+    crates: &StrMap<Crate>,
+    krate: &Crate,
+    module: &Module,
+) -> Vec<BacktraceErr<ValidationError>> {
     let validator = Validator::default();
     validator.validate(crates, krate, module)
 }
@@ -39,8 +51,7 @@ struct Validator {
     global_lets: MultiMap<InternedStr, LocalDefId>,
     tys: MultiMap<InternedStr, LocalDefId>,
     fns: MultiMap<InternedStr, LocalDefId>,
-
-    errors: Vec<ValidationError>,
+    errors: Vec<BacktraceErr<ValidationError>>,
 }
 
 impl Validator {
@@ -49,7 +60,7 @@ impl Validator {
         crates: &StrMap<Crate>,
         krate: &Crate,
         module: &Module,
-    ) -> Vec<ValidationError> {
+    ) -> Vec<BacktraceErr<ValidationError>> {
         for item in &module.items {
             match &item.kind {
                 ItemKind::Use(use_stmt) => {
