@@ -18,10 +18,10 @@ use crate::compiler::ast::{
     ReturnStmt, Segment, Stmt, StmtKind, TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind,
     TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
 };
-use crate::compiler::compiler::{CompileError, CompilerCtxt};
+use crate::compiler::compiler::{CompileError, CompilerCtxt, ParseError};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::{Interner, Key};
-use crate::compiler::parser::ParseError::{
+use crate::compiler::parser::ParseErrKind::{
     ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
 };
 use crate::compiler::tokens::token::{Token, TokenType};
@@ -42,11 +42,11 @@ struct Parser<'ctxt> {
     spans: Vec<usize>,
 }
 
-type ParseResult<T, E = ParseError> = Result<T, E>;
+type ParseResult<T, E = ParseErrKind> = Result<T, E>;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub enum ParseError {
-    UnexpectedEof(NormalizedSpan, ),
+pub enum ParseErrKind {
+    UnexpectedEof(NormalizedSpan),
     ExpectedToken(TokenType, NormalizedSpan),
     ExpectedTokens(TokenTypes, NormalizedSpan),
     UnexpectedToken(TokenType, NormalizedSpan),
@@ -162,7 +162,9 @@ impl<'ctxt> Parser<'ctxt> {
         if errors.is_empty() {
             Ok(Module::new(items))
         } else {
-            Err(CompileError::ParseErrors(errors))
+            Err(CompileError::ParseErrors(
+                errors.into_iter().map(ParseError::from).collect(),
+            ))
         }
     }
 
@@ -1799,7 +1801,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 }
 
-impl Display for ParseError {
+impl Display for ParseErrKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             UnexpectedEof(span) => write!(
@@ -1822,22 +1824,22 @@ impl Display for ParseError {
                 "unrecognized token {} at {}:{}!",
                 token_type, span.start_line, span.start_pos
             ),
-            ParseError::InvalidUseStmt(span) => write!(
+            ParseErrKind::InvalidUseStmt(span) => write!(
                 f,
                 "invalid use stmt at {}:{}!",
                 span.start_line, span.start_pos
             ),
-            ParseError::DuplicateDefinition => write!(f, "duplicate definition!"),
-            ParseError::DuplicateModuleName => write!(f, "duplicate module name!"),
+            ParseErrKind::DuplicateDefinition => write!(f, "duplicate definition!"),
+            ParseErrKind::DuplicateModuleName => write!(f, "duplicate module name!"),
         }
     }
 }
 
-impl Error for ParseError {}
+impl Error for ParseErrKind {}
 
-unsafe impl Send for ParseError {}
+unsafe impl Send for ParseErrKind {}
 
-unsafe impl Sync for ParseError {}
+unsafe impl Sync for ParseErrKind {}
 
 mod tests {
     use std::any::Any;
@@ -1859,10 +1861,10 @@ mod tests {
         Param, Params, PathExpr, QualifiedIdent, Stmt, Ty, TyKind,
     };
     use crate::compiler::ast::{Module, UseStmt};
-    use crate::compiler::compiler::{CompileError, CompilerCtxt};
+    use crate::compiler::compiler::{CompileError, CompilerCtxt, ParseError};
     use crate::compiler::hir::LocalDefId;
-    use crate::compiler::parser::ParseError::{ExpectedToken, UnexpectedEof};
-    use crate::compiler::parser::{ParseError, ParseResult, Parser};
+    use crate::compiler::parser::ParseErrKind::{ExpectedToken, UnexpectedEof};
+    use crate::compiler::parser::{ParseErrKind, ParseResult, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::{Identifier, Semicolon};
     use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
@@ -1878,12 +1880,18 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn parse_errors<T: AsRef<str>>(code: T) -> (StringInterner, Vec<ParseError>) {
+    fn parse_errors<T: AsRef<str>>(code: T) -> (StringInterner, Vec<ParseErrKind>) {
         let mut compiler_ctxt = CompilerCtxt::default();
         let parser = create_parser(&mut compiler_ctxt, code.as_ref());
 
         if let Some(CompileError::ParseErrors(parse_errors)) = parser.parse().err() {
-            (StringInterner::from(compiler_ctxt), parse_errors)
+            (
+                StringInterner::from(compiler_ctxt),
+                parse_errors
+                    .into_iter()
+                    .map(ParseError::into_inner)
+                    .collect(),
+            )
         } else {
             panic!("Expected parsing to fail!")
         }
@@ -2306,7 +2314,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn unexpected_outer_stmt_token() -> (StringInterner, Vec<ParseError>) {
+    pub fn unexpected_outer_stmt_token() -> (StringInterner, Vec<ParseErrKind>) {
         parse_errors("enum Stmt { } aflatoxin")
     }
 }

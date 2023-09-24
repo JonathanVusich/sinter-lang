@@ -16,13 +16,13 @@ use walkdir::{DirEntry, WalkDir};
 use crate::compiler::ast::{AstPass, Module};
 use crate::compiler::hir::{HirCrate, LocalDefId};
 use crate::compiler::krate::{Crate, CrateId};
-use crate::compiler::parser::{parse, ParseError};
+use crate::compiler::parser::{parse, ParseErrKind};
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::{resolve, ResolveError};
+use crate::compiler::resolver::{resolve, ResolveErrKind};
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
-use crate::compiler::ty_infer::{CrateInference, Type, TypeError};
+use crate::compiler::ty_infer::{CrateInference, Type, TypeErrKind};
 use crate::compiler::types::{InternedStr, LDefMap, StrMap};
-use crate::compiler::validator::{validate, ValidationError};
+use crate::compiler::validator::{validate, ValidationErrKind};
 use crate::compiler::StringInterner;
 
 #[derive(Default)]
@@ -49,106 +49,86 @@ pub enum Application<'a> {
 
 pub struct ByteCode {}
 
+pub trait ErrorKind {
+    type Err;
+
+    fn backtrace(&self) -> &Backtrace;
+    fn error(&self) -> &Self::Err;
+}
+
+macro_rules! backtrace_err {
+    ($ty:ty, $name:ident) => {
+        #[derive(Debug)]
+        pub struct $name {
+            inner: $ty,
+            #[cfg(debug_assertions)]
+            backtrace: Backtrace,
+        }
+
+        impl From<$ty> for $name {
+            fn from(inner: $ty) -> Self {
+                Self {
+                    inner,
+                    #[cfg(debug_assertions)]
+                    backtrace: Backtrace::force_capture(),
+                }
+            }
+        }
+
+        impl $name {
+            #[cfg(debug_assertions)]
+            pub fn backtrace(&self) -> &Backtrace {
+                &self.backtrace
+            }
+
+            pub fn into_inner(self) -> $ty {
+                self.inner
+            }
+        }
+
+        impl Deref for $name {
+            type Target = $ty;
+
+            fn deref(&self) -> &Self::Target {
+                &self.inner
+            }
+        }
+    };
+}
+
+backtrace_err!(Box<dyn std::error::Error>, Generic);
+backtrace_err!(OsString, InvalidName);
+backtrace_err!(ParseErrKind, ParseError);
+backtrace_err!(ValidationErrKind, ValidationError);
+backtrace_err!(ResolveErrKind, ResolveError);
+backtrace_err!(TypeErrKind, TypeError);
+
 pub enum CompileError {
     /// Generic error type
-    Generic(BacktraceErr<Box<dyn std::error::Error>>),
+    Generic(Generic),
     /// Crate name contains non UTF-8 characters
-    InvalidCrateName(BacktraceErr<ErrorStr>),
+    InvalidCrateName(InvalidName),
     /// Module name contains non UTF-8 characters
-    InvalidModuleName(BacktraceErr<ErrorStr>),
+    InvalidModuleName(InvalidName),
     /// Errors found while parsing
-    ParseErrors(Errors<ParseError>),
+    ParseErrors(Vec<ParseError>),
 
     /// Errors found while validating the AST.
-    ValidationErrors(Errors<ValidationError>),
+    ValidationErrors(Vec<ValidationError>),
 
     /// Errors found during initial resolution
-    ResolveErrors(Errors<ResolveError>),
+    ResolveErrors(Vec<ResolveError>),
 
     /// Errors found while inferring types
-    TypeErrors(Errors<TypeError>),
-}
-
-pub struct Errors<T: Display> {
-    errors: Arc<[BacktraceErr<T>]>,
-}
-
-impl<T> From<Vec<BacktraceErr<T>>> for Errors<T>
-where
-    T: Display,
-{
-    fn from(value: Vec<BacktraceErr<T>>) -> Self {
-        Self {
-            errors: Arc::new(value),
-        }
-    }
-}
-
-impl<T> Display for Errors<T>
-where
-    T: Display,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for error in self.errors.iter() {
-            error.fmt(f)?;
-        }
-        Ok(())
-    }
-}
-
-pub struct BacktraceErr<T: Display> {
-    error: T,
-    #[cfg(debug)]
-    backtrace: Backtrace,
-}
-
-impl<T> From<T> for BacktraceErr<T>
-where
-    T: Display,
-{
-    fn from(error: T) -> Self {
-        Self {
-            error,
-            #[cfg(debug)]
-            backtrace: Backtrace::force_capture(),
-        }
-    }
-}
-
-impl<T> Display for BacktraceErr<T>
-where
-    T: Display,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        self.error.fmt(f)?;
-        #[cfg(debug)]
-        self.backtrace.fmt(f)?;
-        Ok(())
-    }
-}
-
-pub struct ErrorStr {
-    inner: OsString,
-}
-
-impl ErrorStr {
-    pub fn new(inner: OsString) -> Self {
-        Self { inner }
-    }
-}
-
-impl Display for ErrorStr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        Debug::fmt(&self.inner, f)
-    }
+    TypeErrors(Vec<TypeError>),
 }
 
 impl Display for CompileError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            CompileError::Generic(error) => Display::fmt(error, f),
-            CompileError::InvalidCrateName(error) => Display::fmt(error, f),
-            CompileError::InvalidModuleName(error) => Display::fmt(error, f),
+            CompileError::Generic(error) => Debug::fmt(error, f),
+            CompileError::InvalidCrateName(error) => Debug::fmt(error, f),
+            CompileError::InvalidModuleName(error) => Debug::fmt(error, f),
             CompileError::ParseErrors(errors) => errors.fmt(f),
             CompileError::ValidationErrors(errors) => errors.fmt(f),
             CompileError::ResolveErrors(errors) => errors.fmt(f),
@@ -203,7 +183,7 @@ impl CompilerCtxt {
         let mut segments = Vec::new();
         for segment in path.as_ref().iter() {
             let segment = segment.to_str().ok_or_else(|| {
-                CompileError::InvalidModuleName(ErrorStr::new(segment.to_os_string()).into())
+                CompileError::InvalidModuleName(InvalidName::from(segment.to_os_string()))
             })?;
             let interned_segment = self.intern_str(segment);
             segments.push(interned_segment);
@@ -312,13 +292,11 @@ impl Compiler {
         let krate_name = path
             .file_name()
             .ok_or_else(|| {
-                CompileError::InvalidCrateName(
-                    ErrorStr::new(path.as_os_str().to_os_string()).into(),
-                )
+                CompileError::InvalidCrateName(InvalidName::from(path.as_os_str().to_os_string()))
             })
             .and_then(|name| {
                 name.to_str().ok_or_else(|| {
-                    CompileError::InvalidCrateName(ErrorStr::new(name.to_os_string()).into())
+                    CompileError::InvalidCrateName(InvalidName::from(name.to_os_string()))
                 })
             })?;
         let krate_name = self.compiler_ctxt.intern_str(krate_name);
@@ -367,9 +345,7 @@ impl Compiler {
             }
         }
         if !validation_errors.is_empty() {
-            Err(CompileError::ValidationErrors(Errors::from(
-                validation_errors,
-            )))
+            Err(CompileError::ValidationErrors(validation_errors))
         } else {
             Ok(())
         }
@@ -397,7 +373,10 @@ impl Compiler {
 fn local_to_root(path: &Path, root: &Path) -> Result<PathBuf, CompileError> {
     path.strip_prefix(root)
         .map(|path| path.with_extension(""))
-        .map_err(|err| CompileError::Generic(Box::new(err).into()))
+        .map_err(|err| {
+            let boxed_error: Box<dyn std::error::Error> = Box::new(err);
+            CompileError::Generic(Generic::from(boxed_error))
+        })
 }
 
 mod tests {

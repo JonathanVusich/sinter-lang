@@ -690,8 +690,14 @@ pub enum Res {
     Module(ModuleId),
     ValueDef(ValueDef),
     Fn(InternedStr), // These have to be late resolved after type information is deduced?
-    Local(LocalDefId),
+    Local(LocalDef),
     Primitive(Primitive),
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum LocalDef {
+    Var(LocalDefId),
+    Generic(LocalDefId),
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]

@@ -3,12 +3,10 @@ use std::collections::{HashMap, VecDeque};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
-use std::mem;
 use std::ops::Deref;
 use std::sync::Arc;
 
 use itertools::Itertools;
-use lasso::Spur;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{
@@ -26,19 +24,19 @@ use crate::compiler::ast::{
     TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
     TyKind as AstTyKind,
 };
-use crate::compiler::compiler::{CompileError, CompilerCtxt};
+use crate::compiler::compiler::{CompileError, CompilerCtxt, ResolveError};
 use crate::compiler::hir::{
     AnonParams, Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, DefTy, DestructureExpr, DestructurePattern, EnumMember, EnumMembers,
-    EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt,
-    GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt,
-    IndexExpr, InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param,
+    ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember, EnumMembers, EnumStmt,
+    Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam,
+    GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr,
+    InfixExpr, LetStmt, LocalDef, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param,
     Params, PathExpr, PathTy, Pattern, PatternLocal, Primitive, Res, ReturnStmt, Segment, Stmt,
     TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use crate::compiler::krate::{Crate, CrateDef, CrateId};
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::ResolveError::{
+use crate::compiler::resolver::ResolveErrKind::{
     DuplicateLocalDefIds, ExpectedValueWasModule, QualifiedIdentNotFound, VarNotFound,
 };
 use crate::compiler::tokens::tokenized_file::Span;
@@ -323,7 +321,7 @@ impl Scope {
 }
 
 #[derive(Debug, Clone)]
-pub enum ResolveError {
+pub enum ResolveErrKind {
     /// Error from looking up definition in crate
     QualifiedIdentNotFound(QualifiedIdent),
     /// Error for getting a fn instead of a class
@@ -345,14 +343,14 @@ pub enum ResolveError {
     },
 }
 
-impl Display for ResolveError {
+impl Display for ResolveErrKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         // TODO: Implement pretty printing
         Debug::fmt(self, f)
     }
 }
 
-impl Error for ResolveError {}
+impl Error for ResolveErrKind {}
 
 type ResolveResult = Result<(), ResolveError>;
 
@@ -375,7 +373,12 @@ impl<'a> Resolver<'a> {
         let mut crates = StrMap::default();
         // We are building lookup maps for each module so that we can query the types and constants in that module
         // when resolving use stmts later.
-        self.build_crate_ns()?;
+        self.build_crate_ns();
+        if !self.errors.is_empty() {
+            return Err(CompileError::ResolveErrors(
+                self.errors.into_iter().map(ResolveError::from).collect(),
+            ));
+        }
 
         for krate in self.krates.values() {
             let crate_resolver = CrateResolver::new(self.ctxt, krate, self.krates);
@@ -383,20 +386,19 @@ impl<'a> Resolver<'a> {
                 Ok(crate_index) => {
                     crates.insert(krate.name, crate_index);
                 }
-                Err(errors) => match errors {
-                    CompileError::ResolveErrors(errors) => self.errors.extend(errors),
-                    _ => panic!("Invalid error type!"),
-                },
+                Err(errors) => self.errors.extend(errors),
             }
         }
+
         if !self.errors.is_empty() {
-            Err(CompileError::ResolveErrors(self.errors))
-        } else {
-            Ok(crates)
+            return Err(CompileError::ResolveErrors(
+                self.errors.into_iter().map(ResolveError::from).collect(),
+            ));
         }
+        Ok(crates)
     }
 
-    fn build_crate_ns(&mut self) -> Result<(), CompileError> {
+    fn build_crate_ns(&mut self) {
         // Generate the initial module ns
         for krate in self.krates.values_mut() {
             let krate_id = krate.crate_id;
@@ -428,7 +430,7 @@ impl<'a> Resolver<'a> {
                                 .push(crate_def),
                             None => self
                                 .errors
-                                .push(QualifiedIdentNotFound(use_stmt.path.clone())),
+                                .push(QualifiedIdentNotFound(use_stmt.path.clone()).into()),
                         }
                     }
                 }
@@ -467,12 +469,6 @@ impl<'a> Resolver<'a> {
                 };
                 module.ns = ns;
             }
-        }
-
-        if !self.errors.is_empty() {
-            Err(CompileError::ResolveErrors(self.errors.clone()))
-        } else {
-            Ok(())
         }
     }
 }
@@ -576,23 +572,23 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve(mut self) -> Result<HirCrate, CompileError> {
+    fn resolve(mut self) -> Result<HirCrate, Vec<ResolveError>> {
         for module in self.krate.modules() {
             self.resolve_module(module);
 
             // We have to remember to clear out all scopes and reset the module scope
             self.scopes.clear();
         }
+
         if !self.errors.is_empty() {
-            Err(CompileError::ResolveErrors(self.errors))
-        } else {
-            Ok(HirCrate::new(
-                self.krate.name,
-                self.krate.crate_id,
-                self.items,
-                self.nodes,
-            ))
+            return Err(self.errors);
         }
+        Ok(HirCrate::new(
+            self.krate.name,
+            self.krate.crate_id,
+            self.items,
+            self.nodes,
+        ))
     }
 
     fn resolve_module(&mut self, module: &'a Module) {
@@ -622,10 +618,11 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn duplicate_definition(&self, existing: LocalDefId, new: LocalDefId) -> ResolveResult {
-        Err(ResolveError::DuplicateDefinition {
+        Err(ResolveErrKind::DuplicateDefinition {
             existing: existing.to_def_id(self.krate.crate_id),
             new: new.to_def_id(self.krate.crate_id),
-        })
+        }
+        .into())
     }
 
     fn resolve_global_let_stmt(
@@ -816,7 +813,7 @@ impl<'a> CrateResolver<'a> {
         let index: usize = id.into();
         match self.nodes.insert(id, hir_node) {
             None => Ok(()),
-            Some(_) => Err(DuplicateLocalDefIds),
+            Some(_) => Err(DuplicateLocalDefIds.into()),
         }
     }
 
@@ -1186,7 +1183,9 @@ impl<'a> CrateResolver<'a> {
                         marker: PhantomData<U>,
                     }
                     impl<U> Hello<U> {
-                        pub fn write<T>(val: U) {}
+                        pub fn write<T>(val: U) -> U {
+                            val
+                        }
                     }
                 }
                 let val = hello::Hello::<u64>::write::<Vec<u64>>(123);
@@ -1238,15 +1237,11 @@ impl<'a> CrateResolver<'a> {
     fn find_primary_segment(&mut self, segment: &AstSegment) -> Result<Segment, ResolveError> {
         let module_ns = &self.module.unwrap().ns;
         let ident = segment.ident.ident;
-        if Spur::from(ident).into_inner().get() == 6 {
-            // dbg!(module_ns);
-        }
         let generics = self.maybe_resolve_generics(&segment.generics)?;
 
         self.find_var(ident)
-            .or_else(|| self.find_generic_param(ident))
-            .or_else(|| self.find_enum_member(ident))
-            .filter(|var| generics.is_none())
+            .map(LocalDef::Var)
+            .or_else(|| self.find_generic_param(ident).map(LocalDef::Generic))
             .map(Res::Local)
             .or_else(|| module_ns.find_value(ident).cloned().map(Res::ValueDef))
             .or_else(|| {
@@ -1269,7 +1264,7 @@ impl<'a> CrateResolver<'a> {
                     .map(Res::Crate)
             })
             .map(|res| Segment::new(res, generics.clone()))
-            .ok_or(VarNotFound(ident))
+            .ok_or(VarNotFound(ident).into())
     }
 
     fn find_secondary_segment(
@@ -1321,7 +1316,8 @@ impl<'a> CrateResolver<'a> {
                 .map(|member| Res::ValueDef(ValueDef::EnumMember(member)))
                 .unwrap_or_else(|| Res::Fn(ident)),
             Res::ValueDef(ValueDef::Class(_) | ValueDef::EnumMember(_) | ValueDef::Trait(_))
-            | Res::Primitive(_) => {
+            | Res::Primitive(_)
+            | Res::Local(LocalDef::Generic(_)) => {
                 // We have to late resolve these fns after type checking since that might affect resolution.
                 Res::Fn(ident)
             }
@@ -1330,7 +1326,7 @@ impl<'a> CrateResolver<'a> {
             | Res::Local(_)
             | Res::ValueDef(ValueDef::GlobalLet(_))
             | Res::ValueDef(ValueDef::Fn(_)) => {
-                return Err(VarNotFound(ident));
+                return Err(VarNotFound(ident).into());
             }
         };
         Ok(Segment::new(res, generics))
@@ -1680,9 +1676,9 @@ impl<'a> CrateResolver<'a> {
         let module_ns = &self.module.unwrap().ns;
         match ident.ident_type {
             IdentType::Crate => match self.krate.find_definition(ident, false) {
-                None => Err(QualifiedIdentNotFound(ident.clone())),
+                None => Err(QualifiedIdentNotFound(ident.clone()).into()),
                 Some(crate_def) => match crate_def {
-                    CrateDef::Module(_, _) => Err(ExpectedValueWasModule),
+                    CrateDef::Module(_, _) => Err(ExpectedValueWasModule.into()),
                     CrateDef::Value(_, val) => Ok(val.id()),
                 },
             },
@@ -1691,7 +1687,7 @@ impl<'a> CrateResolver<'a> {
                     self.find_generic_param(ident)
                         .map(|param| param.to_def_id(self.krate.crate_id))
                         .or_else(|| module_ns.find_value(ident).map(|value_def| value_def.id()))
-                        .ok_or(VarNotFound(ident))
+                        .ok_or(VarNotFound(ident).into())
                 } else if let Some(id) = module_ns.find_ident(ident) {
                     Ok(id)
                 } else if let Some(module_id) = module_ns.find_module(ident.first()) {
@@ -1700,18 +1696,18 @@ impl<'a> CrateResolver<'a> {
                     module
                         .ns
                         .find_ident_with_module(ident)
-                        .ok_or(QualifiedIdentNotFound(ident.clone()))
+                        .ok_or(QualifiedIdentNotFound(ident.clone()).into())
                 } else if let Some(krate) = self.crates.get(&ident.first()) {
                     // It must be from an external crate
                     match krate.find_definition(ident, true) {
-                        None => Err(QualifiedIdentNotFound(ident.clone())),
+                        None => Err(QualifiedIdentNotFound(ident.clone()).into()),
                         Some(crate_def) => match crate_def {
-                            CrateDef::Module(_, _) => Err(ExpectedValueWasModule),
+                            CrateDef::Module(_, _) => Err(ExpectedValueWasModule.into()),
                             CrateDef::Value(_, val) => Ok(val.id()),
                         },
                     }
                 } else {
-                    Err(QualifiedIdentNotFound(ident.clone()))
+                    Err(QualifiedIdentNotFound(ident.clone()).into())
                 }
             }
         }
@@ -1731,13 +1727,10 @@ impl<'a> CrateResolver<'a> {
 }
 
 mod tests {
-    use itertools::Itertools;
-
     use snap::snapshot;
 
-    use crate::compiler::compiler::{Application, CompileError, Compiler, CompilerCtxt};
+    use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
     use crate::compiler::hir::HirCrate;
-    use crate::compiler::resolver::ResolveError;
     use crate::compiler::types::StrMap;
     use crate::compiler::StringInterner;
     use crate::util::utils;
@@ -1762,27 +1755,8 @@ mod tests {
         match resolved_crates {
             Ok(crates) => (string_interner, crates),
             Err(error) => {
-                if let CompileError::ResolveErrors(resolve_errors) = error {
-                    for error in resolve_errors {
-                        match error {
-                            ResolveError::QualifiedIdentNotFound(qualified_ident) => {
-                                let ident = qualified_ident
-                                    .idents
-                                    .iter()
-                                    .map(|ident| ident.ident)
-                                    .map(|ident| string_interner.resolve(&ident.into()))
-                                    .collect_vec();
-                                dbg!(ident);
-                            }
-                            ResolveError::VarNotFound(var) => {
-                                let ident = string_interner.resolve(&var.into());
-                                dbg!(ident);
-                            }
-                            _ => {}
-                        };
-                    }
-                };
-                panic!()
+                eprintln!("{:#?}", error);
+                panic!();
             }
         }
     }

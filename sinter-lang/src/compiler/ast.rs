@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::compiler::hir::{LocalDefId, ModuleId};
 use crate::compiler::krate::CrateId;
-use crate::compiler::parser::{ClassType, ParseError};
+use crate::compiler::parser::{ClassType, ParseErrKind};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ModuleNS;
 use crate::compiler::tokens::tokenized_file::Span;

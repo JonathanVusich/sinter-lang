@@ -9,7 +9,7 @@ use std::path::Path;
 use phf::phf_map;
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::compiler::compiler::{CompileError, CompilerCtxt};
+use crate::compiler::compiler::{CompileError, CompilerCtxt, Generic};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::TokenizedInput;
@@ -20,8 +20,10 @@ pub fn tokenize_file(
     compiler_ctxt: &mut CompilerCtxt,
     path: &Path,
 ) -> Result<TokenizedInput, CompileError> {
-    let source_file =
-        fs::read_to_string(path).map_err(|err| CompileError::Generic(Box::new(err)))?;
+    let source_file = fs::read_to_string(path).map_err(|err| {
+        let boxed_err: Box<dyn Error> = Box::new(err);
+        CompileError::Generic(Generic::from(boxed_err))
+    })?;
     let tokenizer = Tokenizer::new(compiler_ctxt, &source_file);
     Ok(tokenizer.tokenize())
 }

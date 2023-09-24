@@ -8,21 +8,20 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{InfixOp, UnaryOp};
-use crate::compiler::compiler::CompileError;
-use crate::compiler::compiler::CompileError::TypeErrors;
+use crate::compiler::compiler::{CompileError, TypeError};
 use crate::compiler::hir::{
     ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirNodeKind, LocalDefId, PathTy, Primitive, Ty,
 };
 use crate::compiler::types::{LDefMap, StrMap};
 
 #[derive(Debug)]
-pub enum TypeError {
+pub enum TypeErrKind {
     TypesNotEqual(Type, Type),
     UnificationError,
     CyclicType,
 }
 
-impl Display for TypeError {
+impl Display for TypeErrKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         // TODO: Implement pretty printing
         Debug::fmt(self, f)
@@ -51,7 +50,7 @@ impl<'a> TypeInference<'a> {
 pub struct CrateInference<'a> {
     unify_table: UnificationTable,
     ty_map: LDefMap<Type>,
-    errors: Vec<TypeError>,
+    errors: Vec<TypeErrKind>,
     krate: &'a HirCrate,
 }
 
@@ -66,7 +65,7 @@ impl<'a> CrateInference<'a> {
     }
 
     pub fn infer_tys(mut self) -> Result<LDefMap<Type>, CompileError> {
-        dbg!(&self);
+        // dbg!(&self);
         for item in self.krate.items.iter().copied() {
             let node = self.krate.node(item);
             match node {
@@ -100,7 +99,9 @@ impl<'a> CrateInference<'a> {
         }
 
         if !self.errors.is_empty() {
-            return Err(TypeErrors(self.errors));
+            return Err(CompileError::TypeErrors(
+                self.errors.into_iter().map(TypeError::from).collect(),
+            ));
         }
         Ok(self.ty_map)
     }
@@ -263,7 +264,7 @@ impl<'a> CrateInference<'a> {
         }
     }
 
-    fn unify(&mut self, constraints: Constraints) -> Result<(), TypeError> {
+    fn unify(&mut self, constraints: Constraints) -> Result<(), TypeErrKind> {
         for constr in constraints {
             match constr {
                 Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs)?,
@@ -276,7 +277,7 @@ impl<'a> CrateInference<'a> {
         Ok(())
     }
 
-    fn unify_ty_ty(&mut self, lhs: Type, rhs: Type) -> Result<(), TypeError> {
+    fn unify_ty_ty(&mut self, lhs: Type, rhs: Type) -> Result<(), TypeErrKind> {
         let lhs = self.normalize_ty(lhs);
         let rhs = self.normalize_ty(rhs);
 
@@ -291,7 +292,7 @@ impl<'a> CrateInference<'a> {
             // If both types are known, then we need to check for type compatibility.
             (lhs, rhs) => {
                 if lhs != rhs {
-                    return Err(TypeError::TypesNotEqual(lhs, rhs));
+                    return Err(TypeErrKind::TypesNotEqual(lhs, rhs));
                 }
                 Ok(())
             }
@@ -376,7 +377,7 @@ impl Entry {
 }
 
 impl UnificationTable {
-    fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> Result<(), TypeError> {
+    fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> Result<(), TypeErrKind> {
         let lhs = self.get_root_key(lhs);
         let rhs = self.get_root_key(rhs);
 
@@ -384,11 +385,11 @@ impl UnificationTable {
         if lhs == rhs {
             Ok(())
         } else {
-            Err(TypeError::UnificationError)
+            Err(TypeErrKind::UnificationError)
         }
     }
 
-    fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> Result<(), TypeError> {
+    fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> Result<(), TypeErrKind> {
         let root = self.get_root_key(var);
         let entry = self.entry(root);
         match &entry.value {
@@ -398,7 +399,7 @@ impl UnificationTable {
             }
             Some(prev_ty) => {
                 if prev_ty != &ty {
-                    return Err(TypeError::UnificationError);
+                    return Err(TypeErrKind::UnificationError);
                 }
                 Ok(())
             }

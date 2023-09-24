@@ -8,7 +8,7 @@ use crate::compiler::ast::{
     GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, Stmt,
     StmtKind, UseStmt,
 };
-use crate::compiler::compiler::{BacktraceErr, CompileError};
+use crate::compiler::compiler::{CompileError, ValidationError};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::Crate;
 use crate::compiler::types::{InternedStr, StrMap};
@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 const MAX_NUM: usize = 65535;
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub enum ValidationError {
+pub enum ValidationErrKind {
     DuplicateUseStmts(QualifiedIdent, Vec<LocalDefId>),
     DuplicateLetStmts(InternedStr, Vec<LocalDefId>),
     DuplicateTys(InternedStr, Vec<LocalDefId>),
@@ -29,18 +29,14 @@ pub enum ValidationError {
     TooManyFns,
 }
 
-impl Display for ValidationError {
+impl Display for ValidationErrKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         // TODO: Implement pretty printing
         Debug::fmt(self, f)
     }
 }
 
-pub fn validate(
-    crates: &StrMap<Crate>,
-    krate: &Crate,
-    module: &Module,
-) -> Vec<BacktraceErr<ValidationError>> {
+pub fn validate(crates: &StrMap<Crate>, krate: &Crate, module: &Module) -> Vec<ValidationError> {
     let validator = Validator::default();
     validator.validate(crates, krate, module)
 }
@@ -51,7 +47,7 @@ struct Validator {
     global_lets: MultiMap<InternedStr, LocalDefId>,
     tys: MultiMap<InternedStr, LocalDefId>,
     fns: MultiMap<InternedStr, LocalDefId>,
-    errors: Vec<BacktraceErr<ValidationError>>,
+    errors: Vec<ValidationErrKind>,
 }
 
 impl Validator {
@@ -60,7 +56,7 @@ impl Validator {
         crates: &StrMap<Crate>,
         krate: &Crate,
         module: &Module,
-    ) -> Vec<BacktraceErr<ValidationError>> {
+    ) -> Vec<ValidationError> {
         for item in &module.items {
             match &item.kind {
                 ItemKind::Use(use_stmt) => {
@@ -98,7 +94,7 @@ impl Validator {
 
         for (path, use_stmts) in self.use_stmts.iter_all() {
             if use_stmts.len() > 1 {
-                self.errors.push(ValidationError::DuplicateUseStmts(
+                self.errors.push(ValidationErrKind::DuplicateUseStmts(
                     path.clone(),
                     use_stmts.clone(),
                 ));
@@ -106,7 +102,7 @@ impl Validator {
         }
         for (name, global_lets) in self.global_lets.iter_all() {
             if global_lets.len() > 1 {
-                self.errors.push(ValidationError::DuplicateLetStmts(
+                self.errors.push(ValidationErrKind::DuplicateLetStmts(
                     *name,
                     global_lets.clone(),
                 ))
@@ -115,17 +111,17 @@ impl Validator {
         for (name, tys) in self.tys.iter_all() {
             if tys.len() > 1 {
                 self.errors
-                    .push(ValidationError::DuplicateTys(*name, tys.clone()))
+                    .push(ValidationErrKind::DuplicateTys(*name, tys.clone()))
             }
         }
         for (name, fns) in self.fns.iter_all() {
             if fns.len() > 1 {
                 self.errors
-                    .push(ValidationError::DuplicateFns(*name, fns.clone()))
+                    .push(ValidationErrKind::DuplicateFns(*name, fns.clone()))
             }
         }
 
-        self.errors
+        self.errors.into_iter().map(ValidationError::from).collect()
     }
 
     fn validate_generic_params(&mut self, generic_params: &GenericParams) {
@@ -133,7 +129,7 @@ impl Validator {
             generic_params,
             |param| param.name.ident,
             |param| param.id,
-            ValidationError::DuplicateGenericParam,
+            ValidationErrKind::DuplicateGenericParam,
         );
     }
 
@@ -142,7 +138,7 @@ impl Validator {
             params,
             |param| param.name.ident,
             |param| param.id,
-            ValidationError::DuplicateParam,
+            ValidationErrKind::DuplicateParam,
         );
     }
 
@@ -151,7 +147,7 @@ impl Validator {
             self_fns,
             |self_fn| self_fn.sig.name.ident,
             |self_fn| self_fn.id,
-            ValidationError::DuplicateFns,
+            ValidationErrKind::DuplicateFns,
         );
 
         for self_fn in self_fns {
@@ -164,7 +160,7 @@ impl Validator {
             fields,
             |field| field.name.ident,
             |field| field.id,
-            ValidationError::DuplicateField,
+            ValidationErrKind::DuplicateField,
         );
     }
 
@@ -173,7 +169,7 @@ impl Validator {
             members,
             |member| member.name,
             |member| member.id,
-            ValidationError::DuplicateEnumMember,
+            ValidationErrKind::DuplicateEnumMember,
         );
 
         for member in members {
@@ -191,7 +187,7 @@ impl Validator {
         T,
         M: Fn(&T) -> InternedStr,
         I: Fn(&T) -> LocalDefId,
-        E: Fn(InternedStr, Vec<LocalDefId>) -> ValidationError,
+        E: Fn(InternedStr, Vec<LocalDefId>) -> ValidationErrKind,
     >(
         &mut self,
         items: &[T],
@@ -214,19 +210,20 @@ impl Validator {
 }
 
 mod tests {
-    use crate::compiler::compiler::CompilerCtxt;
+    use crate::compiler::compiler::{CompilerCtxt, ValidationError};
     use crate::compiler::hir::ModuleId;
     use crate::compiler::krate::{Crate, CrateId, ModuleMap};
     use crate::compiler::parser::parse;
     use crate::compiler::path::ModulePath;
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::StrMap;
-    use crate::compiler::validator::ValidationError;
+    use crate::compiler::validator::ValidationErrKind;
     use crate::compiler::{compiler, StringInterner};
     use snap::snapshot;
     use std::collections::HashMap;
+    use std::ops::Deref;
 
-    type ValidationOutput = (StringInterner, Vec<ValidationError>);
+    type ValidationOutput = (StringInterner, Vec<ValidationErrKind>);
 
     #[cfg(test)]
     fn validate<T: AsRef<str>>(code: T) -> ValidationOutput {
@@ -244,7 +241,10 @@ mod tests {
         let module = krate.module(ModuleId::new(0, 0));
         (
             StringInterner::from(compiler_ctxt),
-            crate::compiler::validator::validate(&krates, krate, module),
+            crate::compiler::validator::validate(&krates, krate, module)
+                .into_iter()
+                .map(ValidationError::into_inner)
+                .collect(),
         )
     }
 
