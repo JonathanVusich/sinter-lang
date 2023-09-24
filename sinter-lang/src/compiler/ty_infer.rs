@@ -117,6 +117,7 @@ impl<'a> CrateInference<'a> {
 
     fn infer_node(&mut self, node: LocalDefId) {
         let (constraints, ty) = self.infer(node);
+        dbg!(&constraints);
         if let Err(error) = self.unify(constraints) {
             self.errors.push(error)
         } else {
@@ -301,6 +302,8 @@ impl<'a> CrateInference<'a> {
 
     fn normalize_ty(&mut self, ty: Type) -> Type {
         match ty {
+            Type::Array(array) => Type::Array(Array::new(self.normalize_ty(*array.ty))),
+            // TODO: Normalize the other recursive types
             Type::Infer(ty_var) => {
                 // Probe for the most recent parent of this value and update the path if it is no
                 // no longer correct.
