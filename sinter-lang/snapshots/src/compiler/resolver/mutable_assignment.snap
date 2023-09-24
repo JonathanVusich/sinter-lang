@@ -56,7 +56,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 1
+                      "Local": {
+                        "Var": 1
+                      }
                     },
                     "generics": null
                   }
@@ -77,7 +79,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 1
+                      "Local": {
+                        "Var": 1
+                      }
                     },
                     "generics": null
                   }

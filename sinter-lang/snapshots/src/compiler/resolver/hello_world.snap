@@ -257,7 +257,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 10
+                      "Local": {
+                        "Var": 10
+                      }
                     },
                     "generics": null
                   }
@@ -278,7 +280,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 12
+                      "Local": {
+                        "Var": 12
+                      }
                     },
                     "generics": null
                   }
@@ -315,7 +319,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 10
+                      "Local": {
+                        "Var": 10
+                      }
                     },
                     "generics": null
                   }
@@ -365,7 +371,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 12
+                      "Local": {
+                        "Var": 12
+                      }
                     },
                     "generics": null
                   }
@@ -451,8 +459,8 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "9": 10,
-                  "11": 12
+                  "11": 12,
+                  "9": 10
                 },
                 "return_type": 13
               },
@@ -548,7 +556,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 27
+                      "Local": {
+                        "Var": 27
+                      }
                     },
                     "generics": null
                   }
@@ -569,7 +579,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 29
+                      "Local": {
+                        "Var": 29
+                      }
                     },
                     "generics": null
                   }
@@ -606,7 +618,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 27
+                      "Local": {
+                        "Var": 27
+                      }
                     },
                     "generics": null
                   }
@@ -656,7 +670,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 29
+                      "Local": {
+                        "Var": 29
+                      }
                     },
                     "generics": null
                   }
@@ -742,8 +758,8 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "11": 29,
-                  "9": 27
+                  "9": 27,
+                  "11": 29
                 },
                 "return_type": 30
               },

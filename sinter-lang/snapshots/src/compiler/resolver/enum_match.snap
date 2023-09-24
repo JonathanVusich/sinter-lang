@@ -240,7 +240,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 12
+                      "Local": {
+                        "Var": 12
+                      }
                     },
                     "generics": null
                   }
@@ -300,7 +302,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 16
+                      "Local": {
+                        "Var": 16
+                      }
                     },
                     "generics": null
                   }
@@ -750,7 +754,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 39
+                      "Local": {
+                        "Var": 39
+                      }
                     },
                     "generics": null
                   }
@@ -880,8 +886,8 @@
             "EnumMember": {
               "name": 10,
               "fields": {
-                "11": 37,
-                "14": 35
+                "14": 35,
+                "11": 37
               },
               "member_fns": {
                 "16": 47
@@ -906,8 +912,8 @@
               },
               "generic_params": {},
               "members": {
-                "7": 33,
-                "10": 48
+                "10": 48,
+                "7": 33
               },
               "member_fns": {}
             }

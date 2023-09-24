@@ -168,7 +168,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 3
+                      "Local": {
+                        "Var": 3
+                      }
                     },
                     "generics": null
                   }
@@ -231,7 +233,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 5
+                      "Local": {
+                        "Var": 5
+                      }
                     },
                     "generics": null
                   }
@@ -567,7 +571,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 25
+                      "Local": {
+                        "Var": 25
+                      }
                     },
                     "generics": null
                   }
@@ -609,7 +615,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 25
+                      "Local": {
+                        "Var": 25
+                      }
                     },
                     "generics": null
                   }
@@ -690,7 +698,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 25
+                      "Local": {
+                        "Var": 25
+                      }
                     },
                     "generics": null
                   }
@@ -732,7 +742,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 25
+                      "Local": {
+                        "Var": 25
+                      }
                     },
                     "generics": null
                   }
@@ -813,7 +825,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 27
+                      "Local": {
+                        "Var": 27
+                      }
                     },
                     "generics": null
                   }
@@ -855,7 +869,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 34
+                      "Local": {
+                        "Var": 34
+                      }
                     },
                     "generics": null
                   }
@@ -892,7 +908,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 27
+                      "Local": {
+                        "Var": 27
+                      }
                     },
                     "generics": null
                   }
@@ -934,7 +952,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 25
+                      "Local": {
+                        "Var": 25
+                      }
                     },
                     "generics": null
                   }
@@ -1008,7 +1028,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 27
+                      "Local": {
+                        "Var": 27
+                      }
                     },
                     "generics": null
                   }
@@ -1050,7 +1072,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 40
+                      "Local": {
+                        "Var": 40
+                      }
                     },
                     "generics": null
                   }
@@ -1103,7 +1127,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 27
+                      "Local": {
+                        "Var": 27
+                      }
                     },
                     "generics": null
                   }
@@ -1145,7 +1171,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 25
+                      "Local": {
+                        "Var": 25
+                      }
                     },
                     "generics": null
                   }
@@ -1255,8 +1283,8 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "6": 27,
-                  "17": 25
+                  "17": 25,
+                  "6": 27
                 },
                 "return_type": 28
               },
@@ -1283,9 +1311,9 @@
               "generic_params": {},
               "fields": {
                 "10": 17,
+                "12": 19,
                 "13": 21,
-                "14": 23,
-                "12": 19
+                "14": 23
               },
               "fn_stmts": {
                 "9": 64

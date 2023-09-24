@@ -146,7 +146,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 2
+                      "Local": {
+                        "Var": 2
+                      }
                     },
                     "generics": null
                   }
@@ -167,7 +169,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 4
+                      "Local": {
+                        "Var": 4
+                      }
                     },
                     "generics": null
                   }
@@ -409,7 +413,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 15
+                      "Local": {
+                        "Var": 15
+                      }
                     },
                     "generics": null
                   }
@@ -430,7 +436,9 @@
                 "segments": [
                   {
                     "res": {
-                      "Local": 15
+                      "Local": {
+                        "Var": 15
+                      }
                     },
                     "generics": null
                   }

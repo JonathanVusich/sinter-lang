@@ -34,7 +34,11 @@
     "sqrt",
     "x",
     "y",
-    "f64"
+    "f64",
+    "out",
+    "print",
+    "message",
+    "str"
   ],
   {
     "1": {
@@ -182,13 +186,13 @@
               "generic_params": {},
               "members": {
                 "5": 1,
-                "4": 0,
-                "10": 6,
-                "8": 4,
                 "9": 5,
+                "4": 0,
+                "8": 4,
+                "7": 3,
+                "10": 6,
                 "11": 7,
-                "6": 2,
-                "7": 3
+                "6": 2
               },
               "member_fns": {}
             }
@@ -229,7 +233,21 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 2
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -293,7 +311,84 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "Enum": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 8
+                          },
+                          "members": {
+                            "4": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 0
+                              }
+                            },
+                            "6": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 2
+                              }
+                            },
+                            "10": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 6
+                              }
+                            },
+                            "8": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 4
+                              }
+                            },
+                            "7": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 3
+                              }
+                            },
+                            "5": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 1
+                              }
+                            },
+                            "11": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 7
+                              }
+                            },
+                            "9": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 5
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 1
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -357,7 +452,30 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Module": {
+                        "crate_id": 1,
+                        "module_id": 0
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "Fn": {
+                          "id": {
+                            "crate_id": 1,
+                            "local_id": 25
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -371,7 +489,21 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 2
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -421,7 +553,84 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "Enum": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 8
+                          },
+                          "members": {
+                            "4": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 0
+                              }
+                            },
+                            "6": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 2
+                              }
+                            },
+                            "10": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 6
+                              }
+                            },
+                            "8": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 4
+                              }
+                            },
+                            "7": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 3
+                              }
+                            },
+                            "5": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 1
+                              }
+                            },
+                            "11": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 7
+                              }
+                            },
+                            "9": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 5
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 1
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -503,7 +712,21 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "Fn": {
+                          "id": {
+                            "crate_id": 1,
+                            "local_id": 42
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -517,7 +740,21 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 2
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -567,7 +804,84 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "Enum": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 8
+                          },
+                          "members": {
+                            "4": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 0
+                              }
+                            },
+                            "6": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 2
+                              }
+                            },
+                            "10": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 6
+                              }
+                            },
+                            "8": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 4
+                              }
+                            },
+                            "7": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 3
+                              }
+                            },
+                            "5": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 1
+                              }
+                            },
+                            "11": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 7
+                              }
+                            },
+                            "9": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 5
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 1
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -649,7 +963,38 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Crate": {
+                        "id": 1
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "Module": {
+                        "crate_id": 1,
+                        "module_id": 0
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "Fn": {
+                          "id": {
+                            "crate_id": 1,
+                            "local_id": 42
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -663,7 +1008,21 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 2
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -713,7 +1072,84 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "Enum": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 8
+                          },
+                          "members": {
+                            "4": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 0
+                              }
+                            },
+                            "6": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 2
+                              }
+                            },
+                            "10": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 6
+                              }
+                            },
+                            "8": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 4
+                              }
+                            },
+                            "7": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 3
+                              }
+                            },
+                            "5": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 1
+                              }
+                            },
+                            "11": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 7
+                              }
+                            },
+                            "9": {
+                              "id": {
+                                "crate_id": 0,
+                                "local_id": 5
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 1
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -823,7 +1259,30 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Module": {
+                        "crate_id": 0,
+                        "module_id": 0
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "GlobalLet": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 10
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -914,7 +1373,16 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Var": 57
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1016,7 +1484,22 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Generic": 63
+                      }
+                    },
+                    "generics": null
+                  },
+                  {
+                    "res": {
+                      "Fn": 30
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1112,7 +1595,21 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "ValueDef": {
+                        "EnumMember": {
+                          "id": {
+                            "crate_id": 0,
+                            "local_id": 2
+                          }
+                        }
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1216,12 +1713,13 @@
     "15": {
       "name": 15,
       "id": {
-        "id": 2
+        "id": 1
       },
       "items": [
         8,
         25,
-        42
+        42,
+        46
       ],
       "nodes": {
         "0": {
@@ -1354,8 +1852,8 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "34": 3,
-                  "33": 1
+                  "33": 1,
+                  "34": 3
                 },
                 "return_type": 4
               },
@@ -1448,7 +1946,16 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Var": 10
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1462,7 +1969,16 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Var": 12
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1492,7 +2008,16 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Var": 10
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1535,7 +2060,16 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Var": 12
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1711,7 +2245,16 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Var": 27
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1725,7 +2268,16 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Var": 29
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1755,7 +2307,16 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Var": 27
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1798,7 +2359,16 @@
           "kind": {
             "Expr": {
               "Path": {
-                "segments": []
+                "segments": [
+                  {
+                    "res": {
+                      "Local": {
+                        "Var": 29
+                      }
+                    },
+                    "generics": null
+                  }
+                ]
               }
             }
           },
@@ -1880,8 +2450,8 @@
                 },
                 "generic_params": {},
                 "params": {
-                  "34": 29,
-                  "33": 27
+                  "33": 27,
+                  "34": 29
                 },
                 "return_type": 30
               },
@@ -1893,6 +2463,76 @@
             "end": 220
           },
           "id": 42
+        },
+        "43": {
+          "kind": {
+            "Ty": {
+              "Primitive": "Str"
+            }
+          },
+          "span": {
+            "start": 18,
+            "end": 21
+          },
+          "id": 43
+        },
+        "44": {
+          "kind": {
+            "Param": {
+              "ident": {
+                "ident": 38,
+                "span": {
+                  "start": 9,
+                  "end": 16
+                }
+              },
+              "ty": 43,
+              "mutability": "Immutable"
+            }
+          },
+          "span": {
+            "start": 9,
+            "end": 21
+          },
+          "id": 44
+        },
+        "45": {
+          "kind": {
+            "Block": {
+              "stmts": []
+            }
+          },
+          "span": {
+            "start": 23,
+            "end": 27
+          },
+          "id": 45
+        },
+        "46": {
+          "kind": {
+            "Fn": {
+              "sig": {
+                "name": {
+                  "ident": 37,
+                  "span": {
+                    "start": 3,
+                    "end": 8
+                  }
+                },
+                "generic_params": {},
+                "params": {
+                  "38": 44
+                },
+                "return_type": null
+              },
+              "body": 45
+            }
+          },
+          "span": {
+            "start": 0,
+            "end": 27
+          },
+          "id": 46
         }
       }
     }
