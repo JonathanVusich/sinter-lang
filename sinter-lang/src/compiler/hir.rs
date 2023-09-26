@@ -10,7 +10,7 @@ use crate::compiler::ast::{Ident, InfixOp, Module, Mutability, UnaryOp};
 use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::ClassType;
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::ValueDef;
+use crate::compiler::resolver::{FnDef, MaybeFnDef, ValueDef};
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::{InternedStr, StrMap};
 use crate::compiler::utils::{named_slice, named_strmap};
@@ -26,8 +26,8 @@ impl DefId {
         self.crate_id as usize
     }
 
-    pub fn local_id(&self) -> usize {
-        self.local_id as usize
+    pub fn local_id(&self) -> LocalDefId {
+        LocalDefId::new(self.local_id)
     }
 }
 
@@ -681,6 +681,13 @@ impl PathExpr {
             segments: segments.into(),
         }
     }
+
+    pub fn is_single(&self) -> Option<&Segment> {
+        if self.segments.len() == 1 {
+            return self.segments.first();
+        }
+        None
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -689,7 +696,7 @@ pub enum Res {
     ModuleSegment(CrateId, ModulePath),
     Module(ModuleId),
     ValueDef(ValueDef),
-    Fn(InternedStr), // These have to be late resolved after type information is deduced?
+    Fn(MaybeFnDef), // These have to be late resolved after type information is deduced?
     Local(LocalDef),
     Primitive(Primitive),
 }

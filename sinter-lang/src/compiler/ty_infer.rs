@@ -10,8 +10,9 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::ast::{InfixOp, UnaryOp};
 use crate::compiler::compiler::{CompileError, TypeError};
 use crate::compiler::hir::{
-    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirNodeKind, LocalDefId, PathTy, Primitive, Ty,
+    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirNodeKind, LocalDefId, PathTy, Primitive, Res, Ty,
 };
+use crate::compiler::resolver::ValueDef;
 use crate::compiler::types::{LDefMap, StrMap};
 
 #[derive(Debug)]
@@ -30,16 +31,20 @@ impl Display for TypeErrKind {
 
 pub struct TypeInference<'a> {
     crates: &'a StrMap<HirCrate>,
+    crate_lookup: Vec<&'a HirCrate>,
 }
 
 impl<'a> TypeInference<'a> {
     pub fn new(crates: &'a StrMap<HirCrate>) -> Self {
-        Self { crates }
+        let crate_lookup = crates.values()
+            .sorted_by_key(|krate| krate.id)
+            .collect();
+        Self { crates, crate_lookup, }
     }
 
     pub fn infer_tys(self) -> Result<(), CompileError> {
         for krate in self.crates.values() {
-            let crate_inference = CrateInference::new(krate);
+            let crate_inference = CrateInference::new(krate, &self.crate_lookup);
             crate_inference.infer_tys()?;
         }
         Ok(())
@@ -52,15 +57,17 @@ pub struct CrateInference<'a> {
     ty_map: LDefMap<Type>,
     errors: Vec<TypeErrKind>,
     krate: &'a HirCrate,
+    crate_lookup: &'a Vec<&'a HirCrate>,
 }
 
 impl<'a> CrateInference<'a> {
-    pub fn new(krate: &'a HirCrate) -> Self {
+    pub fn new(krate: &'a HirCrate, crate_lookup: &'a Vec<&'a HirCrate>) -> Self {
         Self {
             unify_table: Default::default(),
             ty_map: Default::default(),
             errors: Default::default(),
             krate,
+            crate_lookup,
         }
     }
 
@@ -125,8 +132,19 @@ impl<'a> CrateInference<'a> {
         }
     }
 
+    fn infer_def(&mut self, def_id: DefId) -> (Constraints, Type) {
+        let node = self.crate_lookup[def_id.crate_id()].nodes.get(&def_id.local_id())
+            .map(|node| &node.kind)
+            .unwrap();
+        self.infer_from_node(node)
+    }
+
     fn infer(&mut self, node: LocalDefId) -> (Constraints, Type) {
         let node = self.krate.node(node);
+        self.infer_from_node(node)
+    }
+
+    fn infer_from_node(&mut self, node: &HirNodeKind) -> (Constraints, Type) {
         match node {
             HirNodeKind::GlobalLet(global_let) => {
                 match global_let.ty {
@@ -206,9 +224,30 @@ impl<'a> CrateInference<'a> {
                     }
                     (constraints, inferred_ty)
                 }
-                // Expr::Path(path) => {
-                //     // TODO: Handle paths
-                // }
+                Expr::Path(path) => {
+                    let segment = path.segments.last().unwrap();
+                    match &segment.res {
+                        /// This should be unreachable since these are not valid paths and should be caught
+                        /// by the resolver.
+                        Res::Crate(_) | Res::ModuleSegment(_, _) | Res::Module(_) => unreachable!(),
+                        Res::ValueDef(value_def) => {
+                            match value_def {
+                                ValueDef::GlobalVar(var_def) => {
+                                    self.infer_node()
+                                    var_def.id
+                                }
+                                ValueDef::Class(_) => {}
+                                ValueDef::Enum(_) => {}
+                                ValueDef::EnumMember(_) => {}
+                                ValueDef::Trait(_) => {}
+                                ValueDef::Fn(_) => {}
+                            }
+                        }
+                        Res::Fn(_) => {}
+                        Res::Local(_) => {}
+                        Res::Primitive(_) => {}
+                    }
+                }
                 // TODO: Figure out how to handle index expressions
                 _ => {
                     dbg!(&expr);
@@ -303,6 +342,23 @@ impl<'a> CrateInference<'a> {
     fn normalize_ty(&mut self, ty: Type) -> Type {
         match ty {
             Type::Array(array) => Type::Array(Array::new(self.normalize_ty(*array.ty))),
+            Type::Closure(closure) => {
+                let normalized_tys = closure
+                    .params
+                    .into_iter()
+                    .map(|ty| self.normalize_ty(ty))
+                    .collect();
+                let ret_ty = self.normalize_ty(*closure.ret_ty);
+                Type::Closure(Closure::new(normalized_tys, ret_ty))
+            }
+            Type::TraitBound(trait_bound) => {
+                let normalized_tys = trait_bound
+                    .bounds
+                    .into_iter()
+                    .map(|ty| self.normalize_ty(ty))
+                    .collect();
+                Type::TraitBound(TraitBound::new(normalized_tys))
+            }
             // TODO: Normalize the other recursive types
             Type::Infer(ty_var) => {
                 // Probe for the most recent parent of this value and update the path if it is no
@@ -644,13 +700,13 @@ mod tests {
         }
 
         fn infer_tys(self) -> LDefMap<Type> {
-            let mut hir_crate = HirCrate::new(
+            let hir_crate = HirCrate::new(
                 InternedStr::default(),
                 CrateId::default(),
                 self.items,
                 self.nodes,
             );
-            let crate_infer = CrateInference::new(&mut hir_crate);
+            let crate_infer = CrateInference::new(&hir_crate);
             crate_infer.infer_tys().unwrap()
         }
     }
@@ -661,7 +717,7 @@ mod tests {
     fn parse_module(code: &str) -> InferResult {
         let mut compiler = Compiler::default();
         let main_crate = utils::resolve_test_krate_path(code);
-        let crate_path = main_crate.clone().parent().unwrap();
+        let crate_path = main_crate.parent().unwrap();
         let application = Application::Inline { code };
         let mut crates = compiler.parse_crates(application).unwrap();
         compiler.validate_crates(&crates).unwrap();
