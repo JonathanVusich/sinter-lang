@@ -532,12 +532,12 @@ impl Field {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
     pub name: Ident,
-    pub ty: Option<Ty>,
+    pub ty: Ty,
     pub initializer: Expr,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: Ident, ty: Option<Ty>, initializer: Expr) -> Self {
+    pub fn new(ident: Ident, ty: Ty, initializer: Expr) -> Self {
         Self {
             name: ident,
             ty,

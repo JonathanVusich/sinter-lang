@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use std::any::Any;
 use std::collections::{HashMap, VecDeque};
 use std::error::Error;
@@ -184,8 +185,12 @@ pub struct ClassDef {
 }
 
 impl ClassDef {
-    pub fn new(id: DefId, fields: IStrMap<FieldDef>, fns: IStrMap<FnDef>) -> Self {
-        Self { id, fields, fns }
+    pub fn new(id: DefId, fields: StrMap<FieldDef>, fns: StrMap<FnDef>) -> Self {
+        Self {
+            id,
+            fields: Arc::new(fields),
+            fns: Arc::new(fns),
+        }
     }
 }
 
@@ -510,30 +515,26 @@ fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
                 );
             }
             ItemKind::Class(class_stmt) => {
-                let fields = Arc::new(
-                    class_stmt
-                        .fields
-                        .iter()
-                        .map(|field| {
-                            (
-                                field.name.ident,
-                                FieldDef::new(field.id.to_def_id(krate_id)),
-                            )
-                        })
-                        .collect(),
-                );
-                let fns = Arc::new(
-                    class_stmt
-                        .self_fns
-                        .iter()
-                        .map(|self_fn| {
-                            (
-                                self_fn.sig.name.ident,
-                                FnDef::new(self_fn.id.to_def_id(krate_id)),
-                            )
-                        })
-                        .collect(),
-                );
+                let fields = class_stmt
+                    .fields
+                    .iter()
+                    .map(|field| {
+                        (
+                            field.name.ident,
+                            FieldDef::new(field.id.to_def_id(krate_id)),
+                        )
+                    })
+                    .collect::<IndexMap<_, _>>();
+                let fns = class_stmt
+                    .self_fns
+                    .iter()
+                    .map(|self_fn| {
+                        (
+                            self_fn.sig.name.ident,
+                            FnDef::new(self_fn.id.to_def_id(krate_id)),
+                        )
+                    })
+                    .collect::<IndexMap<_, _>>();
                 values.insert(
                     class_stmt.name.ident,
                     ValueDef::Class(ClassDef::new(def_id, fields, fns)),
@@ -703,7 +704,7 @@ impl<'a> CrateResolver<'a> {
         id: LocalDefId,
     ) -> ResolveResult {
         // Lower expression
-        let ty = self.maybe_resolve_ty(&let_stmt.ty)?;
+        let ty = self.resolve_ty(&let_stmt.ty)?;
         let expr = self.resolve_expr(&let_stmt.initializer)?;
 
         // We don't need to insert constants into a local scope since it is already part of the module ns.
@@ -802,7 +803,7 @@ impl<'a> CrateResolver<'a> {
                     span,
                     id,
                 }) => Some(self.resolve_trait_bound(trait_bound, *span, *id)?),
-                _ => panic!("Only trait bound should be present!"),
+                _ => unreachable!(),
             };
             /*
                 We always want to insert the node, even if it clashes with another generic param.
@@ -983,7 +984,7 @@ impl<'a> CrateResolver<'a> {
         &mut self,
         enum_stmt_members: &Vec<AstEnumMember>,
     ) -> Result<EnumMembers, ResolveError> {
-        let mut enum_members = HashMap::default();
+        let mut enum_members = StrMap::default();
         for member in enum_stmt_members {
             self.insert_enum_member(member.name, member.id)?;
 
@@ -1627,7 +1628,7 @@ impl<'a> CrateResolver<'a> {
             }
             AstStmtKind::For(for_stmt) => {
                 self.scopes.push(Scope::Block {
-                    vars: HashMap::default(),
+                    vars: StrMap::default(),
                 });
                 self.insert_var(for_stmt.ident.ident, id);
 

@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::{Debug, Formatter};
+use std::intrinsics::unchecked_rem;
 use std::ops::{Deref, Index};
 use std::sync::Arc;
 
@@ -12,8 +13,9 @@ use crate::compiler::parser::ClassType;
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{FnDef, MaybeFnDef, ValueDef};
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::{InternedStr, StrMap};
+use crate::compiler::types::{InternedStr, LDefMap, StrMap};
 use crate::compiler::utils::{named_slice, named_strmap};
+use crate::traits::traits::Trait;
 
 #[derive(PartialEq, Eq, Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub struct DefId {
@@ -142,12 +144,12 @@ pub enum HirNodeKind {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
     pub ident: InternedStr,
-    pub ty: Option<LocalDefId>,
+    pub ty: LocalDefId,
     pub initializer: LocalDefId,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: InternedStr, ty: Option<LocalDefId>, initializer: LocalDefId) -> Self {
+    pub fn new(ident: InternedStr, ty: LocalDefId, initializer: LocalDefId) -> Self {
         Self {
             ident,
             ty,
@@ -849,7 +851,7 @@ pub struct HirCrate {
     pub(crate) id: CrateId,
     pub(crate) items: Vec<LocalDefId>,
     #[cfg(not(test))]
-    pub(crate) nodes: HashMap<LocalDefId, HirNode>,
+    pub(crate) nodes: LDefMap<HirNode>,
     #[cfg(test)]
     pub(crate) nodes: BTreeMap<LocalDefId, HirNode>,
 }
@@ -859,7 +861,7 @@ impl HirCrate {
         name: InternedStr,
         id: CrateId,
         items: Vec<LocalDefId>,
-        nodes: HashMap<LocalDefId, HirNode>,
+        nodes: LDefMap<HirNode>,
     ) -> Self {
         #[cfg(test)]
         let nodes = BTreeMap::from_iter(nodes);
@@ -885,12 +887,47 @@ impl HirCrate {
         }
     }
 
+    pub fn trait_bound(&self, trait_bound: LocalDefId) -> &TraitBound {
+        match self.ty_stmt(trait_bound) {
+            Ty::TraitBound { trait_bound } => trait_bound,
+            _ => unreachable!(),
+        }
+    }
     pub fn fn_stmt(&self, fn_id: LocalDefId) -> &FnStmt {
         match self.nodes.get(&fn_id) {
             Some(HirNode {
                 kind: HirNodeKind::Fn(fn_stmt),
                 ..
             }) => fn_stmt,
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn param(&self, param_id: LocalDefId) -> &Param {
+        match self.nodes.get(&param_id) {
+            Some(HirNode {
+                kind: HirNodeKind::Param(param),
+                ..
+            }) => param,
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn generic_param(&self, generic_param: LocalDefId) -> &GenericParam {
+        match self.nodes.get(&generic_param) {
+            Some(HirNode {
+                     kind: HirNodeKind::GenericParam(generic_param),
+                     ..
+                 }) => generic_param,
+            _ => unreachable!(),
+        }
+    }
+    pub fn global_let_stmt(&self, let_stmt: LocalDefId) -> &GlobalLetStmt {
+        match self.nodes.get(&let_stmt) {
+            Some(HirNode {
+                kind: HirNodeKind::GlobalLet(global_let_stmt),
+                ..
+            }) => global_let_stmt,
             _ => unreachable!(),
         }
     }

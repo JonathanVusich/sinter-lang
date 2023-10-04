@@ -341,11 +341,8 @@ impl<'ctxt> Parser<'ctxt> {
     fn global_let_stmt(&mut self) -> ParseResult<GlobalLetStmt> {
         self.expect(TokenType::Let)?;
         let identifier = self.identifier()?;
-        let mut ty = None;
-        if self.matches(TokenType::Colon) {
-            self.advance();
-            ty = Some(self.parse_ty()?);
-        }
+        self.expect(TokenType::Colon)?;
+        let ty = self.parse_ty()?;
         self.expect(TokenType::Equal)?;
         let initializer = self.expr()?;
         self.expect(TokenType::Semicolon)?;

@@ -1,4 +1,5 @@
 use std::backtrace::Backtrace;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
@@ -10,10 +11,12 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::ast::{InfixOp, UnaryOp};
 use crate::compiler::compiler::{CompileError, TypeError};
 use crate::compiler::hir::{
-    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirNodeKind, LocalDefId, PathTy, Primitive, Res, Ty,
+    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirNodeKind, LocalDefId, Param, PathTy, Primitive,
+    Res, TraitBound as HirTraitBound, Ty,
 };
-use crate::compiler::resolver::ValueDef;
-use crate::compiler::types::{LDefMap, StrMap};
+use crate::compiler::resolver::{FnDef, GlobalVarDef, ValueDef};
+use crate::compiler::types::{DefMap, LDefMap, StrMap};
+use crate::traits::traits::Trait;
 
 #[derive(Debug)]
 pub enum TypeErrKind {
@@ -34,12 +37,17 @@ pub struct TypeInference<'a> {
     crate_lookup: Vec<&'a HirCrate>,
 }
 
+/// High level steps for ty inference.
+/// 1. Infer types for constants in each crate. This will allow the compiler to know the types for
+/// each crate. Should this be stored in the HirCrate or some other data structure?
+/// 2. Do fns need to have their return types canonicalized?
 impl<'a> TypeInference<'a> {
     pub fn new(crates: &'a StrMap<HirCrate>) -> Self {
-        let crate_lookup = crates.values()
-            .sorted_by_key(|krate| krate.id)
-            .collect();
-        Self { crates, crate_lookup, }
+        let crate_lookup = crates.values().sorted_by_key(|krate| krate.id).collect();
+        Self {
+            crates,
+            crate_lookup,
+        }
     }
 
     pub fn infer_tys(self) -> Result<(), CompileError> {
@@ -49,6 +57,14 @@ impl<'a> TypeInference<'a> {
         }
         Ok(())
     }
+}
+
+pub struct Infer<'a> {
+    unify_table: UnificationTable,
+    ty_map: LDefMap<Type>,
+    errors: Vec<TypeErrKind>,
+    krate: &'a HirCrate,
+    crate_lookup: &'a Vec<&'a HirCrate>,
 }
 
 #[derive(Debug)]
@@ -72,7 +88,6 @@ impl<'a> CrateInference<'a> {
     }
 
     pub fn infer_tys(mut self) -> Result<LDefMap<Type>, CompileError> {
-        // dbg!(&self);
         for item in self.krate.items.iter().copied() {
             let node = self.krate.node(item);
             match node {
@@ -124,7 +139,6 @@ impl<'a> CrateInference<'a> {
 
     fn infer_node(&mut self, node: LocalDefId) {
         let (constraints, ty) = self.infer(node);
-        dbg!(&constraints);
         if let Err(error) = self.unify(constraints) {
             self.errors.push(error)
         } else {
@@ -132,19 +146,8 @@ impl<'a> CrateInference<'a> {
         }
     }
 
-    fn infer_def(&mut self, def_id: DefId) -> (Constraints, Type) {
-        let node = self.crate_lookup[def_id.crate_id()].nodes.get(&def_id.local_id())
-            .map(|node| &node.kind)
-            .unwrap();
-        self.infer_from_node(node)
-    }
-
     fn infer(&mut self, node: LocalDefId) -> (Constraints, Type) {
         let node = self.krate.node(node);
-        self.infer_from_node(node)
-    }
-
-    fn infer_from_node(&mut self, node: &HirNodeKind) -> (Constraints, Type) {
         match node {
             HirNodeKind::GlobalLet(global_let) => {
                 match global_let.ty {
@@ -225,30 +228,117 @@ impl<'a> CrateInference<'a> {
                     (constraints, inferred_ty)
                 }
                 Expr::Path(path) => {
-                    let segment = path.segments.last().unwrap();
-                    match &segment.res {
+                    let last_segment = path.segments.last().unwrap();
+                    match &last_segment.res {
                         /// This should be unreachable since these are not valid paths and should be caught
                         /// by the resolver.
                         Res::Crate(_) | Res::ModuleSegment(_, _) | Res::Module(_) => unreachable!(),
                         Res::ValueDef(value_def) => {
                             match value_def {
-                                ValueDef::GlobalVar(var_def) => {
-                                    self.infer_node()
-                                    var_def.id
+                                ValueDef::GlobalVar(GlobalVarDef { id }) => {
+                                    let krate = self.crate_lookup[id.crate_id()];
+                                    let global_let = krate.global_let_stmt(id.local_id());
+                                    (Constraints::default(), Type::from(krate, global_let.ty))
                                 }
-                                ValueDef::Class(_) => {}
-                                ValueDef::Enum(_) => {}
-                                ValueDef::EnumMember(_) => {}
-                                ValueDef::Trait(_) => {}
-                                ValueDef::Fn(_) => {}
+                                ValueDef::Fn(FnDef { id }) => {
+                                    let krate = self.crate_lookup[id.crate_id()];
+                                    let fn_stmt = krate.fn_stmt(id.local_id());
+
+                                    let mut constraints = Constraints::default();
+
+                                    let params: Vec<(LocalDefId, &Param)> = fn_stmt
+                                        .sig
+                                        .params
+                                        .values()
+                                        .copied()
+                                        .map(|param| (param, krate.param(param)))
+                                        .collect();
+
+                                    let ret_ty = fn_stmt
+                                        .sig
+                                        .return_type
+                                        .map(|ret_ty| Type::from(krate, ret_ty));
+
+                                    let trait_bounds = fn_stmt
+                                        .sig
+                                        .generic_params
+                                        .values()
+                                        .flat_map(|param_id| {
+                                            let generic_param = krate.generic_param(*param_id);
+                                            generic_param
+                                                .trait_bound
+                                                .map(|trait_bound| krate.trait_bound(trait_bound))
+                                                .map(|trait_bound| (*param_id, trait_bound))
+                                        })
+                                        .collect::<HashMap<_, _>>();
+
+                                    let param_tys = params
+                                        .iter()
+                                        .map(|(id, param)| {
+                                            let ty = Type::from(krate, param.ty);
+
+                                            // Add constraint for each param if they are a bounded generic
+                                            if let Some(trait_bound) = trait_bounds.get(id) {
+                                                let trait_bound =
+                                                    Type::from_trait_bound(krate, trait_bound);
+                                                constraints.push(Constraint::Assignable(
+                                                    ty.clone(),
+                                                    trait_bound,
+                                                ))
+                                            }
+                                            ty
+                                        })
+                                        .collect();
+
+                                    let ret_ty = fn_stmt
+                                        .sig
+                                        .return_type
+                                        .map(|ret_ty| {
+                                            let ty = Type::from(krate, ret_ty);
+
+                                            if let Some(trait_bound) = trait_bounds.get(&ret_ty) {
+                                                let trait_bound =
+                                                    Type::from_trait_bound(krate, trait_bound);
+                                                constraints.push(Constraint::Assignable(
+                                                    ty.clone(),
+                                                    trait_bound,
+                                                ))
+                                            }
+                                            ty
+                                        })
+                                        // If no return type, the return type is implicitly None.
+                                        .unwrap_or_else(|| Type::None);
+
+                                    let ty = Type::Fn(FnSig::new(param_tys, ret_ty));
+                                    (constraints, ty)
+                                }
+                                /// These are not callable and are not valid paths
+                                /// TODO: Add support for callable class + enum member paths?
+                                ValueDef::EnumMember(_) => {
+                                    todo!()
+                                }
+                                ValueDef::Class(_) => {
+                                    todo!()
+                                }
+                                ValueDef::Enum(_) => {
+                                    todo!()
+                                }
+                                ValueDef::Trait(_) => {
+                                    todo!()
+                                }
                             }
                         }
-                        Res::Fn(_) => {}
-                        Res::Local(_) => {}
-                        Res::Primitive(_) => {}
+                        Res::Fn(_) => {
+                            todo!()
+                        }
+                        Res::Local(_) => {
+                            todo!()
+                        }
+                        Res::Primitive(_) => {
+                            todo!()
+                        }
                     }
                 }
-                // TODO: Figure out how to handle index expressions
                 _ => {
                     dbg!(&expr);
                     (Constraints::default(), self.fresh_ty())
@@ -308,6 +398,7 @@ impl<'a> CrateInference<'a> {
         for constr in constraints {
             match constr {
                 Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs)?,
+                Constraint::Assignable(_, _) => {}
                 Constraint::Array(ty) => {}
                 Constraint::Infix(lhs, rhs, op) => {}
                 Constraint::Unary(_, _) => {}
@@ -342,14 +433,14 @@ impl<'a> CrateInference<'a> {
     fn normalize_ty(&mut self, ty: Type) -> Type {
         match ty {
             Type::Array(array) => Type::Array(Array::new(self.normalize_ty(*array.ty))),
-            Type::Closure(closure) => {
+            Type::Fn(closure) => {
                 let normalized_tys = closure
                     .params
                     .into_iter()
                     .map(|ty| self.normalize_ty(ty))
                     .collect();
                 let ret_ty = self.normalize_ty(*closure.ret_ty);
-                Type::Closure(Closure::new(normalized_tys, ret_ty))
+                Type::Fn(FnSig::new(normalized_tys, ret_ty))
             }
             Type::TraitBound(trait_bound) => {
                 let normalized_tys = trait_bound
@@ -396,14 +487,14 @@ impl<'a> CrateInference<'a> {
                     .collect();
                 Type::TraitBound(TraitBound::new(traits))
             }
-            Type::Closure(closure) => {
+            Type::Fn(closure) => {
                 let params = closure
                     .params
                     .into_iter()
                     .map(|ty| self.probe_ty(ty))
                     .collect();
                 let ret_ty = self.probe_ty(*closure.ret_ty);
-                Type::Closure(Closure::new(params, ret_ty))
+                Type::Fn(FnSig::new(params, ret_ty))
             }
             Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
             ty => ty,
@@ -504,6 +595,7 @@ type Constraints = Vec<Constraint>;
 
 #[derive(Debug)]
 enum Constraint {
+    Assignable(Type, Type),
     Equal(Type, Type),
     Array(Type),
     Infix(Type, Type, InfixOp),
@@ -563,12 +655,12 @@ impl TraitBound {
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct Closure {
+pub struct FnSig {
     params: Vec<Type>,
     ret_ty: Box<Type>,
 }
 
-impl Closure {
+impl FnSig {
     pub fn new(params: Vec<Type>, ret_ty: Type) -> Self {
         Self {
             params,
@@ -584,7 +676,7 @@ pub enum Type {
     Array(Array),
     Path(Path),
     TraitBound(TraitBound),
-    Closure(Closure),
+    Fn(FnSig),
     U8,
     U16,
     U32,
@@ -612,6 +704,14 @@ impl Type {
         Self::Path(Path::new(path.definition, generics))
     }
 
+    fn from_trait_bound(krate: &HirCrate, trait_bound: &HirTraitBound) -> Self {
+        let traits = trait_bound
+            .iter()
+            .map(|bound| Self::from_path(krate, bound))
+            .collect();
+        Self::TraitBound(TraitBound::new(traits))
+    }
+
     pub fn from(krate: &HirCrate, ty: LocalDefId) -> Self {
         let ty = krate.ty_stmt(ty);
         match ty {
@@ -620,13 +720,7 @@ impl Type {
                 Self::Array(Array::new(inner_ty))
             }
             Ty::Path { path } => Self::from_path(krate, path),
-            Ty::TraitBound { trait_bound } => {
-                let traits = trait_bound
-                    .iter()
-                    .map(|bound| Self::from_path(krate, bound))
-                    .collect();
-                Self::TraitBound(TraitBound::new(traits))
-            }
+            Ty::TraitBound { trait_bound } => Self::from_trait_bound(krate, trait_bound),
             Ty::Closure { params, ret_ty } => {
                 let params = params
                     .iter()
@@ -634,7 +728,7 @@ impl Type {
                     .map(|param| Self::from(krate, param))
                     .collect();
                 let ret_ty = Self::from(krate, *ret_ty);
-                Self::Closure(Closure::new(params, ret_ty))
+                Self::Fn(FnSig::new(params, ret_ty))
             }
             Ty::Primitive(Primitive::U8) => Self::U8,
             Ty::Primitive(Primitive::U16) => Self::U16,
@@ -706,12 +800,13 @@ mod tests {
                 self.items,
                 self.nodes,
             );
-            let crate_infer = CrateInference::new(&hir_crate);
+            let crate_lookup = vec![&hir_crate];
+            let crate_infer = CrateInference::new(&hir_crate, &crate_lookup);
             crate_infer.infer_tys().unwrap()
         }
     }
 
-    type InferResult = (StringInterner, HirCrate, LDefMap<Type>);
+    type InferResult = (StringInterner, HirCrate, Type);
 
     #[cfg(test)]
     fn parse_module(code: &str) -> InferResult {

@@ -18,7 +18,7 @@ _________________________________
 
 `fnStmt => fnHead params fnTail`
 
-`constLetStmt => "let" ident ( ":" ty )? "=" expression ";"`
+`constLetStmt => "let" ident ":" ty "=" expression ";"`
 
 `enumStmt => "enum" ident genericParams? ( "{" (enumMember ",")* fnSelfStmt* "}" ) | ";"`
 

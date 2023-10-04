@@ -21,7 +21,7 @@ use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{resolve, ResolveErrKind};
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
 use crate::compiler::ty_infer::{CrateInference, Type, TypeErrKind};
-use crate::compiler::types::{InternedStr, LDefMap, StrMap};
+use crate::compiler::types::{DefMap, InternedStr, LDefMap, StrMap};
 use crate::compiler::validator::{validate, ValidationErrKind};
 use crate::compiler::StringInterner;
 
@@ -361,10 +361,11 @@ impl Compiler {
     pub(crate) fn infer_types(
         &mut self,
         crates: &StrMap<HirCrate>,
-    ) -> Result<StrMap<LDefMap<Type>>, CompileError> {
+    ) -> Result<DefMap<Type>, CompileError> {
         let mut ty_map = StrMap::default();
+        let crate_lookup = crates.values().sorted_by_key(|krate| krate.id).collect();
         for (key, krate) in crates {
-            ty_map.insert(*key, CrateInference::new(krate).infer_tys()?);
+            ty_map.insert(*key, CrateInference::new(krate, &crate_lookup).infer_tys()?);
         }
         Ok(ty_map)
     }

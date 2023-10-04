@@ -47,11 +47,11 @@ macro_rules! named_strmap {
         pub struct $ident {
             inner: Arc<StrMap<$ty>>,
         }
-        
+
         impl $ident {
             pub fn empty() -> Self {
                 Self {
-                    inner: Arc::new(HashMap::new())
+                    inner: Arc::new(StrMap::new()),
                 }
             }
         }
