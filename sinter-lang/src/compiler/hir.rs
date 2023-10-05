@@ -1,7 +1,6 @@
 use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::{Debug, Formatter};
-use std::intrinsics::unchecked_rem;
 use std::ops::{Deref, Index};
 use std::sync::Arc;
 
@@ -326,8 +325,8 @@ impl Block {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expression {
-    expr: LocalDefId,
-    implicit_return: bool,
+    pub(crate) expr: LocalDefId,
+    pub(crate) implicit_return: bool,
 }
 
 impl Expression {
@@ -433,6 +432,8 @@ named_slice!(Generics, LocalDefId);
 named_slice!(Args, LocalDefId);
 named_slice!(Stmts, LocalDefId);
 named_slice!(AnonParams, LocalDefId);
+named_slice!(Initializers, LocalDefId);
+named_slice!(Exprs, LocalDefId);
 named_strmap!(ClosureParams, ClosureParam);
 named_strmap!(GenericParams, LocalDefId);
 named_strmap!(Params, LocalDefId);
@@ -493,7 +494,7 @@ pub enum ArrayExpr {
         size: LocalDefId,
     },
     Unsized {
-        initializers: Arc<[LocalDefId]>,
+        initializers: Initializers,
     },
 }
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -611,15 +612,14 @@ impl PatternLocal {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct DestructurePattern {
     pub ty: PathTy,
-    // TODO: Replace with Exprs struct
-    pub exprs: Arc<[LocalDefId]>,
+    pub exprs: Exprs,
 }
 
 impl DestructurePattern {
     pub fn new(ty: PathTy, exprs: Vec<LocalDefId>) -> Self {
         Self {
             ty,
-            exprs: exprs.into(),
+            exprs: Exprs::from(exprs),
         }
     }
 }
@@ -903,6 +903,16 @@ impl HirCrate {
         }
     }
 
+    pub fn stmt(&self, stmt_id: LocalDefId) -> &Stmt {
+        match self.nodes.get(&stmt_id) {
+            Some(HirNode {
+                kind: HirNodeKind::Stmt(stmt),
+                ..
+            }) => stmt,
+            _ => unreachable!(),
+        }
+    }
+
     pub fn param(&self, param_id: LocalDefId) -> &Param {
         match self.nodes.get(&param_id) {
             Some(HirNode {
@@ -916,9 +926,9 @@ impl HirCrate {
     pub fn generic_param(&self, generic_param: LocalDefId) -> &GenericParam {
         match self.nodes.get(&generic_param) {
             Some(HirNode {
-                     kind: HirNodeKind::GenericParam(generic_param),
-                     ..
-                 }) => generic_param,
+                kind: HirNodeKind::GenericParam(generic_param),
+                ..
+            }) => generic_param,
             _ => unreachable!(),
         }
     }

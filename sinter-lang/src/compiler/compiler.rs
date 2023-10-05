@@ -226,7 +226,7 @@ impl Compiler {
                 main_crate,
                 crate_path,
             } => {
-                let mut crates = HashMap::default();
+                let mut crates = StrMap::default();
 
                 // Parse main crate
                 let main_crate = self.parse_crate(main_crate)?;
@@ -361,7 +361,7 @@ impl Compiler {
     pub(crate) fn infer_types(
         &mut self,
         crates: &StrMap<HirCrate>,
-    ) -> Result<DefMap<Type>, CompileError> {
+    ) -> Result<StrMap<LDefMap<Type>>, CompileError> {
         let mut ty_map = StrMap::default();
         let crate_lookup = crates.values().sorted_by_key(|krate| krate.id).collect();
         for (key, krate) in crates {
