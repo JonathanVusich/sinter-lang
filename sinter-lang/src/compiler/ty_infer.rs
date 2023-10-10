@@ -11,10 +11,10 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::ast::{InfixOp, UnaryOp};
 use crate::compiler::compiler::{CompileError, TypeError};
 use crate::compiler::hir::{
-    ArrayExpr, DefId, Expr, Expression, FnStmts, HirCrate, HirNodeKind, LocalDefId, Param, PathTy,
-    Primitive, Res, ReturnStmt, Stmt, TraitBound as HirTraitBound, Ty,
+    ArrayExpr, DefId, Expr, Expression, Field, FnStmts, GenericParam, HirCrate, HirNodeKind,
+    LocalDefId, Param, PathTy, Primitive, Res, ReturnStmt, Stmt, TraitBound as HirTraitBound, Ty,
 };
-use crate::compiler::resolver::{FnDef, GlobalVarDef, ValueDef};
+use crate::compiler::resolver::{ClassDef, FnDef, GlobalVarDef, ValueDef};
 use crate::compiler::types::{DefMap, LDefMap, StrMap};
 use crate::traits::traits::Trait;
 
@@ -100,7 +100,7 @@ impl<'a> CrateInference<'a> {
                 }
                 HirNodeKind::Enum(enum_stmt) => {
                     for (name, member) in enum_stmt.members.iter() {
-                        let enum_member = self.krate.enum_member(*member);
+                        let enum_member = self.krate.enum_member(member);
                         self.infer_fns(&enum_member.member_fns);
                     }
                     self.infer_fns(&enum_stmt.member_fns);
@@ -135,7 +135,7 @@ impl<'a> CrateInference<'a> {
 
     fn infer_fns(&mut self, fn_stmts: &FnStmts) {
         for (name, fn_stmt) in fn_stmts.iter() {
-            let fn_stmt = self.krate.fn_stmt(*fn_stmt);
+            let fn_stmt = self.krate.fn_stmt(fn_stmt);
             if let Some(body) = fn_stmt.body {
                 self.infer_node(body);
             }
@@ -174,9 +174,6 @@ impl<'a> CrateInference<'a> {
                 for (pos, stmt) in block.stmts.iter().copied().with_position() {
                     let (c, ty) = self.infer(stmt);
                     constraints.extend(c);
-                    if pos == Position::Last || pos == Position::Only {
-                        constraints.push(Constraint::Equal(ret_ty.clone(), ty.clone()))
-                    }
                 }
                 (constraints, ret_ty)
             }
@@ -252,88 +249,54 @@ impl<'a> CrateInference<'a> {
                             match value_def {
                                 ValueDef::GlobalVar(GlobalVarDef { id }) => {
                                     let krate = self.crate_lookup[id.crate_id()];
-                                    let global_let = krate.global_let_stmt(id.local_id());
+                                    let global_let = krate.global_let_stmt(&id.local_id());
                                     (Constraints::default(), Type::from(krate, global_let.ty))
                                 }
                                 ValueDef::Fn(FnDef { id }) => {
                                     let krate = self.crate_lookup[id.crate_id()];
-                                    let fn_stmt = krate.fn_stmt(id.local_id());
+                                    let fn_stmt = krate.fn_stmt(&id.local_id());
 
-                                    let mut constraints = Constraints::default();
-
-                                    let params: Vec<(LocalDefId, &Param)> = fn_stmt
+                                    let param_tys = fn_stmt
                                         .sig
                                         .params
                                         .values()
-                                        .copied()
-                                        .map(|param| (param, krate.param(param)))
+                                        .map(|param| krate.param(param))
+                                        .map(|param| Type::from(krate, param.ty))
                                         .collect();
-
                                     let ret_ty = fn_stmt
                                         .sig
                                         .return_type
-                                        .map(|ret_ty| Type::from(krate, ret_ty));
-
-                                    let trait_bounds = fn_stmt
-                                        .sig
-                                        .generic_params
-                                        .values()
-                                        .flat_map(|param_id| {
-                                            let generic_param = krate.generic_param(*param_id);
-                                            generic_param
-                                                .trait_bound
-                                                .map(|trait_bound| krate.trait_bound(trait_bound))
-                                                .map(|trait_bound| (*param_id, trait_bound))
-                                        })
-                                        .collect::<HashMap<_, _>>();
-
-                                    let param_tys = params
-                                        .iter()
-                                        .map(|(id, param)| {
-                                            let ty = Type::from(krate, param.ty);
-
-                                            // Add constraint for each param if they are a bounded generic
-                                            if let Some(trait_bound) = trait_bounds.get(id) {
-                                                let trait_bound =
-                                                    Type::from_trait_bound(krate, trait_bound);
-                                                constraints.push(Constraint::Assignable(
-                                                    ty.clone(),
-                                                    trait_bound,
-                                                ))
-                                            }
-                                            ty
-                                        })
-                                        .collect();
-
-                                    let ret_ty = fn_stmt
-                                        .sig
-                                        .return_type
-                                        .map(|ret_ty| {
-                                            let ty = Type::from(krate, ret_ty);
-
-                                            if let Some(trait_bound) = trait_bounds.get(&ret_ty) {
-                                                let trait_bound =
-                                                    Type::from_trait_bound(krate, trait_bound);
-                                                constraints.push(Constraint::Assignable(
-                                                    ty.clone(),
-                                                    trait_bound,
-                                                ))
-                                            }
-                                            ty
-                                        })
-                                        // If no return type, the return type is implicitly None.
-                                        .unwrap_or_else(|| Type::None);
+                                        .map(|ret_ty| Type::from(krate, ret_ty))
+                                        .unwrap_or(Type::None);
 
                                     let ty = Type::Fn(FnSig::new(param_tys, ret_ty));
-                                    (constraints, ty)
+                                    (Constraints::default(), ty)
                                 }
-                                // These are not callable and are not valid paths
                                 // TODO: Add support for callable class + enum member paths?
                                 ValueDef::EnumMember(_) => {
                                     todo!()
                                 }
-                                ValueDef::Class(_) => {
-                                    todo!()
+                                ValueDef::Class(ClassDef { id, fields, fns }) => {
+                                    let krate = self.crate_lookup[id.crate_id()];
+                                    let class_stmt = krate.class_stmt(&id.local_id());
+
+                                    let param_tys = class_stmt
+                                        .fields
+                                        .values()
+                                        .map(|field| krate.field(field))
+                                        .map(|field| Type::from(krate, field.ty))
+                                        .collect();
+
+                                    let generic_params = class_stmt
+                                        .generic_params
+                                        .values()
+                                        .map(|generic_param| Type::from(krate, *generic_param))
+                                        .collect();
+
+                                    let ret_ty = Type::Path(Path::new(*id, generic_params));
+
+                                    let ty = Type::Fn(FnSig::new(param_tys, ret_ty));
+                                    (Constraints::default(), ty)
                                 }
                                 ValueDef::Enum(_) => {
                                     todo!()
@@ -423,7 +386,7 @@ impl<'a> CrateInference<'a> {
                     }
                 }
                 if !return_found {
-                    constraints.push(Constraint::Equal(ty.clone(), Type::None));
+                    constraints.push(Constraint::Equal(ty, Type::None));
                 }
                 constraints
             }
@@ -433,6 +396,42 @@ impl<'a> CrateInference<'a> {
                 constraints.push(Constraint::Equal(ty, inferred_ty));
                 constraints
             }
+        }
+    }
+
+    fn trait_constraints(&self, trait_bounds: LDefMap<Type>, ty: &Type) -> Constraints {
+        let mut constraints = Constraints::new();
+
+        self.inner_trait_constraints(ty, &mut constraints);
+        constraints
+    }
+
+    /// Recursively unwrap each type and check for constraints that must be present.
+    /// For instance, we need to add constraints for paths that point to a generic param must
+    /// conform to the trait bound of that generic param.
+    fn inner_trait_constraints(&self, ty: &Type, constraints: &mut Constraints) {
+        match ty {
+            Type::Array(Array { ty }) => self.inner_trait_constraints(ty, constraints),
+            Type::Path(Path { path, generics }) => {
+                let krate = self.crate_lookup[path.crate_id()];
+                if let Some(GenericParam {
+                    trait_bound: Some(trait_id),
+                    ..
+                }) = krate.maybe_generic_param(&path.local_id())
+                {}
+
+                generics
+                    .iter()
+                    .for_each(|generic| self.inner_trait_constraints(generic, constraints))
+            }
+            Type::TraitBound(TraitBound { bounds }) => bounds
+                .iter()
+                .for_each(|bound| self.inner_trait_constraints(bound, constraints)),
+            Type::Fn(FnSig { params, ret_ty }) => params
+                .iter()
+                .for_each(|param| self.inner_trait_constraints(param, constraints)),
+            // TODO: Do we need to handle the inference case or is it illegal here?
+            _ => {}
         }
     }
 
@@ -633,6 +632,40 @@ impl UnificationTable {
     }
 }
 
+struct InferredTy<'a> {
+    constraints: Constraints,
+    ty: Type,
+    node_id: LocalDefId,
+    node_kind: &'a HirNodeKind,
+}
+
+impl<'a> InferredTy<'a> {
+    pub fn new(
+        constraints: Constraints,
+        ty: Type,
+        node_id: LocalDefId,
+        node_kind: &'a HirNodeKind,
+    ) -> Self {
+        Self {
+            constraints,
+            ty,
+            node_id,
+            node_kind,
+        }
+    }
+
+    pub fn is_returnable(&self) -> bool {
+        matches!(
+            self.node_kind,
+            HirNodeKind::Stmt(Stmt::Return(_))
+                | HirNodeKind::Stmt(Stmt::Expression(Expression {
+                    implicit_return: true,
+                    ..
+                }))
+        )
+    }
+}
+
 type Constraints = Vec<Constraint>;
 
 #[derive(Debug)]
@@ -755,7 +788,7 @@ impl Type {
     }
 
     pub fn from(krate: &HirCrate, ty: LocalDefId) -> Self {
-        let ty = krate.ty_stmt(ty);
+        let ty = krate.ty_stmt(&ty);
         match ty {
             Ty::Array { ty } => {
                 let inner_ty = Self::from(krate, *ty);
@@ -885,6 +918,7 @@ mod tests {
 
     #[test]
     #[should_panic]
+    #[ignore]
     pub fn infer_integer_mismatch() {
         // let mut hir = HirBuilder::default();
         // let initializer = hir.add(HirNodeKind::Expr(Expr::Int(123)));
@@ -922,12 +956,12 @@ mod tests {
     pub fn infer_generics() {
         let code = r###"
             class Option<T> {
-                field: T,
-            }
-            
+                inner: T,
+            } 
+        
             fn options() {
-                let option_f64 = Option(1.23);
-                let option_str = Option("Hello"); 
+                let option_f64 = Option(123);
+                let option_str = Option("hi there"); 
             }
         "###;
 

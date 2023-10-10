@@ -16,6 +16,26 @@ use crate::compiler::types::{InternedStr, LDefMap, StrMap};
 use crate::compiler::utils::{named_slice, named_strmap};
 use crate::traits::traits::Trait;
 
+macro_rules! def_node_getter {
+    ($fn_name:ident, $maybe_fn_name:ident, $patt:pat, $extractor:expr, $node_ty:ty) => {
+        impl HirCrate {
+            pub fn $fn_name(&self, node_id: &LocalDefId) -> $node_ty {
+                match self.nodes.get(node_id) {
+                    Some(HirNode { kind: $patt, .. }) => $extractor,
+                    _ => unreachable!(),
+                }
+            }
+            
+            pub fn $maybe_fn_name(&self, node_id: &LocalDefId) -> Option<$node_ty> {
+                match self.nodes.get(node_id) {
+                    Some(HirNode { kind: $patt, .. }) => Some($extractor),
+                    _ => None,
+                }
+            }
+        }
+    };
+}
+
 #[derive(PartialEq, Eq, Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub struct DefId {
     crate_id: u32,
@@ -856,6 +876,55 @@ pub struct HirCrate {
     pub(crate) nodes: BTreeMap<LocalDefId, HirNode>,
 }
 
+def_node_getter!(
+    let_stmt,
+    maybe_let_stmt,
+    HirNodeKind::Stmt(Stmt::Let(let_stmt)),
+    let_stmt,
+    &LetStmt
+);
+def_node_getter!(fn_stmt, maybe_fn_stmt, HirNodeKind::Fn(fn_stmt), fn_stmt, &FnStmt);
+def_node_getter!(ty_stmt, maybe_ty_stmt, HirNodeKind::Ty(ty), ty, &Ty);
+def_node_getter!(
+    global_let_stmt,
+    maybe_global_let_stmt,
+    HirNodeKind::GlobalLet(global_let_stmt),
+    global_let_stmt,
+    &GlobalLetStmt
+);
+def_node_getter!(
+    class_stmt,
+    maybe_class_stmt,
+    HirNodeKind::Class(class_stmt),
+    class_stmt,
+    &ClassStmt
+);
+def_node_getter!(
+    enum_member,
+    maybe_enum_member,
+    HirNodeKind::EnumMember(enum_member),
+    enum_member,
+    &EnumMember
+);
+
+def_node_getter!(
+    trait_bound,
+    maybe_trait_bound,
+    HirNodeKind::Ty(Ty::TraitBound { trait_bound }),
+    trait_bound,
+    &TraitBound
+);
+
+def_node_getter!(param, maybe_param, HirNodeKind::Param(param), param, &Param);
+def_node_getter!(
+    generic_param,
+    maybe_generic_param,
+    HirNodeKind::GenericParam(generic_param),
+    generic_param,
+    &GenericParam
+);
+def_node_getter!(field, maybe_field, HirNodeKind::Field(field), field, &Field);
+
 impl HirCrate {
     pub fn new(
         name: InternedStr,
@@ -877,77 +946,12 @@ impl HirCrate {
         self.nodes.get(&node).map(|node| &node.kind).unwrap()
     }
 
-    pub fn ty_stmt(&self, ty: LocalDefId) -> &Ty {
-        match self.nodes.get(&ty) {
-            Some(HirNode {
-                kind: HirNodeKind::Ty(ty),
-                ..
-            }) => ty,
-            _ => unreachable!(),
-        }
-    }
-
-    pub fn trait_bound(&self, trait_bound: LocalDefId) -> &TraitBound {
-        match self.ty_stmt(trait_bound) {
-            Ty::TraitBound { trait_bound } => trait_bound,
-            _ => unreachable!(),
-        }
-    }
-    pub fn fn_stmt(&self, fn_id: LocalDefId) -> &FnStmt {
-        match self.nodes.get(&fn_id) {
-            Some(HirNode {
-                kind: HirNodeKind::Fn(fn_stmt),
-                ..
-            }) => fn_stmt,
-            _ => unreachable!(),
-        }
-    }
-
     pub fn stmt(&self, stmt_id: LocalDefId) -> &Stmt {
         match self.nodes.get(&stmt_id) {
             Some(HirNode {
                 kind: HirNodeKind::Stmt(stmt),
                 ..
             }) => stmt,
-            _ => unreachable!(),
-        }
-    }
-
-    pub fn param(&self, param_id: LocalDefId) -> &Param {
-        match self.nodes.get(&param_id) {
-            Some(HirNode {
-                kind: HirNodeKind::Param(param),
-                ..
-            }) => param,
-            _ => unreachable!(),
-        }
-    }
-
-    pub fn generic_param(&self, generic_param: LocalDefId) -> &GenericParam {
-        match self.nodes.get(&generic_param) {
-            Some(HirNode {
-                kind: HirNodeKind::GenericParam(generic_param),
-                ..
-            }) => generic_param,
-            _ => unreachable!(),
-        }
-    }
-    pub fn global_let_stmt(&self, let_stmt: LocalDefId) -> &GlobalLetStmt {
-        match self.nodes.get(&let_stmt) {
-            Some(HirNode {
-                kind: HirNodeKind::GlobalLet(global_let_stmt),
-                ..
-            }) => global_let_stmt,
-            _ => unreachable!(),
-        }
-    }
-
-    pub fn enum_member(&self, enum_member: LocalDefId) -> &EnumMember {
-        match self.nodes.get(&enum_member) {
-            Some(HirNode {
-                kind: HirNodeKind::EnumMember(enum_member),
-                ..
-            }) => enum_member,
             _ => unreachable!(),
         }
     }
