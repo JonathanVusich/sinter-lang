@@ -210,6 +210,8 @@ impl Compiler {
         self.validate_crates(&crates)?;
         let resolved_crates = self.resolve_crates(&mut crates)?;
 
+        // TODO: Add validation step to check for function parameter matching.
+
         self.infer_types(&resolved_crates)?;
         // TODO: Lower the AST to MIR with the provided metadata.
 

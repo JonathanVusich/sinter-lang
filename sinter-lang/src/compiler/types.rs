@@ -37,6 +37,7 @@ impl InternedStr {
     }
 }
 
+
 #[repr(transparent)]
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct InternedTy {

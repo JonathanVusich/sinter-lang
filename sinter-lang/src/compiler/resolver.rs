@@ -387,48 +387,37 @@ type ResolveResult = Result<(), ResolveError>;
 struct Resolver<'a> {
     ctxt: &'a CompilerCtxt,
     krates: &'a mut StrMap<Crate>,
-    errors: Vec<ResolveError>,
 }
 
 impl<'a> Resolver<'a> {
     fn new(ctxt: &'a CompilerCtxt, krates: &'a mut StrMap<Crate>) -> Self {
-        Self {
-            ctxt,
-            krates,
-            errors: Default::default(),
-        }
+        Self { ctxt, krates }
     }
 
     fn resolve(mut self) -> Result<StrMap<HirCrate>, CompileError> {
         let mut crates = StrMap::default();
         // We are building lookup maps for each module so that we can query the types and constants in that module
         // when resolving use stmts later.
-        self.build_crate_ns();
-        if !self.errors.is_empty() {
-            return Err(CompileError::ResolveErrors(
-                self.errors.into_iter().map(ResolveError::from).collect(),
-            ));
-        }
+        self.build_crate_ns()?;
 
+        let mut errors = Vec::new();
         for krate in self.krates.values() {
             let crate_resolver = CrateResolver::new(self.ctxt, krate, self.krates);
             match crate_resolver.resolve() {
                 Ok(crate_index) => {
                     crates.insert(krate.name, crate_index);
                 }
-                Err(errors) => self.errors.extend(errors),
+                Err(crate_errors) => errors.extend(crate_errors),
             }
         }
 
-        if !self.errors.is_empty() {
-            return Err(CompileError::ResolveErrors(
-                self.errors.into_iter().map(ResolveError::from).collect(),
-            ));
+        if !errors.is_empty() {
+            return Err(CompileError::ResolveErrors(errors));
         }
         Ok(crates)
     }
 
-    fn build_crate_ns(&mut self) {
+    fn build_crate_ns(&mut self) -> Result<(), CompileError> {
         // Generate the initial module ns
         for krate in self.krates.values_mut() {
             let krate_id = krate.crate_id;
@@ -441,6 +430,7 @@ impl<'a> Resolver<'a> {
         // Second pass we need to process all use stmts since we now have all of the values
         // populated for each module.
         let mut module_crate_defs = HashMap::<ModuleId, Vec<CrateDef>>::default();
+        let mut errors = Vec::<ResolveErrKind>::new();
         for krate in self.krates.values() {
             for module in krate.modules() {
                 for item in module.items.iter() {
@@ -458,9 +448,7 @@ impl<'a> Resolver<'a> {
                                 .entry(module.id)
                                 .or_default()
                                 .push(crate_def),
-                            None => self
-                                .errors
-                                .push(QualifiedIdentNotFound(use_stmt.path.clone()).into()),
+                            None => errors.push(QualifiedIdentNotFound(use_stmt.path.clone())),
                         }
                     }
                 }
@@ -500,6 +488,13 @@ impl<'a> Resolver<'a> {
                 module.ns = ns;
             }
         }
+
+        if !errors.is_empty() {
+            return Err(CompileError::ResolveErrors(
+                errors.into_iter().map(ResolveError::from).collect(),
+            ));
+        }
+        Ok(())
     }
 }
 
@@ -1244,24 +1239,6 @@ impl<'a> CrateResolver<'a> {
             AstExprKind::Path(path) => {
                 // These paths are richer and we have to preserve generic info for type inference
                 let path = self.resolve_path(path)?;
-                fn Vec<T>() -> () {}
-                let val = Vec::<u32>();
-
-                let interner = crate::compiler::StringInterner::new();
-                pub mod hello {
-                    use std::marker::PhantomData;
-
-                    pub struct Hello<U> {
-                        marker: PhantomData<U>,
-                    }
-                    impl<U> Hello<U> {
-                        pub fn write<T>(val: U) -> U {
-                            val
-                        }
-                    }
-                }
-                let val = hello::Hello::<u64>::write::<Vec<u64>>(123);
-                // TODO: Need to actually resolve this path!!
                 Expr::Path(path)
             }
             AstExprKind::Parentheses(parentheses) => {
@@ -1282,7 +1259,9 @@ impl<'a> CrateResolver<'a> {
         let module_ns = &self.module.unwrap().ns;
         let mut segments = Vec::with_capacity(path_expr.segments.len());
         match path_expr.ident_type {
-            IdentType::Crate => {}
+            IdentType::Crate => {
+                // TODO: Implement crate local path resolution
+            }
             IdentType::LocalOrUse => {
                 if let Some(segment) = path_expr.is_single() {
                     let candidate = self.find_primary_segment(segment)?;

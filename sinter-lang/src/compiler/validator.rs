@@ -26,7 +26,7 @@ pub enum ValidationErrKind {
     DuplicateParam(InternedStr, Vec<LocalDefId>),
     DuplicateField(InternedStr, Vec<LocalDefId>),
     DuplicateEnumMember(InternedStr, Vec<LocalDefId>),
-    TooManyFns,
+    NoTypeProvided(LocalDefId),
 }
 
 impl Display for ValidationErrKind {
@@ -122,6 +122,28 @@ impl Validator {
         }
 
         self.errors.into_iter().map(ValidationError::from).collect()
+    }
+    
+    fn validate_block(&mut self, block: &Block) {
+        for stmt in &block.stmts {
+            self.validate_stmt(stmt);
+        }
+    }
+    
+    fn validate_stmt(&mut self, stmt: &Stmt) {
+        match &stmt.kind {
+            StmtKind::Let(let_stmt) => {
+                if let_stmt.ty.is_none() && let_stmt.initializer.is_none() {
+                    self.errors.push(ValidationErrKind::NoTypeProvided(stmt.id));
+                }
+            }
+            StmtKind::For(_) => {}
+            StmtKind::If(_) => {}
+            StmtKind::Return(_) => {}
+            StmtKind::While(_) => {}
+            StmtKind::Block(block) => self.validate_block(block),
+            StmtKind::Expression(_) => {}
+        }
     }
 
     fn validate_generic_params(&mut self, generic_params: &GenericParams) {

@@ -25,7 +25,7 @@ macro_rules! def_node_getter {
                     _ => unreachable!(),
                 }
             }
-            
+
             pub fn $maybe_fn_name(&self, node_id: &LocalDefId) -> Option<$node_ty> {
                 match self.nodes.get(node_id) {
                     Some(HirNode { kind: $patt, .. }) => Some($extractor),
@@ -36,7 +36,7 @@ macro_rules! def_node_getter {
     };
 }
 
-#[derive(PartialEq, Eq, Debug, Default, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Hash, Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub struct DefId {
     crate_id: u32,
     local_id: u32,
@@ -883,7 +883,13 @@ def_node_getter!(
     let_stmt,
     &LetStmt
 );
-def_node_getter!(fn_stmt, maybe_fn_stmt, HirNodeKind::Fn(fn_stmt), fn_stmt, &FnStmt);
+def_node_getter!(
+    fn_stmt,
+    maybe_fn_stmt,
+    HirNodeKind::Fn(fn_stmt),
+    fn_stmt,
+    &FnStmt
+);
 def_node_getter!(ty_stmt, maybe_ty_stmt, HirNodeKind::Ty(ty), ty, &Ty);
 def_node_getter!(
     global_let_stmt,

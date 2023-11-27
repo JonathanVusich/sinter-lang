@@ -19,7 +19,6 @@ pub mod parser;
 pub mod path;
 pub mod resolver;
 pub mod tokens;
-pub mod ty_checker;
 pub mod ty_infer;
 pub mod types;
 mod utils;
