@@ -23,6 +23,5 @@ pub mod ty_infer;
 pub mod types;
 mod utils;
 pub mod validator;
-
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;

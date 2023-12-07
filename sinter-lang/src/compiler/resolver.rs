@@ -32,10 +32,10 @@ use crate::compiler::hir::{
     AnonParams, Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
     ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember, EnumMembers, EnumStmt,
     Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam,
-    GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr,
-    InfixExpr, LetStmt, LocalDef, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param,
-    Params, PathExpr, PathTy, Pattern, PatternLocal, Primitive, Res, ReturnStmt, Segment, Stmt,
-    TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
+    GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap, HirNode, HirNodeKind, IfStmt,
+    IndexExpr, InfixExpr, LetStmt, LocalDef, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern,
+    Param, Params, PathExpr, PathTy, Pattern, PatternLocal, Primitive, Res, ReturnStmt, Segment,
+    Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use crate::compiler::krate::{Crate, CrateDef, CrateId};
 use crate::compiler::path::ModulePath;
@@ -46,10 +46,7 @@ use crate::compiler::resolver::ResolveErrKind::{
 use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::{IStrMap, InternedStr, LDefMap, StrMap};
 
-pub fn resolve(
-    ctxt: &CompilerCtxt,
-    crates: &mut StrMap<Crate>,
-) -> Result<StrMap<HirCrate>, CompileError> {
+pub fn resolve(ctxt: &CompilerCtxt, crates: &mut StrMap<Crate>) -> Result<HirMap, CompileError> {
     let resolver = Resolver::new(ctxt, crates);
     resolver.resolve()
 }
@@ -394,8 +391,8 @@ impl<'a> Resolver<'a> {
         Self { ctxt, krates }
     }
 
-    fn resolve(mut self) -> Result<StrMap<HirCrate>, CompileError> {
-        let mut crates = StrMap::default();
+    fn resolve(mut self) -> Result<HirMap, CompileError> {
+        let mut hir_map = HirMap::default();
         // We are building lookup maps for each module so that we can query the types and constants in that module
         // when resolving use stmts later.
         self.build_crate_ns()?;
@@ -404,8 +401,8 @@ impl<'a> Resolver<'a> {
         for krate in self.krates.values() {
             let crate_resolver = CrateResolver::new(self.ctxt, krate, self.krates);
             match crate_resolver.resolve() {
-                Ok(crate_index) => {
-                    crates.insert(krate.name, crate_index);
+                Ok(hir_crate) => {
+                    hir_map.insert(hir_crate);
                 }
                 Err(crate_errors) => errors.extend(crate_errors),
             }
@@ -414,7 +411,7 @@ impl<'a> Resolver<'a> {
         if !errors.is_empty() {
             return Err(CompileError::ResolveErrors(errors));
         }
-        Ok(crates)
+        Ok(hir_map)
     }
 
     fn build_crate_ns(&mut self) -> Result<(), CompileError> {
@@ -1819,13 +1816,13 @@ mod tests {
     use snap::snapshot;
 
     use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
-    use crate::compiler::hir::HirCrate;
+    use crate::compiler::hir::{HirCrate, HirMap};
     use crate::compiler::types::StrMap;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
-    type ResolvedCrates = (StringInterner, StrMap<HirCrate>);
+    type ResolvedCrates = (StringInterner, HirMap);
 
     #[cfg(test)]
     fn resolve_crate(name: &str) -> ResolvedCrates {
@@ -1842,7 +1839,7 @@ mod tests {
         let resolved_crates = compiler.resolve_crates(&mut crates);
         let string_interner = StringInterner::from(CompilerCtxt::from(compiler));
         match resolved_crates {
-            Ok(crates) => (string_interner, crates),
+            Ok(hir_map) => (string_interner, hir_map),
             Err(error) => {
                 eprintln!("{:#?}", error);
                 panic!();

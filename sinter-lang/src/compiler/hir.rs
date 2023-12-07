@@ -12,7 +12,7 @@ use crate::compiler::parser::ClassType;
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{FnDef, MaybeFnDef, ValueDef};
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::{InternedStr, LDefMap, StrMap};
+use crate::compiler::types::{InternedStr, LDefMap, StrMap, StrSet};
 use crate::compiler::utils::{named_slice, named_strmap};
 use crate::traits::traits::Trait;
 
@@ -43,10 +43,6 @@ pub struct DefId {
 }
 
 impl DefId {
-    pub fn crate_id(&self) -> usize {
-        self.crate_id as usize
-    }
-
     pub fn local_id(&self) -> LocalDefId {
         LocalDefId::new(self.local_id)
     }
@@ -862,6 +858,39 @@ pub struct GenericParam {
 impl GenericParam {
     pub fn new(ident: Ident, trait_bound: Option<LocalDefId>) -> Self {
         Self { ident, trait_bound }
+    }
+}
+
+#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
+pub struct HirMap {
+    crates: Vec<HirCrate>,
+    names_to_indices: StrSet,
+}
+
+impl HirMap {
+    pub fn insert(&mut self, krate: HirCrate) {
+        self.names_to_indices.insert(krate.name);
+        self.crates.push(krate);
+    }
+
+    pub fn krate_by_name(&self, name: &InternedStr) -> &HirCrate {
+        let index = self.names_to_indices.get_index_of(name).unwrap();
+        &self.crates[index]
+    }
+    pub fn krate(&self, def_id: &DefId) -> &HirCrate {
+        &self.crates[def_id.crate_id as usize]
+    }
+    pub fn krates(&self) -> impl Iterator<Item = &HirCrate> {
+        self.crates.iter()
+    }
+
+    pub fn into_krates(self) -> impl Iterator<Item = HirCrate> + Debug {
+        self.crates.into_iter()
+    }
+
+    pub fn node(&self, def_id: &DefId) -> &HirNodeKind {
+        let krate = &self.crates[def_id.crate_id as usize];
+        krate.node(def_id.local_id())
     }
 }
 

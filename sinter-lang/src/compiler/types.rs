@@ -1,7 +1,7 @@
 use crate::compiler::ast::{PathTy, QualifiedIdent, TraitBound, Ty};
 use crate::compiler::hir::{DefId, LocalDefId};
 use crate::compiler::interner::Key;
-use indexmap::IndexMap;
+use indexmap::{IndexMap, IndexSet};
 use lasso::Spur;
 use multimap::MultiMap;
 use radix_trie::TrieKey;
@@ -55,6 +55,8 @@ impl InternedTy {
         Self { ty }
     }
 }
+
+pub(crate) type StrSet = IndexSet<InternedStr>;
 
 pub(crate) type StrMap<T> = IndexMap<InternedStr, T>;
 pub(crate) type IStrMap<T> = Arc<StrMap<T>>;

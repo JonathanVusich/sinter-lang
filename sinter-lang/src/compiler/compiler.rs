@@ -14,7 +14,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
 use crate::compiler::ast::{AstPass, Module};
-use crate::compiler::hir::{HirCrate, LocalDefId};
+use crate::compiler::hir::{HirCrate, HirMap, LocalDefId};
 use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseErrKind};
 use crate::compiler::path::ModulePath;
@@ -356,18 +356,20 @@ impl Compiler {
     pub(crate) fn resolve_crates(
         &mut self,
         crates: &mut StrMap<Crate>,
-    ) -> Result<StrMap<HirCrate>, CompileError> {
+    ) -> Result<HirMap, CompileError> {
         resolve(&self.compiler_ctxt, crates)
     }
 
     pub(crate) fn infer_types(
         &mut self,
-        crates: &StrMap<HirCrate>,
+        hir_map: &HirMap,
     ) -> Result<StrMap<LDefMap<Type>>, CompileError> {
         let mut ty_map = StrMap::default();
-        let crate_lookup = crates.values().sorted_by_key(|krate| krate.id).collect();
-        for (key, krate) in crates {
-            ty_map.insert(*key, CrateInference::new(krate, &crate_lookup).infer_tys()?);
+        for krate in hir_map.krates() {
+            ty_map.insert(
+                krate.name,
+                CrateInference::new(&krate, hir_map).infer_tys()?,
+            );
         }
         Ok(ty_map)
     }
