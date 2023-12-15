@@ -1564,7 +1564,7 @@ impl<'a> CrateResolver<'a> {
         trait_bound: &AstTraitBound,
         span: Span,
         id: LocalDefId,
-    ) -> Result<LocalDefId, ResolveError> {
+    ) -> Result<DefId, ResolveError> {
         let mut hir_bound = Vec::with_capacity(trait_bound.len());
         for ty in trait_bound.iter() {
             let resolved_ty = self.resolve_path_ty(ty)?;
@@ -1582,7 +1582,7 @@ impl<'a> CrateResolver<'a> {
             ),
         )?;
 
-        Ok(id)
+        Ok(id.to_def_id(self.krate.crate_id))
     }
 
     fn resolve_stmt(&mut self, stmt: &AstStmt) -> Result<LocalDefId, ResolveError> {

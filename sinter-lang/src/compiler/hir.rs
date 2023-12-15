@@ -852,11 +852,11 @@ impl ClosureParam {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericParam {
     pub(crate) ident: Ident,
-    pub(crate) trait_bound: Option<LocalDefId>,
+    pub(crate) trait_bound: Option<DefId>,
 }
 
 impl GenericParam {
-    pub fn new(ident: Ident, trait_bound: Option<LocalDefId>) -> Self {
+    pub fn new(ident: Ident, trait_bound: Option<DefId>) -> Self {
         Self { ident, trait_bound }
     }
 }
