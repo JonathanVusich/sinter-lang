@@ -29,13 +29,14 @@ use crate::compiler::ast::{
 };
 use crate::compiler::compiler::{CompileError, CompilerCtxt, ResolveError};
 use crate::compiler::hir::{
-    AnonParams, Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember, EnumMembers, EnumStmt,
-    Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam,
-    GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap, HirNode, HirNodeKind, IfStmt,
-    IndexExpr, InfixExpr, LetStmt, LocalDef, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern,
-    Param, Params, PathExpr, PathTy, Pattern, PatternLocal, Primitive, Res, ReturnStmt, Segment,
-    Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
+    AnonParams, Args, Array, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure,
+    ClosureExpr, ClosureParam, ClosureParams, DefId, DestructureExpr, DestructurePattern,
+    EnumMember, EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt,
+    FnStmts, ForStmt, GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap,
+    HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, LocalDefId, MatchArm,
+    MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern, PatternLocal,
+    Primitive, Res, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern,
+    UnaryExpr, WhileStmt,
 };
 use crate::compiler::krate::{Crate, CrateDef, CrateId};
 use crate::compiler::path::ModulePath;
@@ -1487,12 +1488,8 @@ impl<'a> CrateResolver<'a> {
         let span = ty.span;
         let id = ty.id;
         let hir_ty = match &ty.kind {
-            TyKind::Array { ty } => Ty::Array {
-                ty: self.resolve_ty(ty)?,
-            },
-            TyKind::Path { path } => Ty::Path {
-                path: self.resolve_path_ty(path)?,
-            },
+            TyKind::Array { ty } => Ty::Array(Array::new(self.resolve_ty(ty)?)),
+            TyKind::Path { path } => Ty::Path(self.resolve_path_ty(path)?),
             TyKind::TraitBound { trait_bound } => {
                 let mut paths = Vec::with_capacity(trait_bound.len());
                 for path in trait_bound.iter() {
@@ -1500,9 +1497,7 @@ impl<'a> CrateResolver<'a> {
                     let generics = self.resolve_generics(&path.generics)?;
                     paths.push(PathTy::new(def, generics));
                 }
-                Ty::TraitBound {
-                    trait_bound: TraitBound::from(paths),
-                }
+                Ty::TraitBound(TraitBound::from(paths))
             }
             TyKind::Closure { params, ret_ty } => {
                 let params = params
@@ -1510,10 +1505,7 @@ impl<'a> CrateResolver<'a> {
                     .map(|param| self.resolve_ty(param))
                     .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
                 let ret_ty = self.resolve_ty(ret_ty)?;
-                Ty::Closure {
-                    params: AnonParams::from(params),
-                    ret_ty,
-                }
+                Ty::Closure(Closure::new(AnonParams::from(params), ret_ty))
             }
             TyKind::QSelf => {
                 let item_def = self
@@ -1530,9 +1522,7 @@ impl<'a> CrateResolver<'a> {
                     .copied()
                     .unwrap();
 
-                Ty::Path {
-                    path: PathTy::new(item_def, Generics::empty()),
-                }
+                Ty::Path(PathTy::new(item_def, Generics::empty()))
             }
             TyKind::U8 => Ty::Primitive(Primitive::U8),
             TyKind::U16 => Ty::Primitive(Primitive::U16),
@@ -1573,13 +1563,7 @@ impl<'a> CrateResolver<'a> {
 
         self.insert_node(
             id,
-            HirNode::new(
-                HirNodeKind::Ty(Ty::TraitBound {
-                    trait_bound: hir_bound.into(),
-                }),
-                span,
-                id,
-            ),
+            HirNode::new(HirNodeKind::Ty(Ty::TraitBound(hir_bound.into())), span, id),
         )?;
 
         Ok(id.to_def_id(self.krate.crate_id))

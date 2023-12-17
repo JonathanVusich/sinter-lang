@@ -374,19 +374,11 @@ pub enum Primitive {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 //noinspection DuplicatedCode
 pub enum Ty {
-    Array {
-        ty: LocalDefId,
-    },
-    Path {
-        path: PathTy,
-    },
-    TraitBound {
-        trait_bound: TraitBound,
-    },
-    Closure {
-        params: AnonParams,
-        ret_ty: LocalDefId,
-    },
+    Array(Array),
+    Path(PathTy),
+    GenericParam(GenericParam),
+    TraitBound(TraitBound),
+    Closure(Closure),
     Primitive(Primitive),
 }
 
@@ -641,6 +633,29 @@ impl DestructurePattern {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub struct Array {
+    pub(crate) ty: LocalDefId,
+}
+
+impl Array {
+    pub fn new(ty: LocalDefId) -> Self {
+        Self { ty }
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub struct Closure {
+    pub(crate) params: AnonParams,
+    pub(crate) ret_ty: LocalDefId,
+}
+
+impl Closure {
+    pub fn new(params: AnonParams, ret_ty: LocalDefId) -> Self {
+        Self { params, ret_ty }
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct ClosureExpr {
     pub params: ClosureParams,
     pub stmt: LocalDefId,
@@ -890,7 +905,7 @@ impl HirMap {
 
     pub fn node(&self, def_id: &DefId) -> &HirNodeKind {
         let krate = &self.crates[def_id.crate_id as usize];
-        krate.node(def_id.local_id())
+        krate.node(&def_id.local_id())
     }
 }
 
@@ -945,7 +960,7 @@ def_node_getter!(
 def_node_getter!(
     trait_bound,
     maybe_trait_bound,
-    HirNodeKind::Ty(Ty::TraitBound { trait_bound }),
+    HirNodeKind::Ty(Ty::TraitBound(trait_bound)),
     trait_bound,
     &TraitBound
 );
@@ -977,8 +992,8 @@ impl HirCrate {
         }
     }
 
-    pub fn node(&self, node: LocalDefId) -> &HirNodeKind {
-        self.nodes.get(&node).map(|node| &node.kind).unwrap()
+    pub fn node(&self, node: &LocalDefId) -> &HirNodeKind {
+        self.nodes.get(node).map(|node| &node.kind).unwrap()
     }
 
     pub fn stmt(&self, stmt_id: LocalDefId) -> &Stmt {
