@@ -805,7 +805,7 @@ impl<'a> CrateResolver<'a> {
             self.insert_node(
                 param.id,
                 HirNode::new(
-                    HirNodeKind::GenericParam(GenericParam::new(param.name, trait_bound)),
+                    HirNodeKind::Ty(Ty::GenericParam(GenericParam::new(param.name, trait_bound))),
                     param.span,
                     param.id,
                 ),

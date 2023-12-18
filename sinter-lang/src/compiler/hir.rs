@@ -150,7 +150,6 @@ pub enum HirNodeKind {
     Block(Block),
 
     Param(Param),
-    GenericParam(GenericParam),
     Field(Field),
     Pattern(Pattern),
     MatchArm(MatchArm),
@@ -966,13 +965,6 @@ def_node_getter!(
 );
 
 def_node_getter!(param, maybe_param, HirNodeKind::Param(param), param, &Param);
-def_node_getter!(
-    generic_param,
-    maybe_generic_param,
-    HirNodeKind::GenericParam(generic_param),
-    generic_param,
-    &GenericParam
-);
 def_node_getter!(field, maybe_field, HirNodeKind::Field(field), field, &Field);
 
 impl HirCrate {

@@ -14,7 +14,6 @@ use crate::compiler::hir::{
 };
 use crate::compiler::resolver::{ClassDef, FnDef, GlobalVarDef, ValueDef};
 use crate::compiler::types::{DefMap, LDefMap};
-use crate::traits::traits::Trait;
 
 #[derive(Debug)]
 pub enum TypeErrKind {
@@ -434,7 +433,7 @@ impl<'a> CrateInference<'a> {
             (HirNodeKind::Expr(Expr::True), Type::Boolean) => Op::None,
             (HirNodeKind::Expr(Expr::False), Type::Boolean) => Op::None,
             // TODO: Cover other explicit cases
-            (node, ty) => Op::Infer(node_id.clone(), ty.clone()), // Why do we have to clone here?
+            (node, ty) => Op::Infer(*node_id, ty.clone()), // Why do we have to clone here?
         };
 
         match op {
@@ -457,7 +456,13 @@ impl<'a> CrateInference<'a> {
         for constr in constraints {
             match constr {
                 Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs)?,
-                Constraint::Assignable(lhs, rhs) => self.unify_ty_ty(lhs, rhs)?,
+                Constraint::Assignable(lhs, rhs) => {
+                    if lhs.is_assignable(&rhs) {
+                        self.unify_ty_ty(lhs, rhs)?;
+                    } else {
+                        return Err(TypeErrKind::NotAssignable(lhs, rhs));
+                    }
+                }
                 Constraint::Array(ty) => self.unify_ty_array(ty)?,
                 Constraint::Infix(lhs, rhs, op) => self.unify_infix_op(lhs, rhs, op)?,
                 Constraint::Unary(ty, unary_op) => self.unify_unary_op(ty, unary_op)?,
@@ -480,7 +485,7 @@ impl<'a> CrateInference<'a> {
                             let arg = args[x].clone();
                             let param = fn_sig.params[x].clone();
 
-                            if self.is_assignable(&param, &arg) {
+                            if param.is_assignable(&arg) {
                                 self.unify_ty_ty(param, arg)?;
                             } else {
                                 // TODO: Improve error messages for invalid fn args
@@ -495,63 +500,6 @@ impl<'a> CrateInference<'a> {
             }
         }
         Ok(())
-    }
-
-    fn is_assignable(&mut self, lhs: &Type, rhs: &Type) -> bool {
-        match lhs {
-            Type::Array(lhs) => {
-                if let Type::Array(rhs) = rhs {
-                    return self.is_assignable(&lhs.ty, &rhs.ty);
-                }
-                false
-            }
-            Type::Path(path) => {
-                let node = self.hir_map.node(&path.path);
-                match node {
-                    // TODO: Implement param + arg checks
-                    HirNodeKind::Ty(_) => {
-                        todo!()
-                    }
-                    HirNodeKind::Param(_) => {
-                        todo!()
-                    }
-                    HirNodeKind::GenericParam(generic_param) => {
-                        if let Some(trait_bound) = generic_param.trait_bound {
-                            let trait_bound = self.existing_ty(trait_bound);
-                            return self.is_assignable(&trait_bound, rhs);
-                        }
-                        true
-                    }
-                    _ => unreachable!(),
-                }
-            }
-            Type::TraitBound(trait_bound) => {
-                return trait_bound
-                    .bounds
-                    .iter()
-                    .all(|bound| self.is_assignable(bound, rhs));
-            }
-            Type::GenericParam(_) => {
-                todo!()
-            }
-            Type::Fn(_) => {
-                todo!()
-            }
-            Type::U8 => rhs.uint_width() <= 1,
-            Type::U16 => rhs.uint_width() <= 2,
-            Type::U32 => rhs.uint_width() <= 3,
-            Type::U64 => rhs.uint_width() <= 4,
-            Type::I8 => rhs.int_width() <= 1,
-            Type::I16 => rhs.int_width() <= 2,
-            Type::I32 => rhs.int_width() <= 3,
-            Type::I64 => rhs.int_width() <= 4,
-            Type::F32 => rhs.floating_width() <= 1,
-            Type::F64 => rhs.floating_width() <= 2,
-            Type::Str => rhs == &Type::Str,
-            Type::Boolean => rhs == &Type::Boolean,
-            Type::None => rhs == &Type::None,
-            Type::Infer(_) => false,
-        }
     }
 
     fn unify_unary_op(&mut self, ty: Type, unary_op: UnaryOp) -> Result<(), TypeErrKind> {
@@ -635,7 +583,7 @@ impl<'a> CrateInference<'a> {
 
     fn substitute(&mut self, node_id: &LocalDefId, ty: Type) {
         let ty = self.probe_ty(ty);
-        self.ty_map.insert(node_id.clone(), ty);
+        self.ty_map.insert(*node_id, ty);
     }
 
     fn probe_ty(&mut self, ty: Type) -> Type {
@@ -667,6 +615,9 @@ impl<'a> CrateInference<'a> {
                 Type::Fn(FnSig::new(params, ret_ty))
             }
             Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
+            Type::GenericParam(generic_param) => {
+                self.unify_table.probe(generic_param.ty_var).unwrap()
+            }
             ty => ty,
         }
     }
@@ -900,8 +851,8 @@ impl Path {
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct GenericParam {
-    ty_var: TyVar,
-    trait_bound: Option<TraitBound>,
+    pub(crate) ty_var: TyVar,
+    pub(crate) trait_bound: Option<TraitBound>,
 }
 
 impl GenericParam {
@@ -967,6 +918,56 @@ pub enum Type {
 }
 
 impl Type {
+    fn is_assignable(&self, rhs: &Type) -> bool {
+        match self {
+            Type::Array(lhs) => {
+                if let Type::Array(rhs) = rhs {
+                    return lhs.ty.is_assignable(&rhs.ty);
+                }
+                false
+            }
+            Type::Path(lhs_path) => {
+                // TODO: Handle assignability?
+                match rhs {
+                    Type::Path(rhs_path) => lhs_path == rhs_path,
+                    _ => false,
+                }
+            }
+            Type::TraitBound(trait_bound) => {
+                return trait_bound
+                    .bounds
+                    .iter()
+                    .all(|bound| bound.is_assignable(rhs));
+            }
+            Type::GenericParam(param) => {
+                if let Some(trait_bound) = &param.trait_bound {
+                    return trait_bound
+                        .bounds
+                        .iter()
+                        .all(|bound| bound.is_assignable(rhs));
+                }
+                true
+            }
+            Type::Fn(lhs_sig) => match rhs {
+                Type::Fn(rhs_sig) => lhs_sig == rhs_sig,
+                _ => false,
+            },
+            Type::U8 => rhs.uint_width() <= 1,
+            Type::U16 => rhs.uint_width() <= 2,
+            Type::U32 => rhs.uint_width() <= 3,
+            Type::U64 => rhs.uint_width() <= 4,
+            Type::I8 => rhs.int_width() <= 1,
+            Type::I16 => rhs.int_width() <= 2,
+            Type::I32 => rhs.int_width() <= 3,
+            Type::I64 => rhs.int_width() <= 4,
+            Type::F32 => rhs.floating_width() <= 1,
+            Type::F64 => rhs.floating_width() <= 2,
+            Type::Str => rhs == &Type::Str,
+            Type::Boolean => rhs == &Type::Boolean,
+            Type::None => rhs == &Type::None,
+            Type::Infer(_) => false,
+        }
+    }
     fn uint_width(&self) -> usize {
         match self {
             Type::U8 => 1,
