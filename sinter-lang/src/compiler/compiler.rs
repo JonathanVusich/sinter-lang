@@ -20,7 +20,7 @@ use crate::compiler::parser::{parse, ParseErrKind};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{resolve, ResolveErrKind};
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
-use crate::compiler::ty_infer::{CrateInference, Type, TypeErrKind};
+use crate::compiler::type_inference::ty_infer::{CrateInference, Type, TypeErrKind};
 use crate::compiler::types::{DefMap, InternedStr, LDefMap, StrMap};
 use crate::compiler::validator::{validate, ValidationErrKind};
 use crate::compiler::StringInterner;
@@ -366,10 +366,7 @@ impl Compiler {
     ) -> Result<StrMap<LDefMap<Type>>, CompileError> {
         let mut ty_map = StrMap::default();
         for krate in hir_map.krates() {
-            ty_map.insert(
-                krate.name,
-                CrateInference::new(&krate, hir_map).infer_tys()?,
-            );
+            ty_map.insert(krate.name, CrateInference::new(krate, hir_map).infer_tys()?);
         }
         Ok(ty_map)
     }

@@ -19,9 +19,10 @@ pub mod parser;
 pub mod path;
 pub mod resolver;
 pub mod tokens;
-pub mod ty_infer;
 pub mod types;
 mod utils;
 pub mod validator;
+mod type_inference;
+
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;

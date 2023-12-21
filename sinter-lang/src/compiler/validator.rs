@@ -123,13 +123,13 @@ impl Validator {
 
         self.errors.into_iter().map(ValidationError::from).collect()
     }
-    
+
     fn validate_block(&mut self, block: &Block) {
         for stmt in &block.stmts {
             self.validate_stmt(stmt);
         }
     }
-    
+
     fn validate_stmt(&mut self, stmt: &Stmt) {
         match &stmt.kind {
             StmtKind::Let(let_stmt) => {
