@@ -835,9 +835,9 @@ impl ForStmt {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct IfStmt {
-    condition: LocalDefId,
-    if_true: LocalDefId,
-    if_false: Option<LocalDefId>,
+    pub condition: LocalDefId,
+    pub if_true: LocalDefId,
+    pub if_false: Option<LocalDefId>,
 }
 
 impl IfStmt {

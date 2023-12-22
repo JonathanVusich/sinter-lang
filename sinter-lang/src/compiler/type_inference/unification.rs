@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::compiler::type_inference::ty_infer::{Type, TypeErrKind};
+use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug)]
 pub(crate) struct UnificationTable {
@@ -73,7 +73,7 @@ impl UnificationTable {
         root
     }
 
-    pub(crate) fn entry(&mut self, key: TyVar) -> &mut Entry {
+    fn entry(&mut self, key: TyVar) -> &mut Entry {
         &mut self.table[key.id as usize]
     }
 

@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 use crate::compiler::ast::{InfixOp, UnaryOp};
 use crate::compiler::compiler::{CompileError, TypeError};
 use crate::compiler::hir::{
-    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, LocalDefId, Primitive, Res,
-    Stmt, TraitBound as HirTraitBound, Ty,
+    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, LocalDefId, Pattern, Primitive,
+    Res, Stmt, TraitBound as HirTraitBound, Ty,
 };
 use crate::compiler::resolver::{ClassDef, FnDef, GlobalVarDef, ValueDef};
 use crate::compiler::type_inference::unification::{TyVar, UnificationTable};
@@ -56,23 +56,23 @@ impl<'a> TypeInference<'a> {
 }
 
 #[derive(Debug)]
-struct TypeMap {
-    tys: Box<[Type]>,
+pub struct TypeMap {
+    tys: Box<[Option<Type>]>,
 }
 
 impl TypeMap {
     fn new(allocated_size: usize) -> Self {
         Self {
-            tys: Vec::with_capacity(allocated_size).into_boxed_slice(),
+            tys: vec![None; allocated_size].into_boxed_slice(),
         }
     }
 
     fn insert(&mut self, node: &LocalDefId, ty: Type) {
-        self.tys[usize::from(*node)] = ty;
+        self.tys[usize::from(*node)] = Some(ty);
     }
 
     fn get(&self, node: &LocalDefId) -> &Type {
-        &self.tys[usize::from(*node)]
+        self.tys[usize::from(*node)].as_ref().unwrap()
     }
 }
 
@@ -408,7 +408,7 @@ impl<'a> CrateInference<'a> {
                 constraints
             }
         };
-        self.ty_map.insert(node_id, ty.clone());
+        self.ty_map.insert(node_id, ty);
         constraints
     }
 
@@ -486,8 +486,6 @@ impl<'a> CrateInference<'a> {
     }
 
     fn unify_ty_ty(&mut self, lhs: Type, rhs: Type) -> Result<(), TypeErrKind> {
-        dbg!(&lhs);
-        dbg!(&rhs);
         let lhs = self.normalize_ty(lhs);
         let rhs = self.normalize_ty(rhs);
 
@@ -584,49 +582,122 @@ impl<'a> CrateInference<'a> {
             HirNodeKind::Expr(expr) => {
                 // TODO: Finish implementing this tree walk.
                 match expr {
-                    Expr::Array(_) => {}
-                    Expr::Call(_) => {}
-                    Expr::Infix(_) => {}
-                    Expr::Unary(_) => {}
-                    Expr::None => {}
-                    Expr::True => {}
-                    Expr::False => {}
-                    Expr::Int(_) => {}
-                    Expr::UInt(_) => {}
-                    Expr::Float(_) => {}
-                    Expr::String(_) => {}
-                    Expr::Match(_) => {}
-                    Expr::Closure(_) => {}
-                    Expr::Assign(_) => {}
-                    Expr::Field(_) => {}
-                    Expr::Index(_) => {}
-                    Expr::Path(_) => {}
-                    Expr::Break => {}
-                    Expr::Continue => {}
+                    Expr::Array(ArrayExpr::Sized { initializer, size }) => {
+                        self.substitute(initializer);
+                        self.substitute(size);
+                    }
+                    Expr::Array(ArrayExpr::Unsized { initializers }) => {
+                        initializers
+                            .iter()
+                            .for_each(|initializer| self.substitute(initializer));
+                    }
+                    Expr::Call(call) => {
+                        self.substitute(&call.target);
+                        call.args.iter().for_each(|arg| self.substitute(arg));
+                    }
+                    Expr::Infix(infix) => {
+                        self.substitute(&infix.lhs);
+                        self.substitute(&infix.rhs);
+                    }
+                    Expr::Unary(unary) => {
+                        self.substitute(&unary.expr);
+                    }
+                    Expr::None
+                    | Expr::True
+                    | Expr::False
+                    | Expr::Int(_)
+                    | Expr::UInt(_)
+                    | Expr::Float(_)
+                    | Expr::String(_)
+                    | Expr::Break
+                    | Expr::Continue => {}
+                    Expr::Match(match_expr) => {
+                        todo!()
+                    }
+                    Expr::Closure(closure) => {
+                        todo!()
+                    }
+                    Expr::Assign(assign) => {
+                        self.substitute(&assign.lhs);
+                        self.substitute(&assign.rhs);
+                    }
+                    Expr::Field(field) => {
+                        self.substitute(&field.lhs);
+                    }
+                    Expr::Index(index) => {
+                        self.substitute(&index.expr);
+                        self.substitute(&index.key);
+                    }
+                    Expr::Path(path) => {
+                        // TODO: Figure out substitution for paths?
+                        dbg!(path);
+                        todo!()
+                    }
                 }
             }
             HirNodeKind::Ty(_) => {}
             HirNodeKind::DestructureExpr(_) => {}
-            HirNodeKind::Stmt(_) => {}
-            HirNodeKind::Block(_) => {}
+            HirNodeKind::Stmt(stmt) => match stmt {
+                Stmt::Let(let_stmt) => {
+                    let_stmt
+                        .initializer
+                        .as_ref()
+                        .map(|initializer| self.substitute(initializer));
+                }
+                Stmt::For(for_stmt) => {
+                    self.substitute(&for_stmt.body);
+                    self.substitute(&for_stmt.range);
+                }
+                Stmt::If(if_stmt) => {
+                    self.substitute(&if_stmt.condition);
+                    self.substitute(&if_stmt.if_true);
+                    if_stmt
+                        .if_false
+                        .as_ref()
+                        .map(|if_false| self.substitute(if_false));
+                }
+                Stmt::Return(return_stmt) => {
+                    return_stmt
+                        .value
+                        .as_ref()
+                        .map(|value| self.substitute(value));
+                }
+                Stmt::While(while_stmt) => {
+                    self.substitute(&while_stmt.condition);
+                    self.substitute(&while_stmt.block);
+                }
+                Stmt::Block(block) => self.substitute(block),
+                Stmt::Expression(expr) => self.substitute(&expr.expr),
+            },
+            HirNodeKind::Block(block) => {
+                block.stmts.iter().for_each(|stmt| self.substitute(stmt));
+            }
             HirNodeKind::Param(_) => {}
             HirNodeKind::Field(_) => {}
             HirNodeKind::Pattern(_) => {}
             HirNodeKind::MatchArm(_) => {}
+            // These can safely be ignored since they should not be traversed.
+            HirNodeKind::Class(_) => {}
+            HirNodeKind::Enum(_) => {}
+            HirNodeKind::Trait(_) => {}
+            HirNodeKind::TraitImpl(_) => {}
         }
-        let ty = self.ty_map.get(node_id);
+
+        let ty = self.ty_map.get(node_id).clone();
         let ty = self.probe_ty(ty);
-        self.ty_map.insert(*node_id, ty);
+        dbg!(node);
+        dbg!(&ty);
+        self.ty_map.insert(node_id, ty);
     }
 
-    fn probe_ty(&mut self, ty: &Type) -> Type {
+    fn probe_ty(&mut self, ty: Type) -> Type {
         match ty {
-            Type::Array(array) => Type::Array(Array::new(self.probe_ty(&array.ty))),
+            Type::Array(array) => Type::Array(Array::new(self.probe_ty(*array.ty))),
             Type::Path(path) => {
                 let generics = path
                     .generics
                     .into_iter()
-                    .map(|ty| self.probe_ty(&ty))
+                    .map(|ty| self.probe_ty(ty))
                     .collect();
                 Type::Path(Path::new(path.path, generics))
             }
@@ -634,7 +705,7 @@ impl<'a> CrateInference<'a> {
                 let traits = trait_bound
                     .bounds
                     .into_iter()
-                    .map(|ty| self.probe_ty(&ty))
+                    .map(|ty| self.probe_ty(ty))
                     .collect();
                 Type::TraitBound(TraitBound::new(traits))
             }
@@ -642,12 +713,12 @@ impl<'a> CrateInference<'a> {
                 let params = closure
                     .params
                     .into_iter()
-                    .map(|ty| self.probe_ty(&ty))
+                    .map(|ty| self.probe_ty(ty))
                     .collect();
-                let ret_ty = self.probe_ty(&closure.ret_ty);
+                let ret_ty = self.probe_ty(*closure.ret_ty);
                 Type::Fn(FnSig::new(params, ret_ty))
             }
-            Type::Infer(ty_var) => self.unify_table.probe(*ty_var).unwrap(),
+            Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
             Type::GenericParam(generic_param) => {
                 self.unify_table.probe(generic_param.ty_var).unwrap()
             }
@@ -947,12 +1018,12 @@ mod tests {
 
     use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
     use crate::compiler::hir::HirCrate;
-    use crate::compiler::type_inference::ty_infer::Type;
+    use crate::compiler::type_inference::ty_infer::{Type, TypeMap};
     use crate::compiler::types::LDefMap;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
-    type InferResult = (StringInterner, HirCrate, LDefMap<Type>);
+    type InferResult = (StringInterner, HirCrate, TypeMap);
 
     #[cfg(test)]
     fn parse_module(code: &str) -> InferResult {
@@ -1037,6 +1108,5 @@ mod tests {
         "###;
 
         let (si, krate, tys) = parse_module(code);
-        dbg!(&tys);
     }
 }
