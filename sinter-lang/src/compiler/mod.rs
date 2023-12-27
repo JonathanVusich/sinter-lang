@@ -23,6 +23,7 @@ pub mod types;
 mod utils;
 pub mod validator;
 mod type_inference;
+mod errors;
 
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;

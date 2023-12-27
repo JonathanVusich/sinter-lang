@@ -421,7 +421,7 @@ impl<'a> Resolver<'a> {
             let krate_id = krate.crate_id;
             for module in krate.modules_mut() {
                 let module_ns = generate_mod_values(module, krate_id);
-                module.ns = module_ns;
+                module.namespace = module_ns;
             }
         }
 
@@ -457,10 +457,10 @@ impl<'a> Resolver<'a> {
             for module in krate.modules_mut() {
                 let mut modules = StrMap::default();
                 let mut values = StrMap::default();
-                modules.extend(module.ns.modules.iter());
+                modules.extend(module.namespace.modules.iter());
                 values.extend(
                     module
-                        .ns
+                        .namespace
                         .values
                         .iter()
                         .map(|(val, def)| (*val, def.clone())),
@@ -483,7 +483,7 @@ impl<'a> Resolver<'a> {
                     modules: modules.into(),
                     values: values.into(),
                 };
-                module.ns = ns;
+                module.namespace = ns;
             }
         }
 
@@ -1254,7 +1254,7 @@ impl<'a> CrateResolver<'a> {
 
     /// This method can resolve qualified idents as well.
     fn resolve_path(&mut self, path_expr: &AstPathExpr) -> Result<PathExpr, ResolveError> {
-        let module_ns = &self.module.unwrap().ns;
+        let module_ns = &self.module.unwrap().namespace;
         let mut segments = Vec::with_capacity(path_expr.segments.len());
         match path_expr.ident_type {
             IdentType::Crate => {
@@ -1288,7 +1288,7 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn find_primary_segment(&mut self, segment: &AstSegment) -> Result<Segment, ResolveError> {
-        let module_ns = &self.module.unwrap().ns;
+        let module_ns = &self.module.unwrap().namespace;
         let ident = segment.ident.ident;
         let generics = self.maybe_resolve_generics(&segment.generics)?;
 
@@ -1335,7 +1335,7 @@ impl<'a> CrateResolver<'a> {
         previous: &Res,
         segment: &AstSegment,
     ) -> Result<Segment, ResolveError> {
-        let module_ns = &self.module.unwrap().ns;
+        let module_ns = &self.module.unwrap().namespace;
         let ident = segment.ident.ident;
         // TODO: Finish generics error handling
         let generics = self.maybe_resolve_generics(&segment.generics)?;
@@ -1366,7 +1366,7 @@ impl<'a> CrateResolver<'a> {
             Res::Module(mod_id) => {
                 let module = &self.crate_lookup[*mod_id];
                 module
-                    .ns
+                    .namespace
                     .find_value(ident)
                     .cloned()
                     .map(Res::ValueDef)
@@ -1744,7 +1744,7 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_qualified_ident(&mut self, ident: &QualifiedIdent) -> Result<DefId, ResolveError> {
-        let module_ns = &self.module.unwrap().ns;
+        let module_ns = &self.module.unwrap().namespace;
         match ident.ident_type {
             IdentType::Crate => match self.krate.find_definition(ident, false) {
                 None => Err(QualifiedIdentNotFound(ident.clone()).into()),
@@ -1765,7 +1765,7 @@ impl<'a> CrateResolver<'a> {
                     // Else it could be from a used module
                     let module = &self.crate_lookup[module_id];
                     module
-                        .ns
+                        .namespace
                         .find_ident_with_module(ident)
                         .ok_or(QualifiedIdentNotFound(ident.clone()).into())
                 } else if let Some(krate) = self.crates.get(&ident.first()) {

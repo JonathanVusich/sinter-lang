@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
+use std::iter::zip;
 use std::ops::Deref;
 
 use indexmap::Equivalent;
@@ -157,7 +158,7 @@ impl<'a> CrateInference<'a> {
     }
 
     fn check_node(&mut self, node: &LocalDefId, ty: Type) {
-        let constraints = self.check(node, ty.clone());
+        let constraints = self.check(node, ty);
         if let Err(error) = self.unify(constraints) {
             self.errors.push(error)
         } else {
@@ -289,7 +290,7 @@ impl<'a> CrateInference<'a> {
                     let (mut constraints, target_ty) = self.infer(&call.target);
 
                     // Infer the args to the fn call and save their constraints
-                    for (x, arg) in call.args.iter().enumerate() {
+                    for arg in call.args.iter() {
                         let (c, ty) = self.infer(arg);
                         constraints.extend(c);
                         arg_tys.push(ty);
@@ -363,16 +364,18 @@ impl<'a> CrateInference<'a> {
                                         })
                                         .collect();
 
-                                    let param_tys = class_stmt
+                                    let fields = class_stmt
                                         .fields
                                         .values()
                                         .map(|field| krate.field(field))
-                                        .map(|field| self.existing_ty(field.ty.to_def_id(krate.id)))
+                                        .map(|field| {
+                                            generic_params
+                                                .iter()
+                                                .find(|param| param.definition == field.ty)
+                                        })
                                         .collect();
 
-                                    let ret_ty = Type::Path(Path::new(*id, generic_params));
-
-                                    let ty = Type::Fn(FnSig::new(param_tys, ret_ty));
+                                    let ty = Type::Class(Class::new(*id, generic_params, fields));
                                     (Constraints::default(), ty)
                                 }
                                 ValueDef::Enum(_) => {
@@ -436,34 +439,62 @@ impl<'a> CrateInference<'a> {
                 Constraint::Unary(ty, unary_op) => self.unify_unary_op(ty, unary_op)?,
                 Constraint::Callable(callable_constraint) => {
                     let CallableConstraint {
-                        target_ty, // There should be proper constraints to ensure we know this type by now.
+                        target_ty,
                         args,
-                        ret_ty, // This type is always inferred?
+                        ret_ty,
                     } = callable_constraint;
                     let ty = self.normalize_ty(target_ty);
-                    if let Type::Fn(fn_sig) = &ty {
-                        if args.len() != fn_sig.params.len() {
-                            return Err(TypeErrKind::InvalidArgs(ty, args));
+                    match &ty {
+                        Type::GenericParam(_) => {
+                            todo!()
                         }
-
-                        // TODO: Fix generic args possibly being of a mixed type
-                        // i.e fn add<T: Number>(lhs: T, rhs: T) { ... }
-                        // add(1usize, 2u32);
-                        for x in 0..args.len() {
-                            let arg = args[x].clone();
-                            let param = fn_sig.params[x].clone();
-
-                            if param.assignable(&arg) {
-                                self.unify_ty_ty(param, arg)?;
-                            } else {
-                                // TODO: Improve error messages for invalid fn args
+                        Type::Class(class) => {
+                            if args.len() != class.fields.len() {
                                 return Err(TypeErrKind::InvalidArgs(ty, args));
                             }
-                        }
+                            class.fields
+                        },
+                        Type::Fn(fn_sig) => {
+                            if args.len() != fn_sig.params.len() {
+                                return Err(TypeErrKind::InvalidArgs(ty, args));
+                            }
 
-                        return self.unify_ty_ty(ret_ty, *fn_sig.ret_ty.clone());
+                            // TODO: Fix generic args possibly being of a mixed type
+                            // i.e fn add<T: Number>(lhs: T, rhs: T) { ... }
+                            // add(1usize, 2u32);
+                            for x in 0..args.len() {
+                                let arg = args[x].clone();
+                                let param = fn_sig.params[x].clone();
+
+                                if param.assignable(&arg) {
+                                    self.unify_ty_ty(param, arg)?;
+                                } else {
+                                    // TODO: Improve error messages for invalid fn args
+                                    return Err(TypeErrKind::InvalidArgs(ty, args));
+                                }
+                            }
+
+                            return self.unify_ty_ty(ret_ty, *fn_sig.ret_ty.clone());
+                        }
+                        Type::Array(_)
+                        | Type::TraitBound(_)
+                        | Type::U8
+                        | Type::U16
+                        | Type::U32
+                        | Type::U64
+                        | Type::I8
+                        | Type::I16
+                        | Type::I32
+                        | Type::I64
+                        | Type::F32
+                        | Type::F64
+                        | Type::Str
+                        | Type::Boolean
+                        | Type::None
+                        | Type::Infer(_) => {
+                            return Err(TypeErrKind::NotCallable(ty));
+                        }
                     }
-                    return Err(TypeErrKind::NotCallable(ty));
                 }
             }
         }
@@ -761,10 +792,6 @@ impl<'a> CrateInference<'a> {
             Ty::Array(array) => {
                 Type::Array(Array::new(self.existing_ty(array.ty.to_def_id(krate.id))))
             }
-            Ty::Path(path) => {
-                // TODO: Look up generics from the existing scope
-                self.existing_ty(path.definition)
-            }
             Ty::GenericParam(generic_param) => {
                 let trait_bound = generic_param.trait_bound.map(|bound| {
                     let krate = self.hir_map.krate(&bound);
@@ -879,9 +906,28 @@ impl Path {
     }
 }
 
+/// Defines a concrete type of a potentially generic Class.
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct Class {
+    definition: DefId,
+    fields: Vec<Type>, // Any generic references should correspond to the generic params.
+    generic_params: Vec<Type>,
+}
+
+impl Class {
+    pub fn new(definition: DefId, fields: Vec<Type>, generic_params: Vec<Type>) -> Self {
+        Self {
+            definition,
+            fields,
+            generic_params,
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct GenericParam {
     pub(crate) ty_var: TyVar,
+    pub(crate) definition: DefId,
     pub(crate) trait_bound: Option<TraitBound>,
 }
 
@@ -927,7 +973,7 @@ impl FnSig {
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Type {
     Array(Array),
-    Path(Path),
+    Class(Class),
     GenericParam(GenericParam),
     TraitBound(TraitBound),
     Fn(FnSig),
@@ -957,12 +1003,13 @@ impl Type {
                 }
                 false
             }
-            Type::Path(lhs_path) => {
-                // TODO: Handle assignability?
-                match rhs {
-                    Type::Path(rhs_path) => lhs_path == rhs_path,
-                    _ => false,
+            Type::Class(lhs) => {
+                if let Type::Class(rhs) = rhs {
+                    return lhs.definition == rhs.definition
+                        && zip(&lhs.generic_params, &rhs.generic_params)
+                            .all(|(lhs, rhs)| lhs.assignable(rhs));
                 }
+                false
             }
             Type::TraitBound(trait_bound) => {
                 return trait_bound.bounds.iter().all(|bound| bound.assignable(rhs));

@@ -21,34 +21,28 @@ use crate::compiler::ast::{
 use crate::compiler::compiler::{CompileError, CompilerCtxt, ParseError};
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::interner::{Interner, Key};
-use crate::compiler::parser::ParseErrKind::{
-    ExpectedToken, ExpectedTokens, UnexpectedEof, UnexpectedToken,
-};
+use crate::compiler::parser::ParseErrKind::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
+use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedOutput, Tokens};
 use crate::compiler::types::{InternedStr, InternedTy};
 use crate::compiler::StringInterner;
 
-pub fn parse(ctxt: &mut CompilerCtxt, input: TokenizedInput) -> Result<Module, CompileError> {
+pub fn parse(ctxt: &mut CompilerCtxt, input: Tokens) -> Option<Module> {
     let parser = Parser::new(ctxt, input);
     parser.parse()
 }
 
 struct Parser<'ctxt> {
     compiler_ctxt: &'ctxt mut CompilerCtxt,
-    tokenized_input: TokenizedInput,
-
+    tokens: Tokens,
     pos: usize,
     spans: Vec<usize>,
 }
-
-type ParseResult<T, E = ParseErrKind> = Result<T, E>;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum ParseErrKind {
     UnexpectedEof(NormalizedSpan),
     ExpectedToken(TokenType, NormalizedSpan),
-    ExpectedTokens(TokenTypes, NormalizedSpan),
     UnexpectedToken(TokenType, NormalizedSpan),
 
     /// Use statement with less than three segments (crate, module, item).
@@ -60,27 +54,6 @@ pub enum ParseErrKind {
     DuplicateModuleName,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub struct TokenTypes {
-    token_types: Vec<TokenType>,
-}
-
-impl TokenTypes {
-    pub fn new(token_types: Vec<TokenType>) -> Self {
-        Self { token_types }
-    }
-}
-
-impl Display for TokenTypes {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[")?;
-        self.token_types.iter().fold(Ok(()), |result, token_type| {
-            result.and_then(|_| write!(f, "{token_type}"))
-        })?;
-        write!(f, "]")
-    }
-}
-
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum ClassType {
     Reference,
@@ -88,16 +61,17 @@ pub enum ClassType {
 }
 
 impl<'ctxt> Parser<'ctxt> {
-    fn new(ctxt: &'ctxt mut CompilerCtxt, tokenized_input: TokenizedInput) -> Self {
+    fn new(ctxt: &'ctxt mut CompilerCtxt, tokens: Tokens) -> Self {
         Self {
             compiler_ctxt: ctxt,
-            tokenized_input,
+            tokens,
             pos: 0,
             spans: Vec::new(),
         }
     }
 
-    fn parse(mut self) -> Result<Module, CompileError> {
+    /// Attempts to parse a fully formed module from the given tokens.
+    fn parse(mut self) -> Option<Module> {
         self.parse_module()
     }
 
@@ -117,12 +91,12 @@ impl<'ctxt> Parser<'ctxt> {
 
     fn compute_span(&self, start: usize) -> Span {
         let start_token = self
-            .tokenized_input
+            .tokens
             .tokens
             .get(start)
             .expect("No valid start token!");
         let end_token = self
-            .tokenized_input
+            .tokens
             .tokens
             .get(self.pos - 1)
             .expect("No valid end token!");
@@ -130,15 +104,13 @@ impl<'ctxt> Parser<'ctxt> {
         start_token.span.to(end_token.span)
     }
 
-    fn parse_module(&mut self) -> Result<Module, CompileError> {
+    fn parse_module(mut self) -> Option<Module> {
         let mut items = Vec::new();
-        let mut errors = Vec::new();
 
-        while self.pos < self.tokenized_input.tokens.len() {
+        while self.pos < self.tokens.tokens.len() {
             match self.parse_outer_item() {
-                Ok(item) => items.push(item),
-                Err(err) => {
-                    errors.push(err);
+                Some(item) => items.push(item),
+                None => {
                     // Clear out all currently tracked spans to avoid polluting future parsed items.
                     self.spans.clear();
                     // Ignore all tokens to the next semicolon since we have a malformed file
@@ -159,40 +131,37 @@ impl<'ctxt> Parser<'ctxt> {
             }
         }
 
-        if errors.is_empty() {
-            Ok(Module::new(items))
-        } else {
-            Err(CompileError::ParseErrors(
-                errors.into_iter().map(ParseError::from).collect(),
-            ))
+        if self.compiler_ctxt.has_diagnostics() {
+            None
         }
+        Some(Module::new(items, self.tokens.line_map))
     }
 
     fn parse_node<T, I>(
         &mut self,
-        parse_fn: for<'rf> fn(&'rf mut Parser<'ctxt>) -> ParseResult<T>,
+        parse_fn: for<'rf> fn(&'rf mut Parser<'ctxt>) -> Option<T>,
         constructor: fn(T, Span, LocalDefId) -> I,
-    ) -> ParseResult<I> {
+    ) -> Option<I> {
         self.track_span();
         let value = parse_fn(self)?;
-        Ok(constructor(value, self.get_span(), self.get_id()))
+        Some(constructor(value, self.get_span(), self.get_id()))
     }
 
     fn parse_item<U>(
         &mut self,
-        parse_fn: fn(&mut Parser<'_>) -> ParseResult<U>,
+        parse_fn: fn(&mut Parser<'_>) -> Option<U>,
         kind: fn(U) -> ItemKind,
-    ) -> ParseResult<Item> {
+    ) -> Option<Item> {
         self.track_span();
         let item = parse_fn(self)?;
         let span = self.get_span();
         let id = self.get_id();
 
         let item_kind = kind(item);
-        Ok(Item::new(item_kind, span, id))
+        Some(Item::new(item_kind, span, id))
     }
 
-    fn parse_outer_item(&mut self) -> ParseResult<Item> {
+    fn parse_outer_item(&mut self) -> Option<Item> {
         match self.current() {
             Some(TokenType::Use) => self.parse_use_stmt(),
             Some(TokenType::Ref) => self.parse_class_stmt(),
@@ -207,7 +176,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn parse_inner_stmt(&mut self) -> ParseResult<Stmt> {
+    fn parse_inner_stmt(&mut self) -> Option<Stmt> {
         match self.current() {
             Some(TokenType::Let) => self.parse_let_stmt(),
             Some(TokenType::For) => self.parse_for_stmt(),
@@ -220,24 +189,24 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn parse_use_stmt(&mut self) -> ParseResult<Item> {
+    fn parse_use_stmt(&mut self) -> Option<Item> {
         self.parse_item(|parser| parser.use_stmt(), ItemKind::Use)
     }
 
-    fn use_stmt(&mut self) -> ParseResult<UseStmt> {
+    fn use_stmt(&mut self) -> Option<UseStmt> {
         self.expect(TokenType::Use)?;
 
         let qualified_ident = self.qualified_ident()?;
         self.expect(TokenType::Semicolon)?;
 
-        Ok(UseStmt::new(qualified_ident))
+        Some(UseStmt::new(qualified_ident))
     }
 
-    fn parse_class_stmt(&mut self) -> ParseResult<Item> {
+    fn parse_class_stmt(&mut self) -> Option<Item> {
         self.parse_item(|parser| parser.class_stmt(), ItemKind::Class)
     }
 
-    fn class_stmt(&mut self) -> ParseResult<ClassStmt> {
+    fn class_stmt(&mut self) -> Option<ClassStmt> {
         let class_type = if self.matches(TokenType::Ref) {
             self.advance();
             self.expect(TokenType::Class)?;
@@ -256,10 +225,10 @@ impl<'ctxt> Parser<'ctxt> {
         };
 
         let class_stmt = ClassStmt::new(name, class_type, generic_types, fields.into(), fn_stmts);
-        Ok(class_stmt)
+        Some(class_stmt)
     }
 
-    fn class_stmt_inner(&mut self) -> ParseResult<(Vec<Field>, Vec<FnSelfStmt>)> {
+    fn class_stmt_inner(&mut self) -> Option<(Vec<Field>, Vec<FnSelfStmt>)> {
         self.expect(TokenType::LeftBrace)?;
         let fields = self.parse_multiple_with_delimiter_and_matcher(
             |parser| parser.field(),
@@ -271,19 +240,19 @@ impl<'ctxt> Parser<'ctxt> {
             |token| matches!(token, TokenType::Fn),
         )?;
         self.expect(TokenType::RightBrace)?;
-        Ok((fields, fn_stmts))
+        Some((fields, fn_stmts))
     }
 
-    fn parse_fn_stmt(&mut self) -> ParseResult<Item> {
+    fn parse_fn_stmt(&mut self) -> Option<Item> {
         self.parse_item(|parser| parser.fn_stmt(), ItemKind::Fn)
     }
 
-    fn fn_self_stmt(&mut self) -> ParseResult<FnSelfStmt> {
+    fn fn_self_stmt(&mut self) -> Option<FnSelfStmt> {
         self.track_span();
         let signature = self.fn_signature(false)?;
         let stmt = self.block_stmt()?;
 
-        Ok(FnSelfStmt::new(
+        Some(FnSelfStmt::new(
             signature,
             Some(stmt),
             self.get_span(),
@@ -291,20 +260,20 @@ impl<'ctxt> Parser<'ctxt> {
         ))
     }
 
-    fn fn_stmt(&mut self) -> ParseResult<FnStmt> {
+    fn fn_stmt(&mut self) -> Option<FnStmt> {
         let signature = self.fn_signature(false)?;
         let stmt = self.block_stmt()?;
 
-        Ok(FnStmt::new(signature, Some(stmt)))
+        Some(FnStmt::new(signature, Some(stmt)))
     }
 
-    fn fn_trait_stmt(&mut self) -> ParseResult<FnSelfStmt> {
+    fn fn_trait_stmt(&mut self) -> Option<FnSelfStmt> {
         self.track_span();
         let signature = self.fn_signature(true)?;
         match self.current() {
             Some(TokenType::Semicolon) => {
                 self.advance();
-                Ok(FnSelfStmt::new(
+                Some(FnSelfStmt::new(
                     signature,
                     None,
                     self.get_span(),
@@ -313,7 +282,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::LeftBrace) => {
                 let stmt = self.block_stmt()?;
-                Ok(FnSelfStmt::new(
+                Some(FnSelfStmt::new(
                     signature,
                     Some(stmt),
                     self.get_span(),
@@ -325,20 +294,20 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn parse_global_let_stmt(&mut self) -> ParseResult<Item> {
+    fn parse_global_let_stmt(&mut self) -> Option<Item> {
         self.parse_item(|parser| parser.global_let_stmt(), ItemKind::GlobalLet)
     }
 
-    fn parse_let_stmt(&mut self) -> ParseResult<Stmt> {
+    fn parse_let_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
-        Ok(Stmt::new(
+        Some(Stmt::new(
             StmtKind::Let(self.let_stmt()?),
             self.get_span(),
             self.get_id(),
         ))
     }
 
-    fn global_let_stmt(&mut self) -> ParseResult<GlobalLetStmt> {
+    fn global_let_stmt(&mut self) -> Option<GlobalLetStmt> {
         self.expect(TokenType::Let)?;
         let identifier = self.identifier()?;
         self.expect(TokenType::Colon)?;
@@ -347,10 +316,10 @@ impl<'ctxt> Parser<'ctxt> {
         let initializer = self.expr()?;
         self.expect(TokenType::Semicolon)?;
         let global_let_stmt = GlobalLetStmt::new(identifier, ty, initializer);
-        Ok(global_let_stmt)
+        Some(global_let_stmt)
     }
 
-    fn let_stmt(&mut self) -> ParseResult<LetStmt> {
+    fn let_stmt(&mut self) -> Option<LetStmt> {
         self.expect(TokenType::Let)?;
         let mutability: Mutability = match self.current() {
             Some(TokenType::Mut) => {
@@ -360,7 +329,8 @@ impl<'ctxt> Parser<'ctxt> {
             Some(TokenType::Identifier(_)) => Immutable,
             _ => {
                 let ident = self.intern_str("");
-                return self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)]);
+                self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)]);
+                None
             }
         };
         let identifier = self.identifier()?;
@@ -378,14 +348,14 @@ impl<'ctxt> Parser<'ctxt> {
 
         let let_stmt = LetStmt::new(identifier, mutability, ty, initializer);
 
-        Ok(let_stmt)
+        Some(let_stmt)
     }
 
-    fn parse_enum_stmt(&mut self) -> ParseResult<Item> {
+    fn parse_enum_stmt(&mut self) -> Option<Item> {
         self.parse_item(|parser| parser.enum_stmt(), ItemKind::Enum)
     }
 
-    fn enum_stmt(&mut self) -> ParseResult<EnumStmt> {
+    fn enum_stmt(&mut self) -> Option<EnumStmt> {
         self.expect(TokenType::Enum)?;
         let name = self.identifier()?;
         let generics = self.generic_params()?;
@@ -396,10 +366,10 @@ impl<'ctxt> Parser<'ctxt> {
             (Vec::new(), Vec::new())
         };
 
-        Ok(EnumStmt::new(name, generics, enum_members, fn_stmts))
+        Some(EnumStmt::new(name, generics, enum_members, fn_stmts))
     }
 
-    fn enum_stmt_inner(&mut self) -> ParseResult<(Vec<EnumMember>, Vec<FnSelfStmt>)> {
+    fn enum_stmt_inner(&mut self) -> Option<(Vec<EnumMember>, Vec<FnSelfStmt>)> {
         self.expect(TokenType::LeftBrace)?;
 
         let enum_members = self.parse_multiple_with_delimiter_and_matcher(
@@ -414,32 +384,32 @@ impl<'ctxt> Parser<'ctxt> {
         )?;
 
         self.expect(TokenType::RightBrace)?;
-        Ok((enum_members, fn_stmts))
+        Some((enum_members, fn_stmts))
     }
 
-    fn parse_trait_stmt(&mut self) -> ParseResult<Item> {
+    fn parse_trait_stmt(&mut self) -> Option<Item> {
         self.parse_item(|parser| parser.trait_stmt(), ItemKind::Trait)
     }
 
-    fn trait_stmt(&mut self) -> ParseResult<TraitStmt> {
+    fn trait_stmt(&mut self) -> Option<TraitStmt> {
         self.expect(TokenType::Trait)?;
         let identifier = self.identifier()?;
         let generics = self.generic_params()?;
         match self.current() {
-            Some(TokenType::Semicolon) => Ok(TraitStmt::new(identifier, generics, Vec::new())),
+            Some(TokenType::Semicolon) => Some(TraitStmt::new(identifier, generics, Vec::new())),
             Some(TokenType::LeftBrace) => {
-                Ok(TraitStmt::new(identifier, generics, self.fn_trait_stmts()?))
+                Some(TraitStmt::new(identifier, generics, self.fn_trait_stmts()?))
             }
             Some(token) => self.unexpected_token(token),
             None => self.unexpected_end(),
         }
     }
 
-    fn parse_trait_impl_stmt(&mut self) -> ParseResult<Item> {
+    fn parse_trait_impl_stmt(&mut self) -> Option<Item> {
         self.parse_item(|parser| parser.trait_impl_stmt(), ItemKind::TraitImpl)
     }
 
-    fn trait_impl_stmt(&mut self) -> ParseResult<TraitImplStmt> {
+    fn trait_impl_stmt(&mut self) -> Option<TraitImplStmt> {
         self.expect(TokenType::Impl)?;
         let trait_to_impl = self.parse_path_ty()?;
         self.expect(TokenType::For)?;
@@ -448,9 +418,9 @@ impl<'ctxt> Parser<'ctxt> {
         match self.current() {
             Some(TokenType::Semicolon) => {
                 self.advance();
-                Ok(TraitImplStmt::new(trait_to_impl, target_ty, Vec::new()))
+                Some(TraitImplStmt::new(trait_to_impl, target_ty, Vec::new()))
             }
-            Some(TokenType::LeftBrace) => Ok(TraitImplStmt::new(
+            Some(TokenType::LeftBrace) => Some(TraitImplStmt::new(
                 trait_to_impl,
                 target_ty,
                 self.fn_trait_stmts()?,
@@ -460,7 +430,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn parse_expression(&mut self) -> ParseResult<Stmt> {
+    fn parse_expression(&mut self) -> Option<Stmt> {
         self.track_span();
         let expr = self.expr()?;
         let implicit_return = if self.matches(TokenType::Semicolon) {
@@ -469,14 +439,14 @@ impl<'ctxt> Parser<'ctxt> {
         } else {
             false
         };
-        Ok(Stmt::new(
+        Some(Stmt::new(
             StmtKind::Expression(Expression::new(expr, implicit_return)),
             self.get_span(),
             self.get_id(),
         ))
     }
 
-    fn expr(&mut self) -> ParseResult<Expr> {
+    fn expr(&mut self) -> Option<Expr> {
         if self.matches_closure() {
             return self.parse_node(Self::parse_closure, Expr::new);
         }
@@ -519,7 +489,7 @@ impl<'ctxt> Parser<'ctxt> {
         self.next_type(lookahead) == Some(TokenType::RightArrow)
     }
 
-    fn parse_closure(&mut self) -> ParseResult<ExprKind> {
+    fn parse_closure(&mut self) -> Option<ExprKind> {
         let vars = self.parse_multiple_with_scope_delimiter::<Ident, 1>(
             |parser| parser.identifier(),
             TokenType::Comma,
@@ -535,17 +505,17 @@ impl<'ctxt> Parser<'ctxt> {
 
         let stmt = self.parse_block_or_expr()?;
 
-        Ok(ExprKind::Closure(ClosureExpr::new(closure_params, stmt)))
+        Some(ExprKind::Closure(ClosureExpr::new(closure_params, stmt)))
     }
 
-    fn identifier(&mut self) -> ParseResult<Ident> {
+    fn identifier(&mut self) -> Option<Ident> {
         match self.current_token() {
             Some(Token {
                 token_type: TokenType::Identifier(ident),
                 span,
             }) => {
                 self.advance();
-                Ok(Ident::new(ident, span))
+                Some(Ident::new(ident, span))
             }
             Some(token) => {
                 let ident = self.intern_str("");
@@ -555,7 +525,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn qualified_ident(&mut self) -> ParseResult<QualifiedIdent> {
+    fn qualified_ident(&mut self) -> Option<QualifiedIdent> {
         let mut idents = Vec::new();
         loop {
             match self.current_token() {
@@ -578,14 +548,16 @@ impl<'ctxt> Parser<'ctxt> {
                 }
                 _ => {
                     let ident = self.intern_str("");
-                    return self.expected_token(TokenType::Identifier(ident));
+                    self.expected_token(TokenType::Identifier(ident));
+                    None
                 }
             }
         }
 
         if idents.is_empty() {
             let ident = self.intern_str("");
-            self.expected_token(TokenType::Identifier(ident))
+            self.expected_token(TokenType::Identifier(ident));
+            None
         } else {
             let first = idents.first().unwrap();
             let ident_type = if self.compiler_ctxt.resolve_str(first.ident) == "crate" {
@@ -595,11 +567,11 @@ impl<'ctxt> Parser<'ctxt> {
                 IdentType::LocalOrUse
             };
 
-            Ok(QualifiedIdent::new(ident_type, idents))
+            Some(QualifiedIdent::new(ident_type, idents))
         }
     }
 
-    fn generic_call_site(&mut self) -> ParseResult<GenericCallSite> {
+    fn generic_call_site(&mut self) -> Option<GenericCallSite> {
         let generic_call_site = self
             .parse_multiple_with_scope_delimiter::<Ty, 1>(
                 |parser| parser.parse_ty(),
@@ -608,10 +580,10 @@ impl<'ctxt> Parser<'ctxt> {
                 TokenType::Greater,
             )?
             .into();
-        Ok(generic_call_site)
+        Some(generic_call_site)
     }
 
-    fn generic_params(&mut self) -> ParseResult<GenericParams> {
+    fn generic_params(&mut self) -> Option<GenericParams> {
         let generic_params = self
             .parse_multiple_with_scope_delimiter::<GenericParam, 1>(
                 |parser| parser.generic_param(),
@@ -620,10 +592,10 @@ impl<'ctxt> Parser<'ctxt> {
                 TokenType::Greater,
             )?
             .into();
-        Ok(generic_params)
+        Some(generic_params)
     }
 
-    fn generic_param(&mut self) -> ParseResult<GenericParam> {
+    fn generic_param(&mut self) -> Option<GenericParam> {
         self.track_span();
         let ident = self.identifier()?;
         let mut trait_bound: Option<Ty> = None;
@@ -638,7 +610,7 @@ impl<'ctxt> Parser<'ctxt> {
                 self.get_id(),
             ));
         }
-        Ok(GenericParam::new(
+        Some(GenericParam::new(
             ident,
             trait_bound,
             self.get_span(),
@@ -646,7 +618,7 @@ impl<'ctxt> Parser<'ctxt> {
         ))
     }
 
-    fn fn_stmts(&mut self) -> ParseResult<Vec<FnStmt>> {
+    fn fn_stmts(&mut self) -> Option<Vec<FnStmt>> {
         self.parse_multiple_with_scope(
             |parser| parser.fn_stmt(),
             TokenType::LeftBrace,
@@ -654,7 +626,7 @@ impl<'ctxt> Parser<'ctxt> {
         )
     }
 
-    fn fn_trait_stmts(&mut self) -> ParseResult<Vec<FnSelfStmt>> {
+    fn fn_trait_stmts(&mut self) -> Option<Vec<FnSelfStmt>> {
         self.parse_multiple_with_scope(
             |parser| parser.fn_trait_stmt(),
             TokenType::LeftBrace,
@@ -662,17 +634,17 @@ impl<'ctxt> Parser<'ctxt> {
         )
     }
 
-    fn trait_bound(&mut self) -> ParseResult<TraitBound> {
+    fn trait_bound(&mut self) -> Option<TraitBound> {
         let mut paths = Vec::new();
         paths.push(self.parse_path_ty()?);
         while self.matches(TokenType::Plus) {
             self.advance();
             paths.push(self.parse_path_ty()?);
         }
-        Ok(TraitBound::from(paths))
+        Some(TraitBound::from(paths))
     }
 
-    fn enum_member(&mut self) -> ParseResult<EnumMember> {
+    fn enum_member(&mut self) -> Option<EnumMember> {
         self.track_span();
         match self.current() {
             Some(TokenType::Identifier(ident)) => {
@@ -686,7 +658,7 @@ impl<'ctxt> Parser<'ctxt> {
 
                 let span = self.get_span();
                 let id = self.get_id();
-                Ok(EnumMember::new(ident, fields, fn_self_stmts, span, id))
+                Some(EnumMember::new(ident, fields, fn_self_stmts, span, id))
             }
             Some(token) => {
                 let ident = self.intern_str("");
@@ -696,27 +668,27 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn fields(&mut self) -> ParseResult<Fields> {
+    fn fields(&mut self) -> Option<Fields> {
         let fields = self.parse_multiple_with_scope_delimiter::<Field, 1>(
             |parser| parser.field(),
             TokenType::Comma,
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
         )?;
-        Ok(Fields::from(fields))
+        Some(Fields::from(fields))
     }
 
-    fn params(&mut self) -> ParseResult<Params> {
+    fn params(&mut self) -> Option<Params> {
         let params = self.parse_multiple_with_scope_delimiter::<Param, 1>(
             |parser| parser.param(),
             TokenType::Comma,
             TokenType::LeftParentheses,
             TokenType::RightParentheses,
         )?;
-        Ok(Params::from(params))
+        Some(Params::from(params))
     }
 
-    fn self_params(&mut self) -> ParseResult<Params> {
+    fn self_params(&mut self) -> Option<Params> {
         let mut params = Vec::new();
         self.expect(TokenType::LeftParentheses)?;
         params.push(self.self_param()?);
@@ -727,21 +699,21 @@ impl<'ctxt> Parser<'ctxt> {
             );
         }
         self.expect(TokenType::RightParentheses)?;
-        Ok(Params::from(params))
+        Some(Params::from(params))
     }
 
-    fn field(&mut self) -> ParseResult<Field> {
+    fn field(&mut self) -> Option<Field> {
         self.track_span();
         let ident = self.identifier()?;
         self.expect(TokenType::Colon)?;
         let ty = self.parse_ty()?;
-        Ok(Field::new(ident, ty, self.get_span(), self.get_id()))
+        Some(Field::new(ident, ty, self.get_span(), self.get_id()))
     }
 
-    fn param(&mut self) -> ParseResult<Param> {
+    fn param(&mut self) -> Option<Param> {
         self.track_span();
         let (mutability, ident, ty) = self.mut_ident_ty()?;
-        Ok(Param::new(
+        Some(Param::new(
             ident,
             ty,
             mutability,
@@ -750,7 +722,7 @@ impl<'ctxt> Parser<'ctxt> {
         ))
     }
 
-    fn mut_ident_ty(&mut self) -> ParseResult<(Mutability, Ident, Ty)> {
+    fn mut_ident_ty(&mut self) -> Option<(Mutability, Ident, Ty)> {
         let mutability = self.mutability();
         let ident;
         let ty;
@@ -768,10 +740,10 @@ impl<'ctxt> Parser<'ctxt> {
             ty = self.parse_ty()?;
         }
 
-        Ok((mutability, ident, ty))
+        Some((mutability, ident, ty))
     }
 
-    fn self_param(&mut self) -> ParseResult<Param> {
+    fn self_param(&mut self) -> Option<Param> {
         self.track_span();
         let mutability = self.mutability();
 
@@ -784,7 +756,7 @@ impl<'ctxt> Parser<'ctxt> {
                 let ident = Ident::new(self.intern_str("self"), span);
                 let ty = Ty::new(TyKind::QSelf, span, self.get_id());
 
-                Ok(Param::new(
+                Some(Param::new(
                     ident,
                     ty,
                     mutability,
@@ -797,7 +769,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn fn_signature(&mut self, require_self: bool) -> ParseResult<FnSig> {
+    fn fn_signature(&mut self, require_self: bool) -> Option<FnSig> {
         self.expect(TokenType::Fn)?;
         let identifier = self.identifier()?;
         let generics = self.generic_params()?;
@@ -812,22 +784,22 @@ impl<'ctxt> Parser<'ctxt> {
             ty = Some(self.parse_ty()?);
         }
 
-        Ok(FnSig::new(identifier, generics, params, ty))
+        Some(FnSig::new(identifier, generics, params, ty))
     }
 
-    fn block_stmt(&mut self) -> ParseResult<Block> {
+    fn block_stmt(&mut self) -> Option<Block> {
         self.track_span();
         let stmts = self.parse_multiple_with_scope(
             |parser| parser.parse_inner_stmt(),
             TokenType::LeftBrace,
             TokenType::RightBrace,
         )?;
-        Ok(Block::new(stmts, self.get_span(), self.get_id()))
+        Some(Block::new(stmts, self.get_span(), self.get_id()))
     }
 
-    fn parse_block_stmt(&mut self) -> ParseResult<Stmt> {
+    fn parse_block_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
-        Ok(Stmt::new(
+        Some(Stmt::new(
             StmtKind::Block(self.block_stmt()?),
             self.get_span(),
             self.get_id(),
@@ -844,7 +816,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn parse_ty(&mut self) -> ParseResult<Ty> {
+    fn parse_ty(&mut self) -> Option<Ty> {
         match self.current_token() {
             Some(Token {
                 token_type: TokenType::LeftParentheses,
@@ -859,7 +831,7 @@ impl<'ctxt> Parser<'ctxt> {
                 span,
             }) => {
                 self.advance();
-                Ok(Ty::new(TyKind::None, span, self.get_id()))
+                Some(Ty::new(TyKind::None, span, self.get_id()))
             }
             Some(Token {
                 token_type: TokenType::Identifier(ident),
@@ -871,51 +843,51 @@ impl<'ctxt> Parser<'ctxt> {
                 match ident {
                     "u8" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::U8, span, self.get_id()))
+                        Some(Ty::new(TyKind::U8, span, self.get_id()))
                     }
                     "u16" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::U16, span, self.get_id()))
+                        Some(Ty::new(TyKind::U16, span, self.get_id()))
                     }
                     "u32" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::U32, span, self.get_id()))
+                        Some(Ty::new(TyKind::U32, span, self.get_id()))
                     }
                     "u64" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::U64, span, self.get_id()))
+                        Some(Ty::new(TyKind::U64, span, self.get_id()))
                     }
                     "i8" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::I8, span, self.get_id()))
+                        Some(Ty::new(TyKind::I8, span, self.get_id()))
                     }
                     "i16" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::I16, span, self.get_id()))
+                        Some(Ty::new(TyKind::I16, span, self.get_id()))
                     }
                     "i32" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::I32, span, self.get_id()))
+                        Some(Ty::new(TyKind::I32, span, self.get_id()))
                     }
                     "i64" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::I64, span, self.get_id()))
+                        Some(Ty::new(TyKind::I64, span, self.get_id()))
                     }
                     "f32" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::F32, span, self.get_id()))
+                        Some(Ty::new(TyKind::F32, span, self.get_id()))
                     }
                     "f64" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::F64, span, self.get_id()))
+                        Some(Ty::new(TyKind::F64, span, self.get_id()))
                     }
                     "str" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::Str, span, self.get_id()))
+                        Some(Ty::new(TyKind::Str, span, self.get_id()))
                     }
                     "bool" => {
                         self.advance();
-                        Ok(Ty::new(TyKind::Boolean, span, self.get_id()))
+                        Some(Ty::new(TyKind::Boolean, span, self.get_id()))
                     }
                     other => self.parse_qualified_ty(),
                 }
@@ -925,7 +897,7 @@ impl<'ctxt> Parser<'ctxt> {
                 span,
             }) => {
                 self.advance();
-                Ok(Ty::new(TyKind::QSelf, span, self.get_id()))
+                Some(Ty::new(TyKind::QSelf, span, self.get_id()))
             }
             Some(token) => self.unexpected_token(token.token_type),
             None => self.unexpected_end(),
@@ -934,7 +906,7 @@ impl<'ctxt> Parser<'ctxt> {
 
     /// Parses a closure type. This method assumes that a valid closure signature
     /// already exists.
-    fn parse_closure_ty(&mut self) -> ParseResult<Ty> {
+    fn parse_closure_ty(&mut self) -> Option<Ty> {
         self.track_span();
         let params = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
             |parser| parser.parse_ty(),
@@ -959,13 +931,13 @@ impl<'ctxt> Parser<'ctxt> {
                 params,
                 ret_ty: Box::new(ret_ty),
             };
-            Ok(Ty::new(ty_kind, self.get_span(), self.get_id()))
+            Some(Ty::new(ty_kind, self.get_span(), self.get_id()))
         } else {
             self.unexpected_end()
         }
     }
 
-    fn parse_array_ty(&mut self) -> ParseResult<Ty> {
+    fn parse_array_ty(&mut self) -> Option<Ty> {
         self.track_span();
         self.expect(TokenType::LeftBracket)?;
         let ty_kind = TyKind::Array {
@@ -973,10 +945,10 @@ impl<'ctxt> Parser<'ctxt> {
         };
         let ty = Ty::new(ty_kind, self.get_span(), self.get_id());
         self.expect(TokenType::RightBracket)?;
-        Ok(ty)
+        Some(ty)
     }
 
-    fn parse_qualified_ty(&mut self) -> ParseResult<Ty> {
+    fn parse_qualified_ty(&mut self) -> Option<Ty> {
         self.track_span();
 
         let path = self.parse_path_ty()?;
@@ -988,7 +960,7 @@ impl<'ctxt> Parser<'ctxt> {
             paths.insert(0, path);
 
             let span = self.get_span();
-            Ok(Ty::new(
+            Some(Ty::new(
                 TyKind::TraitBound {
                     trait_bound: TraitBound::from(paths),
                 },
@@ -997,11 +969,11 @@ impl<'ctxt> Parser<'ctxt> {
             ))
         } else {
             let span = self.get_span();
-            Ok(Ty::new(TyKind::Path { path }, span, self.get_id()))
+            Some(Ty::new(TyKind::Path { path }, span, self.get_id()))
         }
     }
 
-    fn parse_if_stmt(&mut self) -> ParseResult<Stmt> {
+    fn parse_if_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
         self.expect(TokenType::If)?;
         let condition = self.expr()?;
@@ -1012,31 +984,31 @@ impl<'ctxt> Parser<'ctxt> {
         } else {
             None
         };
-        Ok(Stmt::new(
+        Some(Stmt::new(
             StmtKind::If(IfStmt::new(condition, block_stmt, optional_stmt)),
             self.get_span(),
             self.get_id(),
         ))
     }
 
-    fn parse_while_stmt(&mut self) -> ParseResult<Stmt> {
+    fn parse_while_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
-        Ok(Stmt::new(
+        Some(Stmt::new(
             StmtKind::While(self.while_stmt()?),
             self.get_span(),
             self.get_id(),
         ))
     }
 
-    fn while_stmt(&mut self) -> ParseResult<WhileStmt> {
+    fn while_stmt(&mut self) -> Option<WhileStmt> {
         self.expect(TokenType::While)?;
         let condition = self.expr()?;
         let block_stmt = self.block_stmt()?;
 
-        Ok(WhileStmt::new(condition, block_stmt))
+        Some(WhileStmt::new(condition, block_stmt))
     }
 
-    fn parse_for_stmt(&mut self) -> ParseResult<Stmt> {
+    fn parse_for_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
         self.expect(TokenType::For)?;
         let identifier = self.identifier()?;
@@ -1044,14 +1016,14 @@ impl<'ctxt> Parser<'ctxt> {
 
         let range_expr = self.expr()?;
         let body = self.block_stmt()?;
-        Ok(Stmt::new(
+        Some(Stmt::new(
             StmtKind::For(ForStmt::new(identifier, range_expr, body)),
             self.get_span(),
             self.get_id(),
         ))
     }
 
-    fn parse_return_stmt(&mut self) -> ParseResult<Stmt> {
+    fn parse_return_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
         self.expect(TokenType::Return)?;
         let expr = if self.matches(TokenType::Semicolon) {
@@ -1062,14 +1034,14 @@ impl<'ctxt> Parser<'ctxt> {
             self.expect(TokenType::Semicolon)?;
             Some(expression)
         };
-        Ok(Stmt::new(
+        Some(Stmt::new(
             StmtKind::Return(ReturnStmt::new(expr)),
             self.get_span(),
             self.get_id(),
         ))
     }
 
-    fn parse_path_expr(&mut self) -> ParseResult<PathExpr> {
+    fn parse_path_expr(&mut self) -> Option<PathExpr> {
         let mut path_segments = Vec::new();
         let first_ident = self.identifier()?;
         path_segments.push(Segment::new(first_ident, None));
@@ -1108,10 +1080,13 @@ impl<'ctxt> Parser<'ctxt> {
                     }
                     Some(token) => {
                         let ident = self.intern_str("");
-                        return self
-                            .expected_tokens(vec![TokenType::Less, TokenType::Identifier(ident)]);
+                        self.expected_tokens(vec![TokenType::Less, TokenType::Identifier(ident)]);
+                        None
                     }
-                    None => return self.unexpected_end(),
+                    None => {
+                        self.unexpected_end();
+                        None
+                    }
                 }
             } else {
                 break;
@@ -1124,10 +1099,10 @@ impl<'ctxt> Parser<'ctxt> {
         } else {
             IdentType::LocalOrUse
         };
-        Ok(PathExpr::new(ident_type, path_segments))
+        Some(PathExpr::new(ident_type, path_segments))
     }
 
-    fn parse_expr(&mut self, min_bp: u8) -> ParseResult<Expr> {
+    fn parse_expr(&mut self, min_bp: u8) -> Option<Expr> {
         let start = self.pos;
 
         // Check for prefix operator
@@ -1217,11 +1192,12 @@ impl<'ctxt> Parser<'ctxt> {
                             ExprKind::Array(ArrayExpr::Initializer(exprs))
                         }
                         Some(token) => {
-                            return self
-                                .expected_tokens(vec![TokenType::Semicolon, TokenType::Comma]);
+                            self.expected_tokens(vec![TokenType::Semicolon, TokenType::Comma]);
+                            None
                         }
                         None => {
-                            return self.unexpected_end();
+                            self.unexpected_end();
+                            None
                         }
                     }
                 }
@@ -1241,12 +1217,14 @@ impl<'ctxt> Parser<'ctxt> {
 
                 // Handle unexpected token
                 token => {
-                    return self.unexpected_token(token);
+                    self.unexpected_token(token);
+                    None
                 }
             };
             expr
         } else {
-            return self.unexpected_end();
+            self.unexpected_end();
+            None
         };
 
         // We don't assign IDs to parentheses because they are discarded later.
@@ -1310,7 +1288,7 @@ impl<'ctxt> Parser<'ctxt> {
             break;
         }
 
-        Ok(lhs_expr)
+        Some(lhs_expr)
     }
 
     fn prefix_op(&mut self) -> Option<UnaryOp> {
@@ -1374,7 +1352,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn parse_match_arm(&mut self) -> ParseResult<MatchArm> {
+    fn parse_match_arm(&mut self) -> Option<MatchArm> {
         self.track_span();
         let mut patterns = self
             .parse_multiple_with_delimiter(|parser| parser.parse_pattern(), TokenType::BitwiseOr)?;
@@ -1386,10 +1364,10 @@ impl<'ctxt> Parser<'ctxt> {
 
         self.expect(TokenType::RightArrow)?;
         let stmt = self.parse_block_or_expr()?;
-        Ok(MatchArm::new(pattern, stmt, self.get_span(), self.get_id()))
+        Some(MatchArm::new(pattern, stmt, self.get_span(), self.get_id()))
     }
 
-    fn parse_block_or_expr(&mut self) -> ParseResult<Stmt> {
+    fn parse_block_or_expr(&mut self) -> Option<Stmt> {
         if self.matches(TokenType::LeftBrace) {
             self.parse_block_stmt()
         } else {
@@ -1404,36 +1382,36 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn parse_pattern(&mut self) -> ParseResult<Pattern> {
+    fn parse_pattern(&mut self) -> Option<Pattern> {
         // TODO: Support range patterns and guards
         match self.current() {
             Some(TokenType::String(str)) => {
                 self.advance();
-                Ok(Pattern::String(str))
+                Some(Pattern::String(str))
             }
             Some(TokenType::Int(int)) => {
                 self.advance();
-                Ok(Pattern::Int(int))
+                Some(Pattern::Int(int))
             }
             Some(TokenType::UInt(uint)) => {
                 self.advance();
-                Ok(Pattern::UInt(uint))
+                Some(Pattern::UInt(uint))
             }
             Some(TokenType::True) => {
                 self.advance();
-                Ok(Pattern::True)
+                Some(Pattern::True)
             }
             Some(TokenType::False) => {
                 self.advance();
-                Ok(Pattern::False)
+                Some(Pattern::False)
             }
             Some(TokenType::None) => {
                 self.advance();
-                Ok(Pattern::None)
+                Some(Pattern::None)
             }
             Some(TokenType::Underscore) => {
                 self.advance();
-                Ok(Pattern::Wildcard)
+                Some(Pattern::Wildcard)
             }
             Some(token_type) => {
                 let ty = self.parse_path_ty()?;
@@ -1446,7 +1424,7 @@ impl<'ctxt> Parser<'ctxt> {
                         )?;
                         self.expect(TokenType::RightParentheses)?;
                         let destructure_pat = DestructurePattern::new(ty, exprs);
-                        Ok(Pattern::Destructure(destructure_pat))
+                        Some(Pattern::Destructure(destructure_pat))
                     }
                     Some(TokenType::Identifier(str)) => {
                         self.track_span();
@@ -1455,11 +1433,11 @@ impl<'ctxt> Parser<'ctxt> {
                             ty,
                             Some(PatternLocal::new(str, self.get_span(), self.get_id())),
                         );
-                        Ok(Pattern::Ty(ty_pat))
+                        Some(Pattern::Ty(ty_pat))
                     }
                     Some(TokenType::RightArrow) | Some(TokenType::BitwiseXor) => {
                         let ty_pat = TyPattern::new(ty, None);
-                        Ok(Pattern::Ty(ty_pat))
+                        Some(Pattern::Ty(ty_pat))
                     }
                     Some(token) => self.unexpected_token(token),
                     None => self.unexpected_end(),
@@ -1469,7 +1447,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn destructure_expr(&mut self) -> ParseResult<DestructureExpr> {
+    fn destructure_expr(&mut self) -> Option<DestructureExpr> {
         self.track_span();
         match self.current() {
             Some(TokenType::Identifier(ident)) => {
@@ -1477,7 +1455,7 @@ impl<'ctxt> Parser<'ctxt> {
                 match self.next_type(1) {
                     Some(TokenType::Comma) | Some(TokenType::RightParentheses) => {
                         self.advance();
-                        Ok(DestructureExpr::new(
+                        Some(DestructureExpr::new(
                             DestructureExprKind::Identifier(ident),
                             self.get_span(),
                             self.get_id(),
@@ -1492,7 +1470,7 @@ impl<'ctxt> Parser<'ctxt> {
                                 TokenType::LeftParentheses,
                                 TokenType::RightParentheses,
                             )?;
-                        Ok(DestructureExpr::new(
+                        Some(DestructureExpr::new(
                             DestructureExprKind::Pattern(DestructurePattern::new(path_ty, exprs)),
                             self.get_span(),
                             self.get_id(),
@@ -1503,7 +1481,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::True) => {
                 self.advance();
-                Ok(DestructureExpr::new(
+                Some(DestructureExpr::new(
                     DestructureExprKind::True,
                     self.get_span(),
                     self.get_id(),
@@ -1511,7 +1489,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::False) => {
                 self.advance();
-                Ok(DestructureExpr::new(
+                Some(DestructureExpr::new(
                     DestructureExprKind::False,
                     self.get_span(),
                     self.get_id(),
@@ -1519,7 +1497,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::String(string)) => {
                 self.advance();
-                Ok(DestructureExpr::new(
+                Some(DestructureExpr::new(
                     DestructureExprKind::String(string),
                     self.get_span(),
                     self.get_id(),
@@ -1527,7 +1505,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::Int(integer)) => {
                 self.advance();
-                Ok(DestructureExpr::new(
+                Some(DestructureExpr::new(
                     DestructureExprKind::Int(integer),
                     self.get_span(),
                     self.get_id(),
@@ -1535,7 +1513,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::UInt(uinteger)) => {
                 self.advance();
-                Ok(DestructureExpr::new(
+                Some(DestructureExpr::new(
                     DestructureExprKind::UInt(uinteger),
                     self.get_span(),
                     self.get_id(),
@@ -1543,7 +1521,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::Float(float)) => {
                 self.advance();
-                Ok(DestructureExpr::new(
+                Some(DestructureExpr::new(
                     DestructureExprKind::Float(float),
                     self.get_span(),
                     self.get_id(),
@@ -1551,7 +1529,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::None) => {
                 self.advance();
-                Ok(DestructureExpr::new(
+                Some(DestructureExpr::new(
                     DestructureExprKind::None,
                     self.get_span(),
                     self.get_id(),
@@ -1562,7 +1540,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
-    fn parse_path_ty(&mut self) -> ParseResult<PathTy> {
+    fn parse_path_ty(&mut self) -> Option<PathTy> {
         let ident = self.qualified_ident()?;
         let generics = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
             |parser| parser.parse_ty(),
@@ -1570,27 +1548,27 @@ impl<'ctxt> Parser<'ctxt> {
             TokenType::Less,
             TokenType::Greater,
         )?;
-        Ok(PathTy::new(ident, Generics::from(generics)))
+        Some(PathTy::new(ident, Generics::from(generics)))
     }
 
     fn parse_multiple<T>(
         &mut self,
-        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
+        parse_rule: fn(&mut Parser<'_>) -> Option<T>,
         matcher: fn(&TokenType) -> bool,
-    ) -> ParseResult<Vec<T>> {
+    ) -> Option<Vec<T>> {
         let mut items = Vec::new();
         while self.current().filter(matcher).is_some() {
             items.push(parse_rule(self)?);
         }
-        Ok(items)
+        Some(items)
     }
 
     fn parse_multiple_with_delimiter_and_matcher<T>(
         &mut self,
-        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
+        parse_rule: fn(&mut Parser<'_>) -> Option<T>,
         delimiter: TokenType,
         matcher: fn(&TokenType) -> bool,
-    ) -> ParseResult<Vec<T>> {
+    ) -> Option<Vec<T>> {
         let mut items = Vec::new();
         loop {
             if self.current().filter(matcher).is_some() {
@@ -1602,14 +1580,14 @@ impl<'ctxt> Parser<'ctxt> {
                 break;
             }
         }
-        Ok(items)
+        Some(items)
     }
 
     fn parse_multiple_with_delimiter<T>(
         &mut self,
-        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
+        parse_rule: fn(&mut Parser<'_>) -> Option<T>,
         delimiter: TokenType,
-    ) -> ParseResult<Vec<T>> {
+    ) -> Option<Vec<T>> {
         let mut items = Vec::new();
         loop {
             items.push(parse_rule(self)?);
@@ -1619,21 +1597,21 @@ impl<'ctxt> Parser<'ctxt> {
                 break;
             }
         }
-        Ok(items)
+        Some(items)
     }
 
     fn parse_multiple_with_scope<T>(
         &mut self,
-        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
+        parse_rule: fn(&mut Parser<'_>) -> Option<T>,
         scope_start: TokenType,
         scope_end: TokenType,
-    ) -> ParseResult<Vec<T>> {
+    ) -> Option<Vec<T>> {
         let mut items = Vec::new();
         if self.matches(scope_start) {
             self.advance();
             if self.matches(scope_end) {
                 self.advance();
-                return Ok(items);
+                return Some(items);
             }
 
             loop {
@@ -1644,23 +1622,23 @@ impl<'ctxt> Parser<'ctxt> {
                 }
             }
         }
-        Ok(items)
+        Some(items)
     }
 
     fn parse_multiple_with_scope_delimiter<T, const N: usize>(
         &mut self,
-        parse_rule: fn(&mut Parser<'_>) -> ParseResult<T>,
+        parse_rule: fn(&mut Parser<'_>) -> Option<T>,
         delimiter: TokenType,
         scope_start: TokenType,
         scope_end: TokenType,
-    ) -> ParseResult<Vec<T>> {
+    ) -> Option<Vec<T>> {
         let mut items = Vec::new();
         if self.matches(scope_start) {
             self.advance();
 
             if self.matches(scope_end) {
                 self.advance();
-                return Ok(items);
+                return Some(items);
             }
 
             loop {
@@ -1675,14 +1653,15 @@ impl<'ctxt> Parser<'ctxt> {
                     self.advance();
                     break;
                 } else {
-                    return match self.current() {
+                    match self.current() {
                         Some(token) => self.unexpected_token(token),
                         None => self.unexpected_end(),
                     };
+                    None
                 }
             }
         }
-        Ok(items)
+        Some(items)
     }
 
     fn intern_str(&mut self, str: &str) -> InternedStr {
@@ -1697,38 +1676,36 @@ impl<'ctxt> Parser<'ctxt> {
         self.compiler_ctxt.resolve_str(key) == string
     }
 
-    fn expected_token<T>(&mut self, token_type: TokenType) -> ParseResult<T> {
+    fn expected_token<T>(&mut self, token_type: TokenType) {
+        // TODO: Emit diagnostic
         let token_position = self.current_position().unwrap_or(self.last_position());
-        Err(ExpectedToken(token_type, token_position))
     }
 
-    fn expected_tokens<T>(&mut self, token_types: Vec<TokenType>) -> ParseResult<T> {
+    fn expected_tokens<T>(&mut self, token_types: Vec<TokenType>) {
         let token_position = self.current_position().unwrap_or(self.last_position());
-        Err(ExpectedTokens(TokenTypes::new(token_types), token_position))
     }
 
-    fn unexpected_token<T>(&mut self, token_type: TokenType) -> ParseResult<T> {
+    fn unexpected_token<T>(&mut self, token_type: TokenType) {
         let token_position = self.current_position().unwrap_or(self.last_position());
-        Err(UnexpectedToken(token_type, token_position))
     }
 
-    fn unexpected_end<T>(&mut self) -> ParseResult<T> {
-        Err(UnexpectedEof(self.last_position()))
+    fn unexpected_end<T>(&mut self) {
+        todo!()
     }
 
     fn current_token(&self) -> Option<Token> {
-        self.tokenized_input.tokens.get(self.pos).copied()
+        self.tokens.tokens.get(self.pos).copied()
     }
 
     fn current(&self) -> Option<TokenType> {
-        self.tokenized_input
+        self.tokens
             .tokens
             .get(self.pos)
             .map(|token| token.token_type)
     }
 
     fn next(&self, delta: usize) -> Option<Token> {
-        self.tokenized_input.tokens.get(self.pos + delta).copied()
+        self.tokens.tokens.get(self.pos + delta).copied()
     }
 
     fn next_type(&self, delta: usize) -> Option<TokenType> {
@@ -1737,32 +1714,33 @@ impl<'ctxt> Parser<'ctxt> {
 
     fn current_position(&mut self) -> Option<NormalizedSpan> {
         if let Some(token) = self.current_token() {
-            Some(self.tokenized_input.token_position(token.span))
+            Some(self.tokens.token_position(token.span))
         } else {
             None
         }
     }
 
     fn last(&mut self) -> Option<Token> {
-        self.tokenized_input.tokens.last().copied()
+        self.tokens.tokens.last().copied()
     }
 
     fn last_position(&mut self) -> NormalizedSpan {
         self.last()
-            .map(|token| self.tokenized_input.token_position(token.span))
+            .map(|token| self.tokens.token_position(token.span))
             .unwrap_or(NormalizedSpan::default())
     }
 
-    fn expect(&mut self, token_type: TokenType) -> ParseResult<()> {
+    fn expect(&mut self, token_type: TokenType) -> Option<()> {
         if self
             .current()
             .filter(|current| current == &token_type)
             .is_some()
         {
             self.advance();
-            Ok(())
+            Some(())
         } else {
-            self.expected_token(token_type)
+            self.expected_token(token_type);
+            None
         }
     }
 
@@ -1772,11 +1750,11 @@ impl<'ctxt> Parser<'ctxt> {
 
     fn matches_multiple<const N: usize>(&mut self, tokens: [TokenType; N]) -> bool {
         let end = self.pos + tokens.len();
-        if self.tokenized_input.tokens.len() < end {
+        if self.tokens.tokens.len() < end {
             return false;
         }
 
-        let token_types: Vec<TokenType> = self.tokenized_input.tokens[self.pos..end]
+        let token_types: Vec<TokenType> = self.tokens.tokens[self.pos..end]
             .iter()
             .map(|token| token.token_type)
             .collect();
@@ -1794,7 +1772,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn remaining(&self) -> usize {
-        self.tokenized_input.tokens.len() - (self.pos + 1)
+        self.tokens.tokens.len() - (self.pos + 1)
     }
 }
 
@@ -1810,11 +1788,6 @@ impl Display for ParseErrKind {
                 f,
                 "expected token {} at {}:{}!",
                 token_type, span.start_line, span.start_pos
-            ),
-            ExpectedTokens(token_types, span) => write!(
-                f,
-                "expected tokens {} at {}:{}!",
-                token_types, span.start_line, span.start_pos
             ),
             UnexpectedToken(token_type, span) => write!(
                 f,
@@ -1861,25 +1834,25 @@ mod tests {
     use crate::compiler::compiler::{CompileError, CompilerCtxt, ParseError};
     use crate::compiler::hir::LocalDefId;
     use crate::compiler::parser::ParseErrKind::{ExpectedToken, UnexpectedEof};
-    use crate::compiler::parser::{ParseErrKind, ParseResult, Parser};
+    use crate::compiler::parser::{ParseErrKind, Parser};
     use crate::compiler::tokens::token::TokenType;
     use crate::compiler::tokens::token::TokenType::{Identifier, Semicolon};
-    use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedInput};
+    use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedOutput};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::types::InternedStr;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
-    fn create_parser<'ctxt>(compiler_ctxt: &'ctxt mut CompilerCtxt, code: &str) -> Parser<'ctxt> {
+    fn create_parser(compiler_ctxt: &mut CompilerCtxt, code: String) -> Parser {
         let tokens = tokenize(compiler_ctxt, code);
         Parser::new(compiler_ctxt, tokens)
     }
 
     #[cfg(test)]
-    fn parse_errors<T: AsRef<str>>(code: T) -> (StringInterner, Vec<ParseErrKind>) {
+    fn parse_errors(code: &'static str) -> (StringInterner, Vec<ParseErrKind>) {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let parser = create_parser(&mut compiler_ctxt, code.as_ref());
+        let parser = create_parser(&mut compiler_ctxt, code.to_string());
 
         if let Some(CompileError::ParseErrors(parse_errors)) = parser.parse().err() {
             (
@@ -1895,21 +1868,21 @@ mod tests {
     }
 
     #[cfg(test)]
-    fn parse_module<T: AsRef<str>>(code: T) -> Result<ModuleOutput, CompileError> {
+    fn parse_module(code: &'static str) -> Option<ModuleOutput> {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let parser = create_parser(&mut compiler_ctxt, code.as_ref());
+        let parser = create_parser(&mut compiler_ctxt, code.to_string());
         parser.parse().map(|ast| (compiler_ctxt, ast))
     }
 
     #[cfg(test)]
-    fn parse_code<T, I: AsRef<str>>(
-        code: I,
-        parser_func: fn(&mut Parser) -> ParseResult<T>,
-    ) -> ParseResult<(CompilerCtxt, T)> {
+    fn parse_code<T>(
+        code: String,
+        parser_func: fn(&mut Parser) -> Option<T>,
+    ) -> Option<(CompilerCtxt, T)> {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let mut parser = create_parser(&mut compiler_ctxt, code.as_ref());
+        let mut parser = create_parser(&mut compiler_ctxt, code);
         let parsed_val = parser_func(&mut parser)?;
-        Ok((compiler_ctxt, parsed_val))
+        Some((compiler_ctxt, parsed_val))
     }
 
     type ModuleOutput = (CompilerCtxt, Module);
@@ -1924,27 +1897,28 @@ mod tests {
     #[cfg(test)]
     macro_rules! parse_ty {
         ($code:expr) => {{
-            let (ctxt, ty) = parse_code($code, |parser| parser.parse_ty()).unwrap();
+            let (ctxt, ty) = parse_code($code.to_string(), |parser| parser.parse_ty()).unwrap();
             (StringInterner::from(ctxt), ty)
         }};
     }
 
     #[cfg(test)]
     fn parse_path(code: &str) -> (StringInterner, PathExpr) {
-        let (ctxt, path) = parse_code(code, |parser| parser.parse_path_expr()).unwrap();
+        let (ctxt, path) = parse_code(code.to_string(), |parser| parser.parse_path_expr()).unwrap();
         (StringInterner::from(ctxt), path)
     }
 
     #[cfg(test)]
     fn parse_stmt(code: &str) -> (StringInterner, Stmt) {
-        let (ctxt, path) = parse_code(code, |parser| parser.parse_inner_stmt()).unwrap();
+        let (ctxt, path) =
+            parse_code(code.to_string(), |parser| parser.parse_inner_stmt()).unwrap();
         (StringInterner::from(ctxt), path)
     }
 
     #[cfg(test)]
     macro_rules! parse_expr {
         ($code:expr) => {{
-            parse_code($code, |parser| parser.expr()).unwrap()
+            parse_code($code.to_string(), |parser| parser.expr()).unwrap()
         }};
     }
 

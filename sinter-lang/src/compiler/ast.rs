@@ -12,7 +12,7 @@ use crate::compiler::krate::CrateId;
 use crate::compiler::parser::{ClassType, ParseErrKind};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ModuleNS;
-use crate::compiler::tokens::tokenized_file::Span;
+use crate::compiler::tokens::tokenized_file::{LineMap, Span};
 use crate::compiler::types::InternedStr;
 use crate::compiler::utils::named_slice;
 use crate::traits::traits::Trait;
@@ -133,19 +133,21 @@ pub enum TyKind {
 
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Module {
-    pub(crate) path: ModulePath,
     pub(crate) id: ModuleId,
-    pub(crate) ns: ModuleNS,
+    pub(crate) path: ModulePath,
+    pub(crate) namespace: ModuleNS,
     pub(crate) items: Vec<Item>,
+    pub(crate) line_map: LineMap,
 }
 
 impl Module {
-    pub fn new(items: Vec<Item>) -> Self {
+    pub fn new(items: Vec<Item>, line_map: LineMap) -> Self {
         Self {
             path: Default::default(),
             id: Default::default(),
-            ns: Default::default(),
+            namespace: Default::default(),
             items,
+            line_map,
         }
     }
 }

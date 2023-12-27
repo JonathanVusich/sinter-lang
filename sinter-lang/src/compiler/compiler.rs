@@ -14,11 +14,13 @@ use serde::{Deserialize, Deserializer, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
 use crate::compiler::ast::{AstPass, Module};
+use crate::compiler::errors::{Diagnostic, Diagnostics};
 use crate::compiler::hir::{HirCrate, HirMap, LocalDefId};
 use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseErrKind};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{resolve, ResolveErrKind};
+use crate::compiler::tokens::tokenized_file::{Span, TokenSource};
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
 use crate::compiler::type_inference::ty_infer::{CrateInference, Type, TypeErrKind, TypeMap};
 use crate::compiler::types::{DefMap, InternedStr, LDefMap, StrMap};
@@ -43,7 +45,7 @@ pub enum Application<'a> {
         crate_path: &'a Path,
     },
     Inline {
-        code: &'a str,
+        code: String,
     },
 }
 
@@ -146,11 +148,28 @@ impl Debug for CompileError {
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct CompilerCtxt {
     string_interner: StringInterner,
+    diagnostics: Diagnostics,
     crate_id: usize,
     local_def_id: usize,
 }
 
 impl CompilerCtxt {
+    pub(crate) fn emit_io_error(&mut self) {
+        todo!()
+    }
+    pub(crate) fn emit_diagnostic(&mut self,
+                                  source: &TokenSource,
+                                  line: u32,
+                                  highlight_span: Span,
+                                  error_msg: String) {
+        // TODO: Implement lookup of code source
+        Diagnostic::Error {
+            line: "".to_string(),
+            highlight_span,
+            error_msg,
+        }
+    }
+
     pub(crate) fn intern_str(&mut self, str: &str) -> InternedStr {
         self.string_interner.get_or_intern(str).into()
     }
@@ -274,7 +293,7 @@ impl Compiler {
         }
     }
 
-    pub(crate) fn parse_inline_crate(&mut self, code: &str) -> Result<Crate, CompileError> {
+    pub(crate) fn parse_inline_crate(&mut self, code: String) -> Result<Crate, CompileError> {
         let krate_name = self.compiler_ctxt.intern_str("krate");
 
         let mut krate = Crate::new(krate_name, self.compiler_ctxt.crate_id());
@@ -334,7 +353,7 @@ impl Compiler {
         Ok(krate)
     }
 
-    pub(crate) fn parse_ast(&mut self, path: &Path) -> Result<Module, CompileError> {
+    pub(crate) fn parse_ast(&mut self, path: &Path) -> Option<Module> {
         let tokens = tokenize_file(&mut self.compiler_ctxt, path)?;
         parse(&mut self.compiler_ctxt, tokens)
     }

@@ -917,6 +917,7 @@ pub struct HirCrate {
     pub(crate) nodes: LDefMap<HirNode>,
     #[cfg(test)]
     pub(crate) nodes: BTreeMap<LocalDefId, HirNode>,
+    pub(crate) line_map: Vec<u32>,
 }
 
 def_node_getter!(
