@@ -1258,6 +1258,7 @@ impl<'a> CrateResolver<'a> {
         let mut segments = Vec::with_capacity(path_expr.segments.len());
         match path_expr.ident_type {
             IdentType::Crate => {
+                todo!()
                 // TODO: Implement crate local path resolution
             }
             IdentType::LocalOrUse => {

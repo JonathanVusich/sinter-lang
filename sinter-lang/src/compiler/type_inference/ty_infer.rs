@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::Deref;
@@ -14,7 +15,7 @@ use crate::compiler::hir::{
 };
 use crate::compiler::resolver::{ClassDef, FnDef, GlobalVarDef, ValueDef};
 use crate::compiler::type_inference::unification::{TyVar, UnificationTable};
-use crate::compiler::types::LDefMap;
+use crate::compiler::types::{InternedStr, LDefMap};
 
 #[derive(Debug)]
 pub enum TypeErrKind {
@@ -347,12 +348,12 @@ impl<'a> CrateInference<'a> {
                                     let krate = self.hir_map.krate(id);
                                     let class_stmt = krate.class_stmt(&id.local_id());
 
-                                    let param_tys = class_stmt
-                                        .fields
-                                        .values()
-                                        .map(|field| krate.field(field))
-                                        .map(|field| self.existing_ty(field.ty.to_def_id(krate.id)))
-                                        .collect();
+                                    // Create ty vars for each generic param that will be reused through all of the
+                                    // references in the class definition. This should ensure that constraints are
+                                    // propagated correctly.
+
+                                    // Either that or we need to ensure that constraints are propagated correctly through
+                                    // the function definition.
 
                                     let generic_params = class_stmt
                                         .generic_params
@@ -360,6 +361,13 @@ impl<'a> CrateInference<'a> {
                                         .map(|generic_param| {
                                             self.existing_ty(generic_param.to_def_id(krate.id))
                                         })
+                                        .collect();
+
+                                    let param_tys = class_stmt
+                                        .fields
+                                        .values()
+                                        .map(|field| krate.field(field))
+                                        .map(|field| self.existing_ty(field.ty.to_def_id(krate.id)))
                                         .collect();
 
                                     let ret_ty = Type::Path(Path::new(*id, generic_params));
@@ -629,9 +637,7 @@ impl<'a> CrateInference<'a> {
                         self.substitute(&index.key);
                     }
                     Expr::Path(path) => {
-                        // TODO: Figure out substitution for paths?
-                        dbg!(path);
-                        todo!()
+                        // Not sure what to do here.
                     }
                 }
             }
@@ -684,9 +690,9 @@ impl<'a> CrateInference<'a> {
         }
 
         let ty = self.ty_map.get(node_id).clone();
-        let ty = self.probe_ty(ty);
         dbg!(node);
         dbg!(&ty);
+        let ty = self.probe_ty(ty);
         self.ty_map.insert(node_id, ty);
     }
 
@@ -720,7 +726,10 @@ impl<'a> CrateInference<'a> {
             }
             Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
             Type::GenericParam(generic_param) => {
-                self.unify_table.probe(generic_param.ty_var).unwrap()
+                let p_ty = self.unify_table.probe(generic_param.ty_var);
+                dbg!(&generic_param);
+                dbg!(&p_ty);
+                p_ty.unwrap()
             }
             Type::U8 => Type::U8,
             Type::U16 => Type::U16,
@@ -753,7 +762,7 @@ impl<'a> CrateInference<'a> {
                 Type::Array(Array::new(self.existing_ty(array.ty.to_def_id(krate.id))))
             }
             Ty::Path(path) => {
-                // TODO: Handle generics
+                // TODO: Look up generics from the existing scope
                 self.existing_ty(path.definition)
             }
             Ty::GenericParam(generic_param) => {
@@ -766,7 +775,7 @@ impl<'a> CrateInference<'a> {
                     }
                 });
 
-                // TODO: Is this a special case where we don't need to record the type in our ty_map since it is ephemeral?
+                // TODO: Look up generic param from the existing scope
                 Type::GenericParam(GenericParam::new(self.unify_table.fresh_ty(), trait_bound))
             }
             Ty::TraitBound(trait_bound) => {
