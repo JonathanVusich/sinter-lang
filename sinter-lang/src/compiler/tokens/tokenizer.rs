@@ -12,15 +12,12 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::compiler::compiler::{CompileError, CompilerCtxt, Generic};
 use crate::compiler::interner::{Interner, Key};
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{TokenSource, TokenizedOutput, Tokens};
+use crate::compiler::tokens::tokenized_file::{Source, TokenizedOutput, Tokens};
 use crate::compiler::types::InternedStr;
 use crate::compiler::StringInterner;
 
-pub fn tokenize_file(
-    compiler_ctxt: &mut CompilerCtxt,
-    path: &Path,
-) -> Result<Tokens, CompileError> {
-    let token_source = TokenSource::Path(path.to_path_buf());
+pub fn tokenize_file(compiler_ctxt: &mut CompilerCtxt, path: &Path) -> Option<Tokens> {
+    let token_source = Source::Path(path.to_path_buf());
 
     let source_file = fs::read_to_string(path).map_err(|err| {
         let boxed_err: Box<dyn Error> = Box::new(err);
@@ -28,7 +25,7 @@ pub fn tokenize_file(
     })?;
     let tokenizer = Tokenizer::new(compiler_ctxt, &source_file);
     let tokenized_output = tokenizer.tokenize();
-    Ok(Tokens {
+    Some(Tokens {
         tokens: tokenized_output.tokens,
         line_map: tokenized_output.line_map,
         token_source,
@@ -41,7 +38,7 @@ pub fn tokenize(compiler_ctxt: &mut CompilerCtxt, input: String) -> Tokens {
     Tokens {
         tokens: tokenized_output.tokens,
         line_map: tokenized_output.line_map,
-        token_source: TokenSource::Inline(input),
+        token_source: Source::Inline(input),
     }
 }
 
@@ -227,7 +224,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
                     tokens.push(char);
                     self.next();
                 }
-                
+
                 let str = tokens.join("");
 
                 let token_type: TokenType = str
@@ -239,7 +236,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
                 return;
             }
         }
-        
+
         let str = tokens.join("");
 
         let token_type = str
@@ -254,7 +251,8 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
         while let Some(char) = self.peek().filter(|char| *char != "\"") {
             self.next();
             if is_line_break(char) {
-                self.tokenized_file.add_line_break(self.current_byte_pos as u32);
+                self.tokenized_file
+                    .add_line_break(self.current_byte_pos as u32);
             }
             tokens.push(char);
         }
@@ -277,7 +275,8 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
                     self.next();
                 }
                 "\r" | "\n" | "\r\n" => {
-                    self.tokenized_file.add_line_break(self.current_byte_pos as u32);
+                    self.tokenized_file
+                        .add_line_break(self.current_byte_pos as u32);
                     self.next();
                 }
                 "/" => {

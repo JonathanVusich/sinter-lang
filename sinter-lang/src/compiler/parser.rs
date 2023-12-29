@@ -27,14 +27,14 @@ use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedOut
 use crate::compiler::types::{InternedStr, InternedTy};
 use crate::compiler::StringInterner;
 
-pub fn parse(ctxt: &mut CompilerCtxt, input: Tokens) -> Option<Module> {
+pub fn parse(ctxt: &mut CompilerCtxt, input: Vec<Token>) -> Option<Module> {
     let parser = Parser::new(ctxt, input);
     parser.parse()
 }
 
 struct Parser<'ctxt> {
     compiler_ctxt: &'ctxt mut CompilerCtxt,
-    tokens: Tokens,
+    tokens: Vec<Token>,
     pos: usize,
     spans: Vec<usize>,
 }
@@ -61,7 +61,7 @@ pub enum ClassType {
 }
 
 impl<'ctxt> Parser<'ctxt> {
-    fn new(ctxt: &'ctxt mut CompilerCtxt, tokens: Tokens) -> Self {
+    fn new(ctxt: &'ctxt mut CompilerCtxt, tokens: Vec<Token>) -> Self {
         Self {
             compiler_ctxt: ctxt,
             tokens,
@@ -90,16 +90,8 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn compute_span(&self, start: usize) -> Span {
-        let start_token = self
-            .tokens
-            .tokens
-            .get(start)
-            .expect("No valid start token!");
-        let end_token = self
-            .tokens
-            .tokens
-            .get(self.pos - 1)
-            .expect("No valid end token!");
+        let start_token = self.tokens.get(start).expect("No valid start token!");
+        let end_token = self.tokens.get(self.pos - 1).expect("No valid end token!");
 
         start_token.span.to(end_token.span)
     }
@@ -107,7 +99,7 @@ impl<'ctxt> Parser<'ctxt> {
     fn parse_module(mut self) -> Option<Module> {
         let mut items = Vec::new();
 
-        while self.pos < self.tokens.tokens.len() {
+        while self.pos < self.tokens.len() {
             match self.parse_outer_item() {
                 Some(item) => items.push(item),
                 None => {
@@ -134,7 +126,7 @@ impl<'ctxt> Parser<'ctxt> {
         if self.compiler_ctxt.has_diagnostics() {
             None
         }
-        Some(Module::new(items, self.tokens.line_map))
+        Some(Module::new(items))
     }
 
     fn parse_node<T, I>(
@@ -289,8 +281,14 @@ impl<'ctxt> Parser<'ctxt> {
                     self.get_id(),
                 ))
             }
-            Some(token) => self.unexpected_token(token),
-            None => self.unexpected_end(),
+            Some(token) => {
+                self.unexpected_token(token);
+                None
+            }
+            None => {
+                self.unexpected_end();
+                None
+            }
         }
     }
 
@@ -330,7 +328,7 @@ impl<'ctxt> Parser<'ctxt> {
             _ => {
                 let ident = self.intern_str("");
                 self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)]);
-                None
+                return None;
             }
         };
         let identifier = self.identifier()?;
@@ -1676,58 +1674,37 @@ impl<'ctxt> Parser<'ctxt> {
         self.compiler_ctxt.resolve_str(key) == string
     }
 
-    fn expected_token<T>(&mut self, token_type: TokenType) {
+    fn expected_token(&mut self, token_type: TokenType) {
         // TODO: Emit diagnostic
-        let token_position = self.current_position().unwrap_or(self.last_position());
+        todo!()
     }
 
-    fn expected_tokens<T>(&mut self, token_types: Vec<TokenType>) {
-        let token_position = self.current_position().unwrap_or(self.last_position());
+    fn expected_tokens(&mut self, token_types: Vec<TokenType>) {
+        todo!()
     }
 
-    fn unexpected_token<T>(&mut self, token_type: TokenType) {
-        let token_position = self.current_position().unwrap_or(self.last_position());
+    fn unexpected_token(&mut self, token_type: TokenType) {
+        todo!()
     }
 
-    fn unexpected_end<T>(&mut self) {
+    fn unexpected_end(&mut self) {
         todo!()
     }
 
     fn current_token(&self) -> Option<Token> {
-        self.tokens.tokens.get(self.pos).copied()
+        self.tokens.get(self.pos).copied()
     }
 
     fn current(&self) -> Option<TokenType> {
-        self.tokens
-            .tokens
-            .get(self.pos)
-            .map(|token| token.token_type)
+        self.tokens.get(self.pos).map(|token| token.token_type)
     }
 
     fn next(&self, delta: usize) -> Option<Token> {
-        self.tokens.tokens.get(self.pos + delta).copied()
+        self.tokens.get(self.pos + delta).copied()
     }
 
     fn next_type(&self, delta: usize) -> Option<TokenType> {
         self.next(delta).map(|token| token.token_type)
-    }
-
-    fn current_position(&mut self) -> Option<NormalizedSpan> {
-        if let Some(token) = self.current_token() {
-            Some(self.tokens.token_position(token.span))
-        } else {
-            None
-        }
-    }
-
-    fn last(&mut self) -> Option<Token> {
-        self.tokens.tokens.last().copied()
-    }
-
-    fn last_position(&mut self) -> NormalizedSpan {
-        self.last()
-            .map(|token| self.tokens.token_position(token.span))
-            .unwrap_or(NormalizedSpan::default())
     }
 
     fn expect(&mut self, token_type: TokenType) -> Option<()> {
@@ -1750,11 +1727,11 @@ impl<'ctxt> Parser<'ctxt> {
 
     fn matches_multiple<const N: usize>(&mut self, tokens: [TokenType; N]) -> bool {
         let end = self.pos + tokens.len();
-        if self.tokens.tokens.len() < end {
+        if self.tokens.len() < end {
             return false;
         }
 
-        let token_types: Vec<TokenType> = self.tokens.tokens[self.pos..end]
+        let token_types: Vec<TokenType> = self.tokens[self.pos..end]
             .iter()
             .map(|token| token.token_type)
             .collect();
@@ -1772,7 +1749,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn remaining(&self) -> usize {
-        self.tokens.tokens.len() - (self.pos + 1)
+        self.tokens.len() - (self.pos + 1)
     }
 }
 
@@ -1854,6 +1831,7 @@ mod tests {
         let mut compiler_ctxt = CompilerCtxt::default();
         let parser = create_parser(&mut compiler_ctxt, code.to_string());
 
+        // let diagnostics = compiler_ctxt.emit_error()
         if let Some(CompileError::ParseErrors(parse_errors)) = parser.parse().err() {
             (
                 StringInterner::from(compiler_ctxt),

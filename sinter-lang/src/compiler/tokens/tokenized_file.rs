@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 pub struct Tokens {
     pub(crate) tokens: Vec<Token>,
     pub(crate) line_map: LineMap,
-    pub(crate) token_source: TokenSource,
+    pub(crate) token_source: Source,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -17,7 +17,7 @@ pub struct TokenizedOutput {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub enum TokenSource {
+pub enum Source {
     Inline(String),
     Path(PathBuf),
 }

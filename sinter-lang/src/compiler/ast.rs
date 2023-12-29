@@ -137,17 +137,15 @@ pub struct Module {
     pub(crate) path: ModulePath,
     pub(crate) namespace: ModuleNS,
     pub(crate) items: Vec<Item>,
-    pub(crate) line_map: LineMap,
 }
 
 impl Module {
-    pub fn new(items: Vec<Item>, line_map: LineMap) -> Self {
+    pub fn new(items: Vec<Item>) -> Self {
         Self {
             path: Default::default(),
             id: Default::default(),
             namespace: Default::default(),
             items,
-            line_map,
         }
     }
 }

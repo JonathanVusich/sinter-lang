@@ -36,7 +36,7 @@ impl Display for ValidationErrKind {
     }
 }
 
-pub fn validate(crates: &StrMap<Crate>, krate: &Crate, module: &Module) -> Vec<ValidationError> {
+pub fn validate(crates: &StrMap<Crate>, krate: &Crate, module: &Module) -> bool {
     let validator = Validator::default();
     validator.validate(crates, krate, module)
 }
@@ -51,12 +51,7 @@ struct Validator {
 }
 
 impl Validator {
-    fn validate(
-        mut self,
-        crates: &StrMap<Crate>,
-        krate: &Crate,
-        module: &Module,
-    ) -> Vec<ValidationError> {
+    fn validate(mut self, crates: &StrMap<Crate>, krate: &Crate, module: &Module) -> bool {
         for item in &module.items {
             match &item.kind {
                 ItemKind::Use(use_stmt) => {

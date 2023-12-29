@@ -1,5 +1,5 @@
 use crate::compiler::hir::ModuleId;
-use crate::compiler::tokens::tokenized_file::{Span, TokenSource};
+use crate::compiler::tokens::tokenized_file::{Span, Source};
 use serde::{Deserialize, Serialize};
 use std::fmt::format;
 use std::io;
@@ -32,7 +32,7 @@ impl Diagnostics {
 pub enum Diagnostic {
     IOError(PathBuf),
     Error {
-        token_source: TokenSource,
+        line: String,
         highlight_span: Span, // Local to the line with the error.
         error_msg: String,
     },

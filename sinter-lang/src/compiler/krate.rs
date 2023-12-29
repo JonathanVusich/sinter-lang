@@ -197,13 +197,14 @@ impl Crate {
         }
     }
 
-    pub fn add_module(&mut self, module_path: ModulePath, mut module: Module) {
+    pub fn add_module(&mut self, module_path: ModulePath, mut module: Module) -> ModuleId {
         let module_id = self.modules.len();
         let full_mod_id = ModuleId::new(self.crate_id.id, module_id as u32);
         module.id = full_mod_id;
         self.module_trie.insert(module_path, full_mod_id);
         // self.module_lookup.insert(module_path, full_mod_id);
         self.modules.push(module);
+        full_mod_id
     }
 
     pub fn find_definition(
