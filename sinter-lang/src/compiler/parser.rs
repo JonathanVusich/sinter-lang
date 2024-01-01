@@ -1,12 +1,9 @@
 use std::error::Error;
-use std::fmt::Alignment::Right;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
-use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::class::compiled_class::CompiledClass;
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
 use crate::compiler::ast::{
     Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructureExpr,
@@ -14,18 +11,16 @@ use crate::compiler::ast::{
     Field, FieldExpr, Fields, FnSelfStmt, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam,
     GenericParams, Generics, GlobalLetStmt, Ident, IdentType, IfStmt, IndexExpr, InfixExpr,
     InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param,
-    Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal, PostfixOp, QualifiedIdent, Range,
+    Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal, PostfixOp, QualifiedIdent,
     ReturnStmt, Segment, Stmt, StmtKind, TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind,
     TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
 };
-use crate::compiler::compiler::{CompileError, CompilerCtxt, ParseError};
+use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::hir::LocalDefId;
-use crate::compiler::interner::{Interner, Key};
 use crate::compiler::parser::ParseErrKind::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedOutput, Tokens};
-use crate::compiler::types::{InternedStr, InternedTy};
-use crate::compiler::StringInterner;
+use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span};
+use crate::compiler::types::InternedStr;
 
 pub fn parse(ctxt: &mut CompilerCtxt, input: Vec<Token>) -> Option<Module> {
     let parser = Parser::new(ctxt, input);
@@ -123,8 +118,8 @@ impl<'ctxt> Parser<'ctxt> {
             }
         }
 
-        if self.compiler_ctxt.has_diagnostics() {
-            None
+        if self.compiler_ctxt.diagnostics().has_errors() {
+            return None;
         }
         Some(Module::new(items))
     }
@@ -281,14 +276,8 @@ impl<'ctxt> Parser<'ctxt> {
                     self.get_id(),
                 ))
             }
-            Some(token) => {
-                self.unexpected_token(token);
-                None
-            }
-            None => {
-                self.unexpected_end();
-                None
-            }
+            Some(token) => self.unexpected_token(token),
+            None => self.unexpected_end(),
         }
     }
 
@@ -327,8 +316,7 @@ impl<'ctxt> Parser<'ctxt> {
             Some(TokenType::Identifier(_)) => Immutable,
             _ => {
                 let ident = self.intern_str("");
-                self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)]);
-                return None;
+                return self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)]);
             }
         };
         let identifier = self.identifier()?;
@@ -517,7 +505,8 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(token) => {
                 let ident = self.intern_str("");
-                self.expected_token(TokenType::Identifier(ident))
+                self.expected_token(TokenType::Identifier(ident));
+                None
             }
             None => self.unexpected_end(),
         }
@@ -547,7 +536,7 @@ impl<'ctxt> Parser<'ctxt> {
                 _ => {
                     let ident = self.intern_str("");
                     self.expected_token(TokenType::Identifier(ident));
-                    None
+                    return None;
                 }
             }
         }
@@ -660,7 +649,8 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(token) => {
                 let ident = self.intern_str("");
-                self.expected_token(TokenType::Identifier(ident))
+                self.expected_token(TokenType::Identifier(ident));
+                None
             }
             None => self.unexpected_end(),
         }
@@ -762,7 +752,10 @@ impl<'ctxt> Parser<'ctxt> {
                     self.get_id(),
                 ))
             }
-            Some(token) => self.expected_token(TokenType::SelfLowercase),
+            Some(token) => {
+                self.expected_token(TokenType::SelfLowercase);
+                None
+            }
             None => self.unexpected_end(),
         }
     }
@@ -1078,12 +1071,11 @@ impl<'ctxt> Parser<'ctxt> {
                     }
                     Some(token) => {
                         let ident = self.intern_str("");
-                        self.expected_tokens(vec![TokenType::Less, TokenType::Identifier(ident)]);
-                        None
+                        return self
+                            .expected_tokens(vec![TokenType::Less, TokenType::Identifier(ident)]);
                     }
                     None => {
-                        self.unexpected_end();
-                        None
+                        return self.unexpected_end();
                     }
                 }
             } else {
@@ -1190,12 +1182,11 @@ impl<'ctxt> Parser<'ctxt> {
                             ExprKind::Array(ArrayExpr::Initializer(exprs))
                         }
                         Some(token) => {
-                            self.expected_tokens(vec![TokenType::Semicolon, TokenType::Comma]);
-                            None
+                            return self
+                                .expected_tokens(vec![TokenType::Semicolon, TokenType::Comma]);
                         }
                         None => {
-                            self.unexpected_end();
-                            None
+                            return self.unexpected_end();
                         }
                     }
                 }
@@ -1215,14 +1206,12 @@ impl<'ctxt> Parser<'ctxt> {
 
                 // Handle unexpected token
                 token => {
-                    self.unexpected_token(token);
-                    None
+                    return self.unexpected_token(token);
                 }
             };
             expr
         } else {
-            self.unexpected_end();
-            None
+            return self.unexpected_end();
         };
 
         // We don't assign IDs to parentheses because they are discarded later.
@@ -1474,7 +1463,7 @@ impl<'ctxt> Parser<'ctxt> {
                             self.get_id(),
                         ))
                     }
-                    None => self.unexpected_end(),
+                    None => self.unexpected_end()?,
                 }
             }
             Some(TokenType::True) => {
@@ -1651,11 +1640,10 @@ impl<'ctxt> Parser<'ctxt> {
                     self.advance();
                     break;
                 } else {
-                    match self.current() {
+                    return match self.current() {
                         Some(token) => self.unexpected_token(token),
                         None => self.unexpected_end(),
                     };
-                    None
                 }
             }
         }
@@ -1679,15 +1667,15 @@ impl<'ctxt> Parser<'ctxt> {
         todo!()
     }
 
-    fn expected_tokens(&mut self, token_types: Vec<TokenType>) {
+    fn expected_tokens<T>(&mut self, token_types: Vec<TokenType>) -> Option<T> {
         todo!()
     }
 
-    fn unexpected_token(&mut self, token_type: TokenType) {
+    fn unexpected_token<T>(&mut self, token_type: TokenType) -> Option<T> {
         todo!()
     }
 
-    fn unexpected_end(&mut self) {
+    fn unexpected_end<T>(&mut self) -> Option<T> {
         todo!()
     }
 
@@ -1789,66 +1777,54 @@ unsafe impl Send for ParseErrKind {}
 unsafe impl Sync for ParseErrKind {}
 
 mod tests {
-    use std::any::Any;
-    use std::assert_matches::assert_matches;
-    use std::error::Error;
     use std::fmt::Debug;
     use std::fs::File;
     use std::io::{BufReader, BufWriter};
-    use std::path::{Path, PathBuf};
-    use std::sync::Arc;
-
-    use lasso::ThreadedRodeo;
+    use std::path::PathBuf;
 
     use snap::snapshot;
 
-    use crate::compiler::ast::Mutability::{Immutable, Mutable};
-    use crate::compiler::ast::{
-        Args, Block, CallExpr, EnumMember, EnumStmt, Expr, FnSig, FnStmt, LetStmt, Mutability,
-        Param, Params, PathExpr, QualifiedIdent, Stmt, Ty, TyKind,
-    };
-    use crate::compiler::ast::{Module, UseStmt};
-    use crate::compiler::compiler::{CompileError, CompilerCtxt, ParseError};
+    use crate::compiler::ast::Module;
+    use crate::compiler::ast::{Expr, PathExpr, Stmt, Ty, TyKind};
+    use crate::compiler::compiler::CompilerCtxt;
+    use crate::compiler::errors::Diagnostic;
     use crate::compiler::hir::LocalDefId;
-    use crate::compiler::parser::ParseErrKind::{ExpectedToken, UnexpectedEof};
-    use crate::compiler::parser::{ParseErrKind, Parser};
-    use crate::compiler::tokens::token::TokenType;
-    use crate::compiler::tokens::token::TokenType::{Identifier, Semicolon};
-    use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedOutput};
+    use crate::compiler::parser::Parser;
+    use crate::compiler::tokens::tokenized_file::{Span, Tokens};
     use crate::compiler::tokens::tokenizer::tokenize;
-    use crate::compiler::types::InternedStr;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
     fn create_parser(compiler_ctxt: &mut CompilerCtxt, code: String) -> Parser {
-        let tokens = tokenize(compiler_ctxt, code);
+        let Tokens { tokens, .. } = tokenize(compiler_ctxt, code);
         Parser::new(compiler_ctxt, tokens)
     }
 
     #[cfg(test)]
-    fn parse_errors(code: &'static str) -> (StringInterner, Vec<ParseErrKind>) {
+    fn parse_errors<'a, T: AsRef<str>>(code: T) -> (StringInterner, Vec<Diagnostic>) {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let parser = create_parser(&mut compiler_ctxt, code.to_string());
+        let parser = create_parser(&mut compiler_ctxt, code.as_ref().to_string());
 
         // let diagnostics = compiler_ctxt.emit_error()
-        if let Some(CompileError::ParseErrors(parse_errors)) = parser.parse().err() {
-            (
-                StringInterner::from(compiler_ctxt),
-                parse_errors
-                    .into_iter()
-                    .map(ParseError::into_inner)
-                    .collect(),
-            )
+        parser.parse();
+        let errors: Vec<Diagnostic> = compiler_ctxt
+            .diagnostics_mut()
+            .errors()
+            .iter()
+            .map(|diagnostic| **diagnostic)
+            .collect();
+        if !errors.is_empty() {
+            (StringInterner::from(compiler_ctxt), errors)
         } else {
             panic!("Expected parsing to fail!")
         }
     }
 
     #[cfg(test)]
-    fn parse_module(code: &'static str) -> Option<ModuleOutput> {
+    fn parse_module<T: AsRef<str>>(code: T) -> Option<ModuleOutput> {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let parser = create_parser(&mut compiler_ctxt, code.to_string());
+        let parser = create_parser(&mut compiler_ctxt, code.as_ref().to_string());
         parser.parse().map(|ast| (compiler_ctxt, ast))
     }
 
@@ -1868,7 +1844,7 @@ mod tests {
 
     #[cfg(test)]
     fn parse<T: AsRef<str>>(code: T) -> ModuleOutput {
-        let (ctxt, ast) = parse_module(code).unwrap();
+        let (ctxt, ast) = parse_module(code.as_ref().to_string()).unwrap();
         (ctxt, ast)
     }
 
@@ -1902,14 +1878,18 @@ mod tests {
 
     #[test]
     pub fn invalid_use_stmts() {
-        let result = parse_module("use std::vector::");
-        assert_matches!(result, Err(CompileError::ParseErrors(_)));
-        let result = parse_module("use std::vector::Vector");
-        assert_matches!(result, Err(CompileError::ParseErrors(_)));
-        let result = parse_module("use;");
-        assert_matches!(result, Err(CompileError::ParseErrors(_)));
-        let result = parse_module("use");
-        assert_matches!(result, Err(CompileError::ParseErrors(_)));
+        let mut result = parse_module("use std::vector::").unwrap();
+        let errors = result.0.diagnostics().errors();
+        assert!(!errors.is_empty());
+        let result = parse_module("use std::vector::Vector").unwrap();
+        let errors = result.0.diagnostics().errors();
+        assert!(!errors.is_empty());
+        let result = parse_module("use;").unwrap();
+        let errors = result.0.diagnostics().errors();
+        assert!(!errors.is_empty());
+        let result = parse_module("use").unwrap();
+        let errors = result.0.diagnostics().errors();
+        assert!(!errors.is_empty());
     }
 
     #[test]
@@ -2263,7 +2243,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn unexpected_outer_stmt_token() -> (StringInterner, Vec<ParseErrKind>) {
+    pub fn unexpected_outer_stmt_token() -> (StringInterner, Vec<Diagnostic>) {
         parse_errors("enum Stmt { } aflatoxin")
     }
 }

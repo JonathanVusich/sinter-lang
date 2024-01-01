@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::iter::zip;
@@ -9,14 +8,14 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{InfixOp, UnaryOp};
-use crate::compiler::compiler::{CompileError, TypeError};
+use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::errors::Diagnostic;
 use crate::compiler::hir::{
-    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, LocalDefId, Pattern, Primitive,
-    Res, Stmt, TraitBound as HirTraitBound, Ty,
+    ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, LocalDefId, Primitive, Res,
+    Stmt, TraitBound as HirTraitBound, Ty,
 };
 use crate::compiler::resolver::{ClassDef, FnDef, GlobalVarDef, ValueDef};
 use crate::compiler::type_inference::unification::{TyVar, UnificationTable};
-use crate::compiler::types::{InternedStr, LDefMap};
 
 #[derive(Debug)]
 pub enum TypeErrKind {
@@ -38,22 +37,23 @@ impl Display for TypeErrKind {
 }
 
 pub struct TypeInference<'a> {
+    ctxt: &'a CompilerCtxt,
     hir_map: &'a HirMap,
 }
 
 /// High level steps for ty inference.
 /// 2. Do fns need to have their return types canonicalized?
 impl<'a> TypeInference<'a> {
-    pub fn new(hir_map: &'a HirMap) -> Self {
-        Self { hir_map }
+    pub fn new(ctxt: &'a mut CompilerCtxt, hir_map: &'a HirMap) -> Self {
+        Self { ctxt, hir_map }
     }
 
-    pub fn infer_tys(self) -> Result<(), CompileError> {
+    pub fn infer_tys(mut self) -> Option<()> {
         for krate in self.hir_map.krates() {
-            let crate_inference = CrateInference::new(krate, self.hir_map);
+            let crate_inference = CrateInference::new(&mut self.ctxt, krate, self.hir_map);
             crate_inference.infer_tys()?;
         }
-        Ok(())
+        Some(())
     }
 }
 
@@ -80,29 +80,29 @@ impl TypeMap {
 
 #[derive(Debug)]
 pub struct CrateInference<'a> {
+    ctxt: &'a mut CompilerCtxt,
+    hir_map: &'a HirMap,
+    krate: &'a HirCrate,
     unify_table: UnificationTable,
     ty_map: TypeMap,
-    errors: Vec<TypeErrKind>,
-    krate: &'a HirCrate,
-    hir_map: &'a HirMap,
     scopes: Vec<Type>,
 }
 
 impl<'a> CrateInference<'a> {
-    pub fn new(krate: &'a HirCrate, crate_lookup: &'a HirMap) -> Self {
+    pub fn new(ctxt: &'a mut CompilerCtxt, krate: &'a HirCrate, hir_map: &'a HirMap) -> Self {
         Self {
+            ctxt,
+            hir_map,
+            krate,
             unify_table: Default::default(),
             ty_map: TypeMap::new(krate.nodes.len()),
-            errors: Default::default(),
-            krate,
-            hir_map: crate_lookup,
             scopes: Vec::default(),
         }
     }
 
     // TODO: Returned interned ty representation to reduce memory overhead.
     // TODO: Record existing types for class fields and other nodes whose types are known statically.
-    pub fn infer_tys(mut self) -> Result<TypeMap, CompileError> {
+    pub fn infer_tys(mut self) -> Option<TypeMap> {
         for item in self.krate.items.iter() {
             let node = self.krate.node(item);
             match node {
@@ -140,12 +140,7 @@ impl<'a> CrateInference<'a> {
             }
         }
 
-        if !self.errors.is_empty() {
-            return Err(CompileError::TypeErrors(
-                self.errors.into_iter().map(TypeError::from).collect(),
-            ));
-        }
-        Ok(self.ty_map)
+        Some(self.ty_map)
     }
 
     fn infer_fns(&mut self, fn_stmts: &FnStmts) {
@@ -159,18 +154,15 @@ impl<'a> CrateInference<'a> {
 
     fn check_node(&mut self, node: &LocalDefId, ty: Type) {
         let constraints = self.check(node, ty);
-        if let Err(error) = self.unify(constraints) {
-            self.errors.push(error)
-        } else {
+
+        if self.unify(constraints) {
             self.substitute(node);
         }
     }
 
     fn infer_node(&mut self, node: &LocalDefId) {
         let (constraints, ty) = self.infer(node);
-        if let Err(error) = self.unify(constraints) {
-            self.errors.push(error)
-        } else {
+        if self.unify(constraints) {
             self.substitute(node);
         }
     }
@@ -423,20 +415,21 @@ impl<'a> CrateInference<'a> {
         constraints
     }
 
-    fn unify(&mut self, constraints: Constraints) -> Result<(), TypeErrKind> {
+    fn unify(&mut self, constraints: Constraints) -> bool {
         for constr in constraints {
-            match constr {
-                Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs)?,
+            let successful = match constr {
+                Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs),
                 Constraint::Assignable(lhs, rhs) => {
                     if lhs.assignable(&rhs) {
-                        self.unify_ty_ty(lhs, rhs)?;
+                        self.unify_ty_ty(lhs, rhs)
                     } else {
-                        return Err(TypeErrKind::NotAssignable(lhs, rhs));
+                        self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                        return false;
                     }
                 }
-                Constraint::Array(ty) => self.unify_ty_array(ty)?,
-                Constraint::Infix(lhs, rhs, op) => self.unify_infix_op(lhs, rhs, op)?,
-                Constraint::Unary(ty, unary_op) => self.unify_unary_op(ty, unary_op)?,
+                Constraint::Array(ty) => self.unify_ty_array(ty),
+                Constraint::Infix(lhs, rhs, op) => self.unify_infix_op(lhs, rhs, op),
+                Constraint::Unary(ty, unary_op) => self.unify_unary_op(ty, unary_op),
                 Constraint::Callable(callable_constraint) => {
                     let CallableConstraint {
                         target_ty,
@@ -450,13 +443,16 @@ impl<'a> CrateInference<'a> {
                         }
                         Type::Class(class) => {
                             if args.len() != class.fields.len() {
-                                return Err(TypeErrKind::InvalidArgs(ty, args));
+                                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                                return false;
                             }
-                            class.fields
-                        },
+                            // class.fields
+                            todo!()
+                        }
                         Type::Fn(fn_sig) => {
                             if args.len() != fn_sig.params.len() {
-                                return Err(TypeErrKind::InvalidArgs(ty, args));
+                                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                                return false;
                             }
 
                             // TODO: Fix generic args possibly being of a mixed type
@@ -466,11 +462,8 @@ impl<'a> CrateInference<'a> {
                                 let arg = args[x].clone();
                                 let param = fn_sig.params[x].clone();
 
-                                if param.assignable(&arg) {
-                                    self.unify_ty_ty(param, arg)?;
-                                } else {
-                                    // TODO: Improve error messages for invalid fn args
-                                    return Err(TypeErrKind::InvalidArgs(ty, args));
+                                if !(param.assignable(&arg) && self.unify_ty_ty(param, arg)) {
+                                    return false;
                                 }
                             }
 
@@ -492,39 +485,41 @@ impl<'a> CrateInference<'a> {
                         | Type::Boolean
                         | Type::None
                         | Type::Infer(_) => {
-                            return Err(TypeErrKind::NotCallable(ty));
+                            self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                            return false;
                         }
                     }
                 }
-            }
+            };
         }
-        Ok(())
+        true
     }
 
-    fn unify_unary_op(&mut self, ty: Type, unary_op: UnaryOp) -> Result<(), TypeErrKind> {
+    fn unify_unary_op(&mut self, ty: Type, unary_op: UnaryOp) -> bool {
         let ty = self.normalize_ty(ty);
 
         // TODO: Add unary op checking
-        Ok(())
+        true
     }
 
-    fn unify_infix_op(&mut self, lhs: Type, rhs: Type, op: InfixOp) -> Result<(), TypeErrKind> {
-        self.unify_ty_ty(lhs, rhs)?;
-
+    fn unify_infix_op(&mut self, lhs: Type, rhs: Type, op: InfixOp) -> bool {
         // TODO: Add infix op checking
-        Ok(())
+        self.unify_ty_ty(lhs, rhs)
     }
 
-    fn unify_ty_array(&mut self, ty: Type) -> Result<(), TypeErrKind> {
+    fn unify_ty_array(&mut self, ty: Type) -> bool {
         let ty = self.normalize_ty(ty);
 
         match ty {
-            Type::Array(_) => Ok(()),
-            _ => Err(TypeErrKind::NotArray(ty)),
+            Type::Array(_) => true,
+            _ => {
+                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                return false;
+            }
         }
     }
 
-    fn unify_ty_ty(&mut self, lhs: Type, rhs: Type) -> Result<(), TypeErrKind> {
+    fn unify_ty_ty(&mut self, lhs: Type, rhs: Type) -> bool {
         let lhs = self.normalize_ty(lhs);
         let rhs = self.normalize_ty(rhs);
 
@@ -534,7 +529,7 @@ impl<'a> CrateInference<'a> {
             (
                 Type::Infer(lhs) | Type::GenericParam(GenericParam { ty_var: lhs, .. }),
                 Type::Infer(rhs) | Type::GenericParam(GenericParam { ty_var: rhs, .. }),
-            ) => self.unify_table.unify_var_var(lhs, rhs),
+            ) => self.unify_var_var(lhs, rhs),
             (
                 Type::Infer(unknown)
                 | Type::GenericParam(GenericParam {
@@ -548,18 +543,32 @@ impl<'a> CrateInference<'a> {
                 | Type::GenericParam(GenericParam {
                     ty_var: unknown, ..
                 }),
-            ) => {
-                // TODO: Check for cyclic type
-                self.unify_table.unify_var_ty(unknown, ty)
-            }
+            ) => self.unify_var_ty(unknown, ty),
             // If both types are known, then we need to check for type compatibility.
             (lhs, rhs) => {
                 if lhs != rhs {
-                    return Err(TypeErrKind::NotEqual(lhs, rhs));
+                    self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                    return false;
                 }
-                Ok(())
+                true
             }
         }
+    }
+
+    fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> bool {
+        if !self.unify_var_var(lhs, rhs) {
+            self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+            return false;
+        }
+        true
+    }
+
+    fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> bool {
+        if !self.unify_table.unify_var_ty(var, ty) {
+            self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+            return false;
+        }
+        true
     }
 
     /// This function ensures that this type has been substituted with the most up to date version of itself.
@@ -730,14 +739,6 @@ impl<'a> CrateInference<'a> {
     fn probe_ty(&mut self, ty: Type) -> Type {
         match ty {
             Type::Array(array) => Type::Array(Array::new(self.probe_ty(*array.ty))),
-            Type::Path(path) => {
-                let generics = path
-                    .generics
-                    .into_iter()
-                    .map(|ty| self.probe_ty(ty))
-                    .collect();
-                Type::Path(Path::new(path.path, generics))
-            }
             Type::TraitBound(trait_bound) => {
                 let traits = trait_bound
                     .bounds
@@ -911,6 +912,7 @@ impl Path {
 pub struct Class {
     definition: DefId,
     fields: Vec<Type>, // Any generic references should correspond to the generic params.
+    // fns: Vec<FnSig>,
     generic_params: Vec<Type>,
 }
 
@@ -927,7 +929,6 @@ impl Class {
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct GenericParam {
     pub(crate) ty_var: TyVar,
-    pub(crate) definition: DefId,
     pub(crate) trait_bound: Option<TraitBound>,
 }
 
@@ -1074,17 +1075,16 @@ mod tests {
 
     use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
     use crate::compiler::hir::HirCrate;
-    use crate::compiler::type_inference::ty_infer::{Type, TypeMap};
-    use crate::compiler::types::LDefMap;
+    use crate::compiler::type_inference::ty_infer::TypeMap;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
     type InferResult = (StringInterner, HirCrate, TypeMap);
 
     #[cfg(test)]
-    fn parse_module(code: &str) -> InferResult {
+    fn parse_module(code: String) -> InferResult {
         let mut compiler = Compiler::default();
-        let main_crate = utils::resolve_test_krate_path(code);
+        let main_crate = utils::resolve_test_krate_path(&code);
         let crate_path = main_crate.parent().unwrap();
         let application = Application::Inline { code };
         let mut crates = compiler.parse_crates(application).unwrap();
@@ -1163,6 +1163,6 @@ mod tests {
             }
         "###;
 
-        let (si, krate, tys) = parse_module(code);
+        let (si, krate, tys) = parse_module(code.to_owned());
     }
 }

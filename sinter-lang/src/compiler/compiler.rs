@@ -12,14 +12,14 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
-use crate::compiler::ast::{AstPass, Module};
-use crate::compiler::errors::{Diagnostic, Diagnostics};
+use crate::compiler::ast::AstPass;
+use crate::compiler::errors::{Diagnostic, Diagnostics, FatalError};
 use crate::compiler::hir::{HirMap, LocalDefId, ModuleId};
 use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseErrKind};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{resolve, ResolveErrKind};
-use crate::compiler::tokens::tokenized_file::{LineMap, Source, Span, Tokens};
+use crate::compiler::tokens::tokenized_file::{LineMap, Source, Tokens};
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
 use crate::compiler::type_inference::ty_infer::{CrateInference, TypeErrKind, TypeMap};
 use crate::compiler::types::{InternedStr, StrMap};
@@ -177,23 +177,17 @@ pub struct CompilerCtxt {
     string_interner: StringInterner,
     source_map: SourceMap,
     diagnostics: Diagnostics,
-    can_continue: bool,
     crate_id: usize,
     local_def_id: usize,
 }
 
 impl CompilerCtxt {
-    pub(crate) fn emit_fatal(&mut self) {
-        todo!()
+    pub(crate) fn diagnostics(&self) -> &Diagnostics {
+        &self.diagnostics
     }
-    pub(crate) fn emit_error(&mut self, line: u32, highlight_span: Span, error_msg: String) {
-        self.can_continue = false;
-        // TODO: Implement lookup of code source
-        Diagnostic::Error {
-            line: "".to_string(),
-            highlight_span,
-            error_msg,
-        }
+
+    pub(crate) fn diagnostics_mut(&mut self) -> &mut Diagnostics {
+        &mut self.diagnostics
     }
 
     pub(crate) fn intern_source(&mut self, module_id: ModuleId, source: SourceCode) {
@@ -230,7 +224,8 @@ impl CompilerCtxt {
         for segment in path.as_ref().iter() {
             let segment = segment.to_str().or_else(|| {
                 // TODO: Emit compiler fatal
-                self.emit_fatal();
+                self.diagnostics
+                    .emit(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 None
             })?;
             let interned_segment = self.intern_str(segment);
@@ -350,7 +345,9 @@ impl Compiler {
             .map(|path| path.to_os_string())
             .and_then(|path| path.to_str())
             .or_else(|| {
-                self.compiler_ctxt.emit_fatal();
+                self.compiler_ctxt
+                    .diagnostics_mut()
+                    .emit(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 None
             })?;
         let krate_name = self.compiler_ctxt.intern_str(krate_name);
@@ -376,25 +373,29 @@ impl Compiler {
         for file in code_files {
             let local_path = local_to_root(file.path(), path)
                 .map_err(|err| {
-                    // TODO: Emit fatal
-                    self.compiler_ctxt.emit_fatal();
+                    self.compiler_ctxt
+                        .diagnostics_mut()
+                        .emit(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 })
                 .ok()?;
             let module_path = self.compiler_ctxt.module_path(local_path)?;
 
-            let mut module = self.parse_ast(file.path())?;
+            let tokens = tokenize_file(&mut self.compiler_ctxt, path)?;
+            let Tokens {
+                tokens,
+                line_map,
+                token_source,
+            } = tokens;
+            let mut module = parse(&mut self.compiler_ctxt, tokens)?;
 
             module.path = module_path.clone();
-            krate.add_module(module_path, module);
+            let module_id = krate.add_module(module_path, module);
+
+            self.compiler_ctxt
+                .intern_source(module_id, SourceCode::new(token_source, line_map));
         }
 
         Some(krate)
-    }
-
-    pub(crate) fn parse_ast(&mut self, path: &Path) -> Option<Module> {
-        let tokens = tokenize_file(&mut self.compiler_ctxt, path)?;
-
-        parse(&mut self.compiler_ctxt, tokens.tokens)
     }
 
     pub(crate) fn validate_crates(&mut self, crates: &StrMap<Crate>) -> Option<()> {
@@ -412,15 +413,15 @@ impl Compiler {
         resolve(&self.compiler_ctxt, crates)
     }
 
-    pub(crate) fn infer_types(
-        &mut self,
-        hir_map: &HirMap,
-    ) -> Result<StrMap<TypeMap>, CompileError> {
+    pub(crate) fn infer_types(&mut self, hir_map: &HirMap) -> Option<StrMap<TypeMap>> {
         let mut ty_map = StrMap::default();
         for krate in hir_map.krates() {
-            ty_map.insert(krate.name, CrateInference::new(krate, hir_map).infer_tys()?);
+            ty_map.insert(
+                krate.name,
+                CrateInference::new(&mut self.compiler_ctxt, krate, hir_map).infer_tys()?,
+            );
         }
-        Ok(ty_map)
+        Some(ty_map)
     }
 }
 

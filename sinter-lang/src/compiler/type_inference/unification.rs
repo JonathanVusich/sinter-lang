@@ -1,5 +1,6 @@
-use crate::compiler::type_inference::ty_infer::{Type, TypeErrKind};
 use serde::{Deserialize, Serialize};
+
+use crate::compiler::type_inference::ty_infer::Type;
 
 #[derive(Default, Debug)]
 pub(crate) struct UnificationTable {
@@ -22,32 +23,22 @@ impl Entry {
 }
 
 impl UnificationTable {
-    pub(crate) fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> Result<(), TypeErrKind> {
+    pub(crate) fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> bool {
         let lhs = self.get_root_key(lhs);
         let rhs = self.get_root_key(rhs);
 
-        // They are already unified, return early.
-        if lhs == rhs {
-            Ok(())
-        } else {
-            Err(TypeErrKind::UnificationError)
-        }
+        lhs == rhs
     }
 
-    pub(crate) fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> Result<(), TypeErrKind> {
+    pub(crate) fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> bool {
         let root = self.get_root_key(var);
         let entry = self.entry(root);
         match &entry.value {
             None => {
                 entry.value = Some(ty);
-                Ok(())
+                true
             }
-            Some(prev_ty) => {
-                if prev_ty != &ty {
-                    return Err(TypeErrKind::UnificationError);
-                }
-                Ok(())
-            }
+            Some(prev_ty) => prev_ty == &ty,
         }
     }
 

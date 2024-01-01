@@ -26,6 +26,7 @@ use crate::compiler::ast::{
     TyKind as AstTyKind,
 };
 use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::errors::{Diagnostic, InternalError};
 use crate::compiler::hir::{
     AnonParams, Args, Array, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure,
     ClosureExpr, ClosureParam, ClosureParams, DefId, DestructureExpr, DestructurePattern,
@@ -859,7 +860,9 @@ impl<'a> CrateResolver<'a> {
         match self.nodes.insert(id, hir_node) {
             None => Some(()),
             Some(_) => {
-                self.ctxt.emit_fatal();
+                self.ctxt
+                    .diagnostics_mut()
+                    .emit(Diagnostic::Internal(InternalError::Panic));
                 None
             }
         }
