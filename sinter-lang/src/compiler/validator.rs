@@ -8,7 +8,8 @@ use crate::compiler::ast::{
     GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, Stmt,
     StmtKind, UseStmt,
 };
-use crate::compiler::compiler::{CompileError, ValidationError};
+use crate::compiler::compiler::{CompileError, CompilerCtxt, ValidationError};
+use crate::compiler::errors::Diagnostic;
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::krate::Crate;
 use crate::compiler::types::{InternedStr, StrMap};
@@ -36,22 +37,42 @@ impl Display for ValidationErrKind {
     }
 }
 
-pub fn validate(crates: &StrMap<Crate>, krate: &Crate, module: &Module) -> bool {
+pub fn validate(
+    compiler_ctxt: &mut CompilerCtxt,
+    crates: &StrMap<Crate>,
+    krate: &Crate,
+    module: &Module,
+) {
     let validator = Validator::default();
     validator.validate(crates, krate, module)
 }
 
 #[derive(Default)]
-struct Validator {
+struct Validator<'a> {
+    ctxt: &'a mut CompilerCtxt,
     use_stmts: MultiMap<QualifiedIdent, LocalDefId>,
     global_lets: MultiMap<InternedStr, LocalDefId>,
     tys: MultiMap<InternedStr, LocalDefId>,
     fns: MultiMap<InternedStr, LocalDefId>,
-    errors: Vec<ValidationErrKind>,
 }
 
-impl Validator {
-    fn validate(mut self, crates: &StrMap<Crate>, krate: &Crate, module: &Module) -> bool {
+impl<'a> Validator<'a> {
+    pub(crate) fn new(
+        ctxt: &'a mut CompilerCtxt,
+        crates: &StrMap<Crate>,
+        krate: &Crate,
+        module: &Module,
+    ) -> Self {
+        Self {
+            ctxt,
+            use_stmts: Default::default(),
+            global_lets: Default::default(),
+            tys: Default::default(),
+            fns: Default::default(),
+        }
+    }
+
+    fn validate(mut self, crates: &StrMap<Crate>, krate: &Crate, module: &Module) {
         for item in &module.items {
             match &item.kind {
                 ItemKind::Use(use_stmt) => {
@@ -89,34 +110,38 @@ impl Validator {
 
         for (path, use_stmts) in self.use_stmts.iter_all() {
             if use_stmts.len() > 1 {
-                self.errors.push(ValidationErrKind::DuplicateUseStmts(
-                    path.clone(),
-                    use_stmts.clone(),
-                ));
+                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                // self.errors.push(ValidationErrKind::DuplicateUseStmts(
+                //     path.clone(),
+                //     use_stmts.clone(),
+                // ));
             }
         }
         for (name, global_lets) in self.global_lets.iter_all() {
             if global_lets.len() > 1 {
-                self.errors.push(ValidationErrKind::DuplicateLetStmts(
-                    *name,
-                    global_lets.clone(),
-                ))
+                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                // self.errors.push(ValidationErrKind::DuplicateLetStmts(
+                //     *name,
+                //     global_lets.clone(),
+                // ))
             }
         }
         for (name, tys) in self.tys.iter_all() {
             if tys.len() > 1 {
-                self.errors
-                    .push(ValidationErrKind::DuplicateTys(*name, tys.clone()))
+                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                // self.errors
+                //     .push(ValidationErrKind::DuplicateTys(*name, tys.clone()))
             }
         }
         for (name, fns) in self.fns.iter_all() {
             if fns.len() > 1 {
-                self.errors
-                    .push(ValidationErrKind::DuplicateFns(*name, fns.clone()))
+                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                // self.errors
+                //     .push(ValidationErrKind::DuplicateFns(*name, fns.clone()))
             }
         }
 
-        self.errors.into_iter().map(ValidationError::from).collect()
+        return false;
     }
 
     fn validate_block(&mut self, block: &Block) {
@@ -129,7 +154,8 @@ impl Validator {
         match &stmt.kind {
             StmtKind::Let(let_stmt) => {
                 if let_stmt.ty.is_none() && let_stmt.initializer.is_none() {
-                    self.errors.push(ValidationErrKind::NoTypeProvided(stmt.id));
+                    self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                    // self.errors.push(ValidationErrKind::NoTypeProvided(stmt.id));
                 }
             }
             StmtKind::For(_) => {}
@@ -228,11 +254,14 @@ impl Validator {
 
 mod tests {
     use crate::compiler::compiler::{CompilerCtxt, ValidationError};
+    use crate::compiler::errors::Diagnostic;
     use crate::compiler::hir::ModuleId;
     use crate::compiler::krate::{Crate, CrateId, ModuleMap};
     use crate::compiler::parser::parse;
     use crate::compiler::path::ModulePath;
+    use crate::compiler::tokens::tokenized_file::TokenizedOutput;
     use crate::compiler::tokens::tokenizer::tokenize;
+    use crate::compiler::tokens::tokenizer::Tokenizer;
     use crate::compiler::types::StrMap;
     use crate::compiler::validator::ValidationErrKind;
     use crate::compiler::{compiler, StringInterner};
@@ -240,13 +269,14 @@ mod tests {
     use std::collections::HashMap;
     use std::ops::Deref;
 
-    type ValidationOutput = (StringInterner, Vec<ValidationErrKind>);
+    type ValidationOutput = (StringInterner, Vec<Diagnostic>);
 
     #[cfg(test)]
     fn validate<T: AsRef<str>>(code: T) -> ValidationOutput {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let tokenized_input = tokenize(&mut compiler_ctxt, code);
-        let module = parse(&mut compiler_ctxt, tokenized_input).unwrap();
+        let mut tokenizer = Tokenizer::new(&mut compiler_ctxt, code.as_ref());
+        let TokenizedOutput { tokens, .. } = tokenizer.tokenize();
+        let module = parse(&mut compiler_ctxt, tokens).unwrap();
         let krate_name = compiler_ctxt.intern_str("crate");
         let mut krate = Crate::new(krate_name, CrateId::new(0));
         krate.add_module(
@@ -256,12 +286,11 @@ mod tests {
         let krates = StrMap::from([(krate_name, krate)]);
         let krate = krates.get(&krate_name).unwrap();
         let module = krate.module(ModuleId::new(0, 0));
+
+        crate::compiler::validator::validate(&mut compiler_ctxt, &krates, krate, module);
         (
             StringInterner::from(compiler_ctxt),
-            crate::compiler::validator::validate(&krates, krate, module)
-                .into_iter()
-                .map(ValidationError::into_inner)
-                .collect(),
+            compiler_ctxt.diagnostics().errors(),
         )
     }
 

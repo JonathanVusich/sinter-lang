@@ -19,7 +19,7 @@ use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseErrKind};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::{resolve, ResolveErrKind};
-use crate::compiler::tokens::tokenized_file::{LineMap, Source, Tokens};
+use crate::compiler::tokens::tokenized_file::{LineMap, Source, TokenizedSource};
 use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
 use crate::compiler::type_inference::ty_infer::{CrateInference, TypeErrKind, TypeMap};
 use crate::compiler::types::{InternedStr, StrMap};
@@ -320,7 +320,7 @@ impl Compiler {
         let mut krate = Crate::new(krate_name, self.compiler_ctxt.crate_id());
 
         let tokens = tokenize(&mut self.compiler_ctxt, code);
-        let Tokens {
+        let TokenizedSource {
             tokens,
             line_map,
             token_source,
@@ -381,7 +381,7 @@ impl Compiler {
             let module_path = self.compiler_ctxt.module_path(local_path)?;
 
             let tokens = tokenize_file(&mut self.compiler_ctxt, path)?;
-            let Tokens {
+            let TokenizedSource {
                 tokens,
                 line_map,
                 token_source,

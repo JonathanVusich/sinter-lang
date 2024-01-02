@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct Tokens {
+pub struct TokenizedSource {
     pub(crate) tokens: Vec<Token>,
     pub(crate) line_map: LineMap,
     pub(crate) token_source: Source,
@@ -96,7 +96,7 @@ impl Span {
             end: other.end,
         }
     }
-    
+
     pub fn len(&self) -> usize {
         (self.end - self.start) as usize
     }

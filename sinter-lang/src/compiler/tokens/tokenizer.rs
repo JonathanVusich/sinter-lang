@@ -1,41 +1,40 @@
-use std::borrow::Cow;
-use std::concat;
 use std::error::Error;
 use std::fs;
-use std::fs::File;
-use std::io;
 use std::path::Path;
 
 use phf::phf_map;
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::compiler::compiler::{CompileError, CompilerCtxt, Generic};
-use crate::compiler::interner::{Interner, Key};
+use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::errors::{Diagnostic, FatalError};
 use crate::compiler::tokens::token::{Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{Source, TokenizedOutput, Tokens};
+use crate::compiler::tokens::tokenized_file::{Source, TokenizedOutput, TokenizedSource};
 use crate::compiler::types::InternedStr;
-use crate::compiler::StringInterner;
 
-pub fn tokenize_file(compiler_ctxt: &mut CompilerCtxt, path: &Path) -> Option<Tokens> {
+pub fn tokenize_file(compiler_ctxt: &mut CompilerCtxt, path: &Path) -> Option<TokenizedSource> {
     let token_source = Source::Path(path.to_path_buf());
 
-    let source_file = fs::read_to_string(path).map_err(|err| {
-        let boxed_err: Box<dyn Error> = Box::new(err);
-        CompileError::Generic(Generic::from(boxed_err))
-    })?;
+    let source_file = fs::read_to_string(path)
+        .map_err(|err| {
+            compiler_ctxt
+                .diagnostics_mut()
+                .emit(Diagnostic::Fatal(FatalError::FileOpen));
+            err
+        })
+        .ok()?;
     let tokenizer = Tokenizer::new(compiler_ctxt, &source_file);
     let tokenized_output = tokenizer.tokenize();
-    Some(Tokens {
+    Some(TokenizedSource {
         tokens: tokenized_output.tokens,
         line_map: tokenized_output.line_map,
         token_source,
     })
 }
 
-pub fn tokenize(compiler_ctxt: &mut CompilerCtxt, input: String) -> Tokens {
+pub fn tokenize(compiler_ctxt: &mut CompilerCtxt, input: String) -> TokenizedSource {
     let tokenizer = Tokenizer::new(compiler_ctxt, &input);
     let tokenized_output = tokenizer.tokenize();
-    Tokens {
+    TokenizedSource {
         tokens: tokenized_output.tokens,
         line_map: tokenized_output.line_map,
         token_source: Source::Inline(input),
@@ -74,7 +73,7 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
 };
 
 #[derive(Debug)]
-struct Tokenizer<'ctxt, 'this> {
+pub(crate) struct Tokenizer<'ctxt, 'this> {
     compiler_ctxt: &'ctxt mut CompilerCtxt,
     chars: Vec<&'this str>,
     tokenized_file: TokenizedOutput,
@@ -110,7 +109,8 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
     fn scan_token(&mut self) {
         self.start = self.current;
         self.start_byte_pos = self.current_byte_pos;
-        if let Some(char) = self.next() {
+        if let Some(char) = self.peek() {
+            self.next();
             match char {
                 "&" => {
                     if self.matches("&") {
@@ -257,7 +257,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
             tokens.push(char);
         }
 
-        if let Some(char) = self.next().filter(|char| *char == "\"") {
+        if self.next() == "\"" {
             let string = tokens.join("");
             let interned_str = self.intern(&string);
 
@@ -293,10 +293,11 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
         }
     }
 
-    fn next(&mut self) {
+    fn next(&mut self) -> &str {
         let current_char = self.chars.get(self.current).unwrap();
         self.current += 1;
         self.current_byte_pos += current_char.len();
+        current_char
     }
 
     fn peek(&mut self) -> Option<&'this str> {
@@ -392,23 +393,20 @@ fn is_delimiter(char: &str) -> bool {
 mod tests {
     use std::fs::File;
     use std::io::{BufReader, BufWriter};
-    use std::path::Path;
-
-    use serde::de::Unexpected::Str;
 
     use snap::snapshot;
 
     use crate::compiler::compiler::CompilerCtxt;
-    use crate::compiler::tokens::token::{Token, TokenType};
     use crate::compiler::tokens::tokenized_file::TokenizedOutput;
-    use crate::compiler::tokens::tokenizer::{tokenize, Tokenizer};
+    use crate::compiler::tokens::tokenizer::Tokenizer;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
     fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner, TokenizedOutput) {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let tokens = tokenize(&mut compiler_ctxt, code);
+        let mut tokenizer = Tokenizer::new(&mut compiler_ctxt, code.as_ref());
+        let tokens = tokenizer.tokenize();
         (StringInterner::from(compiler_ctxt), tokens)
     }
 

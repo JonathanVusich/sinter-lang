@@ -28,10 +28,6 @@ impl Diagnostics {
             .collect()
     }
 
-    pub fn has_errors(&self) -> bool {
-        self.has_error
-    }
-
     pub fn write_all(&self, buffer: &mut impl Write) -> io::Result<()> {
         for diagnostic in &self.diagnostics {
             let formatted_args = match diagnostic {
@@ -58,6 +54,7 @@ pub enum InternalError {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum FatalError {
+    FileOpen,
     InvalidOsStr,
 }
 

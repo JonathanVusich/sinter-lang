@@ -117,10 +117,6 @@ impl<'ctxt> Parser<'ctxt> {
                 }
             }
         }
-
-        if self.compiler_ctxt.diagnostics().has_errors() {
-            return None;
-        }
         Some(Module::new(items))
     }
 
@@ -1790,14 +1786,14 @@ mod tests {
     use crate::compiler::errors::Diagnostic;
     use crate::compiler::hir::LocalDefId;
     use crate::compiler::parser::Parser;
-    use crate::compiler::tokens::tokenized_file::{Span, Tokens};
+    use crate::compiler::tokens::tokenized_file::{Span, TokenizedSource};
     use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
     fn create_parser(compiler_ctxt: &mut CompilerCtxt, code: String) -> Parser {
-        let Tokens { tokens, .. } = tokenize(compiler_ctxt, code);
+        let TokenizedSource { tokens, .. } = tokenize(compiler_ctxt, code);
         Parser::new(compiler_ctxt, tokens)
     }
 
