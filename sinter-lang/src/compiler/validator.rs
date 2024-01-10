@@ -1,19 +1,18 @@
-use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 
+use itertools::Itertools;
 use multimap::MultiMap;
+use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{
-    Block, EnumMember, Field, Fields, FnSelfStmt, FnSig, FnStmt, GenericParam, GenericParams,
-    GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, Stmt,
-    StmtKind, UseStmt,
+    Block, EnumMember, Fields, FnSelfStmt, FnSig, GenericParams, ItemKind, Module, Params,
+    QualifiedIdent, Stmt, StmtKind,
 };
-use crate::compiler::compiler::{CompileError, CompilerCtxt, ValidationError};
+use crate::compiler::compiler::{CompilerCtxt, SourceCode};
 use crate::compiler::errors::Diagnostic;
 use crate::compiler::hir::LocalDefId;
-use crate::compiler::krate::Crate;
-use crate::compiler::types::{InternedStr, StrMap};
-use serde::{Deserialize, Serialize};
+use crate::compiler::tokens::tokenized_file::Span;
+use crate::compiler::types::InternedStr;
 
 const MAX_NUM: usize = 65535;
 
@@ -37,19 +36,14 @@ impl Display for ValidationErrKind {
     }
 }
 
-pub fn validate(
-    compiler_ctxt: &mut CompilerCtxt,
-    crates: &StrMap<Crate>,
-    krate: &Crate,
-    module: &Module,
-) {
-    let validator = Validator::default();
-    validator.validate(crates, krate, module)
+pub fn validate(compiler_ctxt: &mut CompilerCtxt, module: &Module) {
+    let validator = Validator::new(compiler_ctxt, module);
+    validator.validate()
 }
 
-#[derive(Default)]
 struct Validator<'a> {
     ctxt: &'a mut CompilerCtxt,
+    module: &'a Module,
     use_stmts: MultiMap<QualifiedIdent, LocalDefId>,
     global_lets: MultiMap<InternedStr, LocalDefId>,
     tys: MultiMap<InternedStr, LocalDefId>,
@@ -57,14 +51,10 @@ struct Validator<'a> {
 }
 
 impl<'a> Validator<'a> {
-    pub(crate) fn new(
-        ctxt: &'a mut CompilerCtxt,
-        crates: &StrMap<Crate>,
-        krate: &Crate,
-        module: &Module,
-    ) -> Self {
+    pub(crate) fn new(ctxt: &'a mut CompilerCtxt, module: &'a Module) -> Self {
         Self {
             ctxt,
+            module,
             use_stmts: Default::default(),
             global_lets: Default::default(),
             tys: Default::default(),
@@ -72,8 +62,8 @@ impl<'a> Validator<'a> {
         }
     }
 
-    fn validate(mut self, crates: &StrMap<Crate>, krate: &Crate, module: &Module) {
-        for item in &module.items {
+    fn validate(mut self) {
+        for item in &self.module.items {
             match &item.kind {
                 ItemKind::Use(use_stmt) => {
                     self.use_stmts.insert(use_stmt.path.clone(), item.id);
@@ -110,7 +100,7 @@ impl<'a> Validator<'a> {
 
         for (path, use_stmts) in self.use_stmts.iter_all() {
             if use_stmts.len() > 1 {
-                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                 // self.errors.push(ValidationErrKind::DuplicateUseStmts(
                 //     path.clone(),
                 //     use_stmts.clone(),
@@ -119,7 +109,7 @@ impl<'a> Validator<'a> {
         }
         for (name, global_lets) in self.global_lets.iter_all() {
             if global_lets.len() > 1 {
-                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                 // self.errors.push(ValidationErrKind::DuplicateLetStmts(
                 //     *name,
                 //     global_lets.clone(),
@@ -128,20 +118,20 @@ impl<'a> Validator<'a> {
         }
         for (name, tys) in self.tys.iter_all() {
             if tys.len() > 1 {
-                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                // TODO: Emit better diagnostics
+                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                 // self.errors
                 //     .push(ValidationErrKind::DuplicateTys(*name, tys.clone()))
             }
         }
         for (name, fns) in self.fns.iter_all() {
             if fns.len() > 1 {
-                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                // TODO: Emit better diagnostics
+                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                 // self.errors
                 //     .push(ValidationErrKind::DuplicateFns(*name, fns.clone()))
             }
         }
-
-        return false;
     }
 
     fn validate_block(&mut self, block: &Block) {
@@ -154,7 +144,7 @@ impl<'a> Validator<'a> {
         match &stmt.kind {
             StmtKind::Let(let_stmt) => {
                 if let_stmt.ty.is_none() && let_stmt.initializer.is_none() {
-                    self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                    self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                     // self.errors.push(ValidationErrKind::NoTypeProvided(stmt.id));
                 }
             }
@@ -171,8 +161,16 @@ impl<'a> Validator<'a> {
         self.report_name_clashes(
             generic_params,
             |param| param.name.ident,
-            |param| param.id,
-            ValidationErrKind::DuplicateGenericParam,
+            |param| param.span,
+            |name, spans| {
+                let source_code = self.source_code();
+                let joined_generics = spans
+                    .iter()
+                    .map(|span| source_code.source.span(span).unwrap())
+                    .join(", ");
+
+                Diagnostic::Error(format!("Duplicate generic params! {}", joined_generics))
+            },
         );
     }
 
@@ -180,8 +178,16 @@ impl<'a> Validator<'a> {
         self.report_name_clashes(
             params,
             |param| param.name.ident,
-            |param| param.id,
-            ValidationErrKind::DuplicateParam,
+            |param| param.span,
+            |name, spans| {
+                let source_code = self.source_code();
+                let joined_generics = spans
+                    .iter()
+                    .map(|span| source_code.source.span(span).unwrap())
+                    .join(", ");
+
+                Diagnostic::Error(format!("Duplicate params! {}", joined_generics))
+            },
         );
     }
 
@@ -189,8 +195,16 @@ impl<'a> Validator<'a> {
         self.report_name_clashes(
             self_fns,
             |self_fn| self_fn.sig.name.ident,
-            |self_fn| self_fn.id,
-            ValidationErrKind::DuplicateFns,
+            |self_fn| self_fn.span,
+            |name, spans| {
+                let source_code = self.source_code();
+                let joined_generics = spans
+                    .iter()
+                    .map(|span| source_code.source.span(span).unwrap())
+                    .join(", ");
+
+                Diagnostic::Error(format!("Duplicate fns in class body! {}", joined_generics))
+            },
         );
 
         for self_fn in self_fns {
@@ -202,8 +216,19 @@ impl<'a> Validator<'a> {
         self.report_name_clashes(
             fields,
             |field| field.name.ident,
-            |field| field.id,
-            ValidationErrKind::DuplicateField,
+            |field| field.span,
+            |name, spans| {
+                let source_code = self.source_code();
+                let joined_generics = spans
+                    .iter()
+                    .map(|span| source_code.source.span(span).unwrap())
+                    .join(", ");
+
+                Diagnostic::Error(format!(
+                    "Duplicate fields in class body! {}",
+                    joined_generics
+                ))
+            },
         );
     }
 
@@ -211,8 +236,19 @@ impl<'a> Validator<'a> {
         self.report_name_clashes(
             members,
             |member| member.name,
-            |member| member.id,
-            ValidationErrKind::DuplicateEnumMember,
+            |member| member.span,
+            |name, spans| {
+                let source_code = self.source_code();
+                let joined_generics = spans
+                    .iter()
+                    .map(|span| source_code.source.span(span).unwrap())
+                    .join(", ");
+
+                Diagnostic::Error(format!(
+                    "Duplicate enum members in enum! {}",
+                    joined_generics
+                ))
+            },
         );
 
         for member in members {
@@ -226,11 +262,15 @@ impl<'a> Validator<'a> {
         self.validate_params(&fn_sig.params);
     }
 
+    fn source_code(&self) -> &SourceCode {
+        self.ctxt.source_code(&self.module.id)
+    }
+
     fn report_name_clashes<
         T,
         M: Fn(&T) -> InternedStr,
-        I: Fn(&T) -> LocalDefId,
-        E: Fn(InternedStr, Vec<LocalDefId>) -> ValidationErrKind,
+        I: Fn(&T) -> Span,
+        E: Fn(InternedStr, Vec<Span>) -> Diagnostic,
     >(
         &mut self,
         items: &[T],
@@ -248,26 +288,23 @@ impl<'a> Validator<'a> {
                 let ids = entry.1.iter().map(|item| id(item)).collect();
                 error(*entry.0, ids)
             })
-            .for_each(|error| self.errors.push(error));
+            .for_each(|error| self.ctxt.diagnostics_mut().push(error));
     }
 }
 
 mod tests {
-    use crate::compiler::compiler::{CompilerCtxt, ValidationError};
-    use crate::compiler::errors::Diagnostic;
+    use snap::snapshot;
+
+    use crate::compiler::compiler::CompilerCtxt;
+    use crate::compiler::errors::{Diagnostic, DiagnosticKind};
     use crate::compiler::hir::ModuleId;
-    use crate::compiler::krate::{Crate, CrateId, ModuleMap};
+    use crate::compiler::krate::{Crate, CrateId};
     use crate::compiler::parser::parse;
     use crate::compiler::path::ModulePath;
     use crate::compiler::tokens::tokenized_file::TokenizedOutput;
-    use crate::compiler::tokens::tokenizer::tokenize;
     use crate::compiler::tokens::tokenizer::Tokenizer;
     use crate::compiler::types::StrMap;
-    use crate::compiler::validator::ValidationErrKind;
-    use crate::compiler::{compiler, StringInterner};
-    use snap::snapshot;
-    use std::collections::HashMap;
-    use std::ops::Deref;
+    use crate::compiler::StringInterner;
 
     type ValidationOutput = (StringInterner, Vec<Diagnostic>);
 
@@ -287,10 +324,13 @@ mod tests {
         let krate = krates.get(&krate_name).unwrap();
         let module = krate.module(ModuleId::new(0, 0));
 
-        crate::compiler::validator::validate(&mut compiler_ctxt, &krates, krate, module);
+        crate::compiler::validator::validate(&mut compiler_ctxt, module);
         (
             StringInterner::from(compiler_ctxt),
-            compiler_ctxt.diagnostics().errors(),
+            compiler_ctxt
+                .diagnostics()
+                .filter(DiagnosticKind::Error)
+                .collect(),
         )
     }
 

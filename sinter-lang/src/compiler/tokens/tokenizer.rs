@@ -18,7 +18,7 @@ pub fn tokenize_file(compiler_ctxt: &mut CompilerCtxt, path: &Path) -> Option<To
         .map_err(|err| {
             compiler_ctxt
                 .diagnostics_mut()
-                .emit(Diagnostic::Fatal(FatalError::FileOpen));
+                .push(Diagnostic::Fatal(FatalError::FileOpen));
             err
         })
         .ok()?;

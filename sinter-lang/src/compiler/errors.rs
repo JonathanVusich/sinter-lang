@@ -10,68 +10,62 @@ use std::path::PathBuf;
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Diagnostics {
     diagnostics: Vec<Diagnostic>,
-    has_error: bool,
 }
 
 impl Diagnostics {
-    pub fn emit(&mut self, error: Diagnostic) {
-        if let Diagnostic::Error { .. } = error {
-            self.has_error = true;
-        }
+    pub fn push(&mut self, error: Diagnostic) {
         self.diagnostics.push(error);
     }
 
-    pub fn errors(&self) -> Vec<&Diagnostic> {
+    pub fn filter(&self, kind: DiagnosticKind) -> impl Iterator<Item = Diagnostic> + '_ {
         self.diagnostics
             .iter()
-            .filter(|diagnostic| diagnostic.is_error())
-            .collect()
+            .filter(move |diagnostic| diagnostic.kind() == kind)
+            .cloned()
     }
 
-    pub fn write_all(&self, buffer: &mut impl Write) -> io::Result<()> {
+    pub fn flush(&self, kind: DiagnosticKind, buffer: &mut impl Write) -> bool {
+        let mut flushed = false;
         for diagnostic in &self.diagnostics {
-            let formatted_args = match diagnostic {
-                Diagnostic::Fatal(_) => {
-                    format_args!("")
-                }
-                Diagnostic::Error { .. } => {
-                    format_args!("")
-                }
-                Diagnostic::BlankError => {
-                    format_args!("")
-                }
-            };
-            buffer.write_fmt(formatted_args)?;
+            if diagnostic.kind() == kind {
+                diagnostic.write(buffer);
+                flushed = true;
+            }
         }
-        Ok(())
+        flushed
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub enum InternalError {
-    Panic,
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum FatalError {
     FileOpen,
     InvalidOsStr,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Diagnostic {
-    Internal(InternalError),
     Fatal(FatalError),
-    Error {
-        line: String,
-        highlight_span: Span, // Local to the line with the error.
-        error_msg: String,
-    },
+    Error(String),
     BlankError,
 }
 
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub enum DiagnosticKind {
+    Error,
+    Warning,
+    Lint,
+}
+
 impl Diagnostic {
-    fn is_error(&self) -> bool {
-        true
+    fn write(&self, buffer: &mut impl Write) {
+        todo!()
+    }
+
+    fn kind(&self) -> DiagnosticKind {
+        match self {
+            Diagnostic::Fatal(_) => DiagnosticKind::Error,
+            Diagnostic::Error { .. } => DiagnosticKind::Error,
+            Diagnostic::BlankError => DiagnosticKind::Error,
+        }
     }
 }

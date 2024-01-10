@@ -2,18 +2,19 @@ use std::backtrace::Backtrace;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::ffi::{OsStr, OsString};
 use std::fmt::{Debug, Display, Formatter};
+use std::io;
 use std::ops::Deref;
 use std::os::windows::ffi::OsStrExt;
 use std::path::{Path, PathBuf, StripPrefixError};
 
 use itertools::Itertools;
-use lasso::Key as K;
+use lasso::{Key as K, Resolver};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
 use crate::compiler::ast::AstPass;
-use crate::compiler::errors::{Diagnostic, Diagnostics, FatalError};
+use crate::compiler::errors::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
 use crate::compiler::hir::{HirMap, LocalDefId, ModuleId};
 use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::{parse, ParseErrKind};
@@ -144,25 +145,10 @@ impl Debug for CompileError {
     }
 }
 
-#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
-pub struct SourceMap {
-    source_map: HashMap<ModuleId, SourceCode>,
-}
-
-impl SourceMap {
-    pub fn insert(&mut self, module_id: ModuleId, source: SourceCode) {
-        self.source_map.insert(module_id, source);
-    }
-
-    pub fn get(&self, module_id: &ModuleId) -> Option<&SourceCode> {
-        self.source_map.get(module_id)
-    }
-}
-
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct SourceCode {
-    source: Source,
-    line_map: LineMap,
+    pub(crate) source: Source,
+    pub(crate) line_map: LineMap,
 }
 
 impl SourceCode {
@@ -175,7 +161,7 @@ impl SourceCode {
 pub struct CompilerCtxt {
     // TODO: Add source map to keep track of all source code that has passed through the compiler.
     string_interner: StringInterner,
-    source_map: SourceMap,
+    source_map: HashMap<ModuleId, SourceCode>,
     diagnostics: Diagnostics,
     crate_id: usize,
     local_def_id: usize,
@@ -192,6 +178,10 @@ impl CompilerCtxt {
 
     pub(crate) fn intern_source(&mut self, module_id: ModuleId, source: SourceCode) {
         self.source_map.insert(module_id, source);
+    }
+
+    pub(crate) fn source_code(&mut self, module_id: &ModuleId) -> &SourceCode {
+        self.source_map.get(&module_id).unwrap()
     }
 
     pub(crate) fn intern_str(&mut self, str: &str) -> InternedStr {
@@ -225,7 +215,7 @@ impl CompilerCtxt {
             let segment = segment.to_str().or_else(|| {
                 // TODO: Emit compiler fatal
                 self.diagnostics
-                    .emit(Diagnostic::Fatal(FatalError::InvalidOsStr));
+                    .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 None
             })?;
             let interned_segment = self.intern_str(segment);
@@ -243,10 +233,6 @@ impl From<CompilerCtxt> for StringInterner {
 }
 
 impl Compiler {
-    pub(crate) fn with_ctxt(compiler_ctxt: CompilerCtxt) -> Self {
-        Self { compiler_ctxt }
-    }
-
     pub(crate) fn compile(&mut self, application: Application) -> Option<ByteCode> {
         let mut crates = self.parse_crates(application)?;
 
@@ -347,7 +333,7 @@ impl Compiler {
             .or_else(|| {
                 self.compiler_ctxt
                     .diagnostics_mut()
-                    .emit(Diagnostic::Fatal(FatalError::InvalidOsStr));
+                    .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 None
             })?;
         let krate_name = self.compiler_ctxt.intern_str(krate_name);
@@ -375,7 +361,7 @@ impl Compiler {
                 .map_err(|err| {
                     self.compiler_ctxt
                         .diagnostics_mut()
-                        .emit(Diagnostic::Fatal(FatalError::InvalidOsStr));
+                        .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 })
                 .ok()?;
             let module_path = self.compiler_ctxt.module_path(local_path)?;
@@ -401,12 +387,10 @@ impl Compiler {
     pub(crate) fn validate_crates(&mut self, crates: &StrMap<Crate>) -> Option<()> {
         for krate in crates.values() {
             for module in krate.modules() {
-                if !validate(crates, krate, module) {
-                    return None;
-                }
+                validate(&mut self.compiler_ctxt, crates, krate, module);
             }
         }
-        Some(())
+        self.report_errors()
     }
 
     pub(crate) fn resolve_crates(&mut self, crates: &mut StrMap<Crate>) -> Option<HirMap> {
@@ -422,6 +406,18 @@ impl Compiler {
             );
         }
         Some(ty_map)
+    }
+
+    fn report_errors(&mut self) -> Option<()> {
+        let mut io_lock = io::stdout().lock();
+        if self
+            .compiler_ctxt
+            .diagnostics()
+            .flush(DiagnosticKind::Error, &mut io_lock)
+        {
+            return None;
+        }
+        Some(())
     }
 }
 

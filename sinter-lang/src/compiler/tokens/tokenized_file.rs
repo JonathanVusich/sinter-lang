@@ -1,6 +1,13 @@
-use crate::compiler::tokens::token::Token;
+use std::fs;
+use std::fs::File;
+use std::io::{Read, Seek, SeekFrom};
+use std::path::PathBuf;
+use std::str::from_utf8;
+
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
+
+use crate::compiler::tokens::token::Token;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct TokenizedSource {
@@ -20,6 +27,35 @@ pub struct TokenizedOutput {
 pub enum Source {
     Inline(String),
     Path(PathBuf),
+}
+
+impl Source {
+    pub(crate) fn span(&self, span: &Span) -> Option<&str> {
+        match self {
+            Source::Inline(string) => string
+                .as_bytes()
+                .get(span.start as usize..span.end as usize)
+                .and_then(|slice| from_utf8(slice).ok()),
+            Source::Path(path_buf) => {
+                let mut file = File::open(path_buf).ok()?;
+
+                let mut buffer = vec![0u8; span.len()];
+                file.seek(SeekFrom::Start(span.start as u64)).ok()?;
+                file.read_exact(&mut buffer).ok()?;
+                from_utf8(&buffer).ok()
+            }
+        }
+    }
+
+    pub(crate) fn line(&self, line_no: usize) -> Option<&str> {
+        match self {
+            Source::Inline(string) => string.lines().skip(line_no).next(),
+            Source::Path(path_buf) => fs::read_to_string(path_buf)
+                .ok()
+                .map(|str| str.lines())
+                .and_then(|lines| lines.skip(line_no).next()),
+        }
+    }
 }
 
 #[derive(PartialEq, Default, Debug, Serialize, Deserialize)]
@@ -122,7 +158,7 @@ impl TokenizedOutput {
 }
 
 mod tests {
-    use crate::compiler::tokens::tokenized_file::{LineMap, NormalizedSpan, Span, TokenizedOutput};
+    use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedOutput};
 
     #[test]
     pub fn line_map() {

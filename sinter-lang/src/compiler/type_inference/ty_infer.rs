@@ -348,7 +348,7 @@ impl<'a> CrateInference<'a> {
                                     // Either that or we need to ensure that constraints are propagated correctly through
                                     // the function definition.
 
-                                    let generic_params = class_stmt
+                                    let generic_params: Vec<Type> = class_stmt
                                         .generic_params
                                         .values()
                                         .map(|generic_param| {
@@ -423,7 +423,7 @@ impl<'a> CrateInference<'a> {
                     if lhs.assignable(&rhs) {
                         self.unify_ty_ty(lhs, rhs)
                     } else {
-                        self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                        self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                         return false;
                     }
                 }
@@ -443,7 +443,7 @@ impl<'a> CrateInference<'a> {
                         }
                         Type::Class(class) => {
                             if args.len() != class.fields.len() {
-                                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                                 return false;
                             }
                             // class.fields
@@ -451,7 +451,7 @@ impl<'a> CrateInference<'a> {
                         }
                         Type::Fn(fn_sig) => {
                             if args.len() != fn_sig.params.len() {
-                                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                                 return false;
                             }
 
@@ -485,7 +485,7 @@ impl<'a> CrateInference<'a> {
                         | Type::Boolean
                         | Type::None
                         | Type::Infer(_) => {
-                            self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                            self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                             return false;
                         }
                     }
@@ -513,7 +513,7 @@ impl<'a> CrateInference<'a> {
         match ty {
             Type::Array(_) => true,
             _ => {
-                self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                 return false;
             }
         }
@@ -547,7 +547,7 @@ impl<'a> CrateInference<'a> {
             // If both types are known, then we need to check for type compatibility.
             (lhs, rhs) => {
                 if lhs != rhs {
-                    self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+                    self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
                     return false;
                 }
                 true
@@ -557,7 +557,7 @@ impl<'a> CrateInference<'a> {
 
     fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> bool {
         if !self.unify_var_var(lhs, rhs) {
-            self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+            self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
             return false;
         }
         true
@@ -565,7 +565,7 @@ impl<'a> CrateInference<'a> {
 
     fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> bool {
         if !self.unify_table.unify_var_ty(var, ty) {
-            self.ctxt.diagnostics_mut().emit(Diagnostic::BlankError);
+            self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
             return false;
         }
         true

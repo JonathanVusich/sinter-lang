@@ -1783,7 +1783,7 @@ mod tests {
     use crate::compiler::ast::Module;
     use crate::compiler::ast::{Expr, PathExpr, Stmt, Ty, TyKind};
     use crate::compiler::compiler::CompilerCtxt;
-    use crate::compiler::errors::Diagnostic;
+    use crate::compiler::errors::{Diagnostic, DiagnosticKind};
     use crate::compiler::hir::LocalDefId;
     use crate::compiler::parser::Parser;
     use crate::compiler::tokens::tokenized_file::{Span, TokenizedSource};
@@ -1806,9 +1806,7 @@ mod tests {
         parser.parse();
         let errors: Vec<Diagnostic> = compiler_ctxt
             .diagnostics_mut()
-            .errors()
-            .iter()
-            .map(|diagnostic| **diagnostic)
+            .filter(DiagnosticKind::Error)
             .collect();
         if !errors.is_empty() {
             (StringInterner::from(compiler_ctxt), errors)
@@ -1875,16 +1873,33 @@ mod tests {
     #[test]
     pub fn invalid_use_stmts() {
         let mut result = parse_module("use std::vector::").unwrap();
-        let errors = result.0.diagnostics().errors();
+
+        let errors: Vec<Diagnostic> = result
+            .0
+            .diagnostics()
+            .filter(DiagnosticKind::Error)
+            .collect();
         assert!(!errors.is_empty());
         let result = parse_module("use std::vector::Vector").unwrap();
-        let errors = result.0.diagnostics().errors();
+        let errors: Vec<Diagnostic> = result
+            .0
+            .diagnostics()
+            .filter(DiagnosticKind::Error)
+            .collect();
         assert!(!errors.is_empty());
         let result = parse_module("use;").unwrap();
-        let errors = result.0.diagnostics().errors();
+        let errors: Vec<Diagnostic> = result
+            .0
+            .diagnostics()
+            .filter(DiagnosticKind::Error)
+            .collect();
         assert!(!errors.is_empty());
         let result = parse_module("use").unwrap();
-        let errors = result.0.diagnostics().errors();
+        let errors: Vec<Diagnostic> = result
+            .0
+            .diagnostics()
+            .filter(DiagnosticKind::Error)
+            .collect();
         assert!(!errors.is_empty());
     }
 

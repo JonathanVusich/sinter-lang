@@ -26,7 +26,6 @@ use crate::compiler::ast::{
     TyKind as AstTyKind,
 };
 use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::errors::{Diagnostic, InternalError};
 use crate::compiler::hir::{
     AnonParams, Args, Array, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure,
     ClosureExpr, ClosureParam, ClosureParams, DefId, DestructureExpr, DestructurePattern,
@@ -743,7 +742,7 @@ impl<'a> CrateResolver<'a> {
                     param.span,
                     param.id,
                 ),
-            )?;
+            );
 
             hir_params.insert(param.name.ident, param.id);
         }
@@ -778,7 +777,7 @@ impl<'a> CrateResolver<'a> {
                     param.span,
                     param.id,
                 ),
-            )?;
+            );
 
             generics.insert(param.name.ident, param.id);
         }
@@ -855,17 +854,9 @@ impl<'a> CrateResolver<'a> {
             .find_map(|scope| scope.contains_enum_member(ident))
     }
 
-    fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) -> Option<()> {
+    fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) {
         let index: usize = id.into();
-        match self.nodes.insert(id, hir_node) {
-            None => Some(()),
-            Some(_) => {
-                self.ctxt
-                    .diagnostics_mut()
-                    .emit(Diagnostic::Internal(InternalError::Panic));
-                None
-            }
-        }
+        self.nodes.insert(id, hir_node).unwrap();
     }
 
     fn find_var(&mut self, ident: InternedStr) -> Option<LocalDefId> {
@@ -931,7 +922,7 @@ impl<'a> CrateResolver<'a> {
                     *span,
                     *id,
                 ),
-            )?;
+            );
             fields.insert(ident.ident, *id);
         }
         Some(Fields::from(fields))
@@ -1091,7 +1082,7 @@ impl<'a> CrateResolver<'a> {
                 *span,
                 *id,
             ),
-        )?;
+        );
         Some((name, *id))
     }
 
@@ -1223,7 +1214,7 @@ impl<'a> CrateResolver<'a> {
             AstExprKind::Continue => Expr::Continue,
         };
 
-        self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id))?;
+        self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id));
         Some(id)
     }
 
@@ -1472,7 +1463,7 @@ impl<'a> CrateResolver<'a> {
         self.insert_node(
             id,
             HirNode::new(HirNodeKind::DestructureExpr(expr), span, id),
-        )?;
+        );
         Some(id)
     }
 
@@ -1539,7 +1530,7 @@ impl<'a> CrateResolver<'a> {
             TyKind::None => Ty::Primitive(Primitive::None),
         };
 
-        self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id))?;
+        self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id));
         Some(id)
     }
 
@@ -1564,7 +1555,7 @@ impl<'a> CrateResolver<'a> {
         self.insert_node(
             id,
             HirNode::new(HirNodeKind::Ty(Ty::TraitBound(hir_bound.into())), span, id),
-        )?;
+        );
 
         Some(id.to_def_id(self.krate.crate_id))
     }
@@ -1647,7 +1638,7 @@ impl<'a> CrateResolver<'a> {
         self.insert_node(
             stmt.id,
             HirNode::new(HirNodeKind::Stmt(hir_stmt), stmt.span, stmt.id),
-        )?;
+        );
 
         Some(stmt.id)
     }
@@ -1675,7 +1666,7 @@ impl<'a> CrateResolver<'a> {
                 block.span,
                 block.id,
             ),
-        )?;
+        );
 
         Some(block.id)
     }
