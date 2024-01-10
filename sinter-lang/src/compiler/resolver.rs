@@ -1545,7 +1545,7 @@ impl<'a> CrateResolver<'a> {
         trait_bound: &AstTraitBound,
         span: Span,
         id: LocalDefId,
-    ) -> Option<DefId> {
+    ) -> Option<LocalDefId> {
         let mut hir_bound = Vec::with_capacity(trait_bound.len());
         for ty in trait_bound.iter() {
             let resolved_ty = self.resolve_path_ty(ty)?;
@@ -1557,7 +1557,7 @@ impl<'a> CrateResolver<'a> {
             HirNode::new(HirNodeKind::Ty(Ty::TraitBound(hir_bound.into())), span, id),
         );
 
-        Some(id.to_def_id(self.krate.crate_id))
+        Some(id)
     }
 
     fn resolve_stmt(&mut self, stmt: &AstStmt) -> Option<LocalDefId> {

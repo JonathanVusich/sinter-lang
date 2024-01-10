@@ -180,7 +180,7 @@ impl CompilerCtxt {
         self.source_map.insert(module_id, source);
     }
 
-    pub(crate) fn source_code(&mut self, module_id: &ModuleId) -> &SourceCode {
+    pub(crate) fn source_code(&self, module_id: &ModuleId) -> &SourceCode {
         self.source_map.get(&module_id).unwrap()
     }
 
@@ -326,17 +326,25 @@ impl Compiler {
     }
 
     pub(crate) fn parse_crate(&mut self, path: &Path) -> Option<Crate> {
-        let krate_name = path
-            .file_name()
-            .map(|path| path.to_os_string())
-            .and_then(|path| path.to_str())
+        let krate_name: OsString =
+            path.file_name()
+                .map(|path| path.to_os_string())
+                .or_else(|| {
+                    self.compiler_ctxt
+                        .diagnostics_mut()
+                        .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
+                    None
+                })?;
+
+        let krate_name = krate_name
+            .to_str()
+            .map(|str| self.compiler_ctxt.intern_str(str))
             .or_else(|| {
                 self.compiler_ctxt
                     .diagnostics_mut()
                     .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 None
             })?;
-        let krate_name = self.compiler_ctxt.intern_str(krate_name);
 
         let code_files: Vec<DirEntry> = WalkDir::new(path)
             .follow_links(true)
@@ -387,7 +395,7 @@ impl Compiler {
     pub(crate) fn validate_crates(&mut self, crates: &StrMap<Crate>) -> Option<()> {
         for krate in crates.values() {
             for module in krate.modules() {
-                validate(&mut self.compiler_ctxt, crates, krate, module);
+                validate(&mut self.compiler_ctxt, module);
             }
         }
         self.report_errors()

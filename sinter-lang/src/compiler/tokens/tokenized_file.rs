@@ -30,30 +30,34 @@ pub enum Source {
 }
 
 impl Source {
-    pub(crate) fn span(&self, span: &Span) -> Option<&str> {
+    pub(crate) fn span(&self, span: &Span) -> Option<String> {
         match self {
             Source::Inline(string) => string
                 .as_bytes()
                 .get(span.start as usize..span.end as usize)
-                .and_then(|slice| from_utf8(slice).ok()),
+                .and_then(|slice| from_utf8(slice).ok())
+                .map(|string| string.to_string()),
             Source::Path(path_buf) => {
                 let mut file = File::open(path_buf).ok()?;
 
                 let mut buffer = vec![0u8; span.len()];
                 file.seek(SeekFrom::Start(span.start as u64)).ok()?;
                 file.read_exact(&mut buffer).ok()?;
-                from_utf8(&buffer).ok()
+                String::from_utf8(buffer).ok()
             }
         }
     }
 
-    pub(crate) fn line(&self, line_no: usize) -> Option<&str> {
+    pub(crate) fn line(&self, line_no: usize) -> Option<String> {
         match self {
-            Source::Inline(string) => string.lines().skip(line_no).next(),
+            Source::Inline(string) => string
+                .lines()
+                .skip(line_no)
+                .next()
+                .map(|str| str.to_string()),
             Source::Path(path_buf) => fs::read_to_string(path_buf)
                 .ok()
-                .map(|str| str.lines())
-                .and_then(|lines| lines.skip(line_no).next()),
+                .and_then(|str| str.lines().skip(line_no).next().map(|str| str.to_string())),
         }
     }
 }

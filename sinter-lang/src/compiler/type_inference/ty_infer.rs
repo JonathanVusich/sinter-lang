@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::iter::zip;
@@ -12,10 +13,12 @@ use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::errors::Diagnostic;
 use crate::compiler::hir::{
     ArrayExpr, DefId, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, LocalDefId, Primitive, Res,
-    Stmt, TraitBound as HirTraitBound, Ty,
+    Stmt, Ty,
 };
 use crate::compiler::resolver::{ClassDef, FnDef, GlobalVarDef, ValueDef};
 use crate::compiler::type_inference::unification::{TyVar, UnificationTable};
+
+const EMPTY_PARAMS: HashMap<LocalDefId, Type> = HashMap::default();
 
 #[derive(Debug)]
 pub enum TypeErrKind {
@@ -73,8 +76,8 @@ impl TypeMap {
         self.tys[usize::from(*node)] = Some(ty);
     }
 
-    fn get(&self, node: &LocalDefId) -> &Type {
-        self.tys[usize::from(*node)].as_ref().unwrap()
+    fn get(&self, node: &LocalDefId) -> Option<&Type> {
+        self.tys[usize::from(*node)].as_ref()
     }
 }
 
@@ -85,7 +88,9 @@ pub struct CrateInference<'a> {
     krate: &'a HirCrate,
     unify_table: UnificationTable,
     ty_map: TypeMap,
-    scopes: Vec<Type>,
+
+    generic_tys: Vec<HashMap<LocalDefId, Type>>,
+    ret_tys: Vec<Type>,
 }
 
 impl<'a> CrateInference<'a> {
@@ -96,7 +101,9 @@ impl<'a> CrateInference<'a> {
             krate,
             unify_table: Default::default(),
             ty_map: TypeMap::new(krate.nodes.len()),
-            scopes: Vec::default(),
+
+            generic_tys: Vec::default(),
+            ret_tys: Vec::default(),
         }
     }
 
@@ -128,6 +135,15 @@ impl<'a> CrateInference<'a> {
                 }
                 HirNodeKind::Fn(fn_stmt) => {
                     if let Some(body) = fn_stmt.body {
+                        let generic_params = fn_stmt
+                            .sig
+                            .generic_params
+                            .values()
+                            .copied()
+                            .map(|param| (param, self.existing_ty(param.to_def_id(self.krate.id))))
+                            .collect();
+                        self.generic_tys.push(generic_params);
+
                         let ty = fn_stmt
                             .sig
                             .return_type
@@ -177,13 +193,13 @@ impl<'a> CrateInference<'a> {
             HirNodeKind::Block(block) => {
                 // Create a new scope to track constraints on the return type.
                 let ret_ty = self.fresh_ty(node);
-                self.scopes.push(ret_ty.clone());
+                self.ret_tys.push(ret_ty.clone());
                 let mut constraints = Constraints::default();
                 for stmt in block.stmts.iter() {
                     let (c, _) = self.infer(stmt);
                     constraints.extend(c);
                 }
-                self.scopes.pop();
+                self.ret_tys.pop();
                 (constraints, ret_ty)
             }
             HirNodeKind::Stmt(stmt) => {
@@ -201,7 +217,7 @@ impl<'a> CrateInference<'a> {
                         (c, Type::None)
                     }
                     Stmt::Return(return_stmt) => {
-                        let ret_ty = self.scopes.last().unwrap().clone();
+                        let ret_ty = self.ret_tys.last().unwrap().clone();
                         if let Some(node) = return_stmt.value {
                             let (mut constraints, ty) = self.infer(&node);
                             constraints.push(Constraint::Assignable(ret_ty, ty));
@@ -213,7 +229,7 @@ impl<'a> CrateInference<'a> {
                     Stmt::Expression(expression) => {
                         let (mut constraints, ty) = self.infer(&expression.expr);
                         if expression.implicit_return {
-                            let ret_ty = self.scopes.last().unwrap();
+                            let ret_ty = self.ret_tys.last().unwrap();
                             constraints.push(Constraint::Assignable(ret_ty.clone(), ty));
                             return (constraints, Type::None);
                         }
@@ -348,26 +364,19 @@ impl<'a> CrateInference<'a> {
                                     // Either that or we need to ensure that constraints are propagated correctly through
                                     // the function definition.
 
-                                    let generic_params: Vec<Type> = class_stmt
+                                    let generic_params: HashMap<LocalDefId, Type> = class_stmt
                                         .generic_params
                                         .values()
+                                        .copied()
                                         .map(|generic_param| {
-                                            self.existing_ty(generic_param.to_def_id(krate.id))
+                                            (
+                                                generic_param,
+                                                self.existing_ty(generic_param.to_def_id(krate.id)),
+                                            )
                                         })
                                         .collect();
 
-                                    let fields = class_stmt
-                                        .fields
-                                        .values()
-                                        .map(|field| krate.field(field))
-                                        .map(|field| {
-                                            generic_params
-                                                .iter()
-                                                .find(|param| param.definition == field.ty)
-                                        })
-                                        .collect();
-
-                                    let ty = Type::Class(Class::new(*id, generic_params, fields));
+                                    let ty = Type::Class(Class::new(*id, generic_params));
                                     (Constraints::default(), ty)
                                 }
                                 ValueDef::Enum(_) => {
@@ -442,11 +451,6 @@ impl<'a> CrateInference<'a> {
                             todo!()
                         }
                         Type::Class(class) => {
-                            if args.len() != class.fields.len() {
-                                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
-                                return false;
-                            }
-                            // class.fields
                             todo!()
                         }
                         Type::Fn(fn_sig) => {
@@ -729,9 +733,7 @@ impl<'a> CrateInference<'a> {
             HirNodeKind::TraitImpl(_) => {}
         }
 
-        let ty = self.ty_map.get(node_id).clone();
-        dbg!(node);
-        dbg!(&ty);
+        let ty = self.ty_map.get(node_id).unwrap().clone();
         let ty = self.probe_ty(ty);
         self.ty_map.insert(node_id, ty);
     }
@@ -756,6 +758,7 @@ impl<'a> CrateInference<'a> {
                 let ret_ty = self.probe_ty(*closure.ret_ty);
                 Type::Fn(FnSig::new(params, ret_ty))
             }
+            Type::Class(class) => Type::Class(class),
             Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
             Type::GenericParam(generic_param) => {
                 let p_ty = self.unify_table.probe(generic_param.ty_var);
@@ -785,44 +788,54 @@ impl<'a> CrateInference<'a> {
         ty
     }
 
-    fn existing_ty(&mut self, node: DefId) -> Type {
-        let krate = self.hir_map.krate(&node);
-        let local_id = node.local_id();
-        let ty = krate.ty_stmt(&local_id);
+    fn existing_ty(&mut self, definition: DefId) -> Type {
+        let generics = self.generic_tys.last().unwrap_or(&EMPTY_PARAMS);
+        self.existing_ty_with_params(generics, definition)
+    }
+
+    fn existing_ty_with_params(
+        &mut self,
+        generic_params: &HashMap<LocalDefId, Type>,
+        definition: DefId,
+    ) -> Type {
+        let krate = self.hir_map.krate(&definition);
+        let ty = krate.ty_stmt(&definition.local_id());
         match ty {
-            Ty::Array(array) => {
-                Type::Array(Array::new(self.existing_ty(array.ty.to_def_id(krate.id))))
-            }
+            Ty::Array(array) => Type::Array(Array::new(
+                self.existing_ty_with_params(generic_params, array.ty.to_def_id(krate.id)),
+            )),
             Ty::GenericParam(generic_param) => {
                 let trait_bound = generic_param.trait_bound.map(|bound| {
-                    let krate = self.hir_map.krate(&bound);
-                    let ty = krate.ty_stmt(&bound.local_id());
-                    match ty {
-                        Ty::TraitBound(trait_bound) => self.trait_bound(trait_bound),
+                    match self.existing_ty_with_params(generic_params, bound.to_def_id(krate.id)) {
+                        Type::TraitBound(trait_bound) => trait_bound,
                         _ => unreachable!(),
                     }
                 });
 
-                // TODO: Look up generic param from the existing scope
                 Type::GenericParam(GenericParam::new(self.unify_table.fresh_ty(), trait_bound))
             }
             Ty::TraitBound(trait_bound) => {
                 let path_tys = trait_bound
                     .iter()
-                    // TODO: Handle generics
-                    .map(|path_ty| self.existing_ty(path_ty.definition))
+                    .map(|path_ty| self.existing_ty_with_params(generic_params, path_ty.definition))
                     .collect();
                 Type::TraitBound(TraitBound::new(path_tys))
+            }
+            Ty::Path(path) => {
+                todo!()
             }
             Ty::Closure(closure) => {
                 let params = closure
                     .params
                     .iter()
-                    .map(|ty| self.existing_ty(ty.to_def_id(krate.id)))
+                    .map(|ty| self.existing_ty_with_params(generic_params, ty.to_def_id(krate.id)))
                     .collect();
                 Type::Fn(FnSig::new(
                     params,
-                    self.existing_ty(closure.ret_ty.to_def_id(krate.id)),
+                    self.existing_ty_with_params(
+                        generic_params,
+                        closure.ret_ty.to_def_id(krate.id),
+                    ),
                 ))
             }
             Ty::Primitive(primitive) => match primitive {
@@ -841,15 +854,6 @@ impl<'a> CrateInference<'a> {
                 Primitive::None => Type::None,
             },
         }
-    }
-
-    fn trait_bound(&mut self, trait_bound: &HirTraitBound) -> TraitBound {
-        let path_tys = trait_bound
-            .iter()
-            // TODO: Handle generics
-            .map(|path_ty| self.existing_ty(path_ty.definition))
-            .collect();
-        TraitBound::new(path_tys)
     }
 }
 
@@ -911,16 +915,13 @@ impl Path {
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Class {
     definition: DefId,
-    fields: Vec<Type>, // Any generic references should correspond to the generic params.
-    // fns: Vec<FnSig>,
-    generic_params: Vec<Type>,
+    generic_params: HashMap<LocalDefId, Type>,
 }
 
 impl Class {
-    pub fn new(definition: DefId, fields: Vec<Type>, generic_params: Vec<Type>) -> Self {
+    pub fn new(definition: DefId, generic_params: HashMap<LocalDefId, Type>) -> Self {
         Self {
             definition,
-            fields,
             generic_params,
         }
     }
@@ -975,9 +976,9 @@ impl FnSig {
 pub enum Type {
     Array(Array),
     Class(Class),
+    Fn(FnSig),
     GenericParam(GenericParam),
     TraitBound(TraitBound),
-    Fn(FnSig),
     U8,
     U16,
     U32,
@@ -1007,7 +1008,7 @@ impl Type {
             Type::Class(lhs) => {
                 if let Type::Class(rhs) = rhs {
                     return lhs.definition == rhs.definition
-                        && zip(&lhs.generic_params, &rhs.generic_params)
+                        && zip(lhs.generic_params.values(), rhs.generic_params.values())
                             .all(|(lhs, rhs)| lhs.assignable(rhs));
                 }
                 false
