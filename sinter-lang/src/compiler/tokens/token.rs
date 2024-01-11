@@ -1,5 +1,8 @@
+use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 
+use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::StringInterner;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::tokens::tokenized_file::Span;
@@ -102,6 +105,78 @@ pub enum TokenType {
     None,
 
     Ref,
+}
+
+impl TokenType {
+    pub(crate) fn pretty_print(&self, ctxt: &CompilerCtxt) -> Cow<str> {
+        match self {
+            TokenType::Unrecognized(str) | TokenType::Identifier(str) | TokenType::String(str) => {
+                let interned_str = ctxt.resolve_str(*str);
+                Cow::Borrowed(interned_str)
+            }
+            TokenType::Int(int) => Cow::Owned(int.to_string()),
+            TokenType::UInt(uint) => Cow::Owned(uint.to_string()),
+            TokenType::Float(float) => Cow::Owned(float.to_string()),
+            TokenType::LeftBrace => Cow::Borrowed("{"),
+            TokenType::RightBrace => Cow::Borrowed("}"),
+            TokenType::LeftBracket => Cow::Borrowed("["),
+            TokenType::RightBracket => Cow::Borrowed("]"),
+            TokenType::LeftParentheses => Cow::Borrowed("("),
+            TokenType::RightParentheses => Cow::Borrowed(")"),
+            TokenType::Comma => Cow::Borrowed(","),
+            TokenType::Dot => Cow::Borrowed("."),
+            TokenType::Colon => Cow::Borrowed(":"),
+            TokenType::Semicolon => Cow::Borrowed(";"),
+            TokenType::Minus => Cow::Borrowed("-"),
+            TokenType::Plus => Cow::Borrowed("+"),
+            TokenType::Slash => Cow::Borrowed("/"),
+            TokenType::Star => Cow::Borrowed("*"),
+            TokenType::Percent => Cow::Borrowed("%"),
+            TokenType::Bang => Cow::Borrowed("!"),
+            TokenType::BangEqual => Cow::Borrowed("!="),
+            TokenType::Equal => Cow::Borrowed("="),
+            TokenType::EqualEqual => Cow::Borrowed("=="),
+            TokenType::RightArrow => Cow::Borrowed("=>"),
+            TokenType::Greater => Cow::Borrowed(">"),
+            TokenType::GreaterEqual => Cow::Borrowed(">="),
+            TokenType::Less => Cow::Borrowed("<"),
+            TokenType::LessEqual => Cow::Borrowed("<="),
+            TokenType::Class => Cow::Borrowed("class"),
+            TokenType::Fn => Cow::Borrowed("fn"),
+            TokenType::Break => Cow::Borrowed("break"),
+            TokenType::Continue => Cow::Borrowed("continue"),
+            TokenType::And => Cow::Borrowed("&&"),
+            TokenType::Or => Cow::Borrowed("||"),
+            TokenType::BitwiseAnd => Cow::Borrowed("&"),
+            TokenType::BitwiseOr => Cow::Borrowed("|"),
+            TokenType::BitwiseXor => Cow::Borrowed("^"),
+            TokenType::BitwiseComplement => Cow::Borrowed("~"),
+            TokenType::Underscore => Cow::Borrowed("_"),
+            TokenType::Else => Cow::Borrowed("else"),
+            TokenType::If => Cow::Borrowed("if"),
+            TokenType::False => Cow::Borrowed("false"),
+            TokenType::True => Cow::Borrowed("true"),
+            TokenType::For => Cow::Borrowed("for"),
+            TokenType::Let => Cow::Borrowed("let"),
+            TokenType::Mut => Cow::Borrowed("mut"),
+            TokenType::While => Cow::Borrowed("while"),
+            TokenType::Return => Cow::Borrowed("return"),
+            TokenType::SelfLowercase => Cow::Borrowed("self"),
+            TokenType::SelfCapitalized => Cow::Borrowed("Self"),
+            TokenType::In => Cow::Borrowed("in"),
+            TokenType::Native => Cow::Borrowed("native"),
+            TokenType::Enum => Cow::Borrowed("enum"),
+            TokenType::Impl => Cow::Borrowed("impl"),
+            TokenType::Match => Cow::Borrowed("match"),
+            TokenType::Pub => Cow::Borrowed("pub"),
+            TokenType::Static => Cow::Borrowed("static"),
+            TokenType::Type => Cow::Borrowed("type"),
+            TokenType::Trait => Cow::Borrowed("trait"),
+            TokenType::Use => Cow::Borrowed("use"),
+            TokenType::None => Cow::Borrowed("None"),
+            TokenType::Ref => Cow::Borrowed("ref"),
+        }
+    }
 }
 
 impl Display for TokenType {

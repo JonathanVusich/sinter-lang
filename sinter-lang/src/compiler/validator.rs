@@ -234,17 +234,14 @@ impl<'a> Validator<'a> {
             .map(|(name, vals)| {
                 let source_code = self.ctxt.source_code(&self.module.id);
                 let name = self.ctxt.resolve_str(*name);
-                let header = format!("ERROR: Duplicate {item_name} `{name}` in scope");
+                let mut message = format!("ERROR: Duplicate {item_name} `{name}` in scope\n");
                 let explanation = vals
                     .iter()
                     .map(|val| span(val))
                     .map(|span| source_code.source.span(&span).unwrap_or("".to_string()))
                     .join("\n\n");
-
-                Diagnostic::Error {
-                    header,
-                    explanation,
-                }
+                message.push_str(&explanation);
+                Diagnostic::Error(message)
             })
             .collect::<Vec<_>>();
 

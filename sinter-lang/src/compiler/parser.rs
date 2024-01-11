@@ -1,7 +1,9 @@
+use itertools::Itertools;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
 
+use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
@@ -16,11 +18,14 @@ use crate::compiler::ast::{
     TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
 };
 use crate::compiler::compiler::CompilerCtxt;
+use crate::compiler::errors::Diagnostic;
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::parser::ParseErrKind::{ExpectedToken, UnexpectedEof, UnexpectedToken};
 use crate::compiler::tokens::token::{Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span};
 use crate::compiler::types::InternedStr;
+
+const IDENTIFIER: &str = "'identifier'";
 
 pub fn parse(ctxt: &mut CompilerCtxt, input: Vec<Token>) -> Option<Module> {
     let parser = Parser::new(ctxt, input);
@@ -310,9 +315,13 @@ impl<'ctxt> Parser<'ctxt> {
                 Mutable
             }
             Some(TokenType::Identifier(_)) => Immutable,
-            _ => {
-                let ident = self.intern_str("");
-                return self.expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)]);
+            Some(token) => {
+                let ident = self.intern_str(IDENTIFIER);
+                return self
+                    .expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)], token);
+            }
+            None => {
+                return self.unexpected_end();
             }
         };
         let identifier = self.identifier()?;
@@ -500,9 +509,8 @@ impl<'ctxt> Parser<'ctxt> {
                 Some(Ident::new(ident, span))
             }
             Some(token) => {
-                let ident = self.intern_str("");
-                self.expected_token(TokenType::Identifier(ident));
-                None
+                let ident = self.intern_str(IDENTIFIER);
+                return self.expected_token(TokenType::Identifier(ident), token.token_type);
             }
             None => self.unexpected_end(),
         }
@@ -529,18 +537,19 @@ impl<'ctxt> Parser<'ctxt> {
                         break;
                     }
                 }
-                _ => {
-                    let ident = self.intern_str("");
-                    self.expected_token(TokenType::Identifier(ident));
-                    return None;
+                Some(token) => {
+                    let ident = self.intern_str(IDENTIFIER);
+                    return self.expected_token(TokenType::Identifier(ident), token);
+                }
+                None => {
+                    return self.unexpected_end();
                 }
             }
         }
 
         if idents.is_empty() {
             let ident = self.intern_str("");
-            self.expected_token(TokenType::Identifier(ident));
-            None
+            return self.expected_token(TokenType::Identifier(ident));
         } else {
             let first = idents.first().unwrap();
             let ident_type = if self.compiler_ctxt.resolve_str(first.ident) == "crate" {
@@ -1658,13 +1667,33 @@ impl<'ctxt> Parser<'ctxt> {
         self.compiler_ctxt.resolve_str(key) == string
     }
 
-    fn expected_token(&mut self, token_type: TokenType) {
-        // TODO: Emit diagnostic
-        todo!()
+    fn expected_token<T>(&mut self, expected: TokenType, received: TokenType) -> Option<T> {
+        let expected = expected.pretty_print(&self.compiler_ctxt);
+        let received = received.pretty_print(&self.compiler_ctxt);
+
+        let error_message = format!("ERROR: Expected {expected}, received {received}!\n");
+        self.compiler_ctxt
+            .diagnostics
+            .push(Diagnostic::Error(error_message));
+        None
     }
 
-    fn expected_tokens<T>(&mut self, token_types: Vec<TokenType>) -> Option<T> {
-        todo!()
+    fn expected_tokens<T>(
+        &mut self,
+        token_types: Vec<TokenType>,
+        received: TokenType,
+    ) -> Option<T> {
+        let expected = token_types
+            .iter()
+            .map(|token_type| token_type.pretty_print(&self.compiler_ctxt))
+            .join(" | ");
+        let received = received.pretty_print(&self.compiler_ctxt);
+
+        let error_message = format!("ERROR: Expected {expected}, received {received}!\n");
+        self.compiler_ctxt
+            .diagnostics
+            .push(Diagnostic::Error(error_message));
+        None
     }
 
     fn unexpected_token<T>(&mut self, token_type: TokenType) -> Option<T> {
@@ -1700,8 +1729,7 @@ impl<'ctxt> Parser<'ctxt> {
             self.advance();
             Some(())
         } else {
-            self.expected_token(token_type);
-            None
+            self.expected_token(token_type)
         }
     }
 
