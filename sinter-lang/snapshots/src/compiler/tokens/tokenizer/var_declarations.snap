@@ -89,9 +89,11 @@
         }
       }
     ],
-    "line_map": [
-      17
-    ],
+    "line_map": {
+      "lines": [
+        17
+      ]
+    },
     "line_counter": 1
   }
 ]

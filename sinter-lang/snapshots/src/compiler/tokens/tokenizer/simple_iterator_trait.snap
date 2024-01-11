@@ -127,10 +127,12 @@
         }
       }
     ],
-    "line_map": [
-      19,
-      47
-    ],
+    "line_map": {
+      "lines": [
+        19,
+        47
+      ]
+    },
     "line_counter": 2
   }
 ]

@@ -42,10 +42,12 @@
         }
       }
     ],
-    "line_map": [
-      10,
-      19
-    ],
+    "line_map": {
+      "lines": [
+        10,
+        19
+      ]
+    },
     "line_counter": 2
   }
 ]

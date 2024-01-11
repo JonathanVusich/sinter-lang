@@ -100,7 +100,7 @@ impl<'a> Validator<'a> {
 
         for (path, use_stmts) in self.use_stmts.iter_all() {
             if use_stmts.len() > 1 {
-                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
+                self.ctxt.diagnostics.push(Diagnostic::BlankError);
                 // self.errors.push(ValidationErrKind::DuplicateUseStmts(
                 //     path.clone(),
                 //     use_stmts.clone(),
@@ -109,7 +109,7 @@ impl<'a> Validator<'a> {
         }
         for (name, global_lets) in self.global_lets.iter_all() {
             if global_lets.len() > 1 {
-                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
+                self.ctxt.diagnostics.push(Diagnostic::BlankError);
                 // self.errors.push(ValidationErrKind::DuplicateLetStmts(
                 //     *name,
                 //     global_lets.clone(),
@@ -119,7 +119,7 @@ impl<'a> Validator<'a> {
         for (name, tys) in self.tys.iter_all() {
             if tys.len() > 1 {
                 // TODO: Emit better diagnostics
-                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
+                self.ctxt.diagnostics.push(Diagnostic::BlankError);
                 // self.errors
                 //     .push(ValidationErrKind::DuplicateTys(*name, tys.clone()))
             }
@@ -127,7 +127,7 @@ impl<'a> Validator<'a> {
         for (name, fns) in self.fns.iter_all() {
             if fns.len() > 1 {
                 // TODO: Emit better diagnostics
-                self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
+                self.ctxt.diagnostics.push(Diagnostic::BlankError);
                 // self.errors
                 //     .push(ValidationErrKind::DuplicateFns(*name, fns.clone()))
             }
@@ -144,7 +144,7 @@ impl<'a> Validator<'a> {
         match &stmt.kind {
             StmtKind::Let(let_stmt) => {
                 if let_stmt.ty.is_none() && let_stmt.initializer.is_none() {
-                    self.ctxt.diagnostics_mut().push(Diagnostic::BlankError);
+                    self.ctxt.diagnostics.push(Diagnostic::BlankError);
                     // self.errors.push(ValidationErrKind::NoTypeProvided(stmt.id));
                 }
             }
@@ -162,15 +162,7 @@ impl<'a> Validator<'a> {
             generic_params,
             |param| param.name.ident,
             |param| param.span,
-            |name, spans| {
-                let source_code = self.source_code();
-                let joined_generics = spans
-                    .iter()
-                    .map(|span| source_code.source.span(span).unwrap())
-                    .join(", ");
-
-                Diagnostic::Error(format!("Duplicate generic params! {}", joined_generics))
-            },
+            "generic parameters",
         );
     }
 
@@ -179,15 +171,7 @@ impl<'a> Validator<'a> {
             params,
             |param| param.name.ident,
             |param| param.span,
-            |name, spans| {
-                let source_code = self.source_code();
-                let joined_generics = spans
-                    .iter()
-                    .map(|span| source_code.source.span(span).unwrap())
-                    .join(", ");
-
-                Diagnostic::Error(format!("Duplicate params! {}", joined_generics))
-            },
+            "parameters",
         );
     }
 
@@ -196,15 +180,7 @@ impl<'a> Validator<'a> {
             self_fns,
             |self_fn| self_fn.sig.name.ident,
             |self_fn| self_fn.span,
-            |name, spans| {
-                let source_code = self.source_code();
-                let joined_generics = spans
-                    .iter()
-                    .map(|span| source_code.source.span(span).unwrap())
-                    .join(", ");
-
-                Diagnostic::Error(format!("Duplicate fns in class body! {}", joined_generics))
-            },
+            "functions",
         );
 
         for self_fn in self_fns {
@@ -217,18 +193,7 @@ impl<'a> Validator<'a> {
             fields,
             |field| field.name.ident,
             |field| field.span,
-            |name, spans| {
-                let source_code = self.source_code();
-                let joined_generics = spans
-                    .iter()
-                    .map(|span| source_code.source.span(span).unwrap())
-                    .join(", ");
-
-                Diagnostic::Error(format!(
-                    "Duplicate fields in class body! {}",
-                    joined_generics
-                ))
-            },
+            "fields",
         );
     }
 
@@ -237,18 +202,7 @@ impl<'a> Validator<'a> {
             members,
             |member| member.name,
             |member| member.span,
-            |name, spans| {
-                let source_code = self.source_code();
-                let joined_generics = spans
-                    .iter()
-                    .map(|span| source_code.source.span(span).unwrap())
-                    .join(", ");
-
-                Diagnostic::Error(format!(
-                    "Duplicate enum members in enum! {}",
-                    joined_generics
-                ))
-            },
+            "enum members",
         );
 
         for member in members {
@@ -266,30 +220,48 @@ impl<'a> Validator<'a> {
         self.ctxt.source_code(&self.module.id)
     }
 
-    fn report_name_clashes<
-        T,
-        M: Fn(&T) -> InternedStr,
-        I: Fn(&T) -> Span,
-        E: Fn(InternedStr, Vec<Span>) -> Diagnostic,
-    >(
+    fn report_name_clashes<T, M: Fn(&T) -> InternedStr, S: Fn(&T) -> Span>(
         &mut self,
         items: &[T],
         mapper: M,
-        id: I,
-        error: E,
+        span: S,
+        item_name: &'static str,
     ) {
-        items
-            .iter()
-            .map(|item| (mapper(item), item))
-            .collect::<MultiMap<InternedStr, &T>>()
+        let name_clashes = find_name_clashes(items, mapper);
+        let diagnostics = name_clashes
             .iter_all()
-            .filter(|entry| entry.1.len() > 1)
-            .map(|entry| {
-                let ids = entry.1.iter().map(|item| id(item)).collect();
-                error(*entry.0, ids)
+            .filter(|(name, vals)| vals.len() > 1)
+            .map(|(name, vals)| {
+                let source_code = self.ctxt.source_code(&self.module.id);
+                let name = self.ctxt.resolve_str(*name);
+                let header = format!("ERROR: Duplicate {item_name} `{name}` in scope");
+                let explanation = vals
+                    .iter()
+                    .map(|val| span(val))
+                    .map(|span| source_code.source.span(&span).unwrap_or("".to_string()))
+                    .join("\n\n");
+
+                Diagnostic::Error {
+                    header,
+                    explanation,
+                }
             })
-            .for_each(|error| self.ctxt.diagnostics_mut().push(error));
+            .collect::<Vec<_>>();
+
+        diagnostics
+            .into_iter()
+            .for_each(|diagnostic| self.ctxt.diagnostics.push(diagnostic));
     }
+}
+
+fn find_name_clashes<T, M: Fn(&T) -> InternedStr>(
+    items: &[T],
+    mapper: M,
+) -> MultiMap<InternedStr, &T> {
+    items
+        .iter()
+        .map(|item| (mapper(item), item))
+        .collect::<MultiMap<InternedStr, &T>>()
 }
 
 mod tests {
@@ -311,7 +283,7 @@ mod tests {
     #[cfg(test)]
     fn validate<T: AsRef<str>>(code: T) -> ValidationOutput {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let mut tokenizer = Tokenizer::new(&mut compiler_ctxt, code.as_ref());
+        let tokenizer = Tokenizer::new(&mut compiler_ctxt, code.as_ref());
         let TokenizedOutput { tokens, .. } = tokenizer.tokenize();
         let module = parse(&mut compiler_ctxt, tokens).unwrap();
         let krate_name = compiler_ctxt.intern_str("crate");
@@ -325,12 +297,15 @@ mod tests {
         let module = krate.module(ModuleId::new(0, 0));
 
         crate::compiler::validator::validate(&mut compiler_ctxt, module);
+        let CompilerCtxt {
+            string_interner,
+            source_map,
+            diagnostics,
+            ..
+        } = compiler_ctxt;
         (
-            StringInterner::from(compiler_ctxt),
-            compiler_ctxt
-                .diagnostics()
-                .filter(DiagnosticKind::Error)
-                .collect(),
+            string_interner,
+            diagnostics.filter(DiagnosticKind::Error).collect(),
         )
     }
 

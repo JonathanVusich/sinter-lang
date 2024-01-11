@@ -45,7 +45,7 @@ pub enum FatalError {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Diagnostic {
     Fatal(FatalError),
-    Error(String),
+    Error { header: String, explanation: String },
     BlankError,
 }
 

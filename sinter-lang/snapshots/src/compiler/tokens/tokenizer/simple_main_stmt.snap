@@ -161,10 +161,12 @@
         }
       }
     ],
-    "line_map": [
-      27,
-      63
-    ],
+    "line_map": {
+      "lines": [
+        27,
+        63
+      ]
+    },
     "line_counter": 2
   }
 ]

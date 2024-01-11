@@ -160,28 +160,20 @@ impl SourceCode {
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct CompilerCtxt {
     // TODO: Add source map to keep track of all source code that has passed through the compiler.
-    string_interner: StringInterner,
-    source_map: HashMap<ModuleId, SourceCode>,
-    diagnostics: Diagnostics,
+    pub(crate) string_interner: StringInterner,
+    pub(crate) source_map: HashMap<ModuleId, SourceCode>,
+    pub(crate) diagnostics: Diagnostics,
     crate_id: usize,
     local_def_id: usize,
 }
 
 impl CompilerCtxt {
-    pub(crate) fn diagnostics(&self) -> &Diagnostics {
-        &self.diagnostics
-    }
-
-    pub(crate) fn diagnostics_mut(&mut self) -> &mut Diagnostics {
-        &mut self.diagnostics
-    }
-
     pub(crate) fn intern_source(&mut self, module_id: ModuleId, source: SourceCode) {
         self.source_map.insert(module_id, source);
     }
 
     pub(crate) fn source_code(&self, module_id: &ModuleId) -> &SourceCode {
-        self.source_map.get(&module_id).unwrap()
+        self.source_map.get(module_id).unwrap()
     }
 
     pub(crate) fn intern_str(&mut self, str: &str) -> InternedStr {
@@ -213,7 +205,6 @@ impl CompilerCtxt {
         let mut segments = Vec::new();
         for segment in path.as_ref().iter() {
             let segment = segment.to_str().or_else(|| {
-                // TODO: Emit compiler fatal
                 self.diagnostics
                     .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 None
@@ -331,7 +322,7 @@ impl Compiler {
                 .map(|path| path.to_os_string())
                 .or_else(|| {
                     self.compiler_ctxt
-                        .diagnostics_mut()
+                        .diagnostics
                         .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                     None
                 })?;
@@ -341,7 +332,7 @@ impl Compiler {
             .map(|str| self.compiler_ctxt.intern_str(str))
             .or_else(|| {
                 self.compiler_ctxt
-                    .diagnostics_mut()
+                    .diagnostics
                     .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 None
             })?;
@@ -368,7 +359,7 @@ impl Compiler {
             let local_path = local_to_root(file.path(), path)
                 .map_err(|err| {
                     self.compiler_ctxt
-                        .diagnostics_mut()
+                        .diagnostics
                         .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 })
                 .ok()?;
@@ -420,7 +411,7 @@ impl Compiler {
         let mut io_lock = io::stdout().lock();
         if self
             .compiler_ctxt
-            .diagnostics()
+            .diagnostics
             .flush(DiagnosticKind::Error, &mut io_lock)
         {
             return None;

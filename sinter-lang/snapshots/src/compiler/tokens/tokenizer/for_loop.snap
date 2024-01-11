@@ -74,7 +74,9 @@
         }
       }
     ],
-    "line_map": [],
+    "line_map": {
+      "lines": []
+    },
     "line_counter": 0
   }
 ]

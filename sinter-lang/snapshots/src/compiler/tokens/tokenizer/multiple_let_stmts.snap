@@ -101,10 +101,12 @@
         }
       }
     ],
-    "line_map": [
-      39,
-      76
-    ],
+    "line_map": {
+      "lines": [
+        39,
+        76
+      ]
+    },
     "line_counter": 2
   }
 ]

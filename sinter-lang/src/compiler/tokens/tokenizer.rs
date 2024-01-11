@@ -17,7 +17,7 @@ pub fn tokenize_file(compiler_ctxt: &mut CompilerCtxt, path: &Path) -> Option<To
     let source_file = fs::read_to_string(path)
         .map_err(|err| {
             compiler_ctxt
-                .diagnostics_mut()
+                .diagnostics
                 .push(Diagnostic::Fatal(FatalError::FileOpen));
             err
         })
@@ -99,7 +99,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
     }
 
     pub fn tokenize(mut self) -> TokenizedOutput {
-        while self.current <= self.chars.len() {
+        while self.current < self.chars.len() {
             self.skip_whitespace();
             self.scan_token();
         }
@@ -405,7 +405,7 @@ mod tests {
     #[cfg(test)]
     fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner, TokenizedOutput) {
         let mut compiler_ctxt = CompilerCtxt::default();
-        let mut tokenizer = Tokenizer::new(&mut compiler_ctxt, code.as_ref());
+        let tokenizer = Tokenizer::new(&mut compiler_ctxt, code.as_ref());
         let tokens = tokenizer.tokenize();
         (StringInterner::from(compiler_ctxt), tokens)
     }

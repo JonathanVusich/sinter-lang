@@ -1805,7 +1805,7 @@ mod tests {
         // let diagnostics = compiler_ctxt.emit_error()
         parser.parse();
         let errors: Vec<Diagnostic> = compiler_ctxt
-            .diagnostics_mut()
+            .diagnostics
             .filter(DiagnosticKind::Error)
             .collect();
         if !errors.is_empty() {
@@ -1872,34 +1872,18 @@ mod tests {
 
     #[test]
     pub fn invalid_use_stmts() {
-        let mut result = parse_module("use std::vector::").unwrap();
+        let result = parse_module("use std::vector::").unwrap();
 
-        let errors: Vec<Diagnostic> = result
-            .0
-            .diagnostics()
-            .filter(DiagnosticKind::Error)
-            .collect();
+        let errors: Vec<Diagnostic> = result.0.diagnostics.filter(DiagnosticKind::Error).collect();
         assert!(!errors.is_empty());
         let result = parse_module("use std::vector::Vector").unwrap();
-        let errors: Vec<Diagnostic> = result
-            .0
-            .diagnostics()
-            .filter(DiagnosticKind::Error)
-            .collect();
+        let errors: Vec<Diagnostic> = result.0.diagnostics.filter(DiagnosticKind::Error).collect();
         assert!(!errors.is_empty());
         let result = parse_module("use;").unwrap();
-        let errors: Vec<Diagnostic> = result
-            .0
-            .diagnostics()
-            .filter(DiagnosticKind::Error)
-            .collect();
+        let errors: Vec<Diagnostic> = result.0.diagnostics.filter(DiagnosticKind::Error).collect();
         assert!(!errors.is_empty());
         let result = parse_module("use").unwrap();
-        let errors: Vec<Diagnostic> = result
-            .0
-            .diagnostics()
-            .filter(DiagnosticKind::Error)
-            .collect();
+        let errors: Vec<Diagnostic> = result.0.diagnostics.filter(DiagnosticKind::Error).collect();
         assert!(!errors.is_empty());
     }
 
