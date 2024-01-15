@@ -4,21 +4,24 @@
       "mut_var",
       "x"
     ],
+    "source_map": {},
+    "diagnostics": {
+      "diagnostics": []
+    },
     "crate_id": 0,
     "local_def_id": 10
   },
   {
-    "path": {
-      "module_path": []
-    },
     "id": {
       "crate_id": 0,
       "module_id": 0
     },
-    "ns": {
+    "path": {
+      "module_path": []
+    },
+    "namespace": {
       "modules": {},
-      "values": {},
-      "enums": {}
+      "values": {}
     },
     "items": [
       {

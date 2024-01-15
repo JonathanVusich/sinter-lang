@@ -16,21 +16,34 @@
       "Serializable",
       "Self"
     ],
+    "source_map": {},
+    "diagnostics": {
+      "diagnostics": [
+        {
+          "Error": "ERROR: Expected :, received =!\n"
+        },
+        {
+          "Error": "ERROR: Expected :, received =!\n"
+        },
+        {
+          "Error": "ERROR: Expected :, received =!\n"
+        }
+      ]
+    },
     "crate_id": 0,
-    "local_def_id": 30
+    "local_def_id": 17
   },
   {
-    "path": {
-      "module_path": []
-    },
     "id": {
       "crate_id": 0,
       "module_id": 0
     },
-    "ns": {
+    "path": {
+      "module_path": []
+    },
+    "namespace": {
       "modules": {},
-      "values": {},
-      "enums": {}
+      "values": {}
     },
     "items": [
       {
@@ -286,290 +299,6 @@
           "end": 107
         },
         "id": 16
-      },
-      {
-        "kind": {
-          "GlobalLet": {
-            "name": {
-              "ident": 7,
-              "span": {
-                "start": 113,
-                "end": 125
-              }
-            },
-            "ty": null,
-            "initializer": {
-              "kind": {
-                "Call": {
-                  "target": {
-                    "kind": {
-                      "Path": {
-                        "ident_type": "LocalOrUse",
-                        "segments": [
-                          {
-                            "ident": {
-                              "ident": 1,
-                              "span": {
-                                "start": 128,
-                                "end": 132
-                              }
-                            },
-                            "generics": [
-                              {
-                                "kind": "I64",
-                                "span": {
-                                  "start": 135,
-                                  "end": 138
-                                },
-                                "id": 17
-                              }
-                            ]
-                          },
-                          {
-                            "ident": {
-                              "ident": 6,
-                              "span": {
-                                "start": 141,
-                                "end": 144
-                              }
-                            },
-                            "generics": null
-                          }
-                        ]
-                      }
-                    },
-                    "span": {
-                      "start": 128,
-                      "end": 144
-                    },
-                    "id": 18
-                  },
-                  "args": []
-                }
-              },
-              "span": {
-                "start": 128,
-                "end": 146
-              },
-              "id": 19
-            }
-          }
-        },
-        "span": {
-          "start": 109,
-          "end": 147
-        },
-        "id": 20
-      },
-      {
-        "kind": {
-          "GlobalLet": {
-            "name": {
-              "ident": 9,
-              "span": {
-                "start": 152,
-                "end": 165
-              }
-            },
-            "ty": null,
-            "initializer": {
-              "kind": {
-                "Call": {
-                  "target": {
-                    "kind": {
-                      "Path": {
-                        "ident_type": "LocalOrUse",
-                        "segments": [
-                          {
-                            "ident": {
-                              "ident": 1,
-                              "span": {
-                                "start": 168,
-                                "end": 172
-                              }
-                            },
-                            "generics": [
-                              {
-                                "kind": {
-                                  "Path": {
-                                    "path": {
-                                      "ident": {
-                                        "ident_type": "LocalOrUse",
-                                        "idents": [
-                                          {
-                                            "ident": 1,
-                                            "span": {
-                                              "start": 175,
-                                              "end": 179
-                                            }
-                                          }
-                                        ]
-                                      },
-                                      "generics": [
-                                        {
-                                          "kind": "F64",
-                                          "span": {
-                                            "start": 180,
-                                            "end": 183
-                                          },
-                                          "id": 21
-                                        }
-                                      ]
-                                    }
-                                  }
-                                },
-                                "span": {
-                                  "start": 175,
-                                  "end": 184
-                                },
-                                "id": 22
-                              }
-                            ]
-                          },
-                          {
-                            "ident": {
-                              "ident": 6,
-                              "span": {
-                                "start": 187,
-                                "end": 190
-                              }
-                            },
-                            "generics": null
-                          }
-                        ]
-                      }
-                    },
-                    "span": {
-                      "start": 168,
-                      "end": 190
-                    },
-                    "id": 23
-                  },
-                  "args": []
-                }
-              },
-              "span": {
-                "start": 168,
-                "end": 192
-              },
-              "id": 24
-            }
-          }
-        },
-        "span": {
-          "start": 148,
-          "end": 193
-        },
-        "id": 25
-      },
-      {
-        "kind": {
-          "GlobalLet": {
-            "name": {
-              "ident": 11,
-              "span": {
-                "start": 198,
-                "end": 210
-              }
-            },
-            "ty": null,
-            "initializer": {
-              "kind": {
-                "Call": {
-                  "target": {
-                    "kind": {
-                      "Path": {
-                        "ident_type": "LocalOrUse",
-                        "segments": [
-                          {
-                            "ident": {
-                              "ident": 1,
-                              "span": {
-                                "start": 213,
-                                "end": 217
-                              }
-                            },
-                            "generics": [
-                              {
-                                "kind": {
-                                  "TraitBound": {
-                                    "trait_bound": [
-                                      {
-                                        "ident": {
-                                          "ident_type": "LocalOrUse",
-                                          "idents": [
-                                            {
-                                              "ident": 12,
-                                              "span": {
-                                                "start": 220,
-                                                "end": 228
-                                              }
-                                            }
-                                          ]
-                                        },
-                                        "generics": []
-                                      },
-                                      {
-                                        "ident": {
-                                          "ident_type": "LocalOrUse",
-                                          "idents": [
-                                            {
-                                              "ident": 13,
-                                              "span": {
-                                                "start": 231,
-                                                "end": 243
-                                              }
-                                            }
-                                          ]
-                                        },
-                                        "generics": []
-                                      }
-                                    ]
-                                  }
-                                },
-                                "span": {
-                                  "start": 220,
-                                  "end": 243
-                                },
-                                "id": 26
-                              }
-                            ]
-                          },
-                          {
-                            "ident": {
-                              "ident": 6,
-                              "span": {
-                                "start": 246,
-                                "end": 249
-                              }
-                            },
-                            "generics": null
-                          }
-                        ]
-                      }
-                    },
-                    "span": {
-                      "start": 213,
-                      "end": 249
-                    },
-                    "id": 27
-                  },
-                  "args": []
-                }
-              },
-              "span": {
-                "start": 213,
-                "end": 251
-              },
-              "id": 28
-            }
-          }
-        },
-        "span": {
-          "start": 194,
-          "end": 252
-        },
-        "id": 29
       }
     ]
   }

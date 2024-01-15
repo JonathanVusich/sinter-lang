@@ -1,9 +1,9 @@
-use itertools::Itertools;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::ops::Deref;
+use std::thread::scope;
 
-use log::error;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::Mutability::{Immutable, Mutable};
@@ -21,11 +21,11 @@ use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::errors::Diagnostic;
 use crate::compiler::hir::LocalDefId;
 use crate::compiler::parser::ParseErrKind::{ExpectedToken, UnexpectedEof, UnexpectedToken};
-use crate::compiler::tokens::token::{Token, TokenType};
+use crate::compiler::tokens::token::{PrintOption, Token, TokenType};
 use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span};
 use crate::compiler::types::InternedStr;
 
-const IDENTIFIER: &str = "'identifier'";
+const BLANK_STR: &str = "";
 
 pub fn parse(ctxt: &mut CompilerCtxt, input: Vec<Token>) -> Option<Module> {
     let parser = Parser::new(ctxt, input);
@@ -71,7 +71,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     /// Attempts to parse a fully formed module from the given tokens.
-    fn parse(mut self) -> Option<Module> {
+    fn parse(self) -> Option<Module> {
         self.parse_module()
     }
 
@@ -159,7 +159,19 @@ impl<'ctxt> Parser<'ctxt> {
             Some(TokenType::Enum) => self.parse_enum_stmt(),
             Some(TokenType::Trait) => self.parse_trait_stmt(),
             Some(TokenType::Impl) => self.parse_trait_impl_stmt(),
-            Some(token) => self.unexpected_token(token),
+            Some(token) => self.expected_tokens(
+                vec![
+                    TokenType::Use,
+                    TokenType::Ref,
+                    TokenType::Class,
+                    TokenType::Fn,
+                    TokenType::Let,
+                    TokenType::Enum,
+                    TokenType::Trait,
+                    TokenType::Impl,
+                ],
+                token,
+            ),
             None => self.unexpected_end(),
         }
     }
@@ -277,7 +289,9 @@ impl<'ctxt> Parser<'ctxt> {
                     self.get_id(),
                 ))
             }
-            Some(token) => self.unexpected_token(token),
+            Some(token) => {
+                self.expected_tokens(vec![TokenType::Semicolon, TokenType::LeftBrace], token)
+            }
             None => self.unexpected_end(),
         }
     }
@@ -316,7 +330,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::Identifier(_)) => Immutable,
             Some(token) => {
-                let ident = self.intern_str(IDENTIFIER);
+                let ident = self.intern_str(BLANK_STR);
                 return self
                     .expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)], token);
             }
@@ -391,7 +405,9 @@ impl<'ctxt> Parser<'ctxt> {
             Some(TokenType::LeftBrace) => {
                 Some(TraitStmt::new(identifier, generics, self.fn_trait_stmts()?))
             }
-            Some(token) => self.unexpected_token(token),
+            Some(token) => {
+                self.expected_tokens(vec![TokenType::Semicolon, TokenType::LeftBrace], token)
+            }
             None => self.unexpected_end(),
         }
     }
@@ -416,7 +432,9 @@ impl<'ctxt> Parser<'ctxt> {
                 target_ty,
                 self.fn_trait_stmts()?,
             )),
-            Some(token) => self.unexpected_token(token),
+            Some(token) => {
+                self.expected_tokens(vec![TokenType::Semicolon, TokenType::LeftBrace], token)
+            }
             None => self.unexpected_end(),
         }
     }
@@ -509,8 +527,8 @@ impl<'ctxt> Parser<'ctxt> {
                 Some(Ident::new(ident, span))
             }
             Some(token) => {
-                let ident = self.intern_str(IDENTIFIER);
-                return self.expected_token(TokenType::Identifier(ident), token.token_type);
+                let ident = self.intern_str(BLANK_STR);
+                self.expected_token(TokenType::Identifier(ident), token.token_type)
             }
             None => self.unexpected_end(),
         }
@@ -538,29 +556,23 @@ impl<'ctxt> Parser<'ctxt> {
                     }
                 }
                 Some(token) => {
-                    let ident = self.intern_str(IDENTIFIER);
-                    return self.expected_token(TokenType::Identifier(ident), token);
+                    let ident = self.intern_str(BLANK_STR);
+                    return self.expected_token(TokenType::Identifier(ident), token.token_type);
                 }
                 None => {
                     return self.unexpected_end();
                 }
             }
         }
-
-        if idents.is_empty() {
-            let ident = self.intern_str("");
-            return self.expected_token(TokenType::Identifier(ident));
+        let first = idents.first().unwrap();
+        let ident_type = if self.compiler_ctxt.resolve_str(first.ident) == "crate" {
+            idents.remove(0);
+            IdentType::Crate
         } else {
-            let first = idents.first().unwrap();
-            let ident_type = if self.compiler_ctxt.resolve_str(first.ident) == "crate" {
-                idents.remove(0);
-                IdentType::Crate
-            } else {
-                IdentType::LocalOrUse
-            };
+            IdentType::LocalOrUse
+        };
 
-            Some(QualifiedIdent::new(ident_type, idents))
-        }
+        Some(QualifiedIdent::new(ident_type, idents))
     }
 
     fn generic_call_site(&mut self) -> Option<GenericCallSite> {
@@ -653,9 +665,8 @@ impl<'ctxt> Parser<'ctxt> {
                 Some(EnumMember::new(ident, fields, fn_self_stmts, span, id))
             }
             Some(token) => {
-                let ident = self.intern_str("");
-                self.expected_token(TokenType::Identifier(ident));
-                None
+                let ident = self.intern_str(BLANK_STR);
+                self.expected_token(TokenType::Identifier(ident), token)
             }
             None => self.unexpected_end(),
         }
@@ -757,10 +768,7 @@ impl<'ctxt> Parser<'ctxt> {
                     self.get_id(),
                 ))
             }
-            Some(token) => {
-                self.expected_token(TokenType::SelfLowercase);
-                None
-            }
+            Some(token) => self.expected_token(TokenType::SelfLowercase, token.token_type),
             None => self.unexpected_end(),
         }
     }
@@ -895,7 +903,15 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Some(Ty::new(TyKind::QSelf, span, self.get_id()))
             }
-            Some(token) => self.unexpected_token(token.token_type),
+            Some(token) => self.expected_tokens(
+                vec![
+                    TokenType::LeftParentheses,
+                    TokenType::LeftBracket,
+                    TokenType::None,
+                    TokenType::SelfCapitalized,
+                ],
+                token.token_type,
+            ),
             None => self.unexpected_end(),
         }
     }
@@ -1076,8 +1092,10 @@ impl<'ctxt> Parser<'ctxt> {
                     }
                     Some(token) => {
                         let ident = self.intern_str("");
-                        return self
-                            .expected_tokens(vec![TokenType::Less, TokenType::Identifier(ident)]);
+                        return self.expected_tokens(
+                            vec![TokenType::Less, TokenType::Identifier(ident)],
+                            token.token_type,
+                        );
                     }
                     None => {
                         return self.unexpected_end();
@@ -1187,8 +1205,10 @@ impl<'ctxt> Parser<'ctxt> {
                             ExprKind::Array(ArrayExpr::Initializer(exprs))
                         }
                         Some(token) => {
-                            return self
-                                .expected_tokens(vec![TokenType::Semicolon, TokenType::Comma]);
+                            return self.expected_tokens(
+                                vec![TokenType::Semicolon, TokenType::Comma],
+                                token,
+                            );
                         }
                         None => {
                             return self.unexpected_end();
@@ -1211,7 +1231,23 @@ impl<'ctxt> Parser<'ctxt> {
 
                 // Handle unexpected token
                 token => {
-                    return self.unexpected_token(token);
+                    let blank_str = self.compiler_ctxt.intern_str(BLANK_STR);
+                    return self.expected_tokens(
+                        vec![
+                            TokenType::LeftBracket,
+                            TokenType::LeftParentheses,
+                            TokenType::Match,
+                            TokenType::None,
+                            TokenType::SelfCapitalized,
+                            TokenType::SelfLowercase,
+                            TokenType::Identifier(blank_str),
+                            TokenType::String(blank_str),
+                            TokenType::UInt(0),
+                            TokenType::Int(0),
+                            TokenType::Float(0.0),
+                        ],
+                        token,
+                    );
                 }
             };
             expr
@@ -1431,7 +1467,18 @@ impl<'ctxt> Parser<'ctxt> {
                         let ty_pat = TyPattern::new(ty, None);
                         Some(Pattern::Ty(ty_pat))
                     }
-                    Some(token) => self.unexpected_token(token),
+                    Some(token) => {
+                        let blank_str = self.compiler_ctxt.intern_str(BLANK_STR);
+                        self.expected_tokens(
+                            vec![
+                                TokenType::LeftParentheses,
+                                TokenType::Identifier(blank_str),
+                                TokenType::RightArrow,
+                                TokenType::BitwiseXor,
+                            ],
+                            token,
+                        )
+                    }
                     None => self.unexpected_end(),
                 }
             }
@@ -1527,7 +1574,22 @@ impl<'ctxt> Parser<'ctxt> {
                     self.get_id(),
                 ))
             }
-            Some(token) => self.unexpected_token(token),
+            Some(token) => {
+                let blank_str = self.compiler_ctxt.intern_str(BLANK_STR);
+                self.expected_tokens(
+                    vec![
+                        TokenType::Identifier(blank_str),
+                        TokenType::True,
+                        TokenType::False,
+                        TokenType::String(blank_str),
+                        TokenType::Int(0),
+                        TokenType::UInt(0),
+                        TokenType::Float(0.0),
+                        TokenType::None,
+                    ],
+                    token,
+                )
+            }
             None => self.unexpected_end(),
         }
     }
@@ -1646,7 +1708,7 @@ impl<'ctxt> Parser<'ctxt> {
                     break;
                 } else {
                     return match self.current() {
-                        Some(token) => self.unexpected_token(token),
+                        Some(token) => self.expected_tokens(vec![delimiter, scope_end], token),
                         None => self.unexpected_end(),
                     };
                 }
@@ -1668,8 +1730,8 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn expected_token<T>(&mut self, expected: TokenType, received: TokenType) -> Option<T> {
-        let expected = expected.pretty_print(&self.compiler_ctxt);
-        let received = received.pretty_print(&self.compiler_ctxt);
+        let expected = expected.pretty_print(self.compiler_ctxt, PrintOption::Type);
+        let received = received.pretty_print(self.compiler_ctxt, PrintOption::Value);
 
         let error_message = format!("ERROR: Expected {expected}, received {received}!\n");
         self.compiler_ctxt
@@ -1685,9 +1747,9 @@ impl<'ctxt> Parser<'ctxt> {
     ) -> Option<T> {
         let expected = token_types
             .iter()
-            .map(|token_type| token_type.pretty_print(&self.compiler_ctxt))
+            .map(|token_type| token_type.pretty_print(self.compiler_ctxt, PrintOption::Type))
             .join(" | ");
-        let received = received.pretty_print(&self.compiler_ctxt);
+        let received = received.pretty_print(self.compiler_ctxt, PrintOption::Value);
 
         let error_message = format!("ERROR: Expected {expected}, received {received}!\n");
         self.compiler_ctxt
@@ -1696,12 +1758,12 @@ impl<'ctxt> Parser<'ctxt> {
         None
     }
 
-    fn unexpected_token<T>(&mut self, token_type: TokenType) -> Option<T> {
-        todo!()
-    }
-
     fn unexpected_end<T>(&mut self) -> Option<T> {
-        todo!()
+        let error_message = "ERROR: Unexpected end of file!".to_string();
+        self.compiler_ctxt
+            .diagnostics
+            .push(Diagnostic::Error(error_message));
+        None
     }
 
     fn current_token(&self) -> Option<Token> {
@@ -1721,16 +1783,15 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn expect(&mut self, token_type: TokenType) -> Option<()> {
-        if self
-            .current()
-            .filter(|current| current == &token_type)
-            .is_some()
-        {
-            self.advance();
-            Some(())
-        } else {
-            self.expected_token(token_type)
+        if let Some(current) = self.current() {
+            return if current == token_type {
+                self.advance();
+                Some(())
+            } else {
+                self.expected_token(token_type, current)
+            };
         }
+        self.unexpected_end()
     }
 
     fn matches(&self, token_type: TokenType) -> bool {
@@ -1866,7 +1927,7 @@ mod tests {
 
     #[cfg(test)]
     fn parse<T: AsRef<str>>(code: T) -> ModuleOutput {
-        let (ctxt, ast) = parse_module(code.as_ref().to_string()).unwrap();
+        let (ctxt, ast) = parse_module(code.as_ref()).unwrap();
         (ctxt, ast)
     }
 

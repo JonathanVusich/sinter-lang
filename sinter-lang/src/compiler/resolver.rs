@@ -1812,11 +1812,12 @@ mod tests {
 
     use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
     use crate::compiler::hir::HirMap;
+    use crate::compiler::types::StrMap;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
-    type ResolvedCrates = (StringInterner, HirMap);
+    type ResolvedCrates = (CompilerCtxt, HirMap);
 
     #[cfg(test)]
     fn resolve_crate(name: &str) -> ResolvedCrates {
@@ -1827,17 +1828,15 @@ mod tests {
             main_crate,
             crate_path,
         };
-        let mut crates = compiler.parse_crates(application).unwrap();
+        let mut crates = compiler.parse_crates(application).unwrap_or_else(|| {
+            compiler.report_errors();
+            panic!()
+        });
         compiler.validate_crates(&crates).unwrap();
 
-        let resolved_crates = compiler.resolve_crates(&mut crates);
-        let string_interner = StringInterner::from(CompilerCtxt::from(compiler));
-        match resolved_crates {
-            Some(hir_map) => (string_interner, hir_map),
-            None => {
-                panic!();
-            }
-        }
+        let hir_map = compiler.resolve_crates(&mut crates).unwrap();
+        let compiler_ctxt = CompilerCtxt::from(compiler);
+        (compiler_ctxt, hir_map)
     }
 
     #[test]

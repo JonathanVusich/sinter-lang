@@ -7,6 +7,10 @@
       "This is a prime",
       "Unremarkable"
     ],
+    "source_map": {},
+    "diagnostics": {
+      "diagnostics": []
+    },
     "crate_id": 0,
     "local_def_id": 17
   },

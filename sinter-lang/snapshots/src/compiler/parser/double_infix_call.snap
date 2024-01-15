@@ -4,6 +4,10 @@
       "f",
       "g"
     ],
+    "source_map": {},
+    "diagnostics": {
+      "diagnostics": []
+    },
     "crate_id": 0,
     "local_def_id": 5
   },

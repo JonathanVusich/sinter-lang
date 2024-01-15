@@ -107,16 +107,48 @@ pub enum TokenType {
     Ref,
 }
 
+pub enum PrintOption {
+    Type,
+    Value,
+}
+
 impl TokenType {
-    pub(crate) fn pretty_print(&self, ctxt: &CompilerCtxt) -> Cow<str> {
+    pub(crate) fn pretty_print<'a>(
+        &'a self,
+        ctxt: &'a CompilerCtxt,
+        print_option: PrintOption,
+    ) -> Cow<str> {
         match self {
-            TokenType::Unrecognized(str) | TokenType::Identifier(str) | TokenType::String(str) => {
+            TokenType::Unrecognized(str) => {
                 let interned_str = ctxt.resolve_str(*str);
                 Cow::Borrowed(interned_str)
             }
-            TokenType::Int(int) => Cow::Owned(int.to_string()),
-            TokenType::UInt(uint) => Cow::Owned(uint.to_string()),
-            TokenType::Float(float) => Cow::Owned(float.to_string()),
+            TokenType::Identifier(str) => match print_option {
+                PrintOption::Type => Cow::Borrowed("'identifier'"),
+                PrintOption::Value => {
+                    let interned_str = ctxt.resolve_str(*str);
+                    Cow::Borrowed(interned_str)
+                }
+            },
+            TokenType::String(str) => match print_option {
+                PrintOption::Type => Cow::Borrowed("'string'"),
+                PrintOption::Value => {
+                    let interned_str = ctxt.resolve_str(*str);
+                    Cow::Borrowed(interned_str)
+                }
+            },
+            TokenType::Int(int) => match print_option {
+                PrintOption::Type => Cow::Borrowed("'int'"),
+                PrintOption::Value => Cow::Owned(int.to_string()),
+            },
+            TokenType::UInt(uint) => match print_option {
+                PrintOption::Type => Cow::Borrowed("'uint'"),
+                PrintOption::Value => Cow::Owned(uint.to_string()),
+            },
+            TokenType::Float(float) => match print_option {
+                PrintOption::Type => Cow::Borrowed("'float'"),
+                PrintOption::Value => Cow::Owned(float.to_string()),
+            },
             TokenType::LeftBrace => Cow::Borrowed("{"),
             TokenType::RightBrace => Cow::Borrowed("}"),
             TokenType::LeftBracket => Cow::Borrowed("["),

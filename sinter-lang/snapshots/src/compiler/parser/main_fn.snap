@@ -7,18 +7,22 @@
       "main",
       "Hello world!"
     ],
+    "source_map": {},
+    "diagnostics": {
+      "diagnostics": []
+    },
     "crate_id": 0,
     "local_def_id": 7
   },
   {
-    "path": {
-      "module_path": []
-    },
     "id": {
       "crate_id": 0,
       "module_id": 0
     },
-    "ns": {
+    "path": {
+      "module_path": []
+    },
+    "namespace": {
       "modules": {},
       "values": {}
     },

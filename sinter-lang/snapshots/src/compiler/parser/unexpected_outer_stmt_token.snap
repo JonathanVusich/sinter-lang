@@ -5,17 +5,7 @@
   ],
   [
     {
-      "UnexpectedToken": [
-        {
-          "Identifier": 2
-        },
-        {
-          "start_pos": 14,
-          "start_line": 1,
-          "end_pos": 23,
-          "end_line": 1
-        }
-      ]
+      "Error": "ERROR: Expected use | ref | class | fn | let | enum | trait | impl, received aflatoxin!\n"
     }
   ]
 ]

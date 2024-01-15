@@ -365,7 +365,7 @@ impl Compiler {
                 .ok()?;
             let module_path = self.compiler_ctxt.module_path(local_path)?;
 
-            let tokens = tokenize_file(&mut self.compiler_ctxt, path)?;
+            let tokens = tokenize_file(&mut self.compiler_ctxt, &file.into_path())?;
             let TokenizedSource {
                 tokens,
                 line_map,
@@ -407,7 +407,7 @@ impl Compiler {
         Some(ty_map)
     }
 
-    fn report_errors(&mut self) -> Option<()> {
+    pub(crate) fn report_errors(&mut self) -> Option<()> {
         let mut io_lock = io::stdout().lock();
         if self
             .compiler_ctxt

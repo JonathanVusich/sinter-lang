@@ -1,3 +1,4 @@
+use crate::bytes::serializers::ByteWriter;
 use crate::compiler::hir::ModuleId;
 use crate::compiler::tokens::tokenized_file::{Source, Span};
 use serde::{Deserialize, Serialize};
@@ -58,7 +59,15 @@ pub enum DiagnosticKind {
 
 impl Diagnostic {
     fn write(&self, buffer: &mut impl Write) {
-        todo!()
+        let output = match self {
+            Diagnostic::Fatal(fatal) => match fatal {
+                FatalError::FileOpen => "Could not open file!",
+                FatalError::InvalidOsStr => "Invalid string!",
+            },
+            Diagnostic::Error(error) => error,
+            Diagnostic::BlankError => "Blank error, need to add more diagnostics",
+        };
+        buffer.write_all(output.as_bytes()).ok().unwrap()
     }
 
     fn kind(&self) -> DiagnosticKind {
