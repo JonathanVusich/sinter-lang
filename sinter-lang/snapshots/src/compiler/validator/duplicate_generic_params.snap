@@ -7,13 +7,7 @@
   ],
   [
     {
-      "DuplicateGenericParam": [
-        2,
-        [
-          0,
-          1
-        ]
-      ]
+      "Error": "ERROR: Duplicate generic parameters `T` in scope\nT\n\nT"
     }
   ]
 ]

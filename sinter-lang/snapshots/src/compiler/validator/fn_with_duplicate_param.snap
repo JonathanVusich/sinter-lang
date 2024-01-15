@@ -8,13 +8,7 @@
   ],
   [
     {
-      "DuplicateParam": [
-        2,
-        [
-          1,
-          3
-        ]
-      ]
+      "Error": "ERROR: Duplicate parameters `param` in scope\nparam: u32\n\nparam: u32"
     }
   ]
 ]

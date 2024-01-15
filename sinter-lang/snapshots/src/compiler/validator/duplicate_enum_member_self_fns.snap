@@ -9,13 +9,7 @@
   ],
   [
     {
-      "DuplicateFns": [
-        3,
-        [
-          3,
-          5
-        ]
-      ]
+      "Error": "ERROR: Duplicate functions `relative_gravity` in scope\nfn relative_gravity(planet: Planet) { }\n\nfn relative_gravity() { }"
     }
   ]
 ]

@@ -9,13 +9,7 @@
   ],
   [
     {
-      "DuplicateField": [
-        3,
-        [
-          1,
-          3
-        ]
-      ]
+      "Error": "ERROR: Duplicate fields `diameter` in scope\ndiameter: u64\n\ndiameter: u64"
     }
   ]
 ]

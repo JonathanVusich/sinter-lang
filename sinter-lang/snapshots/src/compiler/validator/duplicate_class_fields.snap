@@ -8,13 +8,7 @@
   ],
   [
     {
-      "DuplicateField": [
-        2,
-        [
-          1,
-          3
-        ]
-      ]
+      "Error": "ERROR: Duplicate fields `width` in scope\nwidth: u64\n\nwidth: u64"
     }
   ]
 ]

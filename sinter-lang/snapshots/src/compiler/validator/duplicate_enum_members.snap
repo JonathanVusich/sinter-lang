@@ -7,13 +7,7 @@
   ],
   [
     {
-      "DuplicateEnumMember": [
-        2,
-        [
-          0,
-          1
-        ]
-      ]
+      "Error": "ERROR: Duplicate enum members `Mercury` in scope\nMercury\n\nMercury"
     }
   ]
 ]

@@ -264,13 +264,13 @@ fn find_name_clashes<T, M: Fn(&T) -> InternedStr>(
 mod tests {
     use snap::snapshot;
 
-    use crate::compiler::compiler::CompilerCtxt;
+    use crate::compiler::compiler::{CompilerCtxt, SourceCode};
     use crate::compiler::errors::{Diagnostic, DiagnosticKind};
     use crate::compiler::hir::ModuleId;
     use crate::compiler::krate::{Crate, CrateId};
     use crate::compiler::parser::parse;
     use crate::compiler::path::ModulePath;
-    use crate::compiler::tokens::tokenized_file::TokenizedOutput;
+    use crate::compiler::tokens::tokenized_file::{Source, TokenizedOutput, TokenizedSource};
     use crate::compiler::tokens::tokenizer::Tokenizer;
     use crate::compiler::types::StrMap;
     use crate::compiler::StringInterner;
@@ -279,16 +279,21 @@ mod tests {
 
     #[cfg(test)]
     fn validate<T: AsRef<str>>(code: T) -> ValidationOutput {
+        let code = code.as_ref().to_string();
         let mut compiler_ctxt = CompilerCtxt::default();
         let tokenizer = Tokenizer::new(&mut compiler_ctxt, code.as_ref());
-        let TokenizedOutput { tokens, .. } = tokenizer.tokenize();
+        let TokenizedOutput {
+            tokens, line_map, ..
+        } = tokenizer.tokenize();
         let module = parse(&mut compiler_ctxt, tokens).unwrap();
         let krate_name = compiler_ctxt.intern_str("crate");
         let mut krate = Crate::new(krate_name, CrateId::new(0));
-        krate.add_module(
+        let module_id = krate.add_module(
             ModulePath::from_iter([compiler_ctxt.intern_str("module")]),
             module,
         );
+        let source_code = SourceCode::new(Source::Inline(code), line_map);
+        compiler_ctxt.intern_source(module_id, source_code);
         let krates = StrMap::from([(krate_name, krate)]);
         let krate = krates.get(&krate_name).unwrap();
         let module = krate.module(ModuleId::new(0, 0));
