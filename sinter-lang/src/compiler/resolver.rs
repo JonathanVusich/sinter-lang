@@ -856,7 +856,7 @@ impl<'a> CrateResolver<'a> {
 
     fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) {
         let index: usize = id.into();
-        self.nodes.insert(id, hir_node).unwrap();
+        assert!(self.nodes.insert(id, hir_node).is_none());
     }
 
     fn find_var(&mut self, ident: InternedStr) -> Option<LocalDefId> {

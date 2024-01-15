@@ -11,6 +11,8 @@ use itertools::Itertools;
 use lasso::{Key as K, Resolver};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
+use serde_with::serde_as;
+use serde_with::Seq;
 use walkdir::{DirEntry, WalkDir};
 
 use crate::compiler::ast::AstPass;
@@ -159,7 +161,6 @@ impl SourceCode {
 
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct CompilerCtxt {
-    // TODO: Add source map to keep track of all source code that has passed through the compiler.
     pub(crate) string_interner: StringInterner,
     pub(crate) source_map: HashMap<ModuleId, SourceCode>,
     pub(crate) diagnostics: Diagnostics,

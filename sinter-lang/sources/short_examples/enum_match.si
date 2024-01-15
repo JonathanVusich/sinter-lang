@@ -1,4 +1,4 @@
-let extracted_text = match message {
+let extracted_text: str = match message {
     Message::Text("null") | Message::Photo("null", photo) => "",
     Message::Text(str) => str,
     Message::Photo(caption, photo) => caption,
