@@ -1,13 +1,1 @@
-[
-  [
-    "duplicate_generic_params",
-    "T",
-    "crate",
-    "module"
-  ],
-  [
-    {
-      "Error": "ERROR: Duplicate generic parameters `T` in scope\nT\n\nT"
-    }
-  ]
-]
+(["duplicate_generic_params", "T", "crate", "module"], [Error("ERROR: Duplicate generic parameters `T` in scope\nT\n\nT")])

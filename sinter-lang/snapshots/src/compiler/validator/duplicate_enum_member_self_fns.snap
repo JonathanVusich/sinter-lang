@@ -1,15 +1,1 @@
-[
-  [
-    "Planet",
-    "Mercury",
-    "relative_gravity",
-    "planet",
-    "crate",
-    "module"
-  ],
-  [
-    {
-      "Error": "ERROR: Duplicate functions `relative_gravity` in scope\nfn relative_gravity(planet: Planet) { }\n\nfn relative_gravity() { }"
-    }
-  ]
-]
+(["Planet", "Mercury", "relative_gravity", "planet", "crate", "module"], [Error("ERROR: Duplicate functions `relative_gravity` in scope\nfn relative_gravity(planet: Planet) { }\n\nfn relative_gravity() { }")])

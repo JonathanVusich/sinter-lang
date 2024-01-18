@@ -1,14 +1,1 @@
-[
-  [
-    "Rectangle",
-    "width",
-    "u64",
-    "crate",
-    "module"
-  ],
-  [
-    {
-      "Error": "ERROR: Duplicate fields `width` in scope\nwidth: u64\n\nwidth: u64"
-    }
-  ]
-]
+(["Rectangle", "width", "u64", "crate", "module"], [Error("ERROR: Duplicate fields `width` in scope\nwidth: u64\n\nwidth: u64")])

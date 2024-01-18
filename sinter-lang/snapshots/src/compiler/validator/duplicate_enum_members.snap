@@ -1,13 +1,1 @@
-[
-  [
-    "Planet",
-    "Mercury",
-    "crate",
-    "module"
-  ],
-  [
-    {
-      "Error": "ERROR: Duplicate enum members `Mercury` in scope\nMercury\n\nMercury"
-    }
-  ]
-]
+(["Planet", "Mercury", "crate", "module"], [Error("ERROR: Duplicate enum members `Mercury` in scope\nMercury\n\nMercury")])
