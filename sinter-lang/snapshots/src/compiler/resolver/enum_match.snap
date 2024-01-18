@@ -1,24 +1,734 @@
-[
-  {
-    "string_interner": [
-      "enum_matching",
-      "enum_match",
-      "crate",
-      "enum_message",
-      "Message",
-      "message",
-      "Text",
-      "null",
-      "extracted_text",
-      "str",
-      "Photo",
-      "photo",
-      "",
-      "caption",
-      "SerializedPhoto",
-      "size",
-      "u64",
-      "self"
-    ],
-    "source_map": {
-      
+((
+  string_interner: ["enum_matching", "enum_match", "crate", "enum_message", "Message", "message", "Text", "null", "extracted_text", "str", "Photo", "photo", "", "caption", "SerializedPhoto", "size", "u64", "self"],
+  source_map: {
+    (
+      crate_id: 0,
+      module_id: 0,
+    ): (
+      line_map: (
+        lines: [33, 35, 82, 84, 127, 193, 225, 273],
+      ),
+    ),
+    (
+      crate_id: 0,
+      module_id: 1,
+    ): (
+      line_map: (
+        lines: [23, 25, 53, 72, 79, 82, 84, 100, 125, 176, 208, 247, 258, 266],
+      ),
+    ),
+  },
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 1,
+  local_def_id: 52,
+), (
+  crates: [(
+    name: 1,
+    id: (
+      id: 0,
+    ),
+    items: [5, 24, 32, 51],
+    nodes: {
+      1: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 51,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 48,
+          end: 55,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Enum((
+              id: (
+                crate_id: 0,
+                local_id: 51,
+              ),
+              members: {
+                7: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 35,
+                  ),
+                  fns: {},
+                ),
+                11: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 50,
+                  ),
+                  fns: {
+                    16: (
+                      id: (
+                        crate_id: 0,
+                        local_id: 49,
+                      ),
+                    ),
+                  },
+                ),
+              },
+              fns: {},
+            ))),
+            generics: None,
+          ), (
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 35,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 58,
+          end: 71,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Expr(String(8)),
+        span: (
+          start: 72,
+          end: 78,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Expr(Call((
+          target: 2,
+          args: [3],
+        ))),
+        span: (
+          start: 58,
+          end: 79,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: GlobalLet((
+          ident: 6,
+          ty: 1,
+          initializer: 4,
+        )),
+        span: (
+          start: 35,
+          end: 80,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 102,
+          end: 105,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(GlobalVar((
+              id: (
+                crate_id: 0,
+                local_id: 5,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 114,
+          end: 121,
+        ),
+        id: 7,
+      ),
+      8: (
+        kind: DestructureExpr(String(8)),
+        span: (
+          start: 142,
+          end: 148,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: DestructureExpr(String(8)),
+        span: (
+          start: 167,
+          end: 173,
+        ),
+        id: 9,
+      ),
+      10: (
+        kind: DestructureExpr(Identifier(12)),
+        span: (
+          start: 175,
+          end: 180,
+        ),
+        id: 10,
+      ),
+      11: (
+        kind: Expr(String(13)),
+        span: (
+          start: 185,
+          end: 187,
+        ),
+        id: 11,
+      ),
+      12: (
+        kind: Stmt(Expression((
+          expr: 11,
+          implicit_return: true,
+        ))),
+        span: (
+          start: 185,
+          end: 187,
+        ),
+        id: 12,
+      ),
+      14: (
+        kind: DestructureExpr(Identifier(10)),
+        span: (
+          start: 207,
+          end: 210,
+        ),
+        id: 14,
+      ),
+      15: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(14)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 215,
+          end: 218,
+        ),
+        id: 15,
+      ),
+      16: (
+        kind: Stmt(Expression((
+          expr: 15,
+          implicit_return: true,
+        ))),
+        span: (
+          start: 215,
+          end: 218,
+        ),
+        id: 16,
+      ),
+      18: (
+        kind: DestructureExpr(Identifier(14)),
+        span: (
+          start: 239,
+          end: 246,
+        ),
+        id: 18,
+      ),
+      19: (
+        kind: DestructureExpr(Identifier(12)),
+        span: (
+          start: 248,
+          end: 253,
+        ),
+        id: 19,
+      ),
+      20: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(18)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 258,
+          end: 265,
+        ),
+        id: 20,
+      ),
+      21: (
+        kind: Stmt(Expression((
+          expr: 20,
+          implicit_return: true,
+        ))),
+        span: (
+          start: 258,
+          end: 265,
+        ),
+        id: 21,
+      ),
+      23: (
+        kind: Expr(Match((
+          source: 7,
+          arms: [(
+            pattern: Or((
+              patterns: [Destructure((
+                ty: (
+                  definition: (
+                    crate_id: 0,
+                    local_id: 35,
+                  ),
+                  generics: [],
+),
+                exprs: [8],
+              )), Destructure((
+                ty: (
+                  definition: (
+                    crate_id: 0,
+                    local_id: 50,
+                  ),
+                  generics: [],
+),
+                exprs: [9, 10],
+              ))],
+            )),
+            body: 12,
+          ), (
+            pattern: Destructure((
+              ty: (
+                definition: (
+                  crate_id: 0,
+                  local_id: 35,
+                ),
+                generics: [],
+),
+              exprs: [14],
+            )),
+            body: 16,
+          ), (
+            pattern: Destructure((
+              ty: (
+                definition: (
+                  crate_id: 0,
+                  local_id: 50,
+                ),
+                generics: [],
+),
+              exprs: [18, 19],
+            )),
+            body: 21,
+          )],
+        ))),
+        span: (
+          start: 108,
+          end: 268,
+        ),
+        id: 23,
+      ),
+      24: (
+        kind: GlobalLet((
+          ident: 9,
+          ty: 6,
+          initializer: 23,
+        )),
+        span: (
+          start: 82,
+          end: 269,
+        ),
+        id: 24,
+      ),
+      25: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 32,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 37,
+          end: 41,
+        ),
+        id: 25,
+      ),
+      26: (
+        kind: Param((
+          ident: (
+            ident: 18,
+            span: (
+              start: 37,
+              end: 41,
+            ),
+          ),
+          ty: 25,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 37,
+          end: 41,
+        ),
+        id: 26,
+      ),
+      27: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 46,
+          end: 49,
+        ),
+        id: 27,
+      ),
+      28: (
+        kind: Expr(Int(0)),
+        span: (
+          start: 67,
+          end: 68,
+        ),
+        id: 28,
+      ),
+      29: (
+        kind: Stmt(Return((
+          value: Some(28),
+        ))),
+        span: (
+          start: 60,
+          end: 69,
+        ),
+        id: 29,
+      ),
+      30: (
+        kind: Block((
+          stmts: [29],
+        )),
+        span: (
+          start: 50,
+          end: 75,
+        ),
+        id: 30,
+      ),
+      31: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 16,
+              span: (
+                start: 32,
+                end: 36,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              18: 26,
+            },
+            return_type: Some(27),
+          ),
+          body: Some(30),
+        )),
+        span: (
+          start: 29,
+          end: 75,
+        ),
+        id: 31,
+      ),
+      32: (
+        kind: Class((
+          name: (
+            ident: 15,
+            span: (
+              start: 6,
+              end: 21,
+            ),
+          ),
+          class_type: Inline,
+          generic_params: {},
+          fields: {},
+          fn_stmts: {
+            16: 31,
+          },
+        )),
+        span: (
+          start: 0,
+          end: 77,
+        ),
+        id: 32,
+      ),
+      33: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 112,
+          end: 115,
+        ),
+        id: 33,
+      ),
+      34: (
+        kind: Field((
+          ident: (
+            ident: 6,
+            span: (
+              start: 103,
+              end: 110,
+            ),
+          ),
+          ty: 33,
+        )),
+        span: (
+          start: 103,
+          end: 115,
+        ),
+        id: 34,
+      ),
+      35: (
+        kind: EnumMember((
+          name: 7,
+          fields: {
+            6: 34,
+          },
+          member_fns: {},
+        )),
+        span: (
+          start: 98,
+          end: 116,
+        ),
+        id: 35,
+      ),
+      36: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 137,
+          end: 140,
+        ),
+        id: 36,
+      ),
+      37: (
+        kind: Field((
+          ident: (
+            ident: 14,
+            span: (
+              start: 128,
+              end: 135,
+            ),
+          ),
+          ty: 36,
+        )),
+        span: (
+          start: 128,
+          end: 140,
+        ),
+        id: 37,
+      ),
+      38: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 32,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 149,
+          end: 164,
+        ),
+        id: 38,
+      ),
+      39: (
+        kind: Field((
+          ident: (
+            ident: 12,
+            span: (
+              start: 142,
+              end: 147,
+            ),
+          ),
+          ty: 38,
+        )),
+        span: (
+          start: 142,
+          end: 164,
+        ),
+        id: 39,
+      ),
+      40: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 51,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 184,
+          end: 188,
+        ),
+        id: 40,
+      ),
+      41: (
+        kind: Param((
+          ident: (
+            ident: 18,
+            span: (
+              start: 184,
+              end: 188,
+            ),
+          ),
+          ty: 40,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 184,
+          end: 188,
+        ),
+        id: 41,
+      ),
+      42: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 193,
+          end: 196,
+        ),
+        id: 42,
+      ),
+      43: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(41)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 218,
+          end: 222,
+        ),
+        id: 43,
+      ),
+      44: (
+        kind: Expr(Field((
+          lhs: 43,
+          ident: (
+            ident: 12,
+            span: (
+              start: 223,
+              end: 228,
+            ),
+          ),
+        ))),
+        span: (
+          start: 218,
+          end: 228,
+        ),
+        id: 44,
+      ),
+      45: (
+        kind: Expr(Field((
+          lhs: 44,
+          ident: (
+            ident: 16,
+            span: (
+              start: 229,
+              end: 233,
+            ),
+          ),
+        ))),
+        span: (
+          start: 218,
+          end: 233,
+        ),
+        id: 45,
+      ),
+      46: (
+        kind: Expr(Call((
+          target: 45,
+          args: [],
+))),
+        span: (
+          start: 218,
+          end: 235,
+        ),
+        id: 46,
+      ),
+      47: (
+        kind: Stmt(Return((
+          value: Some(46),
+        ))),
+        span: (
+          start: 211,
+          end: 236,
+        ),
+        id: 47,
+      ),
+      48: (
+        kind: Block((
+          stmts: [47],
+        )),
+        span: (
+          start: 197,
+          end: 246,
+        ),
+        id: 48,
+      ),
+      49: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 16,
+              span: (
+                start: 179,
+                end: 183,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              18: 41,
+            },
+            return_type: Some(42),
+          ),
+          body: Some(48),
+        )),
+        span: (
+          start: 176,
+          end: 246,
+        ),
+        id: 49,
+      ),
+      50: (
+        kind: EnumMember((
+          name: 11,
+          fields: {
+            14: 37,
+            12: 39,
+          },
+          member_fns: {
+            16: 49,
+          },
+        )),
+        span: (
+          start: 122,
+          end: 252,
+        ),
+        id: 50,
+      ),
+      51: (
+        kind: Enum((
+          name: (
+            ident: 5,
+            span: (
+              start: 84,
+              end: 91,
+            ),
+          ),
+          generic_params: {},
+          members: {
+            7: 35,
+            11: 50,
+          },
+          member_fns: {},
+        )),
+        span: (
+          start: 79,
+          end: 255,
+        ),
+        id: 51,
+      ),
+    },
+  )],
+  names_to_indices: [1],
+))

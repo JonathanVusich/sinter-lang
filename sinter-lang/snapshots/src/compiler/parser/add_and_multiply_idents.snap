@@ -1,185 +1,148 @@
-[
-  {
-    "string_interner": [
-      "a",
-      "b",
-      "c",
-      "d",
-      "e"
-    ],
-    "source_map": {},
-    "diagnostics": {
-      "diagnostics": []
-    },
-    "crate_id": 0,
-    "local_def_id": 9
-  },
-  {
-    "kind": {
-      "Infix": {
-        "operator": "Add",
-        "lhs": {
-          "kind": {
-            "Infix": {
-              "operator": "Add",
-              "lhs": {
-                "kind": {
-                  "Path": {
-                    "ident_type": "LocalOrUse",
-                    "segments": [
-                      {
-                        "ident": {
-                          "ident": 1,
-                          "span": {
-                            "start": 0,
-                            "end": 1
-                          }
-                        },
-                        "generics": null
-                      }
-                    ]
-                  }
-                },
-                "span": {
-                  "start": 0,
-                  "end": 1
-                },
-                "id": 0
-              },
-              "rhs": {
-                "kind": {
-                  "Infix": {
-                    "operator": "Multiply",
-                    "lhs": {
-                      "kind": {
-                        "Infix": {
-                          "operator": "Multiply",
-                          "lhs": {
-                            "kind": {
-                              "Path": {
-                                "ident_type": "LocalOrUse",
-                                "segments": [
-                                  {
-                                    "ident": {
-                                      "ident": 2,
-                                      "span": {
-                                        "start": 4,
-                                        "end": 5
-                                      }
-                                    },
-                                    "generics": null
-                                  }
-                                ]
-                              }
-                            },
-                            "span": {
-                              "start": 4,
-                              "end": 5
-                            },
-                            "id": 1
-                          },
-                          "rhs": {
-                            "kind": {
-                              "Path": {
-                                "ident_type": "LocalOrUse",
-                                "segments": [
-                                  {
-                                    "ident": {
-                                      "ident": 3,
-                                      "span": {
-                                        "start": 8,
-                                        "end": 9
-                                      }
-                                    },
-                                    "generics": null
-                                  }
-                                ]
-                              }
-                            },
-                            "span": {
-                              "start": 8,
-                              "end": 9
-                            },
-                            "id": 2
-                          }
-                        }
-                      },
-                      "span": {
-                        "start": 4,
-                        "end": 9
-                      },
-                      "id": 3
-                    },
-                    "rhs": {
-                      "kind": {
-                        "Path": {
-                          "ident_type": "LocalOrUse",
-                          "segments": [
-                            {
-                              "ident": {
-                                "ident": 4,
-                                "span": {
-                                  "start": 12,
-                                  "end": 13
-                                }
-                              },
-                              "generics": null
-                            }
-                          ]
-                        }
-                      },
-                      "span": {
-                        "start": 12,
-                        "end": 13
-                      },
-                      "id": 4
-                    }
-                  }
-                },
-                "span": {
-                  "start": 4,
-                  "end": 13
-                },
-                "id": 5
-              }
-            }
-          },
-          "span": {
-            "start": 0,
-            "end": 13
-          },
-          "id": 6
-        },
-        "rhs": {
-          "kind": {
-            "Path": {
-              "ident_type": "LocalOrUse",
-              "segments": [
-                {
-                  "ident": {
-                    "ident": 5,
-                    "span": {
-                      "start": 16,
-                      "end": 17
-                    }
-                  },
-                  "generics": null
-                }
-              ]
-            }
-          },
-          "span": {
-            "start": 16,
-            "end": 17
-          },
-          "id": 7
-        }
-      }
-    },
-    "span": {
-      "start": 0,
-      "end": 17
-    },
-    "id": 8
-  }
-]
+((
+  string_interner: ["a", "b", "c", "d", "e"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 9,
+), (
+  kind: Infix((
+    operator: Add,
+    lhs: (
+      kind: Infix((
+        operator: Add,
+        lhs: (
+          kind: Path((
+            ident_type: LocalOrUse,
+            segments: [(
+              ident: (
+                ident: 1,
+                span: (
+                  start: 0,
+                  end: 1,
+                ),
+              ),
+              generics: None,
+            )],
+          )),
+          span: (
+            start: 0,
+            end: 1,
+          ),
+          id: 0,
+        ),
+        rhs: (
+          kind: Infix((
+            operator: Multiply,
+            lhs: (
+              kind: Infix((
+                operator: Multiply,
+                lhs: (
+                  kind: Path((
+                    ident_type: LocalOrUse,
+                    segments: [(
+                      ident: (
+                        ident: 2,
+                        span: (
+                          start: 4,
+                          end: 5,
+                        ),
+                      ),
+                      generics: None,
+                    )],
+                  )),
+                  span: (
+                    start: 4,
+                    end: 5,
+                  ),
+                  id: 1,
+                ),
+                rhs: (
+                  kind: Path((
+                    ident_type: LocalOrUse,
+                    segments: [(
+                      ident: (
+                        ident: 3,
+                        span: (
+                          start: 8,
+                          end: 9,
+                        ),
+                      ),
+                      generics: None,
+                    )],
+                  )),
+                  span: (
+                    start: 8,
+                    end: 9,
+                  ),
+                  id: 2,
+                ),
+              )),
+              span: (
+                start: 4,
+                end: 9,
+              ),
+              id: 3,
+            ),
+            rhs: (
+              kind: Path((
+                ident_type: LocalOrUse,
+                segments: [(
+                  ident: (
+                    ident: 4,
+                    span: (
+                      start: 12,
+                      end: 13,
+                    ),
+                  ),
+                  generics: None,
+                )],
+              )),
+              span: (
+                start: 12,
+                end: 13,
+              ),
+              id: 4,
+            ),
+          )),
+          span: (
+            start: 4,
+            end: 13,
+          ),
+          id: 5,
+        ),
+      )),
+      span: (
+        start: 0,
+        end: 13,
+      ),
+      id: 6,
+    ),
+    rhs: (
+      kind: Path((
+        ident_type: LocalOrUse,
+        segments: [(
+          ident: (
+            ident: 5,
+            span: (
+              start: 16,
+              end: 17,
+            ),
+          ),
+          generics: None,
+        )],
+      )),
+      span: (
+        start: 16,
+        end: 17,
+      ),
+      id: 7,
+    ),
+  )),
+  span: (
+    start: 0,
+    end: 17,
+  ),
+  id: 8,
+))

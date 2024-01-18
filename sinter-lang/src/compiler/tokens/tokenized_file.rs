@@ -62,6 +62,12 @@ impl Source {
     }
 }
 
+impl Default for Source {
+    fn default() -> Self {
+        Source::Inline("".to_string())
+    }
+}
+
 #[derive(PartialEq, Default, Debug, Serialize, Deserialize)]
 pub struct LineMap {
     lines: Vec<u32>,

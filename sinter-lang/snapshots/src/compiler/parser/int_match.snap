@@ -1,277 +1,202 @@
-[
-  {
-    "string_interner": [
-      "number",
-      "print",
-      "One!",
-      "This is a prime",
-      "Unremarkable"
-    ],
-    "source_map": {},
-    "diagnostics": {
-      "diagnostics": []
-    },
-    "crate_id": 0,
-    "local_def_id": 17
-  },
-  {
-    "kind": {
-      "Match": {
-        "source": {
-          "kind": {
-            "Path": {
-              "ident_type": "LocalOrUse",
-              "segments": [
-                {
-                  "ident": {
-                    "ident": 1,
-                    "span": {
-                      "start": 6,
-                      "end": 12
-                    }
-                  },
-                  "generics": null
-                }
-              ]
-            }
-          },
-          "span": {
-            "start": 6,
-            "end": 12
-          },
-          "id": 0
-        },
-        "arms": [
-          {
-            "pattern": {
-              "Int": 1
-            },
-            "body": {
-              "kind": {
-                "Expression": {
-                  "expr": {
-                    "kind": {
-                      "Call": {
-                        "target": {
-                          "kind": {
-                            "Path": {
-                              "ident_type": "LocalOrUse",
-                              "segments": [
-                                {
-                                  "ident": {
-                                    "ident": 2,
-                                    "span": {
-                                      "start": 24,
-                                      "end": 29
-                                    }
-                                  },
-                                  "generics": null
-                                }
-                              ]
-                            }
-                          },
-                          "span": {
-                            "start": 24,
-                            "end": 29
-                          },
-                          "id": 1
-                        },
-                        "args": [
-                          {
-                            "kind": {
-                              "String": 3
-                            },
-                            "span": {
-                              "start": 30,
-                              "end": 36
-                            },
-                            "id": 2
-                          }
-                        ]
-                      }
-                    },
-                    "span": {
-                      "start": 24,
-                      "end": 37
-                    },
-                    "id": 3
-                  },
-                  "implicit_return": true
-                }
-              },
-              "span": {
-                "start": 24,
-                "end": 37
-              },
-              "id": 4
-            },
-            "span": {
-              "start": 19,
-              "end": 37
-            },
-            "id": 5
-          },
-          {
-            "pattern": {
-              "Or": {
-                "patterns": [
-                  {
-                    "Int": 2
-                  },
-                  {
-                    "Int": 3
-                  },
-                  {
-                    "Int": 5
-                  },
-                  {
-                    "Int": 7
-                  },
-                  {
-                    "Int": 11
-                  }
-                ]
-              }
-            },
-            "body": {
-              "kind": {
-                "Expression": {
-                  "expr": {
-                    "kind": {
-                      "Call": {
-                        "target": {
-                          "kind": {
-                            "Path": {
-                              "ident_type": "LocalOrUse",
-                              "segments": [
-                                {
-                                  "ident": {
-                                    "ident": 2,
-                                    "span": {
-                                      "start": 65,
-                                      "end": 70
-                                    }
-                                  },
-                                  "generics": null
-                                }
-                              ]
-                            }
-                          },
-                          "span": {
-                            "start": 65,
-                            "end": 70
-                          },
-                          "id": 6
-                        },
-                        "args": [
-                          {
-                            "kind": {
-                              "String": 4
-                            },
-                            "span": {
-                              "start": 71,
-                              "end": 88
-                            },
-                            "id": 7
-                          }
-                        ]
-                      }
-                    },
-                    "span": {
-                      "start": 65,
-                      "end": 89
-                    },
-                    "id": 8
-                  },
-                  "implicit_return": true
-                }
-              },
-              "span": {
-                "start": 65,
-                "end": 89
-              },
-              "id": 9
-            },
-            "span": {
-              "start": 43,
-              "end": 89
-            },
-            "id": 10
-          },
-          {
-            "pattern": "Wildcard",
-            "body": {
-              "kind": {
-                "Expression": {
-                  "expr": {
-                    "kind": {
-                      "Call": {
-                        "target": {
-                          "kind": {
-                            "Path": {
-                              "ident_type": "LocalOrUse",
-                              "segments": [
-                                {
-                                  "ident": {
-                                    "ident": 2,
-                                    "span": {
-                                      "start": 100,
-                                      "end": 105
-                                    }
-                                  },
-                                  "generics": null
-                                }
-                              ]
-                            }
-                          },
-                          "span": {
-                            "start": 100,
-                            "end": 105
-                          },
-                          "id": 11
-                        },
-                        "args": [
-                          {
-                            "kind": {
-                              "String": 5
-                            },
-                            "span": {
-                              "start": 106,
-                              "end": 120
-                            },
-                            "id": 12
-                          }
-                        ]
-                      }
-                    },
-                    "span": {
-                      "start": 100,
-                      "end": 121
-                    },
-                    "id": 13
-                  },
-                  "implicit_return": true
-                }
-              },
-              "span": {
-                "start": 100,
-                "end": 121
-              },
-              "id": 14
-            },
-            "span": {
-              "start": 95,
-              "end": 121
-            },
-            "id": 15
-          }
-        ]
-      }
-    },
-    "span": {
-      "start": 0,
-      "end": 124
-    },
-    "id": 16
-  }
-]
+((
+  string_interner: ["number", "print", "One!", "This is a prime", "Unremarkable"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 17,
+), (
+  kind: Match((
+    source: (
+      kind: Path((
+        ident_type: LocalOrUse,
+        segments: [(
+          ident: (
+            ident: 1,
+            span: (
+              start: 6,
+              end: 12,
+            ),
+          ),
+          generics: None,
+        )],
+      )),
+      span: (
+        start: 6,
+        end: 12,
+      ),
+      id: 0,
+    ),
+    arms: [(
+      pattern: Int(1),
+      body: (
+        kind: Expression((
+          expr: (
+            kind: Call((
+              target: (
+                kind: Path((
+                  ident_type: LocalOrUse,
+                  segments: [(
+                    ident: (
+                      ident: 2,
+                      span: (
+                        start: 24,
+                        end: 29,
+                      ),
+                    ),
+                    generics: None,
+                  )],
+                )),
+                span: (
+                  start: 24,
+                  end: 29,
+                ),
+                id: 1,
+              ),
+              args: [(
+                kind: String(3),
+                span: (
+                  start: 30,
+                  end: 36,
+                ),
+                id: 2,
+              )],
+            )),
+            span: (
+              start: 24,
+              end: 37,
+            ),
+            id: 3,
+          ),
+          implicit_return: true,
+        )),
+        span: (
+          start: 24,
+          end: 37,
+        ),
+        id: 4,
+      ),
+      span: (
+        start: 19,
+        end: 37,
+      ),
+      id: 5,
+    ), (
+      pattern: Or((
+        patterns: [Int(2), Int(3), Int(5), Int(7), Int(11)],
+      )),
+      body: (
+        kind: Expression((
+          expr: (
+            kind: Call((
+              target: (
+                kind: Path((
+                  ident_type: LocalOrUse,
+                  segments: [(
+                    ident: (
+                      ident: 2,
+                      span: (
+                        start: 65,
+                        end: 70,
+                      ),
+                    ),
+                    generics: None,
+                  )],
+                )),
+                span: (
+                  start: 65,
+                  end: 70,
+                ),
+                id: 6,
+              ),
+              args: [(
+                kind: String(4),
+                span: (
+                  start: 71,
+                  end: 88,
+                ),
+                id: 7,
+              )],
+            )),
+            span: (
+              start: 65,
+              end: 89,
+            ),
+            id: 8,
+          ),
+          implicit_return: true,
+        )),
+        span: (
+          start: 65,
+          end: 89,
+        ),
+        id: 9,
+      ),
+      span: (
+        start: 43,
+        end: 89,
+      ),
+      id: 10,
+    ), (
+      pattern: Wildcard,
+      body: (
+        kind: Expression((
+          expr: (
+            kind: Call((
+              target: (
+                kind: Path((
+                  ident_type: LocalOrUse,
+                  segments: [(
+                    ident: (
+                      ident: 2,
+                      span: (
+                        start: 100,
+                        end: 105,
+                      ),
+                    ),
+                    generics: None,
+                  )],
+                )),
+                span: (
+                  start: 100,
+                  end: 105,
+                ),
+                id: 11,
+              ),
+              args: [(
+                kind: String(5),
+                span: (
+                  start: 106,
+                  end: 120,
+                ),
+                id: 12,
+              )],
+            )),
+            span: (
+              start: 100,
+              end: 121,
+            ),
+            id: 13,
+          ),
+          implicit_return: true,
+        )),
+        span: (
+          start: 100,
+          end: 121,
+        ),
+        id: 14,
+      ),
+      span: (
+        start: 95,
+        end: 121,
+      ),
+      id: 15,
+    )],
+  )),
+  span: (
+    start: 0,
+    end: 124,
+  ),
+  id: 16,
+))

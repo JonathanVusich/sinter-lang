@@ -1,152 +1,130 @@
-[
-  {
-    "string_interner": [
-      "Point",
-      "x",
-      "u64",
-      "y",
-      "copy"
-    ],
-    "source_map": {},
-    "diagnostics": {
-      "diagnostics": []
-    },
-    "crate_id": 0,
-    "local_def_id": 8
-  },
-  {
-    "id": {
-      "crate_id": 0,
-      "module_id": 0
-    },
-    "path": {
-      "module_path": []
-    },
-    "namespace": {
-      "modules": {},
-      "values": {}
-    },
-    "items": [
-      {
-        "kind": {
-          "Class": {
-            "name": {
-              "ident": 1,
-              "span": {
-                "start": 19,
-                "end": 24
-              }
-            },
-            "class_type": "Inline",
-            "generic_params": [],
-            "fields": [
-              {
-                "name": {
-                  "ident": 2,
-                  "span": {
-                    "start": 43,
-                    "end": 44
-                  }
-                },
-                "ty": {
-                  "kind": "U64",
-                  "span": {
-                    "start": 46,
-                    "end": 49
-                  },
-                  "id": 0
-                },
-                "span": {
-                  "start": 43,
-                  "end": 49
-                },
-                "id": 1
-              },
-              {
-                "name": {
-                  "ident": 4,
-                  "span": {
-                    "start": 67,
-                    "end": 68
-                  }
-                },
-                "ty": {
-                  "kind": "U64",
-                  "span": {
-                    "start": 70,
-                    "end": 73
-                  },
-                  "id": 2
-                },
-                "span": {
-                  "start": 67,
-                  "end": 73
-                },
-                "id": 3
-              }
-            ],
-            "self_fns": [
-              {
-                "sig": {
-                  "name": {
-                    "ident": 5,
-                    "span": {
-                      "start": 94,
-                      "end": 98
-                    }
-                  },
-                  "generic_params": [],
-                  "params": [],
-                  "return_type": {
-                    "kind": {
-                      "Path": {
-                        "path": {
-                          "ident": {
-                            "ident_type": "LocalOrUse",
-                            "idents": [
-                              {
-                                "ident": 1,
-                                "span": {
-                                  "start": 104,
-                                  "end": 109
-                                }
-                              }
-                            ]
-                          },
-                          "generics": []
-                        }
-                      }
-                    },
-                    "span": {
-                      "start": 104,
-                      "end": 109
-                    },
-                    "id": 4
-                  }
-                },
-                "body": {
-                  "stmts": [],
-                  "span": {
-                    "start": 110,
-                    "end": 113
-                  },
-                  "id": 5
-                },
-                "span": {
-                  "start": 91,
-                  "end": 113
-                },
-                "id": 6
-              }
-            ]
-          }
-        },
-        "span": {
-          "start": 13,
-          "end": 127
-        },
-        "id": 7
-      }
-    ]
-  }
-]
+((
+  string_interner: ["Point", "x", "u64", "y", "copy"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 8,
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Class((
+      name: (
+        ident: 1,
+        span: (
+          start: 19,
+          end: 24,
+        ),
+      ),
+      class_type: Inline,
+      generic_params: [],
+      fields: [(
+        name: (
+          ident: 2,
+          span: (
+            start: 43,
+            end: 44,
+          ),
+        ),
+        ty: (
+          kind: U64,
+          span: (
+            start: 46,
+            end: 49,
+          ),
+          id: 0,
+        ),
+        span: (
+          start: 43,
+          end: 49,
+        ),
+        id: 1,
+      ), (
+        name: (
+          ident: 4,
+          span: (
+            start: 67,
+            end: 68,
+          ),
+        ),
+        ty: (
+          kind: U64,
+          span: (
+            start: 70,
+            end: 73,
+          ),
+          id: 2,
+        ),
+        span: (
+          start: 67,
+          end: 73,
+        ),
+        id: 3,
+      )],
+      self_fns: [(
+        sig: (
+          name: (
+            ident: 5,
+            span: (
+              start: 94,
+              end: 98,
+            ),
+          ),
+          generic_params: [],
+          params: [],
+          return_type: Some((
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 1,
+                    span: (
+                      start: 104,
+                      end: 109,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 104,
+              end: 109,
+            ),
+            id: 4,
+          )),
+        ),
+        body: Some((
+          stmts: [],
+          span: (
+            start: 110,
+            end: 113,
+          ),
+          id: 5,
+        )),
+        span: (
+          start: 91,
+          end: 113,
+        ),
+        id: 6,
+      )],
+    )),
+    span: (
+      start: 13,
+      end: 127,
+    ),
+    id: 7,
+  )],
+))

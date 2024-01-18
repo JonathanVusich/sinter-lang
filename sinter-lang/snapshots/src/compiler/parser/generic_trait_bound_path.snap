@@ -1,77 +1,55 @@
-[
-  [
-    "List",
-    "Loggable",
-    "Serializable",
-    "new"
-  ],
-  {
-    "ident_type": "LocalOrUse",
-    "segments": [
-      {
-        "ident": {
-          "ident": 1,
-          "span": {
-            "start": 0,
-            "end": 4
-          }
-        },
-        "generics": [
-          {
-            "kind": {
-              "TraitBound": {
-                "trait_bound": [
-                  {
-                    "ident": {
-                      "ident_type": "LocalOrUse",
-                      "idents": [
-                        {
-                          "ident": 2,
-                          "span": {
-                            "start": 7,
-                            "end": 15
-                          }
-                        }
-                      ]
-                    },
-                    "generics": []
-                  },
-                  {
-                    "ident": {
-                      "ident_type": "LocalOrUse",
-                      "idents": [
-                        {
-                          "ident": 3,
-                          "span": {
-                            "start": 18,
-                            "end": 30
-                          }
-                        }
-                      ]
-                    },
-                    "generics": []
-                  }
-                ]
-              }
-            },
-            "span": {
-              "start": 7,
-              "end": 30
-            },
-            "id": 0
-          }
-        ]
-      },
-      {
-        "ident": {
-          "ident": 4,
-          "span": {
-            "start": 33,
-            "end": 36
-          }
-        },
-        "generics": null
-      }
-    ]
-  }
-]
+(["List", "Loggable", "Serializable", "new"], (
+  ident_type: LocalOrUse,
+  segments: [(
+    ident: (
+      ident: 1,
+      span: (
+        start: 0,
+        end: 4,
+      ),
+    ),
+    generics: Some([(
+      kind: TraitBound(
+        trait_bound: [(
+          ident: (
+            ident_type: LocalOrUse,
+            idents: [(
+              ident: 2,
+              span: (
+                start: 7,
+                end: 15,
+              ),
+            )],
+          ),
+          generics: [],
+), (
+          ident: (
+            ident_type: LocalOrUse,
+            idents: [(
+              ident: 3,
+              span: (
+                start: 18,
+                end: 30,
+              ),
+            )],
+          ),
+          generics: [],
+)],
+      ),
+      span: (
+        start: 7,
+        end: 30,
+      ),
+      id: 0,
+    )]),
+  ), (
+    ident: (
+      ident: 4,
+      span: (
+        start: 33,
+        end: 36,
+      ),
+    ),
+    generics: None,
+  )],
+))

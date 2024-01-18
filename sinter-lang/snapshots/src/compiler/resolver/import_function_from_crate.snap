@@ -1,534 +1,416 @@
-[
-  [
-    "complex_arithmetic",
-    "multiplication",
-    "multiply",
-    "T",
-    "x",
-    "y",
-    "square",
-    "crate"
-  ],
-  {
-    "1": {
-      "name": 1,
-      "id": {
-        "id": 0
-      },
-      "items": [
-        11,
-        25
-      ],
-      "nodes": {
-        "0": {
-          "kind": {
-            "GenericParam": {
-              "ident": {
-                "ident": 4,
-                "span": {
-                  "start": 12,
-                  "end": 13
-                }
-              },
-              "trait_bound": null
-            }
-          },
-          "span": {
-            "start": 12,
-            "end": 13
-          },
-          "id": 0
-        },
-        "1": {
-          "kind": {
-            "Ty": {
-              "Path": {
-                "path": {
-                  "definition": {
-                    "crate_id": 0,
-                    "local_id": 0
-                  },
-                  "generics": []
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 18,
-            "end": 19
-          },
-          "id": 1
-        },
-        "2": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 5,
-                "span": {
-                  "start": 15,
-                  "end": 16
-                }
-              },
-              "ty": 1,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 15,
-            "end": 19
-          },
-          "id": 2
-        },
-        "3": {
-          "kind": {
-            "Ty": {
-              "Path": {
-                "path": {
-                  "definition": {
-                    "crate_id": 0,
-                    "local_id": 0
-                  },
-                  "generics": []
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 24,
-            "end": 25
-          },
-          "id": 3
-        },
-        "4": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 6,
-                "span": {
-                  "start": 21,
-                  "end": 22
-                }
-              },
-              "ty": 3,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 21,
-            "end": 25
-          },
-          "id": 4
-        },
-        "5": {
-          "kind": {
-            "Ty": {
-              "Path": {
-                "path": {
-                  "definition": {
-                    "crate_id": 0,
-                    "local_id": 0
-                  },
-                  "generics": []
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 30,
-            "end": 31
-          },
-          "id": 5
-        },
-        "6": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "res": {
-                      "Local": {
-                        "Var": 2
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 38,
-            "end": 39
-          },
-          "id": 6
-        },
-        "7": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "res": {
-                      "Local": {
-                        "Var": 4
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 42,
-            "end": 43
-          },
-          "id": 7
-        },
-        "8": {
-          "kind": {
-            "Expr": {
-              "Infix": {
-                "operator": "Multiply",
-                "lhs": 6,
-                "rhs": 7
-              }
-            }
-          },
-          "span": {
-            "start": 38,
-            "end": 43
-          },
-          "id": 8
-        },
-        "9": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 8,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 38,
-            "end": 43
-          },
-          "id": 9
-        },
-        "10": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                9
-              ]
-            }
-          },
-          "span": {
-            "start": 32,
-            "end": 45
-          },
-          "id": 10
-        },
-        "11": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 3,
-                  "span": {
-                    "start": 3,
-                    "end": 11
-                  }
-                },
-                "generic_params": {
-                  "4": 0
-                },
-                "params": {
-                  "6": 4,
-                  "5": 2
-                },
-                "return_type": 5
-              },
-              "body": 10
-            }
-          },
-          "span": {
-            "start": 0,
-            "end": 45
-          },
-          "id": 11
-        },
-        "13": {
-          "kind": {
-            "GenericParam": {
-              "ident": {
-                "ident": 4,
-                "span": {
-                  "start": 48,
-                  "end": 49
-                }
-              },
-              "trait_bound": null
-            }
-          },
-          "span": {
-            "start": 48,
-            "end": 49
-          },
-          "id": 13
-        },
-        "14": {
-          "kind": {
-            "Ty": {
-              "Path": {
-                "path": {
-                  "definition": {
-                    "crate_id": 0,
-                    "local_id": 13
-                  },
-                  "generics": []
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 54,
-            "end": 55
-          },
-          "id": 14
-        },
-        "15": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 5,
-                "span": {
-                  "start": 51,
-                  "end": 52
-                }
-              },
-              "ty": 14,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 51,
-            "end": 55
-          },
-          "id": 15
-        },
-        "16": {
-          "kind": {
-            "Ty": {
-              "Path": {
-                "path": {
-                  "definition": {
-                    "crate_id": 0,
-                    "local_id": 13
-                  },
-                  "generics": []
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 60,
-            "end": 61
-          },
-          "id": 16
-        },
-        "17": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 6,
-                "span": {
-                  "start": 57,
-                  "end": 58
-                }
-              },
-              "ty": 16,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 57,
-            "end": 61
-          },
-          "id": 17
-        },
-        "18": {
-          "kind": {
-            "Ty": {
-              "Path": {
-                "path": {
-                  "definition": {
-                    "crate_id": 0,
-                    "local_id": 13
-                  },
-                  "generics": []
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 66,
-            "end": 67
-          },
-          "id": 18
-        },
-        "19": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "res": {
-                      "ValueDef": {
-                        "Fn": {
-                          "id": {
-                            "crate_id": 0,
-                            "local_id": 11
-                          }
-                        }
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 74,
-            "end": 82
-          },
-          "id": 19
-        },
-        "20": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "res": {
-                      "Local": {
-                        "Var": 15
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 83,
-            "end": 84
-          },
-          "id": 20
-        },
-        "21": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "res": {
-                      "Local": {
-                        "Var": 15
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 86,
-            "end": 87
-          },
-          "id": 21
-        },
-        "22": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 19,
-                "args": [
-                  20,
-                  21
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 74,
-            "end": 88
-          },
-          "id": 22
-        },
-        "23": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 22,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 74,
-            "end": 88
-          },
-          "id": 23
-        },
-        "24": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                23
-              ]
-            }
-          },
-          "span": {
-            "start": 68,
-            "end": 90
-          },
-          "id": 24
-        },
-        "25": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 7,
-                  "span": {
-                    "start": 41,
-                    "end": 47
-                  }
-                },
-                "generic_params": {
-                  "4": 13
-                },
-                "params": {
-                  "5": 15,
-                  "6": 17
-                },
-                "return_type": 18
-              },
-              "body": 24
-            }
-          },
-          "span": {
-            "start": 38,
-            "end": 90
-          },
-          "id": 25
-        }
-      }
-    }
-  }
-]
+((
+  string_interner: ["complex_arithmetic", "multiplication", "multiply", "T", "x", "y", "square", "crate"],
+  source_map: {
+    (
+      crate_id: 0,
+      module_id: 1,
+    ): (
+      line_map: (
+        lines: [36, 38, 71, 91],
+      ),
+    ),
+    (
+      crate_id: 0,
+      module_id: 0,
+    ): (
+      line_map: (
+        lines: [33, 44],
+      ),
+    ),
+  },
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 1,
+  local_def_id: 26,
+), (
+  crates: [(
+    name: 1,
+    id: (
+      id: 0,
+    ),
+    items: [11, 25],
+    nodes: {
+      0: (
+        kind: Ty(GenericParam((
+          ident: (
+            ident: 4,
+            span: (
+              start: 12,
+              end: 13,
+            ),
+          ),
+          trait_bound: None,
+        ))),
+        span: (
+          start: 12,
+          end: 13,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 0,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 18,
+          end: 19,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Param((
+          ident: (
+            ident: 5,
+            span: (
+              start: 15,
+              end: 16,
+            ),
+          ),
+          ty: 1,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 15,
+          end: 19,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 0,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 24,
+          end: 25,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Param((
+          ident: (
+            ident: 6,
+            span: (
+              start: 21,
+              end: 22,
+            ),
+          ),
+          ty: 3,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 21,
+          end: 25,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 0,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 30,
+          end: 31,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(2)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 38,
+          end: 39,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(4)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 42,
+          end: 43,
+        ),
+        id: 7,
+      ),
+      8: (
+        kind: Expr(Infix((
+          operator: Multiply,
+          lhs: 6,
+          rhs: 7,
+        ))),
+        span: (
+          start: 38,
+          end: 43,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: Stmt(Expression((
+          expr: 8,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 38,
+          end: 43,
+        ),
+        id: 9,
+      ),
+      10: (
+        kind: Block((
+          stmts: [9],
+        )),
+        span: (
+          start: 32,
+          end: 45,
+        ),
+        id: 10,
+      ),
+      11: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 3,
+              span: (
+                start: 3,
+                end: 11,
+              ),
+            ),
+            generic_params: {
+              4: 0,
+            },
+            params: {
+              5: 2,
+              6: 4,
+            },
+            return_type: Some(5),
+          ),
+          body: Some(10),
+        )),
+        span: (
+          start: 0,
+          end: 45,
+        ),
+        id: 11,
+      ),
+      13: (
+        kind: Ty(GenericParam((
+          ident: (
+            ident: 4,
+            span: (
+              start: 48,
+              end: 49,
+            ),
+          ),
+          trait_bound: None,
+        ))),
+        span: (
+          start: 48,
+          end: 49,
+        ),
+        id: 13,
+      ),
+      14: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 13,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 54,
+          end: 55,
+        ),
+        id: 14,
+      ),
+      15: (
+        kind: Param((
+          ident: (
+            ident: 5,
+            span: (
+              start: 51,
+              end: 52,
+            ),
+          ),
+          ty: 14,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 51,
+          end: 55,
+        ),
+        id: 15,
+      ),
+      16: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 13,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 60,
+          end: 61,
+        ),
+        id: 16,
+      ),
+      17: (
+        kind: Param((
+          ident: (
+            ident: 6,
+            span: (
+              start: 57,
+              end: 58,
+            ),
+          ),
+          ty: 16,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 57,
+          end: 61,
+        ),
+        id: 17,
+      ),
+      18: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 13,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 66,
+          end: 67,
+        ),
+        id: 18,
+      ),
+      19: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Fn((
+              id: (
+                crate_id: 0,
+                local_id: 11,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 74,
+          end: 82,
+        ),
+        id: 19,
+      ),
+      20: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(15)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 83,
+          end: 84,
+        ),
+        id: 20,
+      ),
+      21: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(15)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 86,
+          end: 87,
+        ),
+        id: 21,
+      ),
+      22: (
+        kind: Expr(Call((
+          target: 19,
+          args: [20, 21],
+        ))),
+        span: (
+          start: 74,
+          end: 88,
+        ),
+        id: 22,
+      ),
+      23: (
+        kind: Stmt(Expression((
+          expr: 22,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 74,
+          end: 88,
+        ),
+        id: 23,
+      ),
+      24: (
+        kind: Block((
+          stmts: [23],
+        )),
+        span: (
+          start: 68,
+          end: 90,
+        ),
+        id: 24,
+      ),
+      25: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 7,
+              span: (
+                start: 41,
+                end: 47,
+              ),
+            ),
+            generic_params: {
+              4: 13,
+            },
+            params: {
+              5: 15,
+              6: 17,
+            },
+            return_type: Some(18),
+          ),
+          body: Some(24),
+        )),
+        span: (
+          start: 38,
+          end: 90,
+        ),
+        id: 25,
+      ),
+    },
+  )],
+  names_to_indices: [1],
+))

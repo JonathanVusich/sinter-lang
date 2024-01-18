@@ -1,123 +1,94 @@
-[
-  {
-    "string_interner": [
-      "std",
-      "vector",
-      "array",
-      "map",
-      "HashMap"
-    ],
-    "source_map": {},
-    "diagnostics": {
-      "diagnostics": []
-    },
-    "crate_id": 0,
-    "local_def_id": 3
-  },
-  {
-    "id": {
-      "crate_id": 0,
-      "module_id": 0
-    },
-    "path": {
-      "module_path": []
-    },
-    "namespace": {
-      "modules": {},
-      "values": {}
-    },
-    "items": [
-      {
-        "kind": {
-          "Use": {
-            "ident_type": "LocalOrUse",
-            "idents": [
-              {
-                "ident": 1,
-                "span": {
-                  "start": 4,
-                  "end": 7
-                }
-              },
-              {
-                "ident": 2,
-                "span": {
-                  "start": 9,
-                  "end": 15
-                }
-              }
-            ]
-          }
-        },
-        "span": {
-          "start": 0,
-          "end": 16
-        },
-        "id": 0
-      },
-      {
-        "kind": {
-          "Use": {
-            "ident_type": "LocalOrUse",
-            "idents": [
-              {
-                "ident": 1,
-                "span": {
-                  "start": 21,
-                  "end": 24
-                }
-              },
-              {
-                "ident": 3,
-                "span": {
-                  "start": 26,
-                  "end": 31
-                }
-              }
-            ]
-          }
-        },
-        "span": {
-          "start": 17,
-          "end": 32
-        },
-        "id": 1
-      },
-      {
-        "kind": {
-          "Use": {
-            "ident_type": "LocalOrUse",
-            "idents": [
-              {
-                "ident": 1,
-                "span": {
-                  "start": 37,
-                  "end": 40
-                }
-              },
-              {
-                "ident": 4,
-                "span": {
-                  "start": 42,
-                  "end": 45
-                }
-              },
-              {
-                "ident": 5,
-                "span": {
-                  "start": 47,
-                  "end": 54
-                }
-              }
-            ]
-          }
-        },
-        "span": {
-          "start": 33,
-          "end": 55
-        },
-        "id": 2
-      }
-    ]
-  }
-]
+((
+  string_interner: ["std", "vector", "array", "map", "HashMap"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 3,
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Use((
+      ident_type: LocalOrUse,
+      idents: [(
+        ident: 1,
+        span: (
+          start: 4,
+          end: 7,
+        ),
+      ), (
+        ident: 2,
+        span: (
+          start: 9,
+          end: 15,
+        ),
+      )],
+    )),
+    span: (
+      start: 0,
+      end: 16,
+    ),
+    id: 0,
+  ), (
+    kind: Use((
+      ident_type: LocalOrUse,
+      idents: [(
+        ident: 1,
+        span: (
+          start: 21,
+          end: 24,
+        ),
+      ), (
+        ident: 3,
+        span: (
+          start: 26,
+          end: 31,
+        ),
+      )],
+    )),
+    span: (
+      start: 17,
+      end: 32,
+    ),
+    id: 1,
+  ), (
+    kind: Use((
+      ident_type: LocalOrUse,
+      idents: [(
+        ident: 1,
+        span: (
+          start: 37,
+          end: 40,
+        ),
+      ), (
+        ident: 4,
+        span: (
+          start: 42,
+          end: 45,
+        ),
+      ), (
+        ident: 5,
+        span: (
+          start: 47,
+          end: 54,
+        ),
+      )],
+    )),
+    span: (
+      start: 33,
+      end: 55,
+    ),
+    id: 2,
+  )],
+))

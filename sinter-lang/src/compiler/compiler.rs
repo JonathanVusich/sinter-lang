@@ -11,8 +11,6 @@ use itertools::Itertools;
 use lasso::{Key as K, Resolver};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_with::serde_as;
-use serde_with::Seq;
 use walkdir::{DirEntry, WalkDir};
 
 use crate::compiler::ast::AstPass;
@@ -147,10 +145,18 @@ impl Debug for CompileError {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SourceCode {
+    #[serde(skip)]
     pub(crate) source: Source,
     pub(crate) line_map: LineMap,
+}
+
+// We need to exclude the source file on purpose because it is non-deterministic when representing a path.
+impl PartialEq for SourceCode {
+    fn eq(&self, other: &Self) -> bool {
+        self.line_map == other.line_map
+    }
 }
 
 impl SourceCode {
@@ -241,7 +247,7 @@ impl Compiler {
     }
 
     pub(crate) fn parse_crates(&mut self, application: Application) -> Option<StrMap<Crate>> {
-        match application {
+        let crates = match application {
             Application::Path {
                 main_crate,
                 crate_path,
@@ -289,7 +295,9 @@ impl Compiler {
                 let krate = self.parse_inline_crate(code)?;
                 Some(StrMap::from([(krate.name, krate)]))
             }
-        }
+        };
+        self.report_errors()?;
+        crates
     }
 
     pub(crate) fn parse_inline_crate(&mut self, code: String) -> Option<Crate> {

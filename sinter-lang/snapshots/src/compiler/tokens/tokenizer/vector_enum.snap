@@ -1,926 +1,685 @@
-[
-  [
-    "std",
-    "math",
-    "Display",
-    "Number",
-    "Vector",
-    "N",
-    "Normalized",
-    "x",
-    "y",
-    "Absolute",
-    "to_normalized",
-    "normalized",
-    "abs",
-    "magnitude",
-    "sqrt"
-  ],
-  {
-    "tokens": [
-      {
-        "token_type": "Use",
-        "span": {
-          "start": 0,
-          "end": 3
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 1
-        },
-        "span": {
-          "start": 4,
-          "end": 7
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 7,
-          "end": 8
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 8,
-          "end": 9
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 2
-        },
-        "span": {
-          "start": 9,
-          "end": 13
-        }
-      },
-      {
-        "token_type": "Semicolon",
-        "span": {
-          "start": 13,
-          "end": 14
-        }
-      },
-      {
-        "token_type": "Use",
-        "span": {
-          "start": 15,
-          "end": 18
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 1
-        },
-        "span": {
-          "start": 19,
-          "end": 22
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 22,
-          "end": 23
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 23,
-          "end": 24
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 3
-        },
-        "span": {
-          "start": 24,
-          "end": 31
-        }
-      },
-      {
-        "token_type": "Semicolon",
-        "span": {
-          "start": 31,
-          "end": 32
-        }
-      },
-      {
-        "token_type": "Use",
-        "span": {
-          "start": 33,
-          "end": 36
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 1
-        },
-        "span": {
-          "start": 37,
-          "end": 40
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 40,
-          "end": 41
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 41,
-          "end": 42
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 4
-        },
-        "span": {
-          "start": 42,
-          "end": 48
-        }
-      },
-      {
-        "token_type": "Semicolon",
-        "span": {
-          "start": 48,
-          "end": 49
-        }
-      },
-      {
-        "token_type": "Enum",
-        "span": {
-          "start": 51,
-          "end": 55
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 5
-        },
-        "span": {
-          "start": 56,
-          "end": 62
-        }
-      },
-      {
-        "token_type": "Less",
-        "span": {
-          "start": 62,
-          "end": 63
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 6
-        },
-        "span": {
-          "start": 63,
-          "end": 64
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 64,
-          "end": 65
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 4
-        },
-        "span": {
-          "start": 66,
-          "end": 72
-        }
-      },
-      {
-        "token_type": "Plus",
-        "span": {
-          "start": 73,
-          "end": 74
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 3
-        },
-        "span": {
-          "start": 75,
-          "end": 82
-        }
-      },
-      {
-        "token_type": "Greater",
-        "span": {
-          "start": 82,
-          "end": 83
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 84,
-          "end": 85
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 7
-        },
-        "span": {
-          "start": 90,
-          "end": 100
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 100,
-          "end": 101
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 8
-        },
-        "span": {
-          "start": 101,
-          "end": 102
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 102,
-          "end": 103
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 6
-        },
-        "span": {
-          "start": 104,
-          "end": 105
-        }
-      },
-      {
-        "token_type": "Comma",
-        "span": {
-          "start": 105,
-          "end": 106
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 9
-        },
-        "span": {
-          "start": 107,
-          "end": 108
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 108,
-          "end": 109
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 6
-        },
-        "span": {
-          "start": 110,
-          "end": 111
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 111,
-          "end": 112
-        }
-      },
-      {
-        "token_type": "Comma",
-        "span": {
-          "start": 112,
-          "end": 113
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 10
-        },
-        "span": {
-          "start": 118,
-          "end": 126
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 126,
-          "end": 127
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 8
-        },
-        "span": {
-          "start": 127,
-          "end": 128
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 128,
-          "end": 129
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 6
-        },
-        "span": {
-          "start": 130,
-          "end": 131
-        }
-      },
-      {
-        "token_type": "Comma",
-        "span": {
-          "start": 131,
-          "end": 132
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 9
-        },
-        "span": {
-          "start": 133,
-          "end": 134
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 134,
-          "end": 135
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 6
-        },
-        "span": {
-          "start": 136,
-          "end": 137
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 137,
-          "end": 138
-        }
-      },
-      {
-        "token_type": "Comma",
-        "span": {
-          "start": 138,
-          "end": 139
-        }
-      },
-      {
-        "token_type": "Fn",
-        "span": {
-          "start": 145,
-          "end": 147
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 11
-        },
-        "span": {
-          "start": 148,
-          "end": 161
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 161,
-          "end": 162
-        }
-      },
-      {
-        "token_type": "SelfLowercase",
-        "span": {
-          "start": 162,
-          "end": 166
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 166,
-          "end": 167
-        }
-      },
-      {
-        "token_type": "RightArrow",
-        "span": {
-          "start": 168,
-          "end": 170
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 5
-        },
-        "span": {
-          "start": 171,
-          "end": 177
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 178,
-          "end": 179
-        }
-      },
-      {
-        "token_type": "Match",
-        "span": {
-          "start": 188,
-          "end": 193
-        }
-      },
-      {
-        "token_type": "SelfLowercase",
-        "span": {
-          "start": 194,
-          "end": 198
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 199,
-          "end": 200
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 7
-        },
-        "span": {
-          "start": 213,
-          "end": 223
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 12
-        },
-        "span": {
-          "start": 224,
-          "end": 234
-        }
-      },
-      {
-        "token_type": "RightArrow",
-        "span": {
-          "start": 235,
-          "end": 237
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 12
-        },
-        "span": {
-          "start": 238,
-          "end": 248
-        }
-      },
-      {
-        "token_type": "Comma",
-        "span": {
-          "start": 248,
-          "end": 249
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 10
-        },
-        "span": {
-          "start": 262,
-          "end": 270
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 13
-        },
-        "span": {
-          "start": 271,
-          "end": 274
-        }
-      },
-      {
-        "token_type": "RightArrow",
-        "span": {
-          "start": 275,
-          "end": 277
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 278,
-          "end": 279
-        }
-      },
-      {
-        "token_type": "Let",
-        "span": {
-          "start": 296,
-          "end": 299
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 14
-        },
-        "span": {
-          "start": 300,
-          "end": 309
-        }
-      },
-      {
-        "token_type": "Equal",
-        "span": {
-          "start": 310,
-          "end": 311
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 2
-        },
-        "span": {
-          "start": 312,
-          "end": 316
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 316,
-          "end": 317
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 317,
-          "end": 318
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 15
-        },
-        "span": {
-          "start": 318,
-          "end": 322
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 322,
-          "end": 323
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 13
-        },
-        "span": {
-          "start": 323,
-          "end": 326
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 326,
-          "end": 327
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 8
-        },
-        "span": {
-          "start": 327,
-          "end": 328
-        }
-      },
-      {
-        "token_type": "Star",
-        "span": {
-          "start": 329,
-          "end": 330
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 13
-        },
-        "span": {
-          "start": 331,
-          "end": 334
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 334,
-          "end": 335
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 8
-        },
-        "span": {
-          "start": 335,
-          "end": 336
-        }
-      },
-      {
-        "token_type": "Plus",
-        "span": {
-          "start": 337,
-          "end": 338
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 13
-        },
-        "span": {
-          "start": 339,
-          "end": 342
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 342,
-          "end": 343
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 9
-        },
-        "span": {
-          "start": 343,
-          "end": 344
-        }
-      },
-      {
-        "token_type": "Star",
-        "span": {
-          "start": 345,
-          "end": 346
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 13
-        },
-        "span": {
-          "start": 347,
-          "end": 350
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 350,
-          "end": 351
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 9
-        },
-        "span": {
-          "start": 351,
-          "end": 352
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 352,
-          "end": 353
-        }
-      },
-      {
-        "token_type": "Semicolon",
-        "span": {
-          "start": 353,
-          "end": 354
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 7
-        },
-        "span": {
-          "start": 371,
-          "end": 381
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 381,
-          "end": 382
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 13
-        },
-        "span": {
-          "start": 382,
-          "end": 385
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 385,
-          "end": 386
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 8
-        },
-        "span": {
-          "start": 386,
-          "end": 387
-        }
-      },
-      {
-        "token_type": "Slash",
-        "span": {
-          "start": 388,
-          "end": 389
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 14
-        },
-        "span": {
-          "start": 390,
-          "end": 399
-        }
-      },
-      {
-        "token_type": "Comma",
-        "span": {
-          "start": 399,
-          "end": 400
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 13
-        },
-        "span": {
-          "start": 401,
-          "end": 404
-        }
-      },
-      {
-        "token_type": "Dot",
-        "span": {
-          "start": 404,
-          "end": 405
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 9
-        },
-        "span": {
-          "start": 405,
-          "end": 406
-        }
-      },
-      {
-        "token_type": "Slash",
-        "span": {
-          "start": 407,
-          "end": 408
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 14
-        },
-        "span": {
-          "start": 409,
-          "end": 418
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 418,
-          "end": 419
-        }
-      },
-      {
-        "token_type": "RightBrace",
-        "span": {
-          "start": 432,
-          "end": 433
-        }
-      },
-      {
-        "token_type": "RightBrace",
-        "span": {
-          "start": 442,
-          "end": 443
-        }
-      },
-      {
-        "token_type": "RightBrace",
-        "span": {
-          "start": 448,
-          "end": 449
-        }
-      },
-      {
-        "token_type": "RightBrace",
-        "span": {
-          "start": 450,
-          "end": 451
-        }
-      }
-    ],
-    "line_map": {
-      "lines": [
-        14,
-        33,
-        51,
-        53,
-        89,
-        118,
-        145,
-        147,
-        187,
-        209,
-        259,
-        290,
-        366,
-        432,
-        447,
-        458,
-        465
-      ]
-    },
-    "line_counter": 17
-  }
-]
+(["std", "math", "Display", "Number", "Vector", "N", "Normalized", "x", "y", "Absolute", "to_normalized", "normalized", "abs", "magnitude", "sqrt"], (
+  tokens: [(
+    token_type: Use,
+    span: (
+      start: 0,
+      end: 3,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 4,
+      end: 7,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 7,
+      end: 8,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 8,
+      end: 9,
+    ),
+  ), (
+    token_type: Identifier(2),
+    span: (
+      start: 9,
+      end: 13,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 13,
+      end: 14,
+    ),
+  ), (
+    token_type: Use,
+    span: (
+      start: 15,
+      end: 18,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 19,
+      end: 22,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 22,
+      end: 23,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 23,
+      end: 24,
+    ),
+  ), (
+    token_type: Identifier(3),
+    span: (
+      start: 24,
+      end: 31,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 31,
+      end: 32,
+    ),
+  ), (
+    token_type: Use,
+    span: (
+      start: 33,
+      end: 36,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 37,
+      end: 40,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 40,
+      end: 41,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 41,
+      end: 42,
+    ),
+  ), (
+    token_type: Identifier(4),
+    span: (
+      start: 42,
+      end: 48,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 48,
+      end: 49,
+    ),
+  ), (
+    token_type: Enum,
+    span: (
+      start: 51,
+      end: 55,
+    ),
+  ), (
+    token_type: Identifier(5),
+    span: (
+      start: 56,
+      end: 62,
+    ),
+  ), (
+    token_type: Less,
+    span: (
+      start: 62,
+      end: 63,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 63,
+      end: 64,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 64,
+      end: 65,
+    ),
+  ), (
+    token_type: Identifier(4),
+    span: (
+      start: 66,
+      end: 72,
+    ),
+  ), (
+    token_type: Plus,
+    span: (
+      start: 73,
+      end: 74,
+    ),
+  ), (
+    token_type: Identifier(3),
+    span: (
+      start: 75,
+      end: 82,
+    ),
+  ), (
+    token_type: Greater,
+    span: (
+      start: 82,
+      end: 83,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 84,
+      end: 85,
+    ),
+  ), (
+    token_type: Identifier(7),
+    span: (
+      start: 90,
+      end: 100,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 100,
+      end: 101,
+    ),
+  ), (
+    token_type: Identifier(8),
+    span: (
+      start: 101,
+      end: 102,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 102,
+      end: 103,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 104,
+      end: 105,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 105,
+      end: 106,
+    ),
+  ), (
+    token_type: Identifier(9),
+    span: (
+      start: 107,
+      end: 108,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 108,
+      end: 109,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 110,
+      end: 111,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 111,
+      end: 112,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 112,
+      end: 113,
+    ),
+  ), (
+    token_type: Identifier(10),
+    span: (
+      start: 118,
+      end: 126,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 126,
+      end: 127,
+    ),
+  ), (
+    token_type: Identifier(8),
+    span: (
+      start: 127,
+      end: 128,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 128,
+      end: 129,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 130,
+      end: 131,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 131,
+      end: 132,
+    ),
+  ), (
+    token_type: Identifier(9),
+    span: (
+      start: 133,
+      end: 134,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 134,
+      end: 135,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 136,
+      end: 137,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 137,
+      end: 138,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 138,
+      end: 139,
+    ),
+  ), (
+    token_type: Fn,
+    span: (
+      start: 145,
+      end: 147,
+    ),
+  ), (
+    token_type: Identifier(11),
+    span: (
+      start: 148,
+      end: 161,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 161,
+      end: 162,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 162,
+      end: 166,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 166,
+      end: 167,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 168,
+      end: 170,
+    ),
+  ), (
+    token_type: Identifier(5),
+    span: (
+      start: 171,
+      end: 177,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 178,
+      end: 179,
+    ),
+  ), (
+    token_type: Match,
+    span: (
+      start: 188,
+      end: 193,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 194,
+      end: 198,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 199,
+      end: 200,
+    ),
+  ), (
+    token_type: Identifier(7),
+    span: (
+      start: 213,
+      end: 223,
+    ),
+  ), (
+    token_type: Identifier(12),
+    span: (
+      start: 224,
+      end: 234,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 235,
+      end: 237,
+    ),
+  ), (
+    token_type: Identifier(12),
+    span: (
+      start: 238,
+      end: 248,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 248,
+      end: 249,
+    ),
+  ), (
+    token_type: Identifier(10),
+    span: (
+      start: 262,
+      end: 270,
+    ),
+  ), (
+    token_type: Identifier(13),
+    span: (
+      start: 271,
+      end: 274,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 275,
+      end: 277,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 278,
+      end: 279,
+    ),
+  ), (
+    token_type: Let,
+    span: (
+      start: 296,
+      end: 299,
+    ),
+  ), (
+    token_type: Identifier(14),
+    span: (
+      start: 300,
+      end: 309,
+    ),
+  ), (
+    token_type: Equal,
+    span: (
+      start: 310,
+      end: 311,
+    ),
+  ), (
+    token_type: Identifier(2),
+    span: (
+      start: 312,
+      end: 316,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 316,
+      end: 317,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 317,
+      end: 318,
+    ),
+  ), (
+    token_type: Identifier(15),
+    span: (
+      start: 318,
+      end: 322,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 322,
+      end: 323,
+    ),
+  ), (
+    token_type: Identifier(13),
+    span: (
+      start: 323,
+      end: 326,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 326,
+      end: 327,
+    ),
+  ), (
+    token_type: Identifier(8),
+    span: (
+      start: 327,
+      end: 328,
+    ),
+  ), (
+    token_type: Star,
+    span: (
+      start: 329,
+      end: 330,
+    ),
+  ), (
+    token_type: Identifier(13),
+    span: (
+      start: 331,
+      end: 334,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 334,
+      end: 335,
+    ),
+  ), (
+    token_type: Identifier(8),
+    span: (
+      start: 335,
+      end: 336,
+    ),
+  ), (
+    token_type: Plus,
+    span: (
+      start: 337,
+      end: 338,
+    ),
+  ), (
+    token_type: Identifier(13),
+    span: (
+      start: 339,
+      end: 342,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 342,
+      end: 343,
+    ),
+  ), (
+    token_type: Identifier(9),
+    span: (
+      start: 343,
+      end: 344,
+    ),
+  ), (
+    token_type: Star,
+    span: (
+      start: 345,
+      end: 346,
+    ),
+  ), (
+    token_type: Identifier(13),
+    span: (
+      start: 347,
+      end: 350,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 350,
+      end: 351,
+    ),
+  ), (
+    token_type: Identifier(9),
+    span: (
+      start: 351,
+      end: 352,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 352,
+      end: 353,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 353,
+      end: 354,
+    ),
+  ), (
+    token_type: Identifier(7),
+    span: (
+      start: 371,
+      end: 381,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 381,
+      end: 382,
+    ),
+  ), (
+    token_type: Identifier(13),
+    span: (
+      start: 382,
+      end: 385,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 385,
+      end: 386,
+    ),
+  ), (
+    token_type: Identifier(8),
+    span: (
+      start: 386,
+      end: 387,
+    ),
+  ), (
+    token_type: Slash,
+    span: (
+      start: 388,
+      end: 389,
+    ),
+  ), (
+    token_type: Identifier(14),
+    span: (
+      start: 390,
+      end: 399,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 399,
+      end: 400,
+    ),
+  ), (
+    token_type: Identifier(13),
+    span: (
+      start: 401,
+      end: 404,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 404,
+      end: 405,
+    ),
+  ), (
+    token_type: Identifier(9),
+    span: (
+      start: 405,
+      end: 406,
+    ),
+  ), (
+    token_type: Slash,
+    span: (
+      start: 407,
+      end: 408,
+    ),
+  ), (
+    token_type: Identifier(14),
+    span: (
+      start: 409,
+      end: 418,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 418,
+      end: 419,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 432,
+      end: 433,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 442,
+      end: 443,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 448,
+      end: 449,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 450,
+      end: 451,
+    ),
+  )],
+  line_map: (
+    lines: [14, 33, 51, 53, 89, 118, 145, 147, 187, 209, 259, 290, 366, 432, 447, 458, 465],
+  ),
+  line_counter: 17,
+))

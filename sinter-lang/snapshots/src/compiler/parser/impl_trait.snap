@@ -1,349 +1,292 @@
-[
-  {
-    "string_interner": [
-      "core",
-      "tweet",
-      "Tweet",
-      "Summary",
-      "summarize",
-      "str",
-      "username",
-      "content",
-      "self"
-    ],
-    "source_map": {},
-    "diagnostics": {
-      "diagnostics": []
-    },
-    "crate_id": 0,
-    "local_def_id": 18
-  },
-  {
-    "id": {
-      "crate_id": 0,
-      "module_id": 0
-    },
-    "path": {
-      "module_path": []
-    },
-    "namespace": {
-      "modules": {},
-      "values": {}
-    },
-    "items": [
-      {
-        "kind": {
-          "Use": {
-            "ident_type": "LocalOrUse",
-            "idents": [
-              {
-                "ident": 1,
-                "span": {
-                  "start": 4,
-                  "end": 8
-                }
-              },
-              {
-                "ident": 2,
-                "span": {
-                  "start": 10,
-                  "end": 15
-                }
-              },
-              {
-                "ident": 3,
-                "span": {
-                  "start": 17,
-                  "end": 22
-                }
-              }
-            ]
-          }
-        },
-        "span": {
-          "start": 0,
-          "end": 23
-        },
-        "id": 0
-      },
-      {
-        "kind": {
-          "Trait": {
-            "name": {
-              "ident": 4,
-              "span": {
-                "start": 31,
-                "end": 38
-              }
-            },
-            "generic_params": [],
-            "self_fns": [
-              {
-                "sig": {
-                  "name": {
-                    "ident": 5,
-                    "span": {
-                      "start": 48,
-                      "end": 57
-                    }
-                  },
-                  "generic_params": [],
-                  "params": [
-                    {
-                      "name": {
-                        "ident": 9,
-                        "span": {
-                          "start": 58,
-                          "end": 62
-                        }
-                      },
-                      "ty": {
-                        "kind": "QSelf",
-                        "span": {
-                          "start": 58,
-                          "end": 62
-                        },
-                        "id": 1
-                      },
-                      "mutability": "Immutable",
-                      "span": {
-                        "start": 58,
-                        "end": 62
-                      },
-                      "id": 2
-                    }
-                  ],
-                  "return_type": {
-                    "kind": "Str",
-                    "span": {
-                      "start": 67,
-                      "end": 70
-                    },
-                    "id": 3
-                  }
-                },
-                "body": null,
-                "span": {
-                  "start": 45,
-                  "end": 71
-                },
-                "id": 4
-              }
-            ]
-          }
-        },
-        "span": {
-          "start": 25,
-          "end": 73
-        },
-        "id": 5
-      },
-      {
-        "kind": {
-          "TraitImpl": {
-            "trait_to_impl": {
-              "ident": {
-                "ident_type": "LocalOrUse",
-                "idents": [
-                  {
-                    "ident": 4,
-                    "span": {
-                      "start": 80,
-                      "end": 87
-                    }
-                  }
-                ]
-              },
-              "generics": []
-            },
-            "target_ty": {
-              "ident_type": "LocalOrUse",
-              "idents": [
-                {
-                  "ident": 3,
-                  "span": {
-                    "start": 92,
-                    "end": 97
-                  }
-                }
-              ]
-            },
-            "self_fns": [
-              {
-                "sig": {
-                  "name": {
-                    "ident": 5,
-                    "span": {
-                      "start": 107,
-                      "end": 116
-                    }
-                  },
-                  "generic_params": [],
-                  "params": [
-                    {
-                      "name": {
-                        "ident": 9,
-                        "span": {
-                          "start": 117,
-                          "end": 121
-                        }
-                      },
-                      "ty": {
-                        "kind": "QSelf",
-                        "span": {
-                          "start": 117,
-                          "end": 121
-                        },
-                        "id": 6
-                      },
-                      "mutability": "Immutable",
-                      "span": {
-                        "start": 117,
-                        "end": 121
-                      },
-                      "id": 7
-                    }
-                  ],
-                  "return_type": {
-                    "kind": "Str",
-                    "span": {
-                      "start": 126,
-                      "end": 129
-                    },
-                    "id": 8
-                  }
-                },
-                "body": {
-                  "stmts": [
-                    {
-                      "kind": {
-                        "Return": {
-                          "value": {
-                            "kind": {
-                              "Infix": {
-                                "operator": "Add",
-                                "lhs": {
-                                  "kind": {
-                                    "Field": {
-                                      "lhs": {
-                                        "kind": {
-                                          "Path": {
-                                            "ident_type": "LocalOrUse",
-                                            "segments": [
-                                              {
-                                                "ident": {
-                                                  "ident": 9,
-                                                  "span": {
-                                                    "start": 147,
-                                                    "end": 151
-                                                  }
-                                                },
-                                                "generics": null
-                                              }
-                                            ]
-                                          }
-                                        },
-                                        "span": {
-                                          "start": 147,
-                                          "end": 151
-                                        },
-                                        "id": 9
-                                      },
-                                      "ident": {
-                                        "ident": 7,
-                                        "span": {
-                                          "start": 152,
-                                          "end": 160
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "span": {
-                                    "start": 147,
-                                    "end": 160
-                                  },
-                                  "id": 10
-                                },
-                                "rhs": {
-                                  "kind": {
-                                    "Field": {
-                                      "lhs": {
-                                        "kind": {
-                                          "Path": {
-                                            "ident_type": "LocalOrUse",
-                                            "segments": [
-                                              {
-                                                "ident": {
-                                                  "ident": 9,
-                                                  "span": {
-                                                    "start": 163,
-                                                    "end": 167
-                                                  }
-                                                },
-                                                "generics": null
-                                              }
-                                            ]
-                                          }
-                                        },
-                                        "span": {
-                                          "start": 163,
-                                          "end": 167
-                                        },
-                                        "id": 11
-                                      },
-                                      "ident": {
-                                        "ident": 8,
-                                        "span": {
-                                          "start": 168,
-                                          "end": 175
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "span": {
-                                    "start": 163,
-                                    "end": 175
-                                  },
-                                  "id": 12
-                                }
-                              }
-                            },
-                            "span": {
-                              "start": 147,
-                              "end": 175
-                            },
-                            "id": 13
-                          }
-                        }
-                      },
-                      "span": {
-                        "start": 140,
-                        "end": 176
-                      },
-                      "id": 14
-                    }
-                  ],
-                  "span": {
-                    "start": 130,
-                    "end": 182
-                  },
-                  "id": 15
-                },
-                "span": {
-                  "start": 104,
-                  "end": 182
-                },
-                "id": 16
-              }
-            ]
-          }
-        },
-        "span": {
-          "start": 75,
-          "end": 184
-        },
-        "id": 17
-      }
-    ]
-  }
-]
+((
+  string_interner: ["core", "tweet", "Tweet", "Summary", "summarize", "str", "username", "content", "self"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 18,
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Use((
+      ident_type: LocalOrUse,
+      idents: [(
+        ident: 1,
+        span: (
+          start: 4,
+          end: 8,
+        ),
+      ), (
+        ident: 2,
+        span: (
+          start: 10,
+          end: 15,
+        ),
+      ), (
+        ident: 3,
+        span: (
+          start: 17,
+          end: 22,
+        ),
+      )],
+    )),
+    span: (
+      start: 0,
+      end: 23,
+    ),
+    id: 0,
+  ), (
+    kind: Trait((
+      name: (
+        ident: 4,
+        span: (
+          start: 31,
+          end: 38,
+        ),
+      ),
+      generic_params: [],
+      self_fns: [(
+        sig: (
+          name: (
+            ident: 5,
+            span: (
+              start: 48,
+              end: 57,
+            ),
+          ),
+          generic_params: [],
+          params: [(
+            name: (
+              ident: 9,
+              span: (
+                start: 58,
+                end: 62,
+              ),
+            ),
+            ty: (
+              kind: QSelf,
+              span: (
+                start: 58,
+                end: 62,
+              ),
+              id: 1,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 58,
+              end: 62,
+            ),
+            id: 2,
+          )],
+          return_type: Some((
+            kind: Str,
+            span: (
+              start: 67,
+              end: 70,
+            ),
+            id: 3,
+          )),
+        ),
+        body: None,
+        span: (
+          start: 45,
+          end: 71,
+        ),
+        id: 4,
+      )],
+    )),
+    span: (
+      start: 25,
+      end: 73,
+    ),
+    id: 5,
+  ), (
+    kind: TraitImpl((
+      trait_to_impl: (
+        ident: (
+          ident_type: LocalOrUse,
+          idents: [(
+            ident: 4,
+            span: (
+              start: 80,
+              end: 87,
+            ),
+          )],
+        ),
+        generics: [],
+),
+      target_ty: (
+        ident_type: LocalOrUse,
+        idents: [(
+          ident: 3,
+          span: (
+            start: 92,
+            end: 97,
+          ),
+        )],
+      ),
+      self_fns: [(
+        sig: (
+          name: (
+            ident: 5,
+            span: (
+              start: 107,
+              end: 116,
+            ),
+          ),
+          generic_params: [],
+          params: [(
+            name: (
+              ident: 9,
+              span: (
+                start: 117,
+                end: 121,
+              ),
+            ),
+            ty: (
+              kind: QSelf,
+              span: (
+                start: 117,
+                end: 121,
+              ),
+              id: 6,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 117,
+              end: 121,
+            ),
+            id: 7,
+          )],
+          return_type: Some((
+            kind: Str,
+            span: (
+              start: 126,
+              end: 129,
+            ),
+            id: 8,
+          )),
+        ),
+        body: Some((
+          stmts: [(
+            kind: Return((
+              value: Some((
+                kind: Infix((
+                  operator: Add,
+                  lhs: (
+                    kind: Field((
+                      lhs: (
+                        kind: Path((
+                          ident_type: LocalOrUse,
+                          segments: [(
+                            ident: (
+                              ident: 9,
+                              span: (
+                                start: 147,
+                                end: 151,
+                              ),
+                            ),
+                            generics: None,
+                          )],
+                        )),
+                        span: (
+                          start: 147,
+                          end: 151,
+                        ),
+                        id: 9,
+                      ),
+                      ident: (
+                        ident: 7,
+                        span: (
+                          start: 152,
+                          end: 160,
+                        ),
+                      ),
+                    )),
+                    span: (
+                      start: 147,
+                      end: 160,
+                    ),
+                    id: 10,
+                  ),
+                  rhs: (
+                    kind: Field((
+                      lhs: (
+                        kind: Path((
+                          ident_type: LocalOrUse,
+                          segments: [(
+                            ident: (
+                              ident: 9,
+                              span: (
+                                start: 163,
+                                end: 167,
+                              ),
+                            ),
+                            generics: None,
+                          )],
+                        )),
+                        span: (
+                          start: 163,
+                          end: 167,
+                        ),
+                        id: 11,
+                      ),
+                      ident: (
+                        ident: 8,
+                        span: (
+                          start: 168,
+                          end: 175,
+                        ),
+                      ),
+                    )),
+                    span: (
+                      start: 163,
+                      end: 175,
+                    ),
+                    id: 12,
+                  ),
+                )),
+                span: (
+                  start: 147,
+                  end: 175,
+                ),
+                id: 13,
+              )),
+            )),
+            span: (
+              start: 140,
+              end: 176,
+            ),
+            id: 14,
+          )],
+          span: (
+            start: 130,
+            end: 182,
+          ),
+          id: 15,
+        )),
+        span: (
+          start: 104,
+          end: 182,
+        ),
+        id: 16,
+      )],
+    )),
+    span: (
+      start: 75,
+      end: 184,
+    ),
+    id: 17,
+  )],
+))

@@ -1,20 +1,13 @@
-[
-  [],
-  {
-    "tokens": [
-      {
-        "token_type": {
-          "Int": -123
-        },
-        "span": {
-          "start": 0,
-          "end": 4
-        }
-      }
-    ],
-    "line_map": {
-      "lines": []
-    },
-    "line_counter": 0
-  }
-]
+([], (
+  tokens: [(
+    token_type: Int(-123),
+    span: (
+      start: 0,
+      end: 4,
+    ),
+  )],
+  line_map: (
+    lines: [],
+),
+  line_counter: 0,
+))

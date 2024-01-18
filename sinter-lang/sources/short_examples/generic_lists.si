@@ -7,6 +7,6 @@ ref class List<T> {
     }
 }
 
-let list_of_ints = List::<i64>::new();
-let list_of_lists = List::<List<f64>>::new();
-let trait_bounds = List::<Loggable + Serializable>::new();
+let list_of_ints: List<i64> = List::<i64>::new();
+let list_of_lists: List<List<f64>> = List::<List<f64>>::new();
+let trait_bounds: List<Loggable + Serializable> = List::<Loggable + Serializable>::new();

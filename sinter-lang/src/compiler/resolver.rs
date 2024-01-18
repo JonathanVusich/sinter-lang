@@ -1224,8 +1224,17 @@ impl<'a> CrateResolver<'a> {
         let mut segments = Vec::with_capacity(path_expr.segments.len());
         match path_expr.ident_type {
             IdentType::Crate => {
-                todo!()
-                // TODO: Implement crate local path resolution
+                segments.push(Segment::new(Res::Crate(self.krate.crate_id), None));
+                let mut path = VecDeque::from_iter(path_expr.segments.iter());
+                while !path.is_empty() {
+                    let prev_seg = segments.last().unwrap(); // Should be safe
+                    let current = path.pop_front().unwrap(); // Should be safe
+                    let curr_ident = current.ident.ident;
+                    let segment = self.find_secondary_segment(&prev_seg.res, current)?;
+
+                    segments.push(segment);
+                }
+                self.verify_last_segment(segments.last().unwrap())?;
             }
             IdentType::LocalOrUse => {
                 if let Some(segment) = path_expr.is_single() {
@@ -1828,10 +1837,7 @@ mod tests {
             main_crate,
             crate_path,
         };
-        let mut crates = compiler.parse_crates(application).unwrap_or_else(|| {
-            compiler.report_errors();
-            panic!()
-        });
+        let mut crates = compiler.parse_crates(application).unwrap();
         compiler.validate_crates(&crates).unwrap();
 
         let hir_map = compiler.resolve_crates(&mut crates).unwrap();
