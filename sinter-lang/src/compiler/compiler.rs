@@ -4,7 +4,6 @@ use std::ffi::{OsStr, OsString};
 use std::fmt::{Debug, Display, Formatter};
 use std::io;
 use std::ops::Deref;
-use std::os::windows::ffi::OsStrExt;
 use std::path::{Path, PathBuf, StripPrefixError};
 
 use itertools::Itertools;
