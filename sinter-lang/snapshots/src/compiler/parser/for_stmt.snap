@@ -1,91 +1,68 @@
-[
-  [
-    "index",
-    "range"
-  ],
-  {
-    "kind": {
-      "For": {
-        "ident": {
-          "ident": 1,
-          "span": {
-            "start": 4,
-            "end": 9
-          }
-        },
-        "range": {
-          "kind": {
-            "Call": {
-              "target": {
-                "kind": {
-                  "Path": {
-                    "ident_type": "LocalOrUse",
-                    "segments": [
-                      {
-                        "ident": {
-                          "ident": 2,
-                          "span": {
-                            "start": 13,
-                            "end": 18
-                          }
-                        },
-                        "generics": null
-                      }
-                    ]
-                  }
-                },
-                "span": {
-                  "start": 13,
-                  "end": 18
-                },
-                "id": 0
-              },
-              "args": {
-                "args": [
-                  {
-                    "kind": {
-                      "Integer": 0
-                    },
-                    "span": {
-                      "start": 19,
-                      "end": 20
-                    },
-                    "id": 1
-                  },
-                  {
-                    "kind": {
-                      "Integer": 100
-                    },
-                    "span": {
-                      "start": 22,
-                      "end": 25
-                    },
-                    "id": 2
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 13,
-            "end": 26
-          },
-          "id": 3
-        },
-        "body": {
-          "stmts": [],
-          "span": {
-            "start": 27,
-            "end": 30
-          },
-          "id": 4
-        }
-      }
-    },
-    "span": {
-      "start": 0,
-      "end": 30
-    },
-    "id": 5
-  }
-]
+(["index", "range"], (
+  kind: For((
+    ident: (
+      ident: 1,
+      span: (
+        start: 4,
+        end: 9,
+      ),
+    ),
+    range: (
+      kind: Call((
+        target: (
+          kind: Path((
+            ident_type: LocalOrUse,
+            segments: [(
+              ident: (
+                ident: 2,
+                span: (
+                  start: 13,
+                  end: 18,
+                ),
+              ),
+              generics: None,
+            )],
+          )),
+          span: (
+            start: 13,
+            end: 18,
+          ),
+          id: 0,
+        ),
+        args: [(
+          kind: Int(0),
+          span: (
+            start: 19,
+            end: 20,
+          ),
+          id: 1,
+        ), (
+          kind: Int(100),
+          span: (
+            start: 22,
+            end: 25,
+          ),
+          id: 2,
+        )],
+      )),
+      span: (
+        start: 13,
+        end: 26,
+      ),
+      id: 3,
+    ),
+    body: (
+      stmts: [],
+      span: (
+        start: 27,
+        end: 30,
+      ),
+      id: 4,
+    ),
+  )),
+  span: (
+    start: 0,
+    end: 30,
+  ),
+  id: 5,
+))

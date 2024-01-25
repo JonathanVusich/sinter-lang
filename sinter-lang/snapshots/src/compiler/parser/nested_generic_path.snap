@@ -1,72 +1,50 @@
-[
-  [
-    "List",
-    "f64",
-    "new"
-  ],
-  {
-    "ident_type": "LocalOrUse",
-    "segments": [
-      {
-        "ident": {
-          "ident": 1,
-          "span": {
-            "start": 0,
-            "end": 4
-          }
-        },
-        "generics": {
-          "generics": [
-            {
-              "kind": {
-                "Path": {
-                  "path": {
-                    "ident": {
-                      "ident_type": "LocalOrUse",
-                      "idents": [
-                        {
-                          "ident": 1,
-                          "span": {
-                            "start": 7,
-                            "end": 11
-                          }
-                        }
-                      ]
-                    },
-                    "generics": {
-                      "generics": [
-                        {
-                          "kind": "F64",
-                          "span": {
-                            "start": 12,
-                            "end": 15
-                          },
-                          "id": 0
-                        }
-                      ]
-                    }
-                  }
-                }
-              },
-              "span": {
-                "start": 7,
-                "end": 16
-              },
-              "id": 1
-            }
-          ]
-        }
-      },
-      {
-        "ident": {
-          "ident": 3,
-          "span": {
-            "start": 19,
-            "end": 22
-          }
-        },
-        "generics": null
-      }
-    ]
-  }
-]
+(["List", "f64", "new"], (
+  ident_type: LocalOrUse,
+  segments: [(
+    ident: (
+      ident: 1,
+      span: (
+        start: 0,
+        end: 4,
+      ),
+    ),
+    generics: Some([(
+      kind: Path(
+        path: (
+          ident: (
+            ident_type: LocalOrUse,
+            idents: [(
+              ident: 1,
+              span: (
+                start: 7,
+                end: 11,
+              ),
+            )],
+          ),
+          generics: [(
+            kind: F64,
+            span: (
+              start: 12,
+              end: 15,
+            ),
+            id: 0,
+          )],
+        ),
+      ),
+      span: (
+        start: 7,
+        end: 16,
+      ),
+      id: 1,
+    )]),
+  ), (
+    ident: (
+      ident: 3,
+      span: (
+        start: 19,
+        end: 22,
+      ),
+    ),
+    generics: None,
+  )],
+))

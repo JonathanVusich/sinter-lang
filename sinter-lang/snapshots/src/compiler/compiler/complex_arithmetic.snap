@@ -1,600 +1,461 @@
-{
-  "name": 1,
-  "crate_id": {
-    "id": 0
-  },
-  "local_def_id": 26,
-  "module_lookup": [
-    [
-      {
-        "module_path": [
-          2
-        ]
-      },
-      {
-        "crate_id": 0,
-        "module_id": 0
-      }
-    ],
-    [
-      {
-        "module_path": [
-          7
-        ]
-      },
-      {
-        "crate_id": 0,
-        "module_id": 1
-      }
-    ]
-  ],
-  "modules": [
-    {
-      "path": {
-        "module_path": [
-          2
-        ]
-      },
-      "id": {
-        "crate_id": 0,
-        "module_id": 0
-      },
-      "ns": {
-        "modules": {},
-        "values": {},
-        "enums": {}
-      },
-      "items": [
-        {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 3,
-                  "span": {
-                    "start": 3,
-                    "end": 11
-                  }
-                },
-                "generic_params": {
-                  "params": [
-                    {
-                      "name": {
-                        "ident": 4,
-                        "span": {
-                          "start": 12,
-                          "end": 13
-                        }
-                      },
-                      "trait_bound": null,
-                      "span": {
-                        "start": 12,
-                        "end": 13
-                      },
-                      "id": 0
-                    }
-                  ]
-                },
-                "params": {
-                  "params": [
-                    {
-                      "name": {
-                        "ident": 5,
-                        "span": {
-                          "start": 15,
-                          "end": 16
-                        }
-                      },
-                      "ty": {
-                        "kind": {
-                          "Path": {
-                            "path": {
-                              "ident": {
-                                "ident_type": "LocalOrUse",
-                                "idents": [
-                                  {
-                                    "ident": 4,
-                                    "span": {
-                                      "start": 18,
-                                      "end": 19
-                                    }
-                                  }
-                                ]
-                              },
-                              "generics": {
-                                "generics": []
-                              }
-                            }
-                          }
-                        },
-                        "span": {
-                          "start": 18,
-                          "end": 19
-                        },
-                        "id": 1
-                      },
-                      "mutability": "Immutable",
-                      "span": {
-                        "start": 15,
-                        "end": 19
-                      },
-                      "id": 2
-                    },
-                    {
-                      "name": {
-                        "ident": 6,
-                        "span": {
-                          "start": 21,
-                          "end": 22
-                        }
-                      },
-                      "ty": {
-                        "kind": {
-                          "Path": {
-                            "path": {
-                              "ident": {
-                                "ident_type": "LocalOrUse",
-                                "idents": [
-                                  {
-                                    "ident": 4,
-                                    "span": {
-                                      "start": 24,
-                                      "end": 25
-                                    }
-                                  }
-                                ]
-                              },
-                              "generics": {
-                                "generics": []
-                              }
-                            }
-                          }
-                        },
-                        "span": {
-                          "start": 24,
-                          "end": 25
-                        },
-                        "id": 3
-                      },
-                      "mutability": "Immutable",
-                      "span": {
-                        "start": 21,
-                        "end": 25
-                      },
-                      "id": 4
-                    }
-                  ]
-                },
-                "return_type": {
-                  "kind": {
-                    "Path": {
-                      "path": {
-                        "ident": {
-                          "ident_type": "LocalOrUse",
-                          "idents": [
-                            {
-                              "ident": 4,
-                              "span": {
-                                "start": 30,
-                                "end": 31
-                              }
-                            }
-                          ]
-                        },
-                        "generics": {
-                          "generics": []
-                        }
-                      }
-                    }
-                  },
-                  "span": {
-                    "start": 30,
-                    "end": 31
-                  },
-                  "id": 5
-                }
-              },
-              "body": {
-                "stmts": [
-                  {
-                    "kind": {
-                      "Expression": {
-                        "expr": {
-                          "kind": {
-                            "Infix": {
-                              "operator": "Multiply",
-                              "lhs": {
-                                "kind": {
-                                  "Path": {
-                                    "ident_type": "LocalOrUse",
-                                    "segments": [
-                                      {
-                                        "ident": {
-                                          "ident": 5,
-                                          "span": {
-                                            "start": 38,
-                                            "end": 39
-                                          }
-                                        },
-                                        "generics": null
-                                      }
-                                    ]
-                                  }
-                                },
-                                "span": {
-                                  "start": 38,
-                                  "end": 39
-                                },
-                                "id": 6
-                              },
-                              "rhs": {
-                                "kind": {
-                                  "Path": {
-                                    "ident_type": "LocalOrUse",
-                                    "segments": [
-                                      {
-                                        "ident": {
-                                          "ident": 6,
-                                          "span": {
-                                            "start": 42,
-                                            "end": 43
-                                          }
-                                        },
-                                        "generics": null
-                                      }
-                                    ]
-                                  }
-                                },
-                                "span": {
-                                  "start": 42,
-                                  "end": 43
-                                },
-                                "id": 7
-                              }
-                            }
-                          },
-                          "span": {
-                            "start": 38,
-                            "end": 43
-                          },
-                          "id": 8
-                        },
-                        "implicit_return": false
-                      }
-                    },
-                    "span": {
-                      "start": 38,
-                      "end": 43
-                    },
-                    "id": 9
-                  }
-                ],
-                "span": {
-                  "start": 32,
-                  "end": 45
-                },
-                "id": 10
-              }
-            }
-          },
-          "span": {
-            "start": 0,
-            "end": 45
-          },
-          "id": 11
-        }
-      ]
-    },
-    {
-      "path": {
-        "module_path": [
-          7
-        ]
-      },
-      "id": {
-        "crate_id": 0,
-        "module_id": 1
-      },
-      "ns": {
-        "modules": {},
-        "values": {},
-        "enums": {}
-      },
-      "items": [
-        {
-          "kind": {
-            "Use": {
-              "ident_type": "Crate",
-              "idents": [
-                {
-                  "ident": 2,
-                  "span": {
-                    "start": 11,
-                    "end": 25
-                  }
-                },
-                {
-                  "ident": 3,
-                  "span": {
-                    "start": 27,
-                    "end": 35
-                  }
-                }
-              ]
-            }
-          },
-          "span": {
-            "start": 0,
-            "end": 36
-          },
-          "id": 12
-        },
-        {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 7,
-                  "span": {
-                    "start": 41,
-                    "end": 47
-                  }
-                },
-                "generic_params": {
-                  "params": [
-                    {
-                      "name": {
-                        "ident": 4,
-                        "span": {
-                          "start": 48,
-                          "end": 49
-                        }
-                      },
-                      "trait_bound": null,
-                      "span": {
-                        "start": 48,
-                        "end": 49
-                      },
-                      "id": 13
-                    }
-                  ]
-                },
-                "params": {
-                  "params": [
-                    {
-                      "name": {
-                        "ident": 5,
-                        "span": {
-                          "start": 51,
-                          "end": 52
-                        }
-                      },
-                      "ty": {
-                        "kind": {
-                          "Path": {
-                            "path": {
-                              "ident": {
-                                "ident_type": "LocalOrUse",
-                                "idents": [
-                                  {
-                                    "ident": 4,
-                                    "span": {
-                                      "start": 54,
-                                      "end": 55
-                                    }
-                                  }
-                                ]
-                              },
-                              "generics": {
-                                "generics": []
-                              }
-                            }
-                          }
-                        },
-                        "span": {
-                          "start": 54,
-                          "end": 55
-                        },
-                        "id": 14
-                      },
-                      "mutability": "Immutable",
-                      "span": {
-                        "start": 51,
-                        "end": 55
-                      },
-                      "id": 15
-                    },
-                    {
-                      "name": {
-                        "ident": 6,
-                        "span": {
-                          "start": 57,
-                          "end": 58
-                        }
-                      },
-                      "ty": {
-                        "kind": {
-                          "Path": {
-                            "path": {
-                              "ident": {
-                                "ident_type": "LocalOrUse",
-                                "idents": [
-                                  {
-                                    "ident": 4,
-                                    "span": {
-                                      "start": 60,
-                                      "end": 61
-                                    }
-                                  }
-                                ]
-                              },
-                              "generics": {
-                                "generics": []
-                              }
-                            }
-                          }
-                        },
-                        "span": {
-                          "start": 60,
-                          "end": 61
-                        },
-                        "id": 16
-                      },
-                      "mutability": "Immutable",
-                      "span": {
-                        "start": 57,
-                        "end": 61
-                      },
-                      "id": 17
-                    }
-                  ]
-                },
-                "return_type": {
-                  "kind": {
-                    "Path": {
-                      "path": {
-                        "ident": {
-                          "ident_type": "LocalOrUse",
-                          "idents": [
-                            {
-                              "ident": 4,
-                              "span": {
-                                "start": 66,
-                                "end": 67
-                              }
-                            }
-                          ]
-                        },
-                        "generics": {
-                          "generics": []
-                        }
-                      }
-                    }
-                  },
-                  "span": {
-                    "start": 66,
-                    "end": 67
-                  },
-                  "id": 18
-                }
-              },
-              "body": {
-                "stmts": [
-                  {
-                    "kind": {
-                      "Expression": {
-                        "expr": {
-                          "kind": {
-                            "Call": {
-                              "target": {
-                                "kind": {
-                                  "Path": {
-                                    "ident_type": "LocalOrUse",
-                                    "segments": [
-                                      {
-                                        "ident": {
-                                          "ident": 3,
-                                          "span": {
-                                            "start": 74,
-                                            "end": 82
-                                          }
-                                        },
-                                        "generics": null
-                                      }
-                                    ]
-                                  }
-                                },
-                                "span": {
-                                  "start": 74,
-                                  "end": 82
-                                },
-                                "id": 19
-                              },
-                              "args": {
-                                "args": [
-                                  {
-                                    "kind": {
-                                      "Path": {
-                                        "ident_type": "LocalOrUse",
-                                        "segments": [
-                                          {
-                                            "ident": {
-                                              "ident": 5,
-                                              "span": {
-                                                "start": 83,
-                                                "end": 84
-                                              }
-                                            },
-                                            "generics": null
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "span": {
-                                      "start": 83,
-                                      "end": 84
-                                    },
-                                    "id": 20
-                                  },
-                                  {
-                                    "kind": {
-                                      "Path": {
-                                        "ident_type": "LocalOrUse",
-                                        "segments": [
-                                          {
-                                            "ident": {
-                                              "ident": 5,
-                                              "span": {
-                                                "start": 86,
-                                                "end": 87
-                                              }
-                                            },
-                                            "generics": null
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "span": {
-                                      "start": 86,
-                                      "end": 87
-                                    },
-                                    "id": 21
-                                  }
-                                ]
-                              }
-                            }
-                          },
-                          "span": {
-                            "start": 74,
-                            "end": 88
-                          },
-                          "id": 22
-                        },
-                        "implicit_return": false
-                      }
-                    },
-                    "span": {
-                      "start": 74,
-                      "end": 88
-                    },
-                    "id": 23
-                  }
-                ],
-                "span": {
-                  "start": 68,
-                  "end": 90
-                },
-                "id": 24
-              }
-            }
-          },
-          "span": {
-            "start": 38,
-            "end": 90
-          },
-          "id": 25
-        }
-      ]
-    }
-  ]
-}
+(
+  name: 1,
+  crate_id: (
+    id: 0,
+  ),
+  modules: [(
+    id: (
+      crate_id: 0,
+      module_id: 0,
+    ),
+    path: (
+      module_path: [2],
+    ),
+    namespace: (
+      modules: {},
+      values: {},
+    ),
+    items: [(
+      kind: Fn((
+        sig: (
+          name: (
+            ident: 3,
+            span: (
+              start: 3,
+              end: 11,
+            ),
+          ),
+          generic_params: [(
+            name: (
+              ident: 4,
+              span: (
+                start: 12,
+                end: 13,
+              ),
+            ),
+            trait_bound: None,
+            span: (
+              start: 12,
+              end: 13,
+            ),
+            id: 0,
+          )],
+          params: [(
+            name: (
+              ident: 5,
+              span: (
+                start: 15,
+                end: 16,
+              ),
+            ),
+            ty: (
+              kind: Path(
+                path: (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 4,
+                      span: (
+                        start: 18,
+                        end: 19,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+),
+              ),
+              span: (
+                start: 18,
+                end: 19,
+              ),
+              id: 1,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 15,
+              end: 19,
+            ),
+            id: 2,
+          ), (
+            name: (
+              ident: 6,
+              span: (
+                start: 21,
+                end: 22,
+              ),
+            ),
+            ty: (
+              kind: Path(
+                path: (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 4,
+                      span: (
+                        start: 24,
+                        end: 25,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+),
+              ),
+              span: (
+                start: 24,
+                end: 25,
+              ),
+              id: 3,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 21,
+              end: 25,
+            ),
+            id: 4,
+          )],
+          return_type: Some((
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 4,
+                    span: (
+                      start: 30,
+                      end: 31,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 30,
+              end: 31,
+            ),
+            id: 5,
+          )),
+        ),
+        body: Some((
+          stmts: [(
+            kind: Expression((
+              expr: (
+                kind: Infix((
+                  operator: Multiply,
+                  lhs: (
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 5,
+                          span: (
+                            start: 38,
+                            end: 39,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 38,
+                      end: 39,
+                    ),
+                    id: 6,
+                  ),
+                  rhs: (
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 6,
+                          span: (
+                            start: 42,
+                            end: 43,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 42,
+                      end: 43,
+                    ),
+                    id: 7,
+                  ),
+                )),
+                span: (
+                  start: 38,
+                  end: 43,
+                ),
+                id: 8,
+              ),
+              implicit_return: false,
+            )),
+            span: (
+              start: 38,
+              end: 43,
+            ),
+            id: 9,
+          )],
+          span: (
+            start: 32,
+            end: 45,
+          ),
+          id: 10,
+        )),
+      )),
+      span: (
+        start: 0,
+        end: 45,
+      ),
+      id: 11,
+    )],
+  ), (
+    id: (
+      crate_id: 0,
+      module_id: 1,
+    ),
+    path: (
+      module_path: [7],
+    ),
+    namespace: (
+      modules: {},
+      values: {},
+    ),
+    items: [(
+      kind: Use((
+        ident_type: Crate,
+        idents: [(
+          ident: 2,
+          span: (
+            start: 11,
+            end: 25,
+          ),
+        ), (
+          ident: 3,
+          span: (
+            start: 27,
+            end: 35,
+          ),
+        )],
+      )),
+      span: (
+        start: 0,
+        end: 36,
+      ),
+      id: 12,
+    ), (
+      kind: Fn((
+        sig: (
+          name: (
+            ident: 7,
+            span: (
+              start: 41,
+              end: 47,
+            ),
+          ),
+          generic_params: [(
+            name: (
+              ident: 4,
+              span: (
+                start: 48,
+                end: 49,
+              ),
+            ),
+            trait_bound: None,
+            span: (
+              start: 48,
+              end: 49,
+            ),
+            id: 13,
+          )],
+          params: [(
+            name: (
+              ident: 5,
+              span: (
+                start: 51,
+                end: 52,
+              ),
+            ),
+            ty: (
+              kind: Path(
+                path: (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 4,
+                      span: (
+                        start: 54,
+                        end: 55,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+),
+              ),
+              span: (
+                start: 54,
+                end: 55,
+              ),
+              id: 14,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 51,
+              end: 55,
+            ),
+            id: 15,
+          ), (
+            name: (
+              ident: 6,
+              span: (
+                start: 57,
+                end: 58,
+              ),
+            ),
+            ty: (
+              kind: Path(
+                path: (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 4,
+                      span: (
+                        start: 60,
+                        end: 61,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+),
+              ),
+              span: (
+                start: 60,
+                end: 61,
+              ),
+              id: 16,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 57,
+              end: 61,
+            ),
+            id: 17,
+          )],
+          return_type: Some((
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 4,
+                    span: (
+                      start: 66,
+                      end: 67,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 66,
+              end: 67,
+            ),
+            id: 18,
+          )),
+        ),
+        body: Some((
+          stmts: [(
+            kind: Expression((
+              expr: (
+                kind: Call((
+                  target: (
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 3,
+                          span: (
+                            start: 74,
+                            end: 82,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 74,
+                      end: 82,
+                    ),
+                    id: 19,
+                  ),
+                  args: [(
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 5,
+                          span: (
+                            start: 83,
+                            end: 84,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 83,
+                      end: 84,
+                    ),
+                    id: 20,
+                  ), (
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 5,
+                          span: (
+                            start: 86,
+                            end: 87,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 86,
+                      end: 87,
+                    ),
+                    id: 21,
+                  )],
+                )),
+                span: (
+                  start: 74,
+                  end: 88,
+                ),
+                id: 22,
+              ),
+              implicit_return: false,
+            )),
+            span: (
+              start: 74,
+              end: 88,
+            ),
+            id: 23,
+          )],
+          span: (
+            start: 68,
+            end: 90,
+          ),
+          id: 24,
+        )),
+      )),
+      span: (
+        start: 38,
+        end: 90,
+      ),
+      id: 25,
+    )],
+  )],
+)

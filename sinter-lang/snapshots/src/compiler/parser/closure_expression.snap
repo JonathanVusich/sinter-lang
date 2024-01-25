@@ -1,109 +1,90 @@
-[
-  {
-    "string_interner": [
-      "x",
-      "y"
-    ],
-    "crate_id": 0,
-    "local_def_id": 5
-  },
-  {
-    "kind": {
-      "Closure": {
-        "params": [
-          {
-            "ident": 1,
-            "span": {
-              "start": 1,
-              "end": 2
-            }
-          },
-          {
-            "ident": 2,
-            "span": {
-              "start": 4,
-              "end": 5
-            }
-          }
-        ],
-        "stmt": {
-          "kind": {
-            "Expression": {
-              "expr": {
-                "kind": {
-                  "Infix": {
-                    "operator": "Add",
-                    "lhs": {
-                      "kind": {
-                        "Path": {
-                          "ident_type": "LocalOrUse",
-                          "segments": [
-                            {
-                              "ident": {
-                                "ident": 1,
-                                "span": {
-                                  "start": 10,
-                                  "end": 11
-                                }
-                              },
-                              "generics": null
-                            }
-                          ]
-                        }
-                      },
-                      "span": {
-                        "start": 10,
-                        "end": 11
-                      },
-                      "id": 0
-                    },
-                    "rhs": {
-                      "kind": {
-                        "Path": {
-                          "ident_type": "LocalOrUse",
-                          "segments": [
-                            {
-                              "ident": {
-                                "ident": 2,
-                                "span": {
-                                  "start": 14,
-                                  "end": 15
-                                }
-                              },
-                              "generics": null
-                            }
-                          ]
-                        }
-                      },
-                      "span": {
-                        "start": 14,
-                        "end": 15
-                      },
-                      "id": 1
-                    }
-                  }
-                },
-                "span": {
-                  "start": 10,
-                  "end": 15
-                },
-                "id": 2
-              },
-              "implicit_return": true
-            }
-          },
-          "span": {
-            "start": 10,
-            "end": 15
-          },
-          "id": 3
-        }
-      }
-    },
-    "span": {
-      "start": 0,
-      "end": 15
-    },
-    "id": 4
-  }
-]
+((
+  string_interner: ["x", "y"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 5,
+), (
+  kind: Closure((
+    params: [(
+      ident: 1,
+      span: (
+        start: 1,
+        end: 2,
+      ),
+    ), (
+      ident: 2,
+      span: (
+        start: 4,
+        end: 5,
+      ),
+    )],
+    stmt: (
+      kind: Expression((
+        expr: (
+          kind: Infix((
+            operator: Add,
+            lhs: (
+              kind: Path((
+                ident_type: LocalOrUse,
+                segments: [(
+                  ident: (
+                    ident: 1,
+                    span: (
+                      start: 10,
+                      end: 11,
+                    ),
+                  ),
+                  generics: None,
+                )],
+              )),
+              span: (
+                start: 10,
+                end: 11,
+              ),
+              id: 0,
+            ),
+            rhs: (
+              kind: Path((
+                ident_type: LocalOrUse,
+                segments: [(
+                  ident: (
+                    ident: 2,
+                    span: (
+                      start: 14,
+                      end: 15,
+                    ),
+                  ),
+                  generics: None,
+                )],
+              )),
+              span: (
+                start: 14,
+                end: 15,
+              ),
+              id: 1,
+            ),
+          )),
+          span: (
+            start: 10,
+            end: 15,
+          ),
+          id: 2,
+        ),
+        implicit_return: true,
+      )),
+      span: (
+        start: 10,
+        end: 15,
+      ),
+      id: 3,
+    ),
+  )),
+  span: (
+    start: 0,
+    end: 15,
+  ),
+  id: 4,
+))

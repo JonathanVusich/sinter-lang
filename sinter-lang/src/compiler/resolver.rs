@@ -1,11 +1,12 @@
 use std::any::Any;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::ops::Deref;
 use std::sync::Arc;
 
+use indexmap::IndexMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
@@ -17,80 +18,70 @@ use crate::compiler::ast::{
     EnumStmt as AstEnumStmt, Expr as AstExpr, ExprKind as AstExprKind, Field as AstField,
     Fields as AstFields, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
     FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics,
-    GlobalLetStmt as AstGlobalLetStmt, IdentType, Item as AstItem, Item, ItemKind as AstItemKind,
-    ItemKind, MatchArm as AstMatchArm, Module, Params as AstParams, PathTy as AstPathTy,
-    Pattern as AstPattern, QualifiedIdent, Stmt as AstStmt, StmtKind as AstStmtKind,
-    TraitBound as AstTraitBound, TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt,
-    Ty as AstTy, TyKind, TyKind as AstTyKind,
+    GlobalLetStmt as AstGlobalLetStmt, IdentType, Item, ItemKind as AstItemKind, ItemKind,
+    MatchArm as AstMatchArm, Module, Params as AstParams, PathExpr as AstPathExpr,
+    PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Segment as AstSegment,
+    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
+    TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
+    TyKind as AstTyKind,
 };
-use crate::compiler::compiler::CompileError;
+use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::hir::{
-    Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam,
-    ClosureParams, DefId, DestructureExpr, DestructurePattern, EnumMember, EnumMembers, EnumStmt,
-    Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt, GenericParam,
-    GenericParams, Generics, GlobalLetStmt, HirCrate, HirNode, HirNodeKind, IfStmt, IndexExpr,
-    InfixExpr, LetStmt, LocalDefId, MatchArm, MatchExpr, ModuleId, OrPattern, Param, Params,
-    PathExpr, PathTy, Pattern, PatternLocal, ReturnStmt, Segment, Stmt, Stmts, TraitBound,
-    TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
+    AnonParams, Args, Array, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure,
+    ClosureExpr, ClosureParam, ClosureParams, DefId, DestructureExpr, DestructurePattern,
+    EnumMember, EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt,
+    FnStmts, ForStmt, GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap,
+    HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, LocalDefId, MatchArm,
+    MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern, PatternLocal,
+    Primitive, Res, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern,
+    UnaryExpr, WhileStmt,
 };
-use crate::compiler::krate::{Crate, CrateDef};
+use crate::compiler::krate::{Crate, CrateDef, CrateId};
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::ResolveError::{
-    DuplicateLocalDefIds, ExpectedValueWasModule, QualifiedIdentNotFound, VarNotFound,
-};
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::{IStrMap, InternedStr, LocalDefIdMap, StrMap};
+use crate::compiler::types::{IStrMap, InternedStr, LDefMap, StrMap};
 
-pub fn resolve(crates: &mut StrMap<Crate>) -> Result<StrMap<HirCrate>, CompileError> {
-    let resolver = Resolver::new(crates);
+pub fn resolve(ctxt: &CompilerCtxt, crates: &mut StrMap<Crate>) -> Option<HirMap> {
+    let resolver = Resolver::new(ctxt, crates);
     resolver.resolve()
 }
 
 #[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub struct ModuleNS {
-    pub(crate) modules: StrMap<ModuleId>,
-    // We have one namespace for structs, fns and constants because they are all callable and cannot
+    pub(crate) modules: IStrMap<ModuleId>,
+    // We have one namespace for classes, fns and constants because they are all callable and cannot
     // be disambiguated at resolve time by their usage.
-    pub(crate) values: StrMap<DefId>,
-    pub(crate) enums: StrMap<EnumDef>,
+    pub(crate) values: IStrMap<ValueDef>,
 }
 
 impl ModuleNS {
-    pub fn find_ident(&self, ident: &QualifiedIdent, trim_module_name: bool) -> Option<DefId> {
-        let mut module_path = ModulePath::from(ident);
-        if trim_module_name {
-            module_path.pop_front();
+    pub fn find_ident_with_module(&self, ident: &QualifiedIdent) -> Option<DefId> {
+        match ident.idents.as_slice() {
+            [module, ident] => self.values.get(&ident.ident).map(ValueDef::id),
+            [module, enm, member] => {
+                if let Some(ValueDef::Enum(enum_def)) = self.values.get(&enm.ident) {
+                    return enum_def.members.get(&member.ident).map(|def| def.id);
+                }
+                None
+            }
+            _ => None,
         }
-        if module_path.len() == 1 {
-            // Resolve to either an enum or a value in the current scope.
-            module_path.front().and_then(|val| {
-                self.values
-                    .get(&val)
-                    .copied()
-                    .or_else(|| self.enums.get(&val).map(|def| def.id))
-            })
-        } else if module_path.len() == 2 {
-            module_path
-                .pop_front()
-                // Retrieve the enum
-                .and_then(|name| self.enums.get(&name))
-                // Retrieve the corresponding enum member
-                .and_then(|enum_def| {
-                    let member = module_path.front().unwrap();
-                    enum_def.members.get(&member)
-                })
-                .copied()
-        } else {
-            None
+    }
+    pub fn find_ident(&self, ident: &QualifiedIdent) -> Option<DefId> {
+        match ident.idents.as_slice() {
+            [ident] => self.values.get(&ident.ident).map(ValueDef::id),
+            [enm, member] => {
+                if let Some(ValueDef::Enum(enum_def)) = self.values.get(&enm.ident) {
+                    return enum_def.members.get(&member.ident).map(|def| def.id);
+                }
+                None
+            }
+            _ => None,
         }
     }
 
-    pub fn find_value(&self, value: InternedStr) -> Option<DefId> {
-        self.values.get(&value).copied()
-    }
-
-    pub fn find_enum(&self, value: InternedStr) -> Option<&EnumDef> {
-        self.enums.get(&value)
+    pub fn find_value(&self, value: InternedStr) -> Option<&ValueDef> {
+        self.values.get(&value)
     }
 
     pub fn find_module(&self, module: InternedStr) -> Option<ModuleId> {
@@ -98,27 +89,139 @@ impl ModuleNS {
     }
 }
 
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub enum ValueDef {
+    GlobalVar(GlobalVarDef),
+    Class(ClassDef),
+    Enum(EnumDef),
+    EnumMember(EnumMemberDef),
+    Trait(TraitDef),
+    Fn(FnDef),
+}
+
+impl ValueDef {
+    pub fn id(&self) -> DefId {
+        match self {
+            ValueDef::GlobalVar(let_stmt) => let_stmt.id,
+            ValueDef::Class(class_stmt) => class_stmt.id,
+            ValueDef::Enum(enum_stmt) => enum_stmt.id,
+            ValueDef::EnumMember(enum_member) => enum_member.id,
+            ValueDef::Trait(trait_stmt) => trait_stmt.id,
+            ValueDef::Fn(fn_stmt) => fn_stmt.id,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
+pub enum MaybeFnDef {
+    None(InternedStr),
+    Some(FnDef),
+}
+
+#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct FnDef {
+    pub(crate) id: DefId,
+}
+
+impl FnDef {
+    pub fn new(id: DefId) -> Self {
+        Self { id }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct FieldDef {
+    pub(crate) id: DefId,
+}
+
+impl FieldDef {
+    pub fn new(id: DefId) -> Self {
+        Self { id }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct TraitFnDef {
+    pub(crate) trait_id: DefId,
+    pub(crate) id: DefId,
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct TraitDef {
+    pub(crate) id: DefId,
+    pub(crate) fns: IStrMap<FnDef>,
+}
+
+impl TraitDef {
+    pub fn new(id: DefId, fns: IStrMap<FnDef>) -> Self {
+        Self { id, fns }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct GlobalVarDef {
+    pub(crate) id: DefId,
+}
+
+impl GlobalVarDef {
+    pub fn new(id: DefId) -> Self {
+        Self { id }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct ClassDef {
+    pub(crate) id: DefId,
+    pub(crate) fields: IStrMap<FieldDef>,
+    pub(crate) fns: IStrMap<FnDef>,
+}
+
+impl ClassDef {
+    pub fn new(id: DefId, fields: StrMap<FieldDef>, fns: StrMap<FnDef>) -> Self {
+        Self {
+            id,
+            fields: Arc::new(fields),
+            fns: Arc::new(fns),
+        }
+    }
+}
+
 /// Cloning this type should be cheap since it uses an immutable map.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct EnumDef {
     pub(crate) id: DefId,
-    pub(crate) members: IStrMap<DefId>,
+    pub(crate) members: IStrMap<EnumMemberDef>,
+    pub(crate) fns: IStrMap<FnDef>,
 }
 
 impl EnumDef {
-    pub fn new(id: DefId, members: IStrMap<DefId>) -> Self {
-        Self { id, members }
+    pub fn new(id: DefId, members: IStrMap<EnumMemberDef>, fns: IStrMap<FnDef>) -> Self {
+        Self { id, members, fns }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct EnumMemberDef {
+    id: DefId,
+    fns: IStrMap<FnDef>,
+}
+
+impl EnumMemberDef {
+    pub fn new(id: DefId, fns: IStrMap<FnDef>) -> Self {
+        Self { id, fns }
     }
 }
 
 #[derive(Debug)]
 pub enum Scope {
     Class {
+        id: DefId,
         fields: StrMap<LocalDefId>,
         self_fns: StrMap<LocalDefId>,
         generics: StrMap<LocalDefId>,
     },
     Enum {
+        id: DefId,
         members: StrMap<LocalDefId>,
         self_fns: StrMap<LocalDefId>,
         generics: StrMap<LocalDefId>,
@@ -139,10 +242,12 @@ pub enum Scope {
         vars: StrMap<LocalDefId>,
     },
     Trait {
+        id: DefId,
         generics: StrMap<LocalDefId>,
         self_fns: StrMap<LocalDefId>,
     },
     TraitImpl {
+        target_id: DefId,
         self_fns: StrMap<LocalDefId>,
     },
 }
@@ -151,7 +256,11 @@ impl Scope {
     pub fn contains_var(&self, ident: InternedStr) -> Option<LocalDefId> {
         match self {
             Scope::Block { vars } => vars.get(&ident).copied(),
-            Scope::Fn { params, .. } => params.get(&ident).copied(),
+            Scope::Fn { params, vars, .. } => {
+                // We need to retrieve from the vars first because they may have redefined the params.
+                vars.get(&ident).or_else(|| params.get(&ident)).copied()
+            }
+            Scope::MatchArm { vars } => vars.get(&ident).copied(),
             _ => None,
         }
     }
@@ -232,106 +341,72 @@ impl Scope {
 }
 
 #[derive(Debug, Clone)]
-pub enum ResolveError {
+pub enum ResolveErrKind {
     /// Error from looking up definition in crate
     QualifiedIdentNotFound(QualifiedIdent),
+    /// Error for getting a fn instead of a class
+    ExpectedDefinition(QualifiedIdent),
+    /// Path not found
+    PathNotFound(AstPathExpr),
+    /// Invalid generics
+    InvalidGenerics(Generics),
+
+    /// Error for single segment path that points to crate
+    InvalidPath,
+    /// Error
     VarNotFound(InternedStr),
+    /// Error
+    FnNotFound(InternedStr),
     /// Error when resolving path, expected value but was module
     ExpectedValueWasModule,
     /// Duplicate nodes created for a single local definition.
     DuplicateLocalDefIds,
     /// Error for duplicate definitions
-    DuplicateDefinition {
-        existing: DefId,
-        new: DefId,
-    },
+    DuplicateDefinition { existing: DefId, new: DefId },
 }
 
-impl Display for ResolveError {
+impl Display for ResolveErrKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        // TODO: Implement pretty printing
+        Debug::fmt(self, f)
     }
 }
 
-impl Error for ResolveError {}
+impl Error for ResolveErrKind {}
 
-type ResolveResult = Result<(), ResolveError>;
+type ResolveResult = Option<()>;
 
 struct Resolver<'a> {
+    ctxt: &'a CompilerCtxt,
     krates: &'a mut StrMap<Crate>,
-    errors: Vec<ResolveError>,
 }
 
 impl<'a> Resolver<'a> {
-    fn new(krates: &'a mut StrMap<Crate>) -> Self {
-        Self {
-            krates,
-            errors: Default::default(),
-        }
+    fn new(ctxt: &'a CompilerCtxt, krates: &'a mut StrMap<Crate>) -> Self {
+        Self { ctxt, krates }
     }
 
-    fn resolve(mut self) -> Result<StrMap<HirCrate>, CompileError> {
-        let mut crates = StrMap::default();
+    fn resolve(mut self) -> Option<HirMap> {
+        let mut hir_map = HirMap::default();
         // We are building lookup maps for each module so that we can query the types and constants in that module
         // when resolving use stmts later.
-        self.build_crate_namespaces()?;
+        self.build_crate_ns()?;
 
         for krate in self.krates.values() {
-            let crate_resolver = CrateResolver::new(krate, self.krates);
-            match crate_resolver.resolve() {
-                Ok(crate_index) => {
-                    crates.insert(krate.name, crate_index);
-                }
-                Err(errors) => match errors {
-                    CompileError::ResolveErrors(errors) => self.errors.extend(errors),
-                    _ => panic!("Invalid error type!"),
-                },
-            }
+            let crate_resolver = CrateResolver::new(self.ctxt, krate, self.krates);
+            hir_map.insert(crate_resolver.resolve()?);
         }
-        if !self.errors.is_empty() {
-            Err(CompileError::ResolveErrors(self.errors))
-        } else {
-            Ok(crates)
-        }
+
+        Some(hir_map)
     }
 
-    fn build_crate_namespaces(&mut self) -> Result<(), CompileError> {
+    fn build_crate_ns(&mut self) -> Option<()> {
+        // Generate the initial module ns
         for krate in self.krates.values_mut() {
             let krate_id = krate.crate_id;
             for module in krate.modules_mut() {
-                let mut ns = ModuleNS::default();
-                // Initial pass we just want to collect
-                for item in module.items.iter() {
-                    let def_id = item.id.to_def_id(krate_id);
-                    match &item.kind {
-                        ItemKind::GlobalLet(global_let_stmt) => {
-                            ns.values.insert(global_let_stmt.name.ident, def_id);
-                        }
-                        ItemKind::Class(class_stmt) => {
-                            ns.values.insert(class_stmt.name.ident, def_id);
-                        }
-                        ItemKind::Enum(enum_stmt) => {
-                            let members = Arc::new(
-                                enum_stmt
-                                    .members
-                                    .iter()
-                                    .map(|member| (member.name, member.id.to_def_id(krate_id)))
-                                    .collect::<StrMap<DefId>>(),
-                            );
-                            ns.enums
-                                .insert(enum_stmt.name.ident, EnumDef::new(def_id, members));
-                        }
-                        ItemKind::Trait(trait_stmt) => {
-                            ns.values.insert(trait_stmt.name.ident, def_id);
-                        }
-                        ItemKind::Fn(fn_stmt) => {
-                            ns.values.insert(fn_stmt.sig.name.ident, def_id);
-                        }
-                        ItemKind::Use(use_stmt) => {}
-                        ItemKind::TraitImpl(trait_impl_stmt) => {}
-                    };
-                }
-                module.ns = ns;
+                let module_ns = generate_mod_values(module, krate_id);
+                module.namespace = module_ns;
             }
         }
 
@@ -342,23 +417,17 @@ impl<'a> Resolver<'a> {
             for module in krate.modules() {
                 for item in module.items.iter() {
                     if let ItemKind::Use(use_stmt) = &item.kind {
-                        let maybe_crate_def = match &use_stmt.path.ident_type {
+                        let crate_def = match &use_stmt.path.ident_type {
                             IdentType::Crate => krate.find_definition(&use_stmt.path, false),
                             IdentType::LocalOrUse => {
                                 let krate = self.krates.get(&use_stmt.path.first()).unwrap();
                                 krate.find_definition(&use_stmt.path, true)
                             }
-                        };
-
-                        match maybe_crate_def {
-                            Some(crate_def) => module_crate_defs
-                                .entry(module.id)
-                                .or_default()
-                                .push(crate_def),
-                            None => self
-                                .errors
-                                .push(QualifiedIdentNotFound(use_stmt.path.clone())),
-                        }
+                        }?;
+                        module_crate_defs
+                            .entry(module.id)
+                            .or_default()
+                            .push(crate_def);
                     }
                 }
             }
@@ -366,83 +435,195 @@ impl<'a> Resolver<'a> {
 
         for krate in self.krates.values_mut() {
             for module in krate.modules_mut() {
+                let mut modules = StrMap::default();
+                let mut values = StrMap::default();
+                modules.extend(module.namespace.modules.iter());
+                values.extend(
+                    module
+                        .namespace
+                        .values
+                        .iter()
+                        .map(|(val, def)| (*val, def.clone())),
+                );
+
                 if let Some(crate_defs) = module_crate_defs.remove(&module.id) {
                     for crate_def in crate_defs {
                         match crate_def {
                             CrateDef::Module(name, mod_id) => {
-                                module.ns.modules.insert(name, mod_id);
+                                modules.insert(name, mod_id);
                             }
                             CrateDef::Value(name, def_id) => {
-                                module.ns.values.insert(name, def_id);
-                            }
-                            CrateDef::Enum(name, enum_def) => {
-                                module.ns.enums.insert(name, enum_def);
+                                values.insert(name, def_id);
                             }
                         }
                     }
                 }
+
+                let ns = ModuleNS {
+                    modules: modules.into(),
+                    values: values.into(),
+                };
+                module.namespace = ns;
             }
         }
 
-        if !self.errors.is_empty() {
-            Err(CompileError::ResolveErrors(self.errors.clone()))
-        } else {
-            Ok(())
-        }
+        Some(())
     }
 }
 
-#[derive(Default)]
-struct CrateMap<'a> {
-    items: HashMap<LocalDefId, &'a AstItem>,
+fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
+    let mut values = StrMap::default();
+    for item in &module.items {
+        let def_id = item.id.to_def_id(krate_id);
+        match &item.kind {
+            ItemKind::GlobalLet(global_let_stmt) => {
+                values.insert(
+                    global_let_stmt.name.ident,
+                    ValueDef::GlobalVar(GlobalVarDef::new(def_id)),
+                );
+            }
+            ItemKind::Class(class_stmt) => {
+                let fields = class_stmt
+                    .fields
+                    .iter()
+                    .map(|field| {
+                        (
+                            field.name.ident,
+                            FieldDef::new(field.id.to_def_id(krate_id)),
+                        )
+                    })
+                    .collect::<IndexMap<_, _>>();
+                let fns = class_stmt
+                    .self_fns
+                    .iter()
+                    .map(|self_fn| {
+                        (
+                            self_fn.sig.name.ident,
+                            FnDef::new(self_fn.id.to_def_id(krate_id)),
+                        )
+                    })
+                    .collect::<IndexMap<_, _>>();
+                values.insert(
+                    class_stmt.name.ident,
+                    ValueDef::Class(ClassDef::new(def_id, fields, fns)),
+                );
+            }
+            ItemKind::Enum(enum_stmt) => {
+                let fns = Arc::new(
+                    enum_stmt
+                        .self_fns
+                        .iter()
+                        .map(|self_fn| {
+                            (
+                                self_fn.sig.name.ident,
+                                FnDef::new(self_fn.id.to_def_id(krate_id)),
+                            )
+                        })
+                        .collect(),
+                );
+                let members = Arc::new(
+                    enum_stmt
+                        .members
+                        .iter()
+                        .map(|member| {
+                            let fns = Arc::new(
+                                member
+                                    .self_fns
+                                    .iter()
+                                    .map(|self_fn| {
+                                        (
+                                            self_fn.sig.name.ident,
+                                            FnDef::new(self_fn.id.to_def_id(krate_id)),
+                                        )
+                                    })
+                                    .collect(),
+                            );
+                            (
+                                member.name,
+                                EnumMemberDef::new(member.id.to_def_id(krate_id), fns),
+                            )
+                        })
+                        .collect(),
+                );
+                values.insert(
+                    enum_stmt.name.ident,
+                    ValueDef::Enum(EnumDef::new(def_id, members, fns)),
+                );
+            }
+            ItemKind::Trait(trait_stmt) => {
+                let fns = Arc::new(
+                    trait_stmt
+                        .self_fns
+                        .iter()
+                        .map(|self_fn| {
+                            (
+                                self_fn.sig.name.ident,
+                                FnDef::new(self_fn.id.to_def_id(krate_id)),
+                            )
+                        })
+                        .collect(),
+                );
+                values.insert(
+                    trait_stmt.name.ident,
+                    ValueDef::Trait(TraitDef::new(def_id, fns)),
+                );
+            }
+            ItemKind::Fn(fn_stmt) => {
+                values.insert(fn_stmt.sig.name.ident, ValueDef::Fn(FnDef::new(def_id)));
+            }
+            ItemKind::Use(use_stmt) => {}
+            ItemKind::TraitImpl(trait_impl_stmt) => {}
+        }
+    }
+    ModuleNS {
+        modules: Arc::new(Default::default()),
+        values: values.into(),
+    }
 }
 
 struct CrateResolver<'a> {
+    ctxt: &'a CompilerCtxt,
     krate: &'a Crate,
     crates: &'a StrMap<Crate>,
     crate_lookup: Vec<&'a Crate>,
     module: Option<&'a Module>,
-    errors: Vec<ResolveError>,
     items: Vec<LocalDefId>,
-    nodes: LocalDefIdMap<HirNode>,
+    nodes: LDefMap<HirNode>,
     scopes: Vec<Scope>,
 }
 
 impl<'a> CrateResolver<'a> {
-    fn new(krate: &'a Crate, crates: &'a StrMap<Crate>) -> Self {
+    fn new(ctxt: &'a CompilerCtxt, krate: &'a Crate, crates: &'a StrMap<Crate>) -> Self {
         let crate_lookup = crates
             .values()
             .sorted_by_key(|krate| krate.crate_id)
             .collect_vec();
         Self {
+            ctxt,
             krate,
             crates,
             crate_lookup,
-            module: None,
-            errors: Default::default(),
+            module: Default::default(),
             items: Default::default(),
             nodes: Default::default(),
             scopes: Default::default(),
         }
     }
 
-    fn resolve(mut self) -> Result<HirCrate, CompileError> {
+    fn resolve(mut self) -> Option<HirCrate> {
         for module in self.krate.modules() {
             self.resolve_module(module);
 
             // We have to remember to clear out all scopes and reset the module scope
             self.scopes.clear();
         }
-        if !self.errors.is_empty() {
-            Err(CompileError::ResolveErrors(self.errors))
-        } else {
-            Ok(HirCrate::new(
-                self.krate.name,
-                self.krate.crate_id,
-                self.items,
-                self.nodes,
-            ))
-        }
+
+        Some(HirCrate::new(
+            self.krate.name,
+            self.krate.crate_id,
+            self.items,
+            self.nodes,
+        ))
     }
 
     fn resolve_module(&mut self, module: &'a Module) {
@@ -454,8 +635,8 @@ impl<'a> CrateResolver<'a> {
         let span = item.span;
         let id = item.id;
 
-        let result = match &item.kind {
-            AstItemKind::Use(use_stmt) => Ok(()),
+        let hir_node = match &item.kind {
+            AstItemKind::Use(use_stmt) => None,
             AstItemKind::GlobalLet(let_stmt) => self.resolve_global_let_stmt(let_stmt, span, id),
             AstItemKind::Class(class_stmt) => self.resolve_class_stmt(class_stmt, span, id),
             AstItemKind::Enum(enum_stmt) => self.resolve_enum_stmt(enum_stmt, span, id),
@@ -466,16 +647,17 @@ impl<'a> CrateResolver<'a> {
             AstItemKind::Fn(fn_stmt) => self.resolve_fn_stmt(fn_stmt, span, id),
         };
 
-        if let Err(error) = result {
-            self.errors.push(error);
+        match hir_node {
+            Some(hir_node) => {
+                self.items.push(id);
+                self.nodes.insert(id, hir_node);
+            }
+            _ => {}
         }
     }
 
-    fn duplicate_definition(&self, existing: LocalDefId, new: LocalDefId) -> ResolveResult {
-        Err(ResolveError::DuplicateDefinition {
-            existing: existing.to_def_id(self.krate.crate_id),
-            new: new.to_def_id(self.krate.crate_id),
-        })
+    fn duplicate_definition(&self, existing: LocalDefId, new: LocalDefId) {
+        todo!();
     }
 
     fn resolve_global_let_stmt(
@@ -483,9 +665,9 @@ impl<'a> CrateResolver<'a> {
         let_stmt: &AstGlobalLetStmt,
         span: Span,
         id: LocalDefId,
-    ) -> ResolveResult {
+    ) -> Option<HirNode> {
         // Lower expression
-        let ty = self.maybe_resolve_ty(&let_stmt.ty)?;
+        let ty = self.resolve_ty(&let_stmt.ty)?;
         let expr = self.resolve_expr(&let_stmt.initializer)?;
 
         // We don't need to insert constants into a local scope since it is already part of the module ns.
@@ -494,8 +676,7 @@ impl<'a> CrateResolver<'a> {
             span,
             id,
         );
-        self.insert_node(id, hir_node)?;
-        Ok(())
+        Some(hir_node)
     }
 
     fn resolve_class_stmt(
@@ -503,8 +684,9 @@ impl<'a> CrateResolver<'a> {
         class_stmt: &AstClassStmt,
         span: Span,
         id: LocalDefId,
-    ) -> ResolveResult {
+    ) -> Option<HirNode> {
         self.scopes.push(Scope::Class {
+            id: id.to_def_id(self.krate.crate_id),
             fields: Default::default(),
             self_fns: Default::default(),
             generics: Default::default(),
@@ -522,22 +704,32 @@ impl<'a> CrateResolver<'a> {
             fields,
             fn_stmts,
         );
-        let hir_node = HirNode::new(HirNodeKind::Class(hir_class), span, id);
-        self.items.push(id);
-        self.insert_node(id, hir_node)?;
-        Ok(())
+        Some(HirNode::new(HirNodeKind::Class(hir_class), span, id))
     }
 
-    fn resolve_generics(&mut self, generics: &AstGenerics) -> Result<Generics, ResolveError> {
-        let mut hir_generics = Generics::with_capacity(generics.len());
+    fn maybe_resolve_generics(
+        &mut self,
+        generics: &Option<AstGenerics>,
+    ) -> Result<Option<Generics>, ()> {
+        match generics {
+            Some(generics) => match self.resolve_generics(generics) {
+                Some(generics) => Ok(Some(generics)),
+                None => Err(()),
+            },
+            None => Ok(None),
+        }
+    }
+
+    fn resolve_generics(&mut self, generics: &AstGenerics) -> Option<Generics> {
+        let mut hir_generics = Vec::with_capacity(generics.len());
         for generic in generics.iter() {
             hir_generics.push(self.resolve_ty(generic)?);
         }
-        Ok(hir_generics)
+        Some(Generics::from(hir_generics))
     }
 
-    fn resolve_params(&mut self, params: &AstParams) -> Result<Params, ResolveError> {
-        let mut hir_params = Params::default();
+    fn resolve_params(&mut self, params: &AstParams) -> Option<Params> {
+        let mut hir_params = StrMap::default();
         for param in params.iter() {
             self.insert_param(param.name.ident, param.id)?;
 
@@ -550,18 +742,18 @@ impl<'a> CrateResolver<'a> {
                     param.span,
                     param.id,
                 ),
-            )?;
+            );
 
             hir_params.insert(param.name.ident, param.id);
         }
-        Ok(hir_params)
+        Some(Params::from(hir_params))
     }
 
     fn resolve_generic_params(
         &mut self,
         generic_params: &AstGenericParams,
-    ) -> Result<GenericParams, ResolveError> {
-        let mut generics = GenericParams::default();
+    ) -> Option<GenericParams> {
+        let mut generics = StrMap::default();
         for param in generic_params.iter() {
             self.insert_generic_param(param.name.ident, param.id)?;
 
@@ -572,7 +764,7 @@ impl<'a> CrateResolver<'a> {
                     span,
                     id,
                 }) => Some(self.resolve_trait_bound(trait_bound, *span, *id)?),
-                _ => panic!("Only trait bound should be present!"),
+                _ => unreachable!(),
             };
             /*
                 We always want to insert the node, even if it clashes with another generic param.
@@ -581,25 +773,24 @@ impl<'a> CrateResolver<'a> {
             self.insert_node(
                 param.id,
                 HirNode::new(
-                    HirNodeKind::GenericParam(GenericParam::new(param.name, trait_bound)),
+                    HirNodeKind::Ty(Ty::GenericParam(GenericParam::new(param.name, trait_bound))),
                     param.span,
                     param.id,
                 ),
-            )?;
+            );
 
             generics.insert(param.name.ident, param.id);
         }
-        Ok(generics)
+        Some(GenericParams::from(generics))
     }
 
-    fn get_module(&self, id: ModuleId) -> &Module {
-        self.crate_lookup.get(id.crate_id()).unwrap().module(id)
-    }
-
-    fn insert_field(&mut self, field_name: InternedStr, id: LocalDefId) -> ResolveResult {
+    fn insert_field(&mut self, field_name: InternedStr, id: LocalDefId) -> Option<()> {
         match self.scopes.last_mut().unwrap().insert_field(field_name, id) {
-            None => Ok(()),
-            Some(existing) => self.duplicate_definition(existing, id),
+            None => Some(()),
+            Some(existing) => {
+                self.duplicate_definition(existing, id);
+                None
+            }
         }
     }
 
@@ -607,30 +798,53 @@ impl<'a> CrateResolver<'a> {
         self.scopes.last_mut().unwrap().insert_var(var_name, id);
     }
 
-    fn insert_self_fn(&mut self, fn_name: InternedStr, id: LocalDefId) -> ResolveResult {
+    fn insert_self_fn(&mut self, fn_name: InternedStr, id: LocalDefId) -> Option<()> {
         match self.scopes.last_mut().unwrap().insert_self_fn(fn_name, id) {
-            None => Ok(()),
-            Some(existing) => self.duplicate_definition(existing, id),
+            None => Some(()),
+            Some(existing) => {
+                self.duplicate_definition(existing, id);
+                None
+            }
         }
     }
 
-    fn insert_param(&mut self, ident: InternedStr, id: LocalDefId) -> ResolveResult {
+    fn insert_param(&mut self, ident: InternedStr, id: LocalDefId) -> Option<()> {
         match self.scopes.last_mut().unwrap().insert_param(ident, id) {
-            None => Ok(()),
-            Some(existing) => self.duplicate_definition(existing, id),
+            None => Some(()),
+            Some(existing) => {
+                self.duplicate_definition(existing, id);
+                None
+            }
         }
     }
 
-    fn insert_enum_member(&mut self, ident: InternedStr, id: LocalDefId) -> ResolveResult {
+    fn insert_enum_member(&mut self, ident: InternedStr, id: LocalDefId) -> Option<()> {
         match self
             .scopes
             .last_mut()
             .unwrap()
             .insert_enum_member(ident, id)
         {
-            None => Ok(()),
-            Some(existing) => self.duplicate_definition(existing, id),
+            None => Some(()),
+            Some(existing) => {
+                self.duplicate_definition(existing, id);
+                None
+            }
         }
+    }
+
+    fn find_item_definition(&mut self, ident: InternedStr) -> Option<DefId> {
+        self.scopes
+            .iter()
+            .rev()
+            .find_map(|scope| match scope {
+                Scope::Class { id, .. } => Some(id),
+                Scope::Enum { id, .. } => Some(id),
+                Scope::Trait { id, .. } => Some(id),
+                Scope::TraitImpl { target_id, .. } => Some(target_id),
+                _ => None,
+            })
+            .copied()
     }
 
     fn find_enum_member(&mut self, ident: InternedStr) -> Option<LocalDefId> {
@@ -640,12 +854,9 @@ impl<'a> CrateResolver<'a> {
             .find_map(|scope| scope.contains_enum_member(ident))
     }
 
-    fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) -> ResolveResult {
+    fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) {
         let index: usize = id.into();
-        match self.nodes.insert(id, hir_node) {
-            None => Ok(()),
-            Some(_) => Err(DuplicateLocalDefIds),
-        }
+        assert!(self.nodes.insert(id, hir_node).is_none());
     }
 
     fn find_var(&mut self, ident: InternedStr) -> Option<LocalDefId> {
@@ -661,14 +872,15 @@ impl<'a> CrateResolver<'a> {
             .find_map(|scope| scope.contains_generic(ident))
     }
 
-    fn insert_generic_param(&mut self, ident: InternedStr, id: LocalDefId) -> ResolveResult {
+    fn insert_generic_param(&mut self, ident: InternedStr, id: LocalDefId) -> Option<()> {
         // Don't need to check in reverse order since we are checking for existence, not last declared.
         if let Some(existing) = self
             .scopes
             .iter()
             .find_map(|scope| scope.contains_generic(ident))
         {
-            return self.duplicate_definition(existing, id);
+            self.duplicate_definition(existing, id);
+            return None;
         }
 
         // Insert generic into last scope (will return error if this is not a valid scope)
@@ -678,13 +890,16 @@ impl<'a> CrateResolver<'a> {
             .unwrap()
             .insert_generic_param(ident, id)
         {
-            None => Ok(()),
-            Some(existing) => self.duplicate_definition(existing, id),
+            None => Some(()),
+            Some(existing) => {
+                self.duplicate_definition(existing, id);
+                None
+            }
         }
     }
 
-    fn resolve_fields(&mut self, ast_fields: &AstFields) -> Result<Fields, ResolveError> {
-        let mut fields = Fields::default();
+    fn resolve_fields(&mut self, ast_fields: &AstFields) -> Option<Fields> {
+        let mut fields = StrMap::default();
         for field in ast_fields.iter() {
             let AstField {
                 name: ident,
@@ -707,10 +922,10 @@ impl<'a> CrateResolver<'a> {
                     *span,
                     *id,
                 ),
-            )?;
+            );
             fields.insert(ident.ident, *id);
         }
-        Ok(fields)
+        Some(Fields::from(fields))
     }
 
     fn resolve_enum_stmt(
@@ -718,8 +933,9 @@ impl<'a> CrateResolver<'a> {
         enum_stmt: &AstEnumStmt,
         span: Span,
         id: LocalDefId,
-    ) -> ResolveResult {
+    ) -> Option<HirNode> {
         self.scopes.push(Scope::Enum {
+            id: id.to_def_id(self.krate.crate_id),
             members: Default::default(),
             self_fns: Default::default(),
             generics: Default::default(),
@@ -732,17 +948,14 @@ impl<'a> CrateResolver<'a> {
         self.scopes.pop();
 
         let hir_enum = EnumStmt::new(enum_stmt.name, generic_params, enum_members, member_fns);
-        let hir_node = HirNode::new(HirNodeKind::Enum(hir_enum), span, id);
-        self.items.push(id);
-        self.insert_node(id, hir_node)?;
-        Ok(())
+        Some(HirNode::new(HirNodeKind::Enum(hir_enum), span, id))
     }
 
     fn resolve_enum_members(
         &mut self,
         enum_stmt_members: &Vec<AstEnumMember>,
-    ) -> Result<EnumMembers, ResolveError> {
-        let enum_members = EnumMembers::default();
+    ) -> Option<EnumMembers> {
+        let mut enum_members = StrMap::default();
         for member in enum_stmt_members {
             self.insert_enum_member(member.name, member.id)?;
 
@@ -751,8 +964,10 @@ impl<'a> CrateResolver<'a> {
                 self_fns: Default::default(),
             });
 
-            let self_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
             let fields = self.resolve_fields(&member.fields)?;
+            let self_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
+
+            enum_members.insert(member.name, member.id);
 
             self.nodes.insert(
                 member.id,
@@ -765,7 +980,7 @@ impl<'a> CrateResolver<'a> {
 
             self.scopes.pop();
         }
-        Ok(enum_members)
+        Some(enum_members.into())
     }
 
     fn resolve_trait_stmt(
@@ -773,22 +988,20 @@ impl<'a> CrateResolver<'a> {
         trait_stmt: &AstTraitStmt,
         span: Span,
         id: LocalDefId,
-    ) -> ResolveResult {
-        let generic_params = self.resolve_generic_params(&trait_stmt.generic_params)?;
-        let member_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
-
+    ) -> Option<HirNode> {
         self.scopes.push(Scope::Trait {
+            id: id.to_def_id(self.krate.crate_id),
             self_fns: Default::default(),
             generics: Default::default(),
         });
 
+        let generic_params = self.resolve_generic_params(&trait_stmt.generic_params)?;
+        let member_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
+
         self.scopes.pop();
 
         let hir_trait = TraitStmt::new(trait_stmt.name, generic_params, member_fns);
-        let hir_node = HirNode::new(HirNodeKind::Trait(hir_trait), span, id);
-        self.items.push(id);
-        self.insert_node(id, hir_node)?;
-        Ok(())
+        Some(HirNode::new(HirNodeKind::Trait(hir_trait), span, id))
     }
 
     fn resolve_trait_impl_stmt(
@@ -796,24 +1009,22 @@ impl<'a> CrateResolver<'a> {
         trait_stmt: &AstTraitImplStmt,
         span: Span,
         id: LocalDefId,
-    ) -> ResolveResult {
+    ) -> Option<HirNode> {
+        let target_ty = self.resolve_qualified_ident(&trait_stmt.target_ty)?;
+        let trait_to_impl = self.resolve_path_ty(&trait_stmt.trait_to_impl)?;
+
         self.scopes.push(Scope::TraitImpl {
+            target_id: target_ty,
             self_fns: Default::default(),
         });
 
-        let trait_to_impl = self.resolve_path_ty(&trait_stmt.trait_to_impl)?;
-        let target_ty = self.resolve_qualified_ident(&trait_stmt.target_ty)?;
         let self_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
 
-        self.insert_node(
+        Some(HirNode::new(
+            HirNodeKind::TraitImpl(TraitImplStmt::new(trait_to_impl, target_ty, self_fns)),
+            span,
             id,
-            HirNode::new(
-                HirNodeKind::TraitImpl(TraitImplStmt::new(trait_to_impl, target_ty, self_fns)),
-                span,
-                id,
-            ),
-        )?;
-        Ok(())
+        ))
     }
 
     fn resolve_fn_stmt(
@@ -821,7 +1032,7 @@ impl<'a> CrateResolver<'a> {
         fn_stmt: &AstFnStmt,
         span: Span,
         id: LocalDefId,
-    ) -> ResolveResult {
+    ) -> Option<HirNode> {
         self.scopes.push(Scope::Fn {
             params: Default::default(),
             generics: Default::default(),
@@ -829,27 +1040,22 @@ impl<'a> CrateResolver<'a> {
         });
 
         let resolved_sig = self.resolve_fn_sig(&fn_stmt.sig)?;
-        let resolved_body = self.maybe_resolve_block(&fn_stmt.body)?;
+        let resolved_body = self.maybe_resolve_block(&fn_stmt.body).ok()?;
 
         self.scopes.pop();
 
         let name = resolved_sig.name.ident;
-
-        self.insert_node(
+        Some(HirNode::new(
+            HirNodeKind::Fn(FnStmt::new(resolved_sig, resolved_body)),
+            span,
             id,
-            HirNode::new(
-                HirNodeKind::Fn(FnStmt::new(resolved_sig, resolved_body)),
-                span,
-                id,
-            ),
-        )?;
-        Ok(())
+        ))
     }
 
     fn resolve_self_fn_stmt(
         &mut self,
         fn_stmt: &AstFnSelfStmt,
-    ) -> Result<(InternedStr, LocalDefId), ResolveError> {
+    ) -> Option<(InternedStr, LocalDefId)> {
         let AstFnSelfStmt {
             sig,
             body,
@@ -864,7 +1070,7 @@ impl<'a> CrateResolver<'a> {
         });
 
         let resolved_sig = self.resolve_fn_sig(sig)?;
-        let resolved_body = self.maybe_resolve_block(body)?;
+        let resolved_body = self.maybe_resolve_block(body).ok()?;
 
         self.scopes.pop();
 
@@ -876,45 +1082,47 @@ impl<'a> CrateResolver<'a> {
                 *span,
                 *id,
             ),
-        )?;
-        Ok((name, *id))
+        );
+        Some((name, *id))
     }
 
-    fn resolve_self_fn_stmts(&mut self, stmts: &Vec<FnSelfStmt>) -> Result<FnStmts, ResolveError> {
+    fn resolve_self_fn_stmts(&mut self, stmts: &Vec<FnSelfStmt>) -> Option<FnStmts> {
         for fn_stmt in stmts {
             self.insert_self_fn(fn_stmt.sig.name.ident, fn_stmt.id)?;
         }
 
         // This is safe because we have already checked to ensure that there are no name collisions.
-        let mut fn_stmts = FnStmts::default();
+        let mut fn_stmts = StrMap::default();
         for fn_stmt in stmts {
             let (name, stmt) = self.resolve_self_fn_stmt(fn_stmt)?;
             fn_stmts.insert(name, stmt);
         }
-        Ok(fn_stmts)
+        Some(FnStmts::from(fn_stmts))
     }
 
-    fn resolve_fn_sig(&mut self, fn_sig: &AstFnSig) -> Result<FnSig, ResolveError> {
+    fn resolve_fn_sig(&mut self, fn_sig: &AstFnSig) -> Option<FnSig> {
         let generic_params = self.resolve_generic_params(&fn_sig.generic_params)?;
         let params = self.resolve_params(&fn_sig.params)?;
 
         let return_ty = self.maybe_resolve_ty(&fn_sig.return_type)?;
 
-        Ok(FnSig::new(fn_sig.name, generic_params, params, return_ty))
+        Some(FnSig::new(fn_sig.name, generic_params, params, return_ty))
     }
 
     fn maybe_resolve_expr(
         &mut self,
         expr: &Option<Box<AstExpr>>,
-    ) -> Result<Option<LocalDefId>, ResolveError> {
-        if let Some(expr) = expr {
-            self.resolve_expr(expr).map(Some)
-        } else {
-            Ok(None)
+    ) -> Result<Option<LocalDefId>, ()> {
+        match expr {
+            None => Ok(None),
+            Some(expr) => match self.resolve_expr(expr) {
+                Some(expr) => Ok(Some(expr)),
+                None => Err(()),
+            },
         }
     }
 
-    fn resolve_expr(&mut self, expr: &AstExpr) -> Result<LocalDefId, ResolveError> {
+    fn resolve_expr(&mut self, expr: &AstExpr) -> Option<LocalDefId> {
         let span = expr.span;
         let id = expr.id;
         let resolved_expr = match &expr.kind {
@@ -929,7 +1137,8 @@ impl<'a> CrateResolver<'a> {
                     let initializers = initializers
                         .iter()
                         .map(|expr| self.resolve_expr(expr))
-                        .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
+                        .collect::<Option<Vec<_>>>()?
+                        .into();
 
                     Expr::Array(ArrayExpr::Unsized { initializers })
                 }
@@ -939,10 +1148,10 @@ impl<'a> CrateResolver<'a> {
                     .args
                     .iter()
                     .map(|expr| self.resolve_expr(expr))
-                    .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
+                    .collect::<Option<Vec<_>>>()?;
                 let target = self.resolve_expr(&call.target)?;
 
-                Expr::Call(CallExpr::new(target, Args::new(args)))
+                Expr::Call(CallExpr::new(target, Args::from(args)))
             }
             AstExprKind::Infix(infix) => {
                 let lhs = self.resolve_expr(&infix.lhs)?;
@@ -956,7 +1165,8 @@ impl<'a> CrateResolver<'a> {
                 Expr::Unary(UnaryExpr::new(unary.operator, expr))
             }
             AstExprKind::String(string) => Expr::String(*string),
-            AstExprKind::Integer(integer) => Expr::Integer(*integer),
+            AstExprKind::Int(int) => Expr::Int(*int),
+            AstExprKind::UInt(uint) => Expr::UInt(*uint),
             AstExprKind::Float(float) => Expr::Float(*float),
             AstExprKind::False => Expr::False,
             AstExprKind::True => Expr::True,
@@ -967,7 +1177,7 @@ impl<'a> CrateResolver<'a> {
                     .arms
                     .iter()
                     .map(|arm| self.resolve_match_arm(arm))
-                    .collect::<Result<Vec<MatchArm>, ResolveError>>()?;
+                    .collect::<Option<Vec<_>>>()?;
 
                 Expr::Match(MatchExpr::new(source, arms))
             }
@@ -991,41 +1201,254 @@ impl<'a> CrateResolver<'a> {
                 Expr::Index(IndexExpr::new(expr, key))
             }
             AstExprKind::Path(path) => {
-                let mut segments = Vec::with_capacity(path.segments.len());
-                for segment in path.segments.iter() {
-                    let ident = segment.ident;
-                    let generics = match &segment.generics {
-                        None => None,
-                        Some(generics) => {
-                            let mut resolved_generics = Generics::with_capacity(generics.len());
-                            for generic in generics.iter() {
-                                resolved_generics.push(self.resolve_ty(generic)?);
-                            }
-                            Some(resolved_generics)
-                        }
-                    };
-                    segments.push(Segment::new(ident, generics))
-                }
-                // TODO: Need to actually resolve this path!!
-                Expr::Path(PathExpr::new(segments))
+                // These paths are richer and we have to preserve generic info for type inference
+                let path = self.resolve_path(path)?;
+                Expr::Path(path)
             }
             AstExprKind::Parentheses(parentheses) => {
                 // Special logic for stripping parentheses (since they are just for pretty printing)
                 let resolved_expr = self.resolve_expr(&parentheses.expr)?;
-                return Ok(id);
+                return Some(id);
             }
             AstExprKind::Break => Expr::Break,
             AstExprKind::Continue => Expr::Continue,
         };
 
-        self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id))?;
-        Ok(id)
+        self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id));
+        Some(id)
+    }
+
+    /// This method can resolve qualified idents as well.
+    fn resolve_path(&mut self, path_expr: &AstPathExpr) -> Option<PathExpr> {
+        let module_ns = &self.module.unwrap().namespace;
+        let mut segments = Vec::with_capacity(path_expr.segments.len());
+        match path_expr.ident_type {
+            IdentType::Crate => {
+                segments.push(Segment::new(Res::Crate(self.krate.crate_id), None));
+                let mut path = VecDeque::from_iter(path_expr.segments.iter());
+                while !path.is_empty() {
+                    let prev_seg = segments.last().unwrap(); // Should be safe
+                    let current = path.pop_front().unwrap(); // Should be safe
+                    let curr_ident = current.ident.ident;
+                    let segment = self.find_secondary_segment(&prev_seg.res, current)?;
+
+                    segments.push(segment);
+                }
+                self.verify_last_segment(segments.last().unwrap())?;
+            }
+            IdentType::LocalOrUse => {
+                if let Some(segment) = path_expr.is_single() {
+                    let candidate = self.find_primary_segment(segment)?;
+                    self.verify_last_segment(&candidate)?;
+                    segments.push(candidate);
+                } else {
+                    let mut path = VecDeque::from_iter(path_expr.segments.iter());
+                    let first_seg = self.find_primary_segment(path.pop_front().unwrap())?;
+                    segments.push(first_seg);
+
+                    while !path.is_empty() {
+                        let prev_seg = segments.last().unwrap(); // Should be safe
+                        let current = path.pop_front().unwrap(); // Should be safe
+                        let curr_ident = current.ident.ident;
+                        let segment = self.find_secondary_segment(&prev_seg.res, current)?;
+
+                        segments.push(segment);
+                    }
+
+                    self.verify_last_segment(segments.last().unwrap())?;
+                }
+            }
+        }
+        Some(PathExpr::new(segments))
+    }
+
+    fn find_primary_segment(&mut self, segment: &AstSegment) -> Option<Segment> {
+        let module_ns = &self.module.unwrap().namespace;
+        let ident = segment.ident.ident;
+        let generics = self.maybe_resolve_generics(&segment.generics).ok()?;
+
+        self.find_var(ident)
+            .map(LocalDef::Var)
+            .or_else(|| self.find_generic_param(ident).map(LocalDef::Generic))
+            .map(Res::Local)
+            .or_else(|| module_ns.find_value(ident).cloned().map(Res::ValueDef))
+            .or_else(|| {
+                self.matches_primitive(ident)
+                    .filter(|prim| generics.is_none())
+                    .map(Res::Primitive)
+            })
+            .or_else(|| {
+                self.matches_self_ty(ident)
+                    .and_then(|()| self.find_item_definition(ident))
+                    .and_then(|id| module_ns.values.values().find(|val_def| val_def.id() == id))
+                    .cloned()
+                    .map(Res::ValueDef)
+            })
+            .or_else(|| module_ns.find_module(ident).map(Res::Module))
+            .or_else(|| {
+                self.crates
+                    .get(&ident)
+                    .map(|krate| krate.crate_id)
+                    .map(Res::Crate)
+            })
+            .map(|res| Segment::new(res, generics.clone()))
+            .or_else(|| {
+                // TODO: Emit var not found error!
+                // VarNotFound(ident).into()
+                // self.ctxt.emit_error()
+                None
+            })
+    }
+
+    fn verify_last_segment(&self, segment: &Segment) -> Option<()> {
+        match &segment.res {
+            Res::Crate(_) | Res::ModuleSegment(_, _) | Res::Module(_) => {
+                // TODO: Emit invalid path error
+                // Err(InvalidPath.into())
+                None
+            }
+            Res::ValueDef(_) | Res::Fn(_) | Res::Local(_) | Res::Primitive(_) => Some(()),
+        }
+    }
+
+    fn find_secondary_segment(&mut self, previous: &Res, segment: &AstSegment) -> Option<Segment> {
+        let module_ns = &self.module.unwrap().namespace;
+        let ident = segment.ident.ident;
+        // TODO: Finish generics error handling
+        let generics = self.maybe_resolve_generics(&segment.generics).ok()?;
+
+        let res = match previous {
+            Res::Crate(krate_id) => {
+                let krate = &self.crate_lookup[*krate_id];
+                krate
+                    .module_trie()
+                    .get(&ModulePath::from_iter([ident]))
+                    .copied()
+                    .map(Res::Module)
+                    .unwrap_or_else(|| {
+                        Res::ModuleSegment(*krate_id, ModulePath::from_iter([ident]))
+                    })
+            }
+            Res::ModuleSegment(krate_id, path) => {
+                let full_path = path.concat(ModulePath::from_iter([ident]));
+
+                let krate = &self.crate_lookup[*krate_id];
+                krate
+                    .module_trie()
+                    .get(&full_path)
+                    .copied()
+                    .map(Res::Module)
+                    .unwrap_or_else(|| Res::ModuleSegment(*krate_id, full_path))
+            }
+            Res::Module(mod_id) => {
+                let module = &self.crate_lookup[*mod_id];
+                module
+                    .namespace
+                    .find_value(ident)
+                    .cloned()
+                    .map(Res::ValueDef)
+                    .or_else(|| {
+                        // TODO: Emit compiler error
+                        // VarNotFound(ident)
+                        None
+                    })?
+            }
+            Res::ValueDef(ValueDef::Enum(enum_def)) => enum_def
+                .members
+                .get(&ident)
+                .cloned()
+                .map(|member| Res::ValueDef(ValueDef::EnumMember(member)))
+                .or_else(|| {
+                    enum_def
+                        .fns
+                        .get(&ident)
+                        .cloned()
+                        .map(|fn_def| Res::Fn(MaybeFnDef::Some(fn_def)))
+                })
+                .or_else(|| {
+                    // TODO: Emit compiler error
+                    // FnNotFound(ident)
+                    None
+                })?,
+            Res::ValueDef(ValueDef::Class(class_def)) => class_def
+                .fns
+                .get(&ident)
+                .copied()
+                .map(|fn_def| Res::Fn(MaybeFnDef::Some(fn_def)))
+                .or_else(|| {
+                    // TODO: Emit compiler error
+                    // FnNotFound(ident)
+                    None
+                })?,
+            Res::ValueDef(ValueDef::EnumMember(member_def)) => member_def
+                .fns
+                .get(&ident)
+                .copied()
+                .map(|fn_def| Res::Fn(MaybeFnDef::Some(fn_def)))
+                .or_else(|| {
+                    // TODO: Emit compiler error
+                    // FnNotFound(ident)
+                    None
+                })?,
+            Res::ValueDef(ValueDef::Trait(trait_def)) => trait_def
+                .fns
+                .get(&ident)
+                .copied()
+                .map(|fn_def| Res::Fn(MaybeFnDef::Some(fn_def)))
+                .or_else(|| {
+                    // TODO: Emit compiler error
+                    // FnNotFound(ident)
+                    None
+                })?,
+            Res::Primitive(_) => {
+                // TODO: Figure out how to handle methods on primitive types
+                // Probably just create a stub method
+                todo!()
+            }
+            Res::Local(LocalDef::Generic(generic)) => Res::Fn(MaybeFnDef::None(ident)),
+            // Fns, locals and constants cannot have paths!
+            Res::Fn(_)
+            | Res::Local(_)
+            | Res::ValueDef(ValueDef::GlobalVar(_))
+            | Res::ValueDef(ValueDef::Fn(_)) => {
+                // TODO: Emit compiler error
+                // (VarNotFound(ident).into());
+                return None;
+            }
+        };
+        Some(Segment::new(res, generics))
+    }
+
+    fn matches_primitive(&self, ident: InternedStr) -> Option<Primitive> {
+        match self.ctxt.resolve_str(ident) {
+            "u8" => Some(Primitive::U8),
+            "u16" => Some(Primitive::U16),
+            "u32" => Some(Primitive::U32),
+            "u64" => Some(Primitive::U64),
+            "i8" => Some(Primitive::I8),
+            "i16" => Some(Primitive::I16),
+            "i32" => Some(Primitive::I32),
+            "i64" => Some(Primitive::I64),
+            "f32" => Some(Primitive::F32),
+            "f64" => Some(Primitive::F64),
+            "str" => Some(Primitive::Str),
+            "bool" => Some(Primitive::Boolean),
+            "None" => Some(Primitive::None),
+            _ => None,
+        }
+    }
+
+    fn matches_self_ty(&self, ident: InternedStr) -> Option<()> {
+        match self.ctxt.resolve_str(ident) {
+            "Self" => Some(()),
+            _ => None,
+        }
     }
 
     fn resolve_destructure_expr(
         &mut self,
         destructure_expr: &AstDestructureExpr,
-    ) -> Result<LocalDefId, ResolveError> {
+    ) -> Option<LocalDefId> {
         let id = destructure_expr.id;
         let span = destructure_expr.span;
         let expr = match &destructure_expr.kind {
@@ -1040,7 +1463,8 @@ impl<'a> CrateResolver<'a> {
             DestructureExprKind::True => DestructureExpr::True,
             DestructureExprKind::False => DestructureExpr::False,
             DestructureExprKind::Float(float) => DestructureExpr::Float(*float),
-            DestructureExprKind::Integer(integer) => DestructureExpr::Integer(*integer),
+            DestructureExprKind::Int(int) => DestructureExpr::Int(*int),
+            DestructureExprKind::UInt(uint) => DestructureExpr::UInt(*uint),
             DestructureExprKind::String(string) => DestructureExpr::String(*string),
             DestructureExprKind::None => DestructureExpr::None,
         };
@@ -1048,72 +1472,81 @@ impl<'a> CrateResolver<'a> {
         self.insert_node(
             id,
             HirNode::new(HirNodeKind::DestructureExpr(expr), span, id),
-        )?;
-        Ok(id)
+        );
+        Some(id)
     }
 
-    fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Result<Option<LocalDefId>, ResolveError> {
+    fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Option<Option<LocalDefId>> {
         if let Some(ty) = ty {
             self.resolve_ty(ty).map(Some)
         } else {
-            Ok(None)
+            Some(None)
         }
     }
 
-    fn resolve_ty(&mut self, ty: &AstTy) -> Result<LocalDefId, ResolveError> {
+    fn resolve_ty(&mut self, ty: &AstTy) -> Option<LocalDefId> {
         let span = ty.span;
         let id = ty.id;
         let hir_ty = match &ty.kind {
-            TyKind::Array { ty } => Ty::Array {
-                ty: self.resolve_ty(ty)?,
-            },
-            TyKind::Path { path } => Ty::Path {
-                path: self.resolve_path_ty(path)?,
-            },
+            TyKind::Array { ty } => Ty::Array(Array::new(self.resolve_ty(ty)?)),
+            TyKind::Path { path } => Ty::Path(self.resolve_path_ty(path)?),
             TyKind::TraitBound { trait_bound } => {
-                let mut paths = Vec::with_capacity(trait_bound.bounds.len());
-                for path in trait_bound.bounds.iter() {
+                let mut paths = Vec::with_capacity(trait_bound.len());
+                for path in trait_bound.iter() {
                     let def = self.resolve_qualified_ident(&path.ident)?;
                     let generics = self.resolve_generics(&path.generics)?;
                     paths.push(PathTy::new(def, generics));
                 }
-                Ty::TraitBound {
-                    trait_bound: TraitBound::new(paths),
-                }
+                Ty::TraitBound(TraitBound::from(paths))
             }
             TyKind::Closure { params, ret_ty } => {
                 let params = params
                     .iter()
                     .map(|param| self.resolve_ty(param))
-                    .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
+                    .collect::<Option<Vec<_>>>()?;
                 let ret_ty = self.resolve_ty(ret_ty)?;
-                Ty::Closure { params, ret_ty }
+                Ty::Closure(Closure::new(AnonParams::from(params), ret_ty))
             }
-            TyKind::Infer => Ty::Infer,
-            TyKind::QSelf => Ty::QSelf,
-            TyKind::U8 => Ty::U8,
-            TyKind::U16 => Ty::U16,
-            TyKind::U32 => Ty::U32,
-            TyKind::U64 => Ty::U64,
-            TyKind::I8 => Ty::I8,
-            TyKind::I16 => Ty::I16,
-            TyKind::I32 => Ty::I32,
-            TyKind::I64 => Ty::I64,
-            TyKind::F32 => Ty::F32,
-            TyKind::F64 => Ty::F64,
-            TyKind::Boolean => Ty::Boolean,
-            TyKind::Str => Ty::Str,
-            TyKind::None => Ty::None,
+            TyKind::QSelf => {
+                let item_def = self
+                    .scopes
+                    .iter()
+                    .rev()
+                    .find_map(|scope| match scope {
+                        Scope::Class { id, .. } => Some(id),
+                        Scope::Enum { id, .. } => Some(id),
+                        Scope::Trait { id, .. } => Some(id),
+                        Scope::TraitImpl { target_id, .. } => Some(target_id),
+                        _ => None,
+                    })
+                    .copied()
+                    .unwrap();
+
+                Ty::Path(PathTy::new(item_def, Generics::empty()))
+            }
+            TyKind::U8 => Ty::Primitive(Primitive::U8),
+            TyKind::U16 => Ty::Primitive(Primitive::U16),
+            TyKind::U32 => Ty::Primitive(Primitive::U32),
+            TyKind::U64 => Ty::Primitive(Primitive::U64),
+            TyKind::I8 => Ty::Primitive(Primitive::I8),
+            TyKind::I16 => Ty::Primitive(Primitive::I16),
+            TyKind::I32 => Ty::Primitive(Primitive::I32),
+            TyKind::I64 => Ty::Primitive(Primitive::I64),
+            TyKind::F32 => Ty::Primitive(Primitive::F32),
+            TyKind::F64 => Ty::Primitive(Primitive::F64),
+            TyKind::Boolean => Ty::Primitive(Primitive::Boolean),
+            TyKind::Str => Ty::Primitive(Primitive::Str),
+            TyKind::None => Ty::Primitive(Primitive::None),
         };
 
-        self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id))?;
-        Ok(id)
+        self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id));
+        Some(id)
     }
 
-    fn resolve_path_ty(&mut self, path_ty: &AstPathTy) -> Result<PathTy, ResolveError> {
+    fn resolve_path_ty(&mut self, path_ty: &AstPathTy) -> Option<PathTy> {
         let def = self.resolve_qualified_ident(&path_ty.ident)?;
         let generics = self.resolve_generics(&path_ty.generics)?;
-        Ok(PathTy::new(def, generics))
+        Some(PathTy::new(def, generics))
     }
 
     fn resolve_trait_bound(
@@ -1121,28 +1554,22 @@ impl<'a> CrateResolver<'a> {
         trait_bound: &AstTraitBound,
         span: Span,
         id: LocalDefId,
-    ) -> Result<LocalDefId, ResolveError> {
-        let mut hir_bound = TraitBound::default();
-        for ty in trait_bound.bounds.iter() {
+    ) -> Option<LocalDefId> {
+        let mut hir_bound = Vec::with_capacity(trait_bound.len());
+        for ty in trait_bound.iter() {
             let resolved_ty = self.resolve_path_ty(ty)?;
             hir_bound.push(resolved_ty);
         }
 
         self.insert_node(
             id,
-            HirNode::new(
-                HirNodeKind::Ty(Ty::TraitBound {
-                    trait_bound: hir_bound,
-                }),
-                span,
-                id,
-            ),
-        )?;
+            HirNode::new(HirNodeKind::Ty(Ty::TraitBound(hir_bound.into())), span, id),
+        );
 
-        Ok(id)
+        Some(id)
     }
 
-    fn resolve_stmt(&mut self, stmt: &AstStmt) -> Result<LocalDefId, ResolveError> {
+    fn resolve_stmt(&mut self, stmt: &AstStmt) -> Option<LocalDefId> {
         let span = stmt.span;
         let id = stmt.id;
         let hir_stmt = match &stmt.kind {
@@ -1150,7 +1577,7 @@ impl<'a> CrateResolver<'a> {
                 self.insert_var(let_stmt.ident.ident, id);
 
                 let resolved_ty = self.maybe_resolve_ty(&let_stmt.ty)?;
-                let resolved_initializer = self.maybe_resolve_expr(&let_stmt.initializer)?;
+                let resolved_initializer = self.maybe_resolve_expr(&let_stmt.initializer).ok()?;
 
                 Stmt::Let(LetStmt::new(
                     let_stmt.ident,
@@ -1161,7 +1588,7 @@ impl<'a> CrateResolver<'a> {
             }
             AstStmtKind::For(for_stmt) => {
                 self.scopes.push(Scope::Block {
-                    vars: HashMap::default(),
+                    vars: StrMap::default(),
                 });
                 self.insert_var(for_stmt.ident.ident, id);
 
@@ -1182,13 +1609,13 @@ impl<'a> CrateResolver<'a> {
                 self.scopes.push(Scope::Block {
                     vars: Default::default(),
                 });
-                let if_false = self.maybe_resolve_block(&if_stmt.if_false)?;
+                let if_false = self.maybe_resolve_block(&if_stmt.if_false).ok()?;
                 self.scopes.pop();
 
                 Stmt::If(IfStmt::new(condition, if_true, if_false))
             }
             AstStmtKind::Return(return_stmt) => {
-                let maybe_expr = self.maybe_resolve_expr(&return_stmt.value)?;
+                let maybe_expr = self.maybe_resolve_expr(&return_stmt.value).ok()?;
                 Stmt::Return(ReturnStmt::new(maybe_expr))
             }
             AstStmtKind::While(while_stmt) => {
@@ -1220,36 +1647,40 @@ impl<'a> CrateResolver<'a> {
         self.insert_node(
             stmt.id,
             HirNode::new(HirNodeKind::Stmt(hir_stmt), stmt.span, stmt.id),
-        )?;
+        );
 
-        Ok(stmt.id)
+        Some(stmt.id)
     }
 
-    fn maybe_resolve_block(
-        &mut self,
-        block: &Option<AstBlock>,
-    ) -> Result<Option<LocalDefId>, ResolveError> {
+    fn maybe_resolve_block(&mut self, block: &Option<AstBlock>) -> Result<Option<LocalDefId>, ()> {
         match block {
             None => Ok(None),
-            Some(block) => Ok(Some(self.resolve_block(block)?)),
+            Some(block) => match self.resolve_block(block) {
+                Some(block) => Ok(Some(block)),
+                None => Err(()),
+            },
         }
     }
 
-    fn resolve_block(&mut self, block: &AstBlock) -> Result<LocalDefId, ResolveError> {
-        let mut stmts = Stmts::default();
+    fn resolve_block(&mut self, block: &AstBlock) -> Option<LocalDefId> {
+        let mut stmts = Vec::with_capacity(block.stmts.len());
         for stmt in &block.stmts {
             stmts.push(self.resolve_stmt(stmt)?);
         }
 
         self.insert_node(
             block.id,
-            HirNode::new(HirNodeKind::Block(Block::new(stmts)), block.span, block.id),
-        )?;
+            HirNode::new(
+                HirNodeKind::Block(Block::new(stmts.into())),
+                block.span,
+                block.id,
+            ),
+        );
 
-        Ok(block.id)
+        Some(block.id)
     }
 
-    fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Result<MatchArm, ResolveError> {
+    fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Option<MatchArm> {
         self.scopes.push(Scope::MatchArm {
             vars: Default::default(),
         });
@@ -1260,10 +1691,10 @@ impl<'a> CrateResolver<'a> {
 
         self.scopes.pop();
 
-        Ok(MatchArm::new(pattern, body))
+        Some(MatchArm::new(pattern, body))
     }
 
-    fn resolve_pattern(&mut self, pattern: &AstPattern) -> Result<Pattern, ResolveError> {
+    fn resolve_pattern(&mut self, pattern: &AstPattern) -> Option<Pattern> {
         let hir_pattern = match pattern {
             AstPattern::Wildcard => Pattern::Wildcard,
             AstPattern::Or(or_pattern) => {
@@ -1271,7 +1702,7 @@ impl<'a> CrateResolver<'a> {
                     .patterns
                     .iter()
                     .map(|patt| self.resolve_pattern(patt))
-                    .collect::<Result<Vec<Pattern>, ResolveError>>()?;
+                    .collect::<Option<Vec<_>>>()?;
                 Pattern::Or(OrPattern::new(patterns))
             }
             AstPattern::Ty(ty_patt) => {
@@ -1289,139 +1720,129 @@ impl<'a> CrateResolver<'a> {
             AstPattern::True => Pattern::True,
             AstPattern::False => Pattern::False,
             AstPattern::Float(float) => Pattern::Float(*float),
-            AstPattern::Integer(integer) => Pattern::Integer(*integer),
+            AstPattern::Int(int) => Pattern::Int(*int),
+            AstPattern::UInt(uint) => Pattern::UInt(*uint),
             AstPattern::String(string) => Pattern::String(*string),
             AstPattern::None => Pattern::None,
         };
 
-        Ok(hir_pattern)
+        Some(hir_pattern)
     }
 
     fn resolve_destructure_pattern(
         &mut self,
         de_patt: &AstDestructurePattern,
-    ) -> Result<DestructurePattern, ResolveError> {
+    ) -> Option<DestructurePattern> {
         let resolved_ty = self.resolve_path_ty(&de_patt.ty)?;
         let exprs = de_patt
             .exprs
             .iter()
             .map(|expr| self.resolve_destructure_expr(expr))
-            .collect::<Result<Vec<LocalDefId>, ResolveError>>()?;
-        Ok(DestructurePattern::new(resolved_ty, exprs))
+            .collect::<Option<Vec<_>>>()?;
+        Some(DestructurePattern::new(resolved_ty, exprs))
     }
 
-    fn resolve_qualified_ident(&mut self, ident: &QualifiedIdent) -> Result<DefId, ResolveError> {
-        let module_ns = &self.module.unwrap().ns;
+    fn resolve_qualified_ident(&mut self, ident: &QualifiedIdent) -> Option<DefId> {
+        let module_ns = &self.module.unwrap().namespace;
         match ident.ident_type {
             IdentType::Crate => match self.krate.find_definition(ident, false) {
-                None => Err(QualifiedIdentNotFound(ident.clone())),
+                None => {
+                    // TODO: Emit error!
+                    // Err(QualifiedIdentNotFound(ident.clone()).into())
+                    todo!()
+                }
                 Some(crate_def) => match crate_def {
-                    CrateDef::Module(_, _) => Err(ExpectedValueWasModule),
-                    CrateDef::Enum(_, enum_def) => Ok(enum_def.id),
-                    CrateDef::Value(name, val) => Ok(val),
+                    CrateDef::Module(_, _) => {
+                        // TODO: Emit error!
+                        // Err(ExpectedValueWasModule.into())
+                        todo!()
+                    }
+                    CrateDef::Value(_, val) => Some(val.id()),
                 },
             },
             IdentType::LocalOrUse => {
                 if let Some(ident) = ident.is_single() {
-                    // Has to be a local type or generic
-                    // Check first if it is a generic and then if it is in the module ns
-                    self.find_var(ident)
-                        .or_else(|| self.find_generic_param(ident))
-                        .or_else(|| self.find_enum_member(ident))
-                        .map(|var| var.to_def_id(self.krate.crate_id))
-                        .or_else(|| module_ns.find_value(ident))
-                        .ok_or(VarNotFound(ident))
-                } else if let Some(id) = module_ns.find_ident(ident, false) {
-                    Ok(id)
+                    self.find_generic_param(ident)
+                        .map(|param| param.to_def_id(self.krate.crate_id))
+                        .or_else(|| module_ns.find_value(ident).map(|value_def| value_def.id()))
+                        .or_else(|| {
+                            // TODO: Emit compiler warning
+                            // VarNotFound(ident).into()
+                            None
+                        })
+                } else if let Some(id) = module_ns.find_ident(ident) {
+                    Some(id)
                 } else if let Some(module_id) = module_ns.find_module(ident.first()) {
                     // Else it could be from a used module
-                    let module = self.get_module(module_id);
-                    module
-                        .ns
-                        .find_ident(ident, true)
-                        .ok_or(QualifiedIdentNotFound(ident.clone()))
+                    let module = &self.crate_lookup[module_id];
+                    module.namespace.find_ident_with_module(ident).or_else(|| {
+                        // QualifiedIdentNotFound(ident.clone()).into()
+                        // self.ctxt.emit_error()
+                        todo!()
+                    })
                 } else if let Some(krate) = self.crates.get(&ident.first()) {
                     // It must be from an external crate
                     match krate.find_definition(ident, true) {
-                        None => Err(QualifiedIdentNotFound(ident.clone())),
+                        None => {
+                            // QualifiedIdentNotFound(ident.clone()).into()
+                            // self.ctxt.emit_error()
+                            todo!()
+                        }
                         Some(crate_def) => match crate_def {
-                            CrateDef::Module(_, _) => Err(ExpectedValueWasModule),
-                            CrateDef::Enum(_, enum_def) => Ok(enum_def.id),
-                            CrateDef::Value(_, val) => Ok(val),
+                            CrateDef::Module(_, _) => {
+                                // ExpectedValueWasModule.into()
+                                // self.ctxt.emit_error();
+                                todo!()
+                            }
+                            CrateDef::Value(_, val) => Some(val.id()),
                         },
                     }
                 } else {
-                    Err(QualifiedIdentNotFound(ident.clone()))
+                    // QualifiedIdentNotFound(ident.clone()).into()
+                    // self.ctxt.emit_error()
+                    todo!()
                 }
             }
         }
     }
 
-    fn resolve_closure_params(
-        &mut self,
-        params: &[AstClosureParam],
-    ) -> Result<ClosureParams, ResolveError> {
+    fn resolve_closure_params(&mut self, params: &[AstClosureParam]) -> Option<ClosureParams> {
         // TODO: Add vars to scope
-        let params = params
+        let params: StrMap<ClosureParam> = params
             .iter()
             .map(|param| (param.ident.ident, ClosureParam::new(param.ident)))
             .collect();
-        Ok(ClosureParams::new(params))
+        Some(ClosureParams::from(params))
     }
 }
 
 mod tests {
-    use itertools::Itertools;
-
     use snap::snapshot;
 
-    use crate::compiler::compiler::{Application, CompileError, Compiler, CompilerCtxt};
-    use crate::compiler::hir::HirCrate;
-    use crate::compiler::resolver::ResolveError;
+    use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
+    use crate::compiler::hir::HirMap;
     use crate::compiler::types::StrMap;
     use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]
-    type ResolvedCrates = (StringInterner, StrMap<HirCrate>);
+    type ResolvedCrates = (CompilerCtxt, HirMap);
 
     #[cfg(test)]
     fn resolve_crate(name: &str) -> ResolvedCrates {
         let mut compiler = Compiler::default();
-        let main_crate = utils::resolve_test_krate_path(name);
-        let crate_path = main_crate.clone().parent().unwrap();
-        let application = Application::new(&main_crate, main_crate.parent().unwrap());
-        let mut crates = compiler.parse_crates(&application).unwrap();
+        let main_crate = &utils::resolve_test_krate_path(name);
+        let crate_path = main_crate.parent().unwrap();
+        let application = Application::Path {
+            main_crate,
+            crate_path,
+        };
+        let mut crates = compiler.parse_crates(application).unwrap();
         compiler.validate_crates(&crates).unwrap();
 
-        let resolved_crates = compiler.resolve_crates(&mut crates);
-        let string_interner = StringInterner::from(CompilerCtxt::from(compiler));
-        match resolved_crates {
-            Ok(crates) => (string_interner, crates),
-            Err(error) => {
-                if let CompileError::ResolveErrors(resolve_errors) = error {
-                    for error in resolve_errors {
-                        match error {
-                            ResolveError::QualifiedIdentNotFound(qualified_ident) => {
-                                let ident = qualified_ident
-                                    .idents
-                                    .iter()
-                                    .map(|ident| ident.ident)
-                                    .map(|ident| string_interner.resolve(&ident.into()))
-                                    .collect_vec();
-                                dbg!(ident);
-                            }
-                            ResolveError::VarNotFound(var) => {
-                                let ident = string_interner.resolve(&var.into());
-                                dbg!(ident);
-                            }
-                            _ => {}
-                        };
-                    }
-                };
-                panic!()
-            }
-        }
+        let hir_map = compiler.resolve_crates(&mut crates).unwrap();
+        let compiler_ctxt = CompilerCtxt::from(compiler);
+        (compiler_ctxt, hir_map)
     }
 
     #[test]

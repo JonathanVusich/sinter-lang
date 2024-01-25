@@ -52,7 +52,7 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
 
             if let Ok(file) = File::open(&snap_path) {
                 let reader = BufReader::new(file);
-                let saved_value: #ty = serde_json::from_reader(reader)?;
+                let saved_value: #ty = ron::de::from_reader(reader)?;
                 assert_eq!(saved_value, value);
                 Ok(())
             } else {
@@ -64,7 +64,13 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
                     .create(true)
                     .open(&snap_path)?;
                 let writer = BufWriter::new(file);
-                Ok(serde_json::to_writer_pretty(writer, &value)?)
+                Ok(ron::ser::to_writer_pretty(
+                    writer,
+                    &value,
+                    ron::ser::PrettyConfig::new()
+                        .indentor("  ".to_string())
+                        .compact_arrays(true)
+                )?)
             }
         }
     )

@@ -1,75 +1,55 @@
-[
-  [
-    "std",
-    "vector",
-    "Vector"
-  ],
-  {
-    "tokens": [
-      {
-        "token_type": "Use",
-        "span": {
-          "start": 0,
-          "end": 3
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 1
-        },
-        "span": {
-          "start": 4,
-          "end": 7
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 7,
-          "end": 8
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 8,
-          "end": 9
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 2
-        },
-        "span": {
-          "start": 9,
-          "end": 15
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 15,
-          "end": 16
-        }
-      },
-      {
-        "token_type": "Colon",
-        "span": {
-          "start": 16,
-          "end": 17
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 3
-        },
-        "span": {
-          "start": 17,
-          "end": 23
-        }
-      }
-    ],
-    "line_map": [],
-    "line_counter": 0
-  }
-]
+(["std", "vector", "Vector"], (
+  tokens: [(
+    token_type: Use,
+    span: (
+      start: 0,
+      end: 3,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 4,
+      end: 7,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 7,
+      end: 8,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 8,
+      end: 9,
+    ),
+  ), (
+    token_type: Identifier(2),
+    span: (
+      start: 9,
+      end: 15,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 15,
+      end: 16,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 16,
+      end: 17,
+    ),
+  ), (
+    token_type: Identifier(3),
+    span: (
+      start: 17,
+      end: 23,
+    ),
+  )],
+  line_map: (
+    lines: [],
+),
+  line_counter: 0,
+))

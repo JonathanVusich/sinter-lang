@@ -1,124 +1,124 @@
-[
-  {
-    "string_interner": [
-      "main",
-      "print",
-      "Hello world!"
-    ],
-    "crate_id": 0,
-    "local_def_id": 6
-  },
-  {
-    "path": {
-      "module_path": []
-    },
-    "id": {
-      "crate_id": 0,
-      "module_id": 0
-    },
-    "ns": {
-      "modules": {},
-      "values": {},
-      "enums": {}
-    },
-    "items": [
-      {
-        "kind": {
-          "Fn": {
-            "sig": {
-              "name": {
-                "ident": 1,
-                "span": {
-                  "start": 3,
-                  "end": 7
-                }
-              },
-              "generic_params": {
-                "params": []
-              },
-              "params": {
-                "params": []
-              },
-              "return_type": null
-            },
-            "body": {
-              "stmts": [
-                {
-                  "kind": {
-                    "Expression": {
-                      "expr": {
-                        "kind": {
-                          "Call": {
-                            "target": {
-                              "kind": {
-                                "Path": {
-                                  "ident_type": "LocalOrUse",
-                                  "segments": [
-                                    {
-                                      "ident": {
-                                        "ident": 2,
-                                        "span": {
-                                          "start": 16,
-                                          "end": 21
-                                        }
-                                      },
-                                      "generics": null
-                                    }
-                                  ]
-                                }
-                              },
-                              "span": {
-                                "start": 16,
-                                "end": 21
-                              },
-                              "id": 0
-                            },
-                            "args": {
-                              "args": [
-                                {
-                                  "kind": {
-                                    "String": 3
-                                  },
-                                  "span": {
-                                    "start": 22,
-                                    "end": 36
-                                  },
-                                  "id": 1
-                                }
-                              ]
-                            }
-                          }
-                        },
-                        "span": {
-                          "start": 16,
-                          "end": 37
-                        },
-                        "id": 2
-                      },
-                      "implicit_return": true
-                    }
-                  },
-                  "span": {
-                    "start": 16,
-                    "end": 38
-                  },
-                  "id": 3
-                }
-              ],
-              "span": {
-                "start": 10,
-                "end": 40
-              },
-              "id": 4
-            }
-          }
-        },
-        "span": {
-          "start": 0,
-          "end": 40
-        },
-        "id": 5
-      }
-    ]
-  }
-]
+((
+  string_interner: ["std", "out", "print", "main", "Hello world!"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 7,
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Use((
+      ident_type: LocalOrUse,
+      idents: [(
+        ident: 1,
+        span: (
+          start: 4,
+          end: 7,
+        ),
+      ), (
+        ident: 2,
+        span: (
+          start: 9,
+          end: 12,
+        ),
+      ), (
+        ident: 3,
+        span: (
+          start: 14,
+          end: 19,
+        ),
+      )],
+    )),
+    span: (
+      start: 0,
+      end: 20,
+    ),
+    id: 0,
+  ), (
+    kind: Fn((
+      sig: (
+        name: (
+          ident: 4,
+          span: (
+            start: 25,
+            end: 29,
+          ),
+        ),
+        generic_params: [],
+        params: [],
+        return_type: None,
+),
+      body: Some((
+        stmts: [(
+          kind: Expression((
+            expr: (
+              kind: Call((
+                target: (
+                  kind: Path((
+                    ident_type: LocalOrUse,
+                    segments: [(
+                      ident: (
+                        ident: 3,
+                        span: (
+                          start: 38,
+                          end: 43,
+                        ),
+                      ),
+                      generics: None,
+                    )],
+                  )),
+                  span: (
+                    start: 38,
+                    end: 43,
+                  ),
+                  id: 1,
+                ),
+                args: [(
+                  kind: String(5),
+                  span: (
+                    start: 44,
+                    end: 58,
+                  ),
+                  id: 2,
+                )],
+              )),
+              span: (
+                start: 38,
+                end: 59,
+              ),
+              id: 3,
+            ),
+            implicit_return: true,
+          )),
+          span: (
+            start: 38,
+            end: 60,
+          ),
+          id: 4,
+        )],
+        span: (
+          start: 32,
+          end: 62,
+        ),
+        id: 5,
+      )),
+    )),
+    span: (
+      start: 22,
+      end: 62,
+    ),
+    id: 6,
+  )],
+))

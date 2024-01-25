@@ -1,72 +1,50 @@
-[
-  [
-    "List",
-    "i64"
-  ],
-  {
-    "kind": {
-      "Path": {
-        "path": {
-          "ident": {
-            "ident_type": "LocalOrUse",
-            "idents": [
-              {
-                "ident": 1,
-                "span": {
-                  "start": 0,
-                  "end": 4
-                }
-              }
-            ]
-          },
-          "generics": {
-            "generics": [
-              {
-                "kind": {
-                  "Path": {
-                    "path": {
-                      "ident": {
-                        "ident_type": "LocalOrUse",
-                        "idents": [
-                          {
-                            "ident": 1,
-                            "span": {
-                              "start": 5,
-                              "end": 9
-                            }
-                          }
-                        ]
-                      },
-                      "generics": {
-                        "generics": [
-                          {
-                            "kind": "I64",
-                            "span": {
-                              "start": 10,
-                              "end": 13
-                            },
-                            "id": 0
-                          }
-                        ]
-                      }
-                    }
-                  }
-                },
-                "span": {
-                  "start": 5,
-                  "end": 14
-                },
-                "id": 1
-              }
-            ]
-          }
-        }
-      }
-    },
-    "span": {
-      "start": 0,
-      "end": 15
-    },
-    "id": 2
-  }
-]
+(["List", "i64"], (
+  kind: Path(
+    path: (
+      ident: (
+        ident_type: LocalOrUse,
+        idents: [(
+          ident: 1,
+          span: (
+            start: 0,
+            end: 4,
+          ),
+        )],
+      ),
+      generics: [(
+        kind: Path(
+          path: (
+            ident: (
+              ident_type: LocalOrUse,
+              idents: [(
+                ident: 1,
+                span: (
+                  start: 5,
+                  end: 9,
+                ),
+              )],
+            ),
+            generics: [(
+              kind: I64,
+              span: (
+                start: 10,
+                end: 13,
+              ),
+              id: 0,
+            )],
+          ),
+        ),
+        span: (
+          start: 5,
+          end: 14,
+        ),
+        id: 1,
+      )],
+    ),
+  ),
+  span: (
+    start: 0,
+    end: 15,
+  ),
+  id: 2,
+))

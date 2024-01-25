@@ -9,4 +9,4 @@ enum Planet {
     Neptune,
 }
 
-let NUM_PLANETS = 8;
+let NUM_PLANETS: u64 = 8;

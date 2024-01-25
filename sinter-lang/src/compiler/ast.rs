@@ -3,16 +3,18 @@ use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
 use std::path::{Path, Prefix};
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::hir::{LocalDefId, ModuleId};
 use crate::compiler::krate::CrateId;
-use crate::compiler::parser::{ClassType, ParseError};
+use crate::compiler::parser::{ClassType, ParseErrKind};
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ModuleNS;
-use crate::compiler::tokens::tokenized_file::Span;
+use crate::compiler::tokens::tokenized_file::{LineMap, Span};
 use crate::compiler::types::InternedStr;
+use crate::compiler::utils::named_slice;
 use crate::traits::traits::Trait;
 
 /// This trait describes a visitor that can traverse the AST and collect information.
@@ -65,10 +67,11 @@ pub enum ExprKind {
     Unary(UnaryExpr),
     True,
     False,
-    Float(f64),
-    Integer(i64),
-    String(InternedStr),
     None,
+    Float(f64),
+    Int(i64),
+    UInt(u64),
+    String(InternedStr),
     Match(MatchExpr),
     Closure(ClosureExpr),
     Assign(AssignExpr),
@@ -112,7 +115,6 @@ pub enum TyKind {
     Path { path: PathTy },
     TraitBound { trait_bound: TraitBound },
     Closure { params: Vec<Ty>, ret_ty: Box<Ty> },
-    Infer,
     QSelf,
     U8,
     U16,
@@ -131,9 +133,9 @@ pub enum TyKind {
 
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Module {
-    pub(crate) path: ModulePath,
     pub(crate) id: ModuleId,
-    pub(crate) ns: ModuleNS,
+    pub(crate) path: ModulePath,
+    pub(crate) namespace: ModuleNS,
     pub(crate) items: Vec<Item>,
 }
 
@@ -142,7 +144,7 @@ impl Module {
         Self {
             path: Default::default(),
             id: Default::default(),
-            ns: Default::default(),
+            namespace: Default::default(),
             items,
         }
     }
@@ -203,50 +205,13 @@ impl QualifiedIdent {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct TraitBound {
-    pub(crate) bounds: Vec<PathTy>,
-}
-
-impl TraitBound {
-    pub fn new(bounds: Vec<PathTy>) -> Self {
-        Self { bounds }
-    }
-}
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Generics {
-    generics: Vec<Ty>,
-}
-
-impl Generics {
-    pub fn new(generics: Vec<Ty>) -> Self {
-        Self { generics }
-    }
-}
-
-impl IntoIterator for Generics {
-    type Item = Ty;
-    type IntoIter = <Vec<Ty> as IntoIterator>::IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.generics.into_iter()
-    }
-}
-
-impl Deref for Generics {
-    type Target = [Ty];
-
-    fn deref(&self) -> &Self::Target {
-        self.generics.as_slice()
-    }
-}
-
-impl DerefMut for Generics {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.generics
-    }
-}
+named_slice!(TraitBound, PathTy);
+named_slice!(Generics, Ty);
+named_slice!(GenericParams, GenericParam);
+named_slice!(GenericCallSite, Ty);
+named_slice!(Params, Param);
+named_slice!(Fields, Field);
+named_slice!(Args, Expr);
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PathTy {
@@ -273,40 +238,6 @@ impl UseStmt {
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct GenericParams {
-    params: Vec<GenericParam>,
-}
-
-impl GenericParams {
-    pub const fn new(params: Vec<GenericParam>) -> Self {
-        Self { params }
-    }
-}
-
-impl IntoIterator for GenericParams {
-    type Item = GenericParam;
-    type IntoIter = <Vec<GenericParam> as IntoIterator>::IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.params.into_iter()
-    }
-}
-
-impl Deref for GenericParams {
-    type Target = [GenericParam];
-
-    fn deref(&self) -> &Self::Target {
-        self.params.as_slice()
-    }
-}
-
-impl DerefMut for GenericParams {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.params
-    }
-}
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GenericParam {
     pub(crate) name: Ident,
     // Must be of type TraitBound, but need the entire Ty to store span + id.
@@ -323,125 +254,6 @@ impl GenericParam {
             span,
             id,
         }
-    }
-}
-
-#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
-pub struct GenericCallSite {
-    generics: Vec<Ty>,
-}
-
-impl GenericCallSite {
-    pub fn new(generics: Vec<Ty>) -> Self {
-        Self { generics }
-    }
-}
-
-#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
-pub struct Params {
-    params: Vec<Param>,
-}
-
-impl Params {
-    pub const fn new(params: Vec<Param>) -> Self {
-        Self { params }
-    }
-}
-
-impl IntoIterator for Params {
-    type Item = Param;
-    type IntoIter = <Vec<Param> as IntoIterator>::IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.params.into_iter()
-    }
-}
-
-impl Deref for Params {
-    type Target = [Param];
-
-    fn deref(&self) -> &Self::Target {
-        &self.params
-    }
-}
-
-impl DerefMut for Params {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.params
-    }
-}
-
-#[derive(Clone, PartialEq, Debug, Default, Serialize, Deserialize)]
-pub struct Fields {
-    params: Vec<Field>,
-}
-
-impl Fields {
-    pub const fn new(params: Vec<Field>) -> Self {
-        Self { params }
-    }
-}
-
-impl IntoIterator for Fields {
-    type Item = Field;
-    type IntoIter = <Vec<Field> as IntoIterator>::IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.params.into_iter()
-    }
-}
-
-impl Deref for Fields {
-    type Target = [Field];
-
-    fn deref(&self) -> &Self::Target {
-        &self.params
-    }
-}
-
-impl DerefMut for Fields {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.params
-    }
-}
-
-pub const EMPTY_ARGS: Args = Args::new(Vec::new());
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Args {
-    args: Vec<Expr>,
-}
-
-impl Args {
-    pub const fn new(args: Vec<Expr>) -> Self {
-        Self { args }
-    }
-
-    pub fn empty() -> Self {
-        EMPTY_ARGS
-    }
-}
-
-impl IntoIterator for Args {
-    type Item = Expr;
-    type IntoIter = <Vec<Expr> as IntoIterator>::IntoIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.args.into_iter()
-    }
-}
-
-impl Deref for Args {
-    type Target = [Expr];
-
-    fn deref(&self) -> &Self::Target {
-        &self.args
-    }
-}
-
-impl DerefMut for Args {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.args
     }
 }
 
@@ -720,12 +532,12 @@ impl Field {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
     pub name: Ident,
-    pub ty: Option<Ty>,
+    pub ty: Ty,
     pub initializer: Expr,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: Ident, ty: Option<Ty>, initializer: Expr) -> Self {
+    pub fn new(ident: Ident, ty: Ty, initializer: Expr) -> Self {
         Self {
             name: ident,
             ty,
@@ -927,20 +739,20 @@ impl Segment {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PathExpr {
     pub ident_type: IdentType,
-    pub segments: Vec<Segment>,
+    pub segments: Arc<[Segment]>,
 }
 
 impl PathExpr {
     pub fn new(ident_type: IdentType, segments: Vec<Segment>) -> Self {
         Self {
             ident_type,
-            segments,
+            segments: segments.into(),
         }
     }
 
-    pub fn var_identifier(&self) -> Option<Ident> {
-        if self.segments.len() == 1 {
-            Some(self.segments.first().unwrap().ident)
+    pub fn is_single(&self) -> Option<&Segment> {
+        if let [first] = self.segments.as_ref() {
+            Some(first)
         } else {
             None
         }
@@ -995,7 +807,8 @@ pub enum Pattern {
     True,
     False,
     Float(f64),
-    Integer(i64),
+    Int(i64),
+    UInt(u64),
     String(InternedStr),
     None,
     // "true"
@@ -1087,7 +900,8 @@ pub enum DestructureExprKind {
     True,
     False,
     Float(f64),
-    Integer(i64),
+    Int(i64),
+    UInt(u64),
     String(InternedStr),
     None,
 }

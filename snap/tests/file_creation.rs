@@ -22,7 +22,7 @@ pub fn assert_file_is_created() -> std::io::Result<()> {
 
         let open_file = File::open(&path).unwrap();
 
-        let value: usize = serde_json::from_reader(BufReader::new(open_file)).unwrap();
+        let value: usize = ron::de::from_reader(BufReader::new(open_file)).unwrap();
 
         assert_eq!(17, value);
     }

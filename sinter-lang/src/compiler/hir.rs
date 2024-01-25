@@ -1,29 +1,50 @@
 use std::borrow::Borrow;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::{Debug, Formatter};
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref, Index};
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{Ident, InfixOp, Mutability, UnaryOp};
-use crate::compiler::krate::CrateId;
+use crate::compiler::ast::{Ident, InfixOp, Module, Mutability, UnaryOp};
+use crate::compiler::krate::{Crate, CrateId};
 use crate::compiler::parser::ClassType;
+use crate::compiler::path::ModulePath;
+use crate::compiler::resolver::{FnDef, MaybeFnDef, ValueDef};
 use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::{InternedStr, StrMap};
+use crate::compiler::types::{InternedStr, LDefMap, StrMap, StrSet};
+use crate::compiler::utils::{named_slice, named_strmap};
+use crate::traits::traits::Trait;
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
+macro_rules! def_node_getter {
+    ($fn_name:ident, $maybe_fn_name:ident, $patt:pat, $extractor:expr, $node_ty:ty) => {
+        impl HirCrate {
+            pub fn $fn_name(&self, node_id: &LocalDefId) -> $node_ty {
+                match self.nodes.get(node_id) {
+                    Some(HirNode { kind: $patt, .. }) => $extractor,
+                    _ => unreachable!(),
+                }
+            }
+
+            pub fn $maybe_fn_name(&self, node_id: &LocalDefId) -> Option<$node_ty> {
+                match self.nodes.get(node_id) {
+                    Some(HirNode { kind: $patt, .. }) => Some($extractor),
+                    _ => None,
+                }
+            }
+        }
+    };
+}
+
+#[derive(PartialEq, Eq, Hash, Debug, Default, Clone, Copy, Serialize, Deserialize)]
 pub struct DefId {
     crate_id: u32,
     local_id: u32,
 }
 
 impl DefId {
-    pub fn crate_id(&self) -> usize {
-        self.crate_id as usize
-    }
-
-    pub fn local_id(&self) -> usize {
-        self.local_id as usize
+    pub fn local_id(&self) -> LocalDefId {
+        LocalDefId::new(self.local_id)
     }
 }
 
@@ -33,20 +54,28 @@ pub struct ModuleId {
     module_id: u32,
 }
 
+impl Index<ModuleId> for Vec<Module> {
+    type Output = Module;
+
+    fn index(&self, index: ModuleId) -> &Self::Output {
+        &self[index.module_id as usize]
+    }
+}
+
+impl<'a> Index<ModuleId> for Vec<&'a Crate> {
+    type Output = Module;
+
+    fn index(&self, index: ModuleId) -> &Self::Output {
+        &self[index.crate_id as usize][index]
+    }
+}
+
 impl ModuleId {
     pub fn new(crate_id: u32, module_id: u32) -> Self {
         Self {
             crate_id,
             module_id,
         }
-    }
-
-    pub fn crate_id(&self) -> usize {
-        self.crate_id as usize
-    }
-
-    pub fn module_id(&self) -> usize {
-        self.module_id as usize
     }
 }
 
@@ -115,13 +144,12 @@ pub enum HirNodeKind {
     EnumMember(EnumMember),
 
     Expr(Expr),
+    Ty(Ty),
     DestructureExpr(DestructureExpr),
     Stmt(Stmt),
-    Ty(Ty),
     Block(Block),
 
     Param(Param),
-    GenericParam(GenericParam),
     Field(Field),
     Pattern(Pattern),
     MatchArm(MatchArm),
@@ -130,12 +158,12 @@ pub enum HirNodeKind {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
     pub ident: InternedStr,
-    pub ty: Option<LocalDefId>,
+    pub ty: LocalDefId,
     pub initializer: LocalDefId,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: InternedStr, ty: Option<LocalDefId>, initializer: LocalDefId) -> Self {
+    pub fn new(ident: InternedStr, ty: LocalDefId, initializer: LocalDefId) -> Self {
         Self {
             ident,
             ty,
@@ -209,19 +237,6 @@ impl EnumMember {
             fields,
             member_fns,
         }
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-pub struct EnumMembers {
-    members: StrMap<LocalDefId>,
-}
-
-impl Deref for EnumMembers {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.members
     }
 }
 
@@ -325,8 +340,8 @@ impl Block {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expression {
-    expr: LocalDefId,
-    implicit_return: bool,
+    pub(crate) expr: LocalDefId,
+    pub(crate) implicit_return: bool,
 }
 
 impl Expression {
@@ -339,26 +354,7 @@ impl Expression {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-//noinspection DuplicatedCode
-pub enum Ty {
-    Array {
-        ty: LocalDefId,
-    },
-    Path {
-        path: PathTy,
-    },
-    Union {
-        tys: Vec<LocalDefId>,
-    },
-    TraitBound {
-        trait_bound: TraitBound,
-    },
-    Closure {
-        params: Vec<LocalDefId>,
-        ret_ty: LocalDefId,
-    },
-    Infer,
-    QSelf,
+pub enum Primitive {
     U8,
     U16,
     U32,
@@ -372,6 +368,44 @@ pub enum Ty {
     Str,
     Boolean,
     None,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+//noinspection DuplicatedCode
+pub enum Ty {
+    Array(Array),
+    Path(PathTy),
+    GenericParam(GenericParam),
+    TraitBound(TraitBound),
+    Closure(Closure),
+    Primitive(Primitive),
+}
+
+impl Ty {
+    fn contains_ty(&self, other: &Ty) -> bool {
+        todo!()
+        // match self {
+        //     Ty::Array { .. } => {}
+        //     Ty::Path { .. } => {}
+        //     Ty::TraitBound { .. } => {}
+        //     Ty::Closure { .. } => {}
+        //     Ty::Infer => {}
+        //     Ty::QSelf => {}
+        //     Ty::U8 => {}
+        //     Ty::U16 => {}
+        //     Ty::U32 => {}
+        //     Ty::U64 => {}
+        //     Ty::I8 => {}
+        //     Ty::I16 => {}
+        //     Ty::I32 => {}
+        //     Ty::I64 => {}
+        //     Ty::F32 => {}
+        //     Ty::F64 => {}
+        //     Ty::Str => {}
+        //     Ty::Boolean => {}
+        //     Ty::None => {}
+        // }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -400,42 +434,31 @@ impl PathTy {
     }
 }
 
-#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
-pub struct TraitBound {
-    bounds: Vec<PathTy>,
-}
-
-impl TraitBound {
-    pub fn new(bounds: Vec<PathTy>) -> Self {
-        Self { bounds }
-    }
-}
-
-impl Deref for TraitBound {
-    type Target = Vec<PathTy>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.bounds
-    }
-}
-
-impl DerefMut for TraitBound {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.bounds
-    }
-}
+named_slice!(TraitBound, PathTy);
+named_slice!(Generics, LocalDefId);
+named_slice!(Args, LocalDefId);
+named_slice!(Stmts, LocalDefId);
+named_slice!(AnonParams, LocalDefId);
+named_slice!(Initializers, LocalDefId);
+named_slice!(Exprs, LocalDefId);
+named_strmap!(ClosureParams, ClosureParam);
+named_strmap!(GenericParams, LocalDefId);
+named_strmap!(Params, LocalDefId);
+named_strmap!(Fields, LocalDefId);
+named_strmap!(FnStmts, LocalDefId);
+named_strmap!(EnumMembers, LocalDefId);
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Expr {
     Array(ArrayExpr),
     Call(CallExpr),
-    Constructor(CallExpr),
     Infix(InfixExpr),
     Unary(UnaryExpr),
     None,
     True,
     False,
-    Integer(i64),
+    Int(i64),
+    UInt(u64),
     Float(f64),
     String(InternedStr),
     Match(MatchExpr),
@@ -455,7 +478,8 @@ pub enum DestructureExpr {
     None,
     True,
     False,
-    Integer(i64),
+    Int(i64),
+    UInt(u64),
     Float(f64),
     String(InternedStr),
 }
@@ -477,7 +501,7 @@ pub enum ArrayExpr {
         size: LocalDefId,
     },
     Unsized {
-        initializers: Vec<LocalDefId>,
+        initializers: Initializers,
     },
 }
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
@@ -548,7 +572,8 @@ pub enum Pattern {
     None,
     True,
     False,
-    Integer(i64),
+    Int(i64),
+    UInt(u64),
     Float(f64),
     String(InternedStr),
     Ty(TyPattern),
@@ -594,12 +619,38 @@ impl PatternLocal {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct DestructurePattern {
     pub ty: PathTy,
-    pub exprs: Vec<LocalDefId>,
+    pub exprs: Exprs,
 }
 
 impl DestructurePattern {
     pub fn new(ty: PathTy, exprs: Vec<LocalDefId>) -> Self {
-        Self { ty, exprs }
+        Self {
+            ty,
+            exprs: Exprs::from(exprs),
+        }
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub struct Array {
+    pub(crate) ty: LocalDefId,
+}
+
+impl Array {
+    pub fn new(ty: LocalDefId) -> Self {
+        Self { ty }
+    }
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub struct Closure {
+    pub(crate) params: AnonParams,
+    pub(crate) ret_ty: LocalDefId,
+}
+
+impl Closure {
+    pub fn new(params: AnonParams, ret_ty: LocalDefId) -> Self {
+        Self { params, ret_ty }
     }
 }
 
@@ -653,24 +704,60 @@ impl IndexExpr {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct PathExpr {
-    pub segments: Vec<Segment>,
+    pub segments: Arc<[Segment]>,
 }
 
 impl PathExpr {
     pub fn new(segments: Vec<Segment>) -> Self {
-        Self { segments }
+        Self {
+            segments: segments.into(),
+        }
+    }
+
+    pub fn is_single(&self) -> Option<&Segment> {
+        if self.segments.len() == 1 {
+            return self.segments.first();
+        }
+        None
     }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+pub enum Res {
+    Crate(CrateId),
+    ModuleSegment(CrateId, ModulePath),
+    Module(ModuleId),
+    ValueDef(ValueDef),
+    Fn(MaybeFnDef), // These have to be late resolved after type information is deduced?
+    Local(LocalDef),
+    Primitive(Primitive),
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum LocalDef {
+    Var(LocalDefId),
+    Generic(LocalDefId),
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum DefTy {
+    GlobalLet,
+    Class,
+    Enum,
+    EnumMember,
+    Trait,
+    Fn,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct Segment {
-    pub ident: Ident,
+    pub res: Res,
     pub generics: Option<Generics>,
 }
 
 impl Segment {
-    pub fn new(ident: Ident, generics: Option<Generics>) -> Self {
-        Self { ident, generics }
+    pub fn new(res: Res, generics: Option<Generics>) -> Self {
+        Self { res, generics }
     }
 }
 
@@ -748,9 +835,9 @@ impl ForStmt {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct IfStmt {
-    condition: LocalDefId,
-    if_true: LocalDefId,
-    if_false: Option<LocalDefId>,
+    pub condition: LocalDefId,
+    pub if_true: LocalDefId,
+    pub if_false: Option<LocalDefId>,
 }
 
 impl IfStmt {
@@ -760,78 +847,6 @@ impl IfStmt {
             if_true,
             if_false,
         }
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct FnStmts {
-    fields: StrMap<LocalDefId>,
-}
-
-impl Deref for FnStmts {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.fields
-    }
-}
-
-impl DerefMut for FnStmts {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.fields
-    }
-}
-
-#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Stmts {
-    stmts: Vec<LocalDefId>,
-}
-
-impl Deref for Stmts {
-    type Target = Vec<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.stmts
-    }
-}
-
-impl DerefMut for Stmts {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.stmts
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Args {
-    args: Vec<LocalDefId>,
-}
-
-impl Args {
-    pub fn new(args: Vec<LocalDefId>) -> Self {
-        Self { args }
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Fields {
-    fields: StrMap<LocalDefId>,
-}
-
-impl Deref for Fields {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.fields
-    }
-}
-
-impl DerefMut for Fields {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.fields
     }
 }
 
@@ -848,68 +863,6 @@ impl ClosureParam {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Params {
-    params: StrMap<LocalDefId>,
-}
-
-impl Deref for Params {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.params
-    }
-}
-
-impl DerefMut for Params {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.params
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct ClosureParams {
-    closure_params: StrMap<ClosureParam>,
-}
-
-impl ClosureParams {
-    pub fn new(fields: StrMap<ClosureParam>) -> Self {
-        Self {
-            closure_params: fields,
-        }
-    }
-}
-
-impl Deref for ClosureParams {
-    type Target = StrMap<ClosureParam>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.closure_params
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct GenericParams {
-    generic_params: StrMap<LocalDefId>,
-}
-
-impl Deref for GenericParams {
-    type Target = StrMap<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.generic_params
-    }
-}
-
-impl DerefMut for GenericParams {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.generic_params
-    }
-}
-
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GenericParam {
     pub(crate) ident: Ident,
@@ -922,31 +875,36 @@ impl GenericParam {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct Generics {
-    generics: Vec<LocalDefId>,
+#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
+pub struct HirMap {
+    crates: Vec<HirCrate>,
+    names_to_indices: StrSet,
 }
 
-impl Generics {
-    pub fn with_capacity(len: usize) -> Self {
-        Self {
-            generics: Vec::with_capacity(len),
-        }
+impl HirMap {
+    pub fn insert(&mut self, krate: HirCrate) {
+        self.names_to_indices.insert(krate.name);
+        self.crates.push(krate);
     }
-}
 
-impl Deref for Generics {
-    type Target = Vec<LocalDefId>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.generics
+    pub fn krate_by_name(&self, name: &InternedStr) -> &HirCrate {
+        let index = self.names_to_indices.get_index_of(name).unwrap();
+        &self.crates[index]
     }
-}
+    pub fn krate(&self, def_id: &DefId) -> &HirCrate {
+        &self.crates[def_id.crate_id as usize]
+    }
+    pub fn krates(&self) -> impl Iterator<Item = &HirCrate> {
+        self.crates.iter()
+    }
 
-impl DerefMut for Generics {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.generics
+    pub fn into_krates(self) -> impl Iterator<Item = HirCrate> + Debug {
+        self.crates.into_iter()
+    }
+
+    pub fn node(&self, def_id: &DefId) -> &HirNodeKind {
+        let krate = &self.crates[def_id.crate_id as usize];
+        krate.node(&def_id.local_id())
     }
 }
 
@@ -954,19 +912,67 @@ impl DerefMut for Generics {
 pub struct HirCrate {
     pub(crate) name: InternedStr,
     pub(crate) id: CrateId,
-    items: Vec<LocalDefId>,
+    pub(crate) items: Vec<LocalDefId>,
     #[cfg(not(test))]
-    nodes: HashMap<LocalDefId, HirNode>,
+    pub(crate) nodes: LDefMap<HirNode>,
     #[cfg(test)]
-    nodes: BTreeMap<LocalDefId, HirNode>,
+    pub(crate) nodes: BTreeMap<LocalDefId, HirNode>,
 }
+
+def_node_getter!(
+    let_stmt,
+    maybe_let_stmt,
+    HirNodeKind::Stmt(Stmt::Let(let_stmt)),
+    let_stmt,
+    &LetStmt
+);
+def_node_getter!(
+    fn_stmt,
+    maybe_fn_stmt,
+    HirNodeKind::Fn(fn_stmt),
+    fn_stmt,
+    &FnStmt
+);
+def_node_getter!(ty_stmt, maybe_ty_stmt, HirNodeKind::Ty(ty), ty, &Ty);
+def_node_getter!(
+    global_let_stmt,
+    maybe_global_let_stmt,
+    HirNodeKind::GlobalLet(global_let_stmt),
+    global_let_stmt,
+    &GlobalLetStmt
+);
+def_node_getter!(
+    class_stmt,
+    maybe_class_stmt,
+    HirNodeKind::Class(class_stmt),
+    class_stmt,
+    &ClassStmt
+);
+def_node_getter!(
+    enum_member,
+    maybe_enum_member,
+    HirNodeKind::EnumMember(enum_member),
+    enum_member,
+    &EnumMember
+);
+
+def_node_getter!(
+    trait_bound,
+    maybe_trait_bound,
+    HirNodeKind::Ty(Ty::TraitBound(trait_bound)),
+    trait_bound,
+    &TraitBound
+);
+
+def_node_getter!(param, maybe_param, HirNodeKind::Param(param), param, &Param);
+def_node_getter!(field, maybe_field, HirNodeKind::Field(field), field, &Field);
 
 impl HirCrate {
     pub fn new(
         name: InternedStr,
         id: CrateId,
         items: Vec<LocalDefId>,
-        nodes: HashMap<LocalDefId, HirNode>,
+        nodes: LDefMap<HirNode>,
     ) -> Self {
         #[cfg(test)]
         let nodes = BTreeMap::from_iter(nodes);
@@ -975,6 +981,20 @@ impl HirCrate {
             id,
             items,
             nodes,
+        }
+    }
+
+    pub fn node(&self, node: &LocalDefId) -> &HirNodeKind {
+        self.nodes.get(node).map(|node| &node.kind).unwrap()
+    }
+
+    pub fn stmt(&self, stmt_id: LocalDefId) -> &Stmt {
+        match self.nodes.get(&stmt_id) {
+            Some(HirNode {
+                kind: HirNodeKind::Stmt(stmt),
+                ..
+            }) => stmt,
+            _ => unreachable!(),
         }
     }
 }

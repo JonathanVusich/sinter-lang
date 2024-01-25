@@ -1,2216 +1,2060 @@
-[
-  [
-    "path_resolution",
-    "planet",
-    "Planet",
-    "Mercury",
-    "Venus",
-    "Earth",
-    "Mars",
-    "Jupiter",
-    "Saturn",
-    "Uranus",
-    "Neptune",
-    "NUM_PLANETS",
-    "planet_calculator",
-    "crate",
-    "std",
-    "math",
-    "min",
-    "EARTH_DIAMETER",
-    "diameter",
-    "VENUS_DIAMETER",
-    "MAX_DIAMETER",
-    "max",
-    "MIN_DIAMETER",
-    "QUALIFIED_MIN",
-    "NUM_PLANETS_FULLY_QUALIFIED",
-    "NUM_PLANETS_PARTIALLY_QUALIFIED",
-    "fun_with_planets",
-    "u64",
-    "fun_with_planets_generic",
-    "discriminant",
-    "fun_with_planets_use",
-    "sqrt",
-    "x",
-    "y",
-    "f64"
-  ],
-  {
-    "1": {
-      "name": 1,
-      "id": {
-        "id": 0
-      },
-      "items": [
-        8
-      ],
-      "nodes": {
-        "0": {
-          "kind": {
-            "EnumMember": {
-              "name": 4,
-              "fields": {},
-              "member_fns": {}
-            }
+((
+  string_interner: ["path_resolution", "planet", "Planet", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "NUM_PLANETS", "u64", "planet_calculator", "crate", "std", "math", "min", "EARTH_DIAMETER", "diameter", "VENUS_DIAMETER", "MAX_DIAMETER", "max", "MIN_DIAMETER", "QUALIFIED_MIN", "NUM_PLANETS_FULLY_QUALIFIED", "NUM_PLANETS_PARTIALLY_QUALIFIED", "fun_with_planets", "fun_with_planets_generic", "discriminant", "fun_with_planets_use", "sqrt", "x", "y", "f64", "out", "print", "message", "str"],
+  source_map: {
+    (
+      crate_id: 0,
+      module_id: 1,
+    ): (
+      line_map: (
+        lines: [18, 45, 79, 94, 114, 115, 159, 211, 212, 291, 364, 449, 450, 517, 581, 582, 630, 640, 642, 643, 689, 715, 717, 718, 753, 778],
+      ),
+    ),
+    (
+      crate_id: 1,
+      module_id: 0,
+    ): (
+      line_map: (
+        lines: [32, 40, 42, 43, 75, 90, 100, 113, 123, 129, 131, 132, 164, 179, 189, 202, 212, 218],
+      ),
+    ),
+    (
+      crate_id: 0,
+      module_id: 0,
+    ): (
+      line_map: (
+        lines: [13, 26, 37, 48, 58, 71, 83, 95, 108, 110, 111, 137],
+      ),
+    ),
+    (
+      crate_id: 1,
+      module_id: 1,
+    ): (
+      line_map: (
+        lines: [24, 25],
+      ),
+    ),
+  },
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 2,
+  local_def_id: 47,
+), (
+  crates: [(
+    name: 1,
+    id: (
+      id: 0,
+    ),
+    items: [8, 11, 21, 26, 36, 46, 56, 59, 62, 70, 77, 84],
+    nodes: {
+      0: (
+        kind: EnumMember((
+          name: 4,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 18,
+          end: 25,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: EnumMember((
+          name: 5,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 31,
+          end: 36,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: EnumMember((
+          name: 6,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 42,
+          end: 47,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: EnumMember((
+          name: 7,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 53,
+          end: 57,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: EnumMember((
+          name: 8,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 63,
+          end: 70,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: EnumMember((
+          name: 9,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 76,
+          end: 82,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: EnumMember((
+          name: 10,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 88,
+          end: 94,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: EnumMember((
+          name: 11,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 100,
+          end: 107,
+        ),
+        id: 7,
+      ),
+      8: (
+        kind: Enum((
+          name: (
+            ident: 3,
+            span: (
+              start: 5,
+              end: 11,
+            ),
+          ),
+          generic_params: {},
+          members: {
+            4: 0,
+            5: 1,
+            6: 2,
+            7: 3,
+            8: 4,
+            9: 5,
+            10: 6,
+            11: 7,
           },
-          "span": {
-            "start": 18,
-            "end": 25
-          },
-          "id": 0
-        },
-        "1": {
-          "kind": {
-            "EnumMember": {
-              "name": 5,
-              "fields": {},
-              "member_fns": {}
-            }
-          },
-          "span": {
-            "start": 31,
-            "end": 36
-          },
-          "id": 1
-        },
-        "2": {
-          "kind": {
-            "EnumMember": {
-              "name": 6,
-              "fields": {},
-              "member_fns": {}
-            }
-          },
-          "span": {
-            "start": 42,
-            "end": 47
-          },
-          "id": 2
-        },
-        "3": {
-          "kind": {
-            "EnumMember": {
-              "name": 7,
-              "fields": {},
-              "member_fns": {}
-            }
-          },
-          "span": {
-            "start": 53,
-            "end": 57
-          },
-          "id": 3
-        },
-        "4": {
-          "kind": {
-            "EnumMember": {
-              "name": 8,
-              "fields": {},
-              "member_fns": {}
-            }
-          },
-          "span": {
-            "start": 63,
-            "end": 70
-          },
-          "id": 4
-        },
-        "5": {
-          "kind": {
-            "EnumMember": {
-              "name": 9,
-              "fields": {},
-              "member_fns": {}
-            }
-          },
-          "span": {
-            "start": 76,
-            "end": 82
-          },
-          "id": 5
-        },
-        "6": {
-          "kind": {
-            "EnumMember": {
-              "name": 10,
-              "fields": {},
-              "member_fns": {}
-            }
-          },
-          "span": {
-            "start": 88,
-            "end": 94
-          },
-          "id": 6
-        },
-        "7": {
-          "kind": {
-            "EnumMember": {
-              "name": 11,
-              "fields": {},
-              "member_fns": {}
-            }
-          },
-          "span": {
-            "start": 100,
-            "end": 107
-          },
-          "id": 7
-        },
-        "8": {
-          "kind": {
-            "Enum": {
-              "name": {
-                "ident": 3,
-                "span": {
-                  "start": 5,
-                  "end": 11
-                }
+          member_fns: {},
+        )),
+        span: (
+          start: 0,
+          end: 110,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 129,
+          end: 132,
+        ),
+        id: 9,
+      ),
+      10: (
+        kind: Expr(Int(8)),
+        span: (
+          start: 135,
+          end: 136,
+        ),
+        id: 10,
+      ),
+      11: (
+        kind: GlobalLet((
+          ident: 12,
+          ty: 9,
+          initializer: 10,
+        )),
+        span: (
+          start: 112,
+          end: 137,
+        ),
+        id: 11,
+      ),
+      17: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 136,
+          end: 139,
+        ),
+        id: 17,
+      ),
+      18: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 2,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 142,
+          end: 147,
+        ),
+        id: 18,
+      ),
+      19: (
+        kind: Expr(Field((
+          lhs: 18,
+          ident: (
+            ident: 20,
+            span: (
+              start: 148,
+              end: 156,
+            ),
+          ),
+        ))),
+        span: (
+          start: 142,
+          end: 156,
+        ),
+        id: 19,
+      ),
+      20: (
+        kind: Expr(Call((
+          target: 19,
+          args: [],
+))),
+        span: (
+          start: 142,
+          end: 158,
+        ),
+        id: 20,
+      ),
+      21: (
+        kind: GlobalLet((
+          ident: 19,
+          ty: 17,
+          initializer: 20,
+        )),
+        span: (
+          start: 116,
+          end: 159,
+        ),
+        id: 21,
+      ),
+      22: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 180,
+          end: 183,
+        ),
+        id: 22,
+      ),
+      23: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Enum((
+              id: (
+                crate_id: 0,
+                local_id: 8,
+              ),
+              members: {
+                4: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 0,
+                  ),
+                  fns: {},
+                ),
+                5: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 1,
+                  ),
+                  fns: {},
+                ),
+                6: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 2,
+                  ),
+                  fns: {},
+                ),
+                7: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 3,
+                  ),
+                  fns: {},
+                ),
+                8: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 4,
+                  ),
+                  fns: {},
+                ),
+                9: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 5,
+                  ),
+                  fns: {},
+                ),
+                10: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 6,
+                  ),
+                  fns: {},
+                ),
+                11: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 7,
+                  ),
+                  fns: {},
+                ),
               },
-              "generic_params": {},
-              "members": {
-                "members": {}
+              fns: {},
+            ))),
+            generics: None,
+          ), (
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 1,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 186,
+          end: 199,
+        ),
+        id: 23,
+      ),
+      24: (
+        kind: Expr(Field((
+          lhs: 23,
+          ident: (
+            ident: 20,
+            span: (
+              start: 200,
+              end: 208,
+            ),
+          ),
+        ))),
+        span: (
+          start: 186,
+          end: 208,
+        ),
+        id: 24,
+      ),
+      25: (
+        kind: Expr(Call((
+          target: 24,
+          args: [],
+))),
+        span: (
+          start: 186,
+          end: 210,
+        ),
+        id: 25,
+      ),
+      26: (
+        kind: GlobalLet((
+          ident: 21,
+          ty: 22,
+          initializer: 25,
+        )),
+        span: (
+          start: 160,
+          end: 211,
+        ),
+        id: 26,
+      ),
+      27: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 231,
+          end: 234,
+        ),
+        id: 27,
+      ),
+      28: (
+        kind: Expr(Path((
+          segments: [(
+            res: Module((
+              crate_id: 1,
+              module_id: 0,
+            )),
+            generics: None,
+          ), (
+            res: ValueDef(Fn((
+              id: (
+                crate_id: 1,
+                local_id: 25,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 237,
+          end: 246,
+        ),
+        id: 28,
+      ),
+      29: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 2,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 247,
+          end: 252,
+        ),
+        id: 29,
+      ),
+      30: (
+        kind: Expr(Field((
+          lhs: 29,
+          ident: (
+            ident: 20,
+            span: (
+              start: 253,
+              end: 261,
+            ),
+          ),
+        ))),
+        span: (
+          start: 247,
+          end: 261,
+        ),
+        id: 30,
+      ),
+      31: (
+        kind: Expr(Call((
+          target: 30,
+          args: [],
+))),
+        span: (
+          start: 247,
+          end: 263,
+        ),
+        id: 31,
+      ),
+      32: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Enum((
+              id: (
+                crate_id: 0,
+                local_id: 8,
+              ),
+              members: {
+                4: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 0,
+                  ),
+                  fns: {},
+                ),
+                5: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 1,
+                  ),
+                  fns: {},
+                ),
+                6: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 2,
+                  ),
+                  fns: {},
+                ),
+                7: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 3,
+                  ),
+                  fns: {},
+                ),
+                8: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 4,
+                  ),
+                  fns: {},
+                ),
+                9: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 5,
+                  ),
+                  fns: {},
+                ),
+                10: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 6,
+                  ),
+                  fns: {},
+                ),
+                11: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 7,
+                  ),
+                  fns: {},
+                ),
               },
-              "member_fns": {}
-            }
-          },
-          "span": {
-            "start": 0,
-            "end": 110
-          },
-          "id": 8
-        },
-        "9": {
-          "kind": {
-            "Expr": {
-              "Integer": 8
-            }
-          },
-          "span": {
-            "start": 130,
-            "end": 131
-          },
-          "id": 9
-        },
-        "10": {
-          "kind": {
-            "GlobalLet": {
-              "ident": 12,
-              "ty": null,
-              "initializer": 9
-            }
-          },
-          "span": {
-            "start": 112,
-            "end": 132
-          },
-          "id": 10
-        },
-        "16": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 137,
-                        "end": 142
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 137,
-            "end": 142
-          },
-          "id": 16
-        },
-        "17": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 16,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 143,
-                    "end": 151
-                  }
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 137,
-            "end": 151
-          },
-          "id": 17
-        },
-        "18": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 17,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 137,
-            "end": 153
-          },
-          "id": 18
-        },
-        "19": {
-          "kind": {
-            "GlobalLet": {
-              "ident": 18,
-              "ty": null,
-              "initializer": 18
-            }
-          },
-          "span": {
-            "start": 116,
-            "end": 154
-          },
-          "id": 19
-        },
-        "20": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 176,
-                        "end": 182
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 184,
-                        "end": 189
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 176,
-            "end": 189
-          },
-          "id": 20
-        },
-        "21": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 20,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 190,
-                    "end": 198
-                  }
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 176,
-            "end": 198
-          },
-          "id": 21
-        },
-        "22": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 21,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 176,
-            "end": 200
-          },
-          "id": 22
-        },
-        "23": {
-          "kind": {
-            "GlobalLet": {
-              "ident": 20,
-              "ty": null,
-              "initializer": 22
-            }
-          },
-          "span": {
-            "start": 155,
-            "end": 201
-          },
-          "id": 23
-        },
-        "24": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 16,
-                      "span": {
-                        "start": 222,
-                        "end": 226
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 22,
-                      "span": {
-                        "start": 228,
-                        "end": 231
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 222,
-            "end": 231
-          },
-          "id": 24
-        },
-        "25": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 232,
-                        "end": 237
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 232,
-            "end": 237
-          },
-          "id": 25
-        },
-        "26": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 25,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 238,
-                    "end": 246
-                  }
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 232,
-            "end": 246
-          },
-          "id": 26
-        },
-        "27": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 26,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 232,
-            "end": 248
-          },
-          "id": 27
-        },
-        "28": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 250,
-                        "end": 256
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 258,
-                        "end": 263
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 250,
-            "end": 263
-          },
-          "id": 28
-        },
-        "29": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 28,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 264,
-                    "end": 272
-                  }
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 250,
-            "end": 272
-          },
-          "id": 29
-        },
-        "30": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 29,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 250,
-            "end": 274
-          },
-          "id": 30
-        },
-        "31": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 24,
-                "args": [
-                  27,
-                  30
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 222,
-            "end": 275
-          },
-          "id": 31
-        },
-        "32": {
-          "kind": {
-            "GlobalLet": {
-              "ident": 21,
-              "ty": null,
-              "initializer": 31
-            }
-          },
-          "span": {
-            "start": 203,
-            "end": 276
-          },
-          "id": 32
-        },
-        "33": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 296,
-                        "end": 299
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 296,
-            "end": 299
-          },
-          "id": 33
-        },
-        "34": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 300,
-                        "end": 305
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 300,
-            "end": 305
-          },
-          "id": 34
-        },
-        "35": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 34,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 306,
-                    "end": 314
-                  }
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 300,
-            "end": 314
-          },
-          "id": 35
-        },
-        "36": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 35,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 300,
-            "end": 316
-          },
-          "id": 36
-        },
-        "37": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 318,
-                        "end": 324
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 326,
-                        "end": 331
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 318,
-            "end": 331
-          },
-          "id": 37
-        },
-        "38": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 37,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 332,
-                    "end": 340
-                  }
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 318,
-            "end": 340
-          },
-          "id": 38
-        },
-        "39": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 38,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 318,
-            "end": 342
-          },
-          "id": 39
-        },
-        "40": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 33,
-                "args": [
-                  36,
-                  39
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 296,
-            "end": 343
-          },
-          "id": 40
-        },
-        "41": {
-          "kind": {
-            "GlobalLet": {
-              "ident": 23,
-              "ty": null,
-              "initializer": 40
-            }
-          },
-          "span": {
-            "start": 277,
-            "end": 344
-          },
-          "id": 41
-        },
-        "42": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 15,
-                      "span": {
-                        "start": 365,
-                        "end": 368
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 16,
-                      "span": {
-                        "start": 370,
-                        "end": 374
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 17,
-                      "span": {
-                        "start": 376,
-                        "end": 379
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 365,
-            "end": 379
-          },
-          "id": 42
-        },
-        "43": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 380,
-                        "end": 385
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 380,
-            "end": 385
-          },
-          "id": 43
-        },
-        "44": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 43,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 386,
-                    "end": 394
-                  }
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 380,
-            "end": 394
-          },
-          "id": 44
-        },
-        "45": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 44,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 380,
-            "end": 396
-          },
-          "id": 45
-        },
-        "46": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 398,
-                        "end": 404
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 5,
-                      "span": {
-                        "start": 406,
-                        "end": 411
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 398,
-            "end": 411
-          },
-          "id": 46
-        },
-        "47": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 46,
-                "ident": {
-                  "ident": 19,
-                  "span": {
-                    "start": 412,
-                    "end": 420
-                  }
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 398,
-            "end": 420
-          },
-          "id": 47
-        },
-        "48": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 47,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 398,
-            "end": 422
-          },
-          "id": 48
-        },
-        "49": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 42,
-                "args": [
-                  45,
-                  48
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 365,
-            "end": 423
-          },
-          "id": 49
-        },
-        "50": {
-          "kind": {
-            "GlobalLet": {
-              "ident": 24,
-              "ty": null,
-              "initializer": 49
-            }
-          },
-          "span": {
-            "start": 345,
-            "end": 424
-          },
-          "id": 50
-        },
-        "51": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 2,
-                      "span": {
-                        "start": 467,
-                        "end": 473
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 12,
-                      "span": {
-                        "start": 475,
-                        "end": 486
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 460,
-            "end": 486
-          },
-          "id": 51
-        },
-        "52": {
-          "kind": {
-            "GlobalLet": {
-              "ident": 25,
-              "ty": null,
-              "initializer": 51
-            }
-          },
-          "span": {
-            "start": 426,
-            "end": 487
-          },
-          "id": 52
-        },
-        "53": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 2,
-                      "span": {
-                        "start": 526,
-                        "end": 532
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 12,
-                      "span": {
-                        "start": 534,
-                        "end": 545
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 526,
-            "end": 545
-          },
-          "id": 53
-        },
-        "54": {
-          "kind": {
-            "GlobalLet": {
-              "ident": 26,
-              "ty": null,
-              "initializer": 53
-            }
-          },
-          "span": {
-            "start": 488,
-            "end": 546
-          },
-          "id": 54
-        },
-        "55": {
-          "kind": {
-            "GenericParam": {
-              "ident": {
-                "ident": 6,
-                "span": {
-                  "start": 568,
-                  "end": 573
-                }
+              fns: {},
+            ))),
+            generics: None,
+          ), (
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 1,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 265,
+          end: 278,
+        ),
+        id: 32,
+      ),
+      33: (
+        kind: Expr(Field((
+          lhs: 32,
+          ident: (
+            ident: 20,
+            span: (
+              start: 279,
+              end: 287,
+            ),
+          ),
+        ))),
+        span: (
+          start: 265,
+          end: 287,
+        ),
+        id: 33,
+      ),
+      34: (
+        kind: Expr(Call((
+          target: 33,
+          args: [],
+))),
+        span: (
+          start: 265,
+          end: 289,
+        ),
+        id: 34,
+      ),
+      35: (
+        kind: Expr(Call((
+          target: 28,
+          args: [31, 34],
+        ))),
+        span: (
+          start: 237,
+          end: 290,
+        ),
+        id: 35,
+      ),
+      36: (
+        kind: GlobalLet((
+          ident: 22,
+          ty: 27,
+          initializer: 35,
+        )),
+        span: (
+          start: 213,
+          end: 291,
+        ),
+        id: 36,
+      ),
+      37: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 310,
+          end: 313,
+        ),
+        id: 37,
+      ),
+      38: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Fn((
+              id: (
+                crate_id: 1,
+                local_id: 42,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 316,
+          end: 319,
+        ),
+        id: 38,
+      ),
+      39: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 2,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 320,
+          end: 325,
+        ),
+        id: 39,
+      ),
+      40: (
+        kind: Expr(Field((
+          lhs: 39,
+          ident: (
+            ident: 20,
+            span: (
+              start: 326,
+              end: 334,
+            ),
+          ),
+        ))),
+        span: (
+          start: 320,
+          end: 334,
+        ),
+        id: 40,
+      ),
+      41: (
+        kind: Expr(Call((
+          target: 40,
+          args: [],
+))),
+        span: (
+          start: 320,
+          end: 336,
+        ),
+        id: 41,
+      ),
+      42: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Enum((
+              id: (
+                crate_id: 0,
+                local_id: 8,
+              ),
+              members: {
+                4: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 0,
+                  ),
+                  fns: {},
+                ),
+                5: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 1,
+                  ),
+                  fns: {},
+                ),
+                6: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 2,
+                  ),
+                  fns: {},
+                ),
+                7: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 3,
+                  ),
+                  fns: {},
+                ),
+                8: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 4,
+                  ),
+                  fns: {},
+                ),
+                9: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 5,
+                  ),
+                  fns: {},
+                ),
+                10: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 6,
+                  ),
+                  fns: {},
+                ),
+                11: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 7,
+                  ),
+                  fns: {},
+                ),
               },
-              "trait_bound": null
-            }
-          },
-          "span": {
-            "start": 568,
-            "end": 573
-          },
-          "id": 55
-        },
-        "56": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 582,
-            "end": 585
-          },
-          "id": 56
-        },
-        "57": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 6,
-                "span": {
-                  "start": 575,
-                  "end": 580
-                }
+              fns: {},
+            ))),
+            generics: None,
+          ), (
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 1,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 338,
+          end: 351,
+        ),
+        id: 42,
+      ),
+      43: (
+        kind: Expr(Field((
+          lhs: 42,
+          ident: (
+            ident: 20,
+            span: (
+              start: 352,
+              end: 360,
+            ),
+          ),
+        ))),
+        span: (
+          start: 338,
+          end: 360,
+        ),
+        id: 43,
+      ),
+      44: (
+        kind: Expr(Call((
+          target: 43,
+          args: [],
+))),
+        span: (
+          start: 338,
+          end: 362,
+        ),
+        id: 44,
+      ),
+      45: (
+        kind: Expr(Call((
+          target: 38,
+          args: [41, 44],
+        ))),
+        span: (
+          start: 316,
+          end: 363,
+        ),
+        id: 45,
+      ),
+      46: (
+        kind: GlobalLet((
+          ident: 24,
+          ty: 37,
+          initializer: 45,
+        )),
+        span: (
+          start: 292,
+          end: 364,
+        ),
+        id: 46,
+      ),
+      47: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 384,
+          end: 387,
+        ),
+        id: 47,
+      ),
+      48: (
+        kind: Expr(Path((
+          segments: [(
+            res: Crate((
+              id: 1,
+            )),
+            generics: None,
+          ), (
+            res: Module((
+              crate_id: 1,
+              module_id: 0,
+            )),
+            generics: None,
+          ), (
+            res: ValueDef(Fn((
+              id: (
+                crate_id: 1,
+                local_id: 42,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 390,
+          end: 404,
+        ),
+        id: 48,
+      ),
+      49: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 2,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 405,
+          end: 410,
+        ),
+        id: 49,
+      ),
+      50: (
+        kind: Expr(Field((
+          lhs: 49,
+          ident: (
+            ident: 20,
+            span: (
+              start: 411,
+              end: 419,
+            ),
+          ),
+        ))),
+        span: (
+          start: 405,
+          end: 419,
+        ),
+        id: 50,
+      ),
+      51: (
+        kind: Expr(Call((
+          target: 50,
+          args: [],
+))),
+        span: (
+          start: 405,
+          end: 421,
+        ),
+        id: 51,
+      ),
+      52: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Enum((
+              id: (
+                crate_id: 0,
+                local_id: 8,
+              ),
+              members: {
+                4: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 0,
+                  ),
+                  fns: {},
+                ),
+                5: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 1,
+                  ),
+                  fns: {},
+                ),
+                6: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 2,
+                  ),
+                  fns: {},
+                ),
+                7: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 3,
+                  ),
+                  fns: {},
+                ),
+                8: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 4,
+                  ),
+                  fns: {},
+                ),
+                9: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 5,
+                  ),
+                  fns: {},
+                ),
+                10: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 6,
+                  ),
+                  fns: {},
+                ),
+                11: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 7,
+                  ),
+                  fns: {},
+                ),
               },
-              "ty": 56,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 575,
-            "end": 585
-          },
-          "id": 57
-        },
-        "58": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 590,
-            "end": 593
-          },
-          "id": 58
-        },
-        "59": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 600,
-                        "end": 605
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 600,
-            "end": 605
-          },
-          "id": 59
-        },
-        "60": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 59,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 600,
-            "end": 605
-          },
-          "id": 60
-        },
-        "61": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                60
-              ]
-            }
-          },
-          "span": {
-            "start": 594,
-            "end": 607
-          },
-          "id": 61
-        },
-        "62": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 27,
-                  "span": {
-                    "start": 551,
-                    "end": 567
-                  }
-                },
-                "generic_params": {
-                  "6": 55
-                },
-                "params": {
-                  "6": 57
-                },
-                "return_type": 58
-              },
-              "body": 61
-            }
-          },
-          "span": {
-            "start": 548,
-            "end": 607
-          },
-          "id": 62
-        },
-        "63": {
-          "kind": {
-            "GenericParam": {
-              "ident": {
-                "ident": 6,
-                "span": {
-                  "start": 637,
-                  "end": 642
-                }
-              },
-              "trait_bound": null
-            }
-          },
-          "span": {
-            "start": 637,
-            "end": 642
-          },
-          "id": 63
-        },
-        "64": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 649,
-            "end": 652
-          },
-          "id": 64
-        },
-        "65": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 659,
-                        "end": 664
-                      }
-                    },
-                    "generics": null
-                  },
-                  {
-                    "ident": {
-                      "ident": 30,
-                      "span": {
-                        "start": 666,
-                        "end": 678
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 659,
-            "end": 678
-          },
-          "id": 65
-        },
-        "66": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 65,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 659,
-            "end": 680
-          },
-          "id": 66
-        },
-        "67": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 66,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 659,
-            "end": 680
-          },
-          "id": 67
-        },
-        "68": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                67
-              ]
-            }
-          },
-          "span": {
-            "start": 653,
-            "end": 682
-          },
-          "id": 68
-        },
-        "69": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 29,
-                  "span": {
-                    "start": 612,
-                    "end": 636
-                  }
-                },
-                "generic_params": {
-                  "6": 63
-                },
-                "params": {},
-                "return_type": 64
-              },
-              "body": 68
-            }
-          },
-          "span": {
-            "start": 609,
-            "end": 682
-          },
-          "id": 69
-        },
-        "70": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 713,
-            "end": 716
-          },
-          "id": 70
-        },
-        "71": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 6,
-                      "span": {
-                        "start": 723,
-                        "end": 728
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 723,
-            "end": 728
-          },
-          "id": 71
-        },
-        "72": {
-          "kind": {
-            "Expr": {
-              "Field": {
-                "lhs": 71,
-                "ident": {
-                  "ident": 30,
-                  "span": {
-                    "start": 729,
-                    "end": 741
-                  }
-                }
-              }
-            }
-          },
-          "span": {
-            "start": 723,
-            "end": 741
-          },
-          "id": 72
-        },
-        "73": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 72,
-                "args": []
-              }
-            }
-          },
-          "span": {
-            "start": 723,
-            "end": 743
-          },
-          "id": 73
-        },
-        "74": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 73,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 723,
-            "end": 743
-          },
-          "id": 74
-        },
-        "75": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                74
-              ]
-            }
-          },
-          "span": {
-            "start": 717,
-            "end": 745
-          },
-          "id": 75
-        },
-        "76": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 31,
-                  "span": {
-                    "start": 687,
-                    "end": 707
-                  }
-                },
-                "generic_params": {},
-                "params": {},
-                "return_type": 70
-              },
-              "body": 75
-            }
-          },
-          "span": {
-            "start": 684,
-            "end": 745
-          },
-          "id": 76
-        }
-      }
+              fns: {},
+            ))),
+            generics: None,
+          ), (
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 1,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 423,
+          end: 436,
+        ),
+        id: 52,
+      ),
+      53: (
+        kind: Expr(Field((
+          lhs: 52,
+          ident: (
+            ident: 20,
+            span: (
+              start: 437,
+              end: 445,
+            ),
+          ),
+        ))),
+        span: (
+          start: 423,
+          end: 445,
+        ),
+        id: 53,
+      ),
+      54: (
+        kind: Expr(Call((
+          target: 53,
+          args: [],
+))),
+        span: (
+          start: 423,
+          end: 447,
+        ),
+        id: 54,
+      ),
+      55: (
+        kind: Expr(Call((
+          target: 48,
+          args: [51, 54],
+        ))),
+        span: (
+          start: 390,
+          end: 448,
+        ),
+        id: 55,
+      ),
+      56: (
+        kind: GlobalLet((
+          ident: 25,
+          ty: 47,
+          initializer: 55,
+        )),
+        span: (
+          start: 365,
+          end: 449,
+        ),
+        id: 56,
+      ),
+      57: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 484,
+          end: 487,
+        ),
+        id: 57,
+      ),
+      58: (
+        kind: Expr(Path((
+          segments: [(
+            res: Crate((
+              id: 0,
+            )),
+            generics: None,
+          ), (
+            res: Module((
+              crate_id: 0,
+              module_id: 0,
+            )),
+            generics: None,
+          ), (
+            res: ValueDef(GlobalVar((
+              id: (
+                crate_id: 0,
+                local_id: 11,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 490,
+          end: 516,
+        ),
+        id: 58,
+      ),
+      59: (
+        kind: GlobalLet((
+          ident: 26,
+          ty: 57,
+          initializer: 58,
+        )),
+        span: (
+          start: 451,
+          end: 517,
+        ),
+        id: 59,
+      ),
+      60: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 555,
+          end: 558,
+        ),
+        id: 60,
+      ),
+      61: (
+        kind: Expr(Path((
+          segments: [(
+            res: Module((
+              crate_id: 0,
+              module_id: 0,
+            )),
+            generics: None,
+          ), (
+            res: ValueDef(GlobalVar((
+              id: (
+                crate_id: 0,
+                local_id: 11,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 561,
+          end: 580,
+        ),
+        id: 61,
+      ),
+      62: (
+        kind: GlobalLet((
+          ident: 27,
+          ty: 60,
+          initializer: 61,
+        )),
+        span: (
+          start: 518,
+          end: 581,
+        ),
+        id: 62,
+      ),
+      63: (
+        kind: Ty(GenericParam((
+          ident: (
+            ident: 6,
+            span: (
+              start: 603,
+              end: 608,
+            ),
+          ),
+          trait_bound: None,
+        ))),
+        span: (
+          start: 603,
+          end: 608,
+        ),
+        id: 63,
+      ),
+      64: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 617,
+          end: 620,
+        ),
+        id: 64,
+      ),
+      65: (
+        kind: Param((
+          ident: (
+            ident: 6,
+            span: (
+              start: 610,
+              end: 615,
+            ),
+          ),
+          ty: 64,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 610,
+          end: 620,
+        ),
+        id: 65,
+      ),
+      66: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 625,
+          end: 628,
+        ),
+        id: 66,
+      ),
+      67: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(65)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 635,
+          end: 640,
+        ),
+        id: 67,
+      ),
+      68: (
+        kind: Stmt(Expression((
+          expr: 67,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 635,
+          end: 640,
+        ),
+        id: 68,
+      ),
+      69: (
+        kind: Block((
+          stmts: [68],
+        )),
+        span: (
+          start: 629,
+          end: 642,
+        ),
+        id: 69,
+      ),
+      70: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 28,
+              span: (
+                start: 586,
+                end: 602,
+              ),
+            ),
+            generic_params: {
+              6: 63,
+            },
+            params: {
+              6: 65,
+            },
+            return_type: Some(66),
+          ),
+          body: Some(69),
+        )),
+        span: (
+          start: 583,
+          end: 642,
+        ),
+        id: 70,
+      ),
+      71: (
+        kind: Ty(GenericParam((
+          ident: (
+            ident: 6,
+            span: (
+              start: 672,
+              end: 677,
+            ),
+          ),
+          trait_bound: None,
+        ))),
+        span: (
+          start: 672,
+          end: 677,
+        ),
+        id: 71,
+      ),
+      72: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 684,
+          end: 687,
+        ),
+        id: 72,
+      ),
+      73: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Generic(71)),
+            generics: None,
+          ), (
+            res: Fn(None(30)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 694,
+          end: 713,
+        ),
+        id: 73,
+      ),
+      74: (
+        kind: Expr(Call((
+          target: 73,
+          args: [],
+))),
+        span: (
+          start: 694,
+          end: 715,
+        ),
+        id: 74,
+      ),
+      75: (
+        kind: Stmt(Expression((
+          expr: 74,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 694,
+          end: 715,
+        ),
+        id: 75,
+      ),
+      76: (
+        kind: Block((
+          stmts: [75],
+        )),
+        span: (
+          start: 688,
+          end: 717,
+        ),
+        id: 76,
+      ),
+      77: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 29,
+              span: (
+                start: 647,
+                end: 671,
+              ),
+            ),
+            generic_params: {
+              6: 71,
+            },
+            params: {},
+            return_type: Some(72),
+          ),
+          body: Some(76),
+        )),
+        span: (
+          start: 644,
+          end: 717,
+        ),
+        id: 77,
+      ),
+      78: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 748,
+          end: 751,
+        ),
+        id: 78,
+      ),
+      79: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(EnumMember((
+              id: (
+                crate_id: 0,
+                local_id: 2,
+              ),
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 758,
+          end: 763,
+        ),
+        id: 79,
+      ),
+      80: (
+        kind: Expr(Field((
+          lhs: 79,
+          ident: (
+            ident: 30,
+            span: (
+              start: 764,
+              end: 776,
+            ),
+          ),
+        ))),
+        span: (
+          start: 758,
+          end: 776,
+        ),
+        id: 80,
+      ),
+      81: (
+        kind: Expr(Call((
+          target: 80,
+          args: [],
+))),
+        span: (
+          start: 758,
+          end: 778,
+        ),
+        id: 81,
+      ),
+      82: (
+        kind: Stmt(Expression((
+          expr: 81,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 758,
+          end: 778,
+        ),
+        id: 82,
+      ),
+      83: (
+        kind: Block((
+          stmts: [82],
+        )),
+        span: (
+          start: 752,
+          end: 780,
+        ),
+        id: 83,
+      ),
+      84: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 31,
+              span: (
+                start: 722,
+                end: 742,
+              ),
+            ),
+            generic_params: {},
+            params: {},
+            return_type: Some(78),
+          ),
+          body: Some(83),
+        )),
+        span: (
+          start: 719,
+          end: 780,
+        ),
+        id: 84,
+      ),
     },
-    "15": {
-      "name": 15,
-      "id": {
-        "id": 2
-      },
-      "items": [],
-      "nodes": {
-        "0": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 11,
-            "end": 14
-          },
-          "id": 0
-        },
-        "1": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 33,
-                "span": {
-                  "start": 8,
-                  "end": 9
-                }
-              },
-              "ty": 0,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 8,
-            "end": 14
-          },
-          "id": 1
-        },
-        "2": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 19,
-            "end": 22
-          },
-          "id": 2
-        },
-        "3": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 34,
-                "span": {
-                  "start": 16,
-                  "end": 17
-                }
-              },
-              "ty": 2,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 16,
-            "end": 22
-          },
-          "id": 3
-        },
-        "4": {
-          "kind": {
-            "Ty": "F64"
-          },
-          "span": {
-            "start": 27,
-            "end": 30
-          },
-          "id": 4
-        },
-        "5": {
-          "kind": {
-            "Expr": {
-              "Float": 0.0
-            }
-          },
-          "span": {
-            "start": 37,
-            "end": 40
-          },
-          "id": 5
-        },
-        "6": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 5,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 37,
-            "end": 40
-          },
-          "id": 6
-        },
-        "7": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                6
-              ]
-            }
-          },
-          "span": {
-            "start": 31,
-            "end": 42
-          },
-          "id": 7
-        },
-        "8": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 32,
-                  "span": {
-                    "start": 3,
-                    "end": 7
-                  }
-                },
-                "generic_params": {},
-                "params": {
-                  "34": 3,
-                  "33": 1
-                },
-                "return_type": 4
-              },
-              "body": 7
-            }
-          },
-          "span": {
-            "start": 0,
-            "end": 42
-          },
-          "id": 8
-        },
-        "9": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 54,
-            "end": 57
-          },
-          "id": 9
-        },
-        "10": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 33,
-                "span": {
-                  "start": 51,
-                  "end": 52
-                }
-              },
-              "ty": 9,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 51,
-            "end": 57
-          },
-          "id": 10
-        },
-        "11": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 62,
-            "end": 65
-          },
-          "id": 11
-        },
-        "12": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 34,
-                "span": {
-                  "start": 59,
-                  "end": 60
-                }
-              },
-              "ty": 11,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 59,
-            "end": 65
-          },
-          "id": 12
-        },
-        "13": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 70,
-            "end": 73
-          },
-          "id": 13
-        },
-        "14": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 33,
-                      "span": {
-                        "start": 83,
-                        "end": 84
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 83,
-            "end": 84
-          },
-          "id": 14
-        },
-        "15": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 34,
-                      "span": {
-                        "start": 87,
-                        "end": 88
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 87,
-            "end": 88
-          },
-          "id": 15
-        },
-        "16": {
-          "kind": {
-            "Expr": {
-              "Infix": {
-                "operator": "Greater",
-                "lhs": 14,
-                "rhs": 15
-              }
-            }
-          },
-          "span": {
-            "start": 83,
-            "end": 88
-          },
-          "id": 16
-        },
-        "17": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 33,
-                      "span": {
-                        "start": 99,
-                        "end": 100
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 99,
-            "end": 100
-          },
-          "id": 17
-        },
-        "18": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 17,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 99,
-            "end": 100
-          },
-          "id": 18
-        },
-        "19": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                18
-              ]
-            }
-          },
-          "span": {
-            "start": 89,
-            "end": 106
-          },
-          "id": 19
-        },
-        "20": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 34,
-                      "span": {
-                        "start": 122,
-                        "end": 123
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 122,
-            "end": 123
-          },
-          "id": 20
-        },
-        "21": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 20,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 122,
-            "end": 123
-          },
-          "id": 21
-        },
-        "22": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                21
-              ]
-            }
-          },
-          "span": {
-            "start": 112,
-            "end": 129
-          },
-          "id": 22
-        },
-        "23": {
-          "kind": {
-            "Stmt": {
-              "If": {
-                "condition": 16,
-                "if_true": 19,
-                "if_false": 22
-              }
-            }
-          },
-          "span": {
-            "start": 80,
-            "end": 129
-          },
-          "id": 23
-        },
-        "24": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                23
-              ]
-            }
-          },
-          "span": {
-            "start": 74,
-            "end": 131
-          },
-          "id": 24
-        },
-        "25": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 22,
-                  "span": {
-                    "start": 47,
-                    "end": 50
-                  }
-                },
-                "generic_params": {},
-                "params": {
-                  "33": 10,
-                  "34": 12
-                },
-                "return_type": 13
-              },
-              "body": 24
-            }
-          },
-          "span": {
-            "start": 44,
-            "end": 131
-          },
-          "id": 25
-        },
-        "26": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 143,
-            "end": 146
-          },
-          "id": 26
-        },
-        "27": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 33,
-                "span": {
-                  "start": 140,
-                  "end": 141
-                }
-              },
-              "ty": 26,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 140,
-            "end": 146
-          },
-          "id": 27
-        },
-        "28": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 151,
-            "end": 154
-          },
-          "id": 28
-        },
-        "29": {
-          "kind": {
-            "Param": {
-              "ident": {
-                "ident": 34,
-                "span": {
-                  "start": 148,
-                  "end": 149
-                }
-              },
-              "ty": 28,
-              "mutability": "Immutable"
-            }
-          },
-          "span": {
-            "start": 148,
-            "end": 154
-          },
-          "id": 29
-        },
-        "30": {
-          "kind": {
-            "Ty": "U64"
-          },
-          "span": {
-            "start": 159,
-            "end": 162
-          },
-          "id": 30
-        },
-        "31": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 33,
-                      "span": {
-                        "start": 172,
-                        "end": 173
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 172,
-            "end": 173
-          },
-          "id": 31
-        },
-        "32": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 34,
-                      "span": {
-                        "start": 176,
-                        "end": 177
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 176,
-            "end": 177
-          },
-          "id": 32
-        },
-        "33": {
-          "kind": {
-            "Expr": {
-              "Infix": {
-                "operator": "Less",
-                "lhs": 31,
-                "rhs": 32
-              }
-            }
-          },
-          "span": {
-            "start": 172,
-            "end": 177
-          },
-          "id": 33
-        },
-        "34": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 33,
-                      "span": {
-                        "start": 188,
-                        "end": 189
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 188,
-            "end": 189
-          },
-          "id": 34
-        },
-        "35": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 34,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 188,
-            "end": 189
-          },
-          "id": 35
-        },
-        "36": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                35
-              ]
-            }
-          },
-          "span": {
-            "start": 178,
-            "end": 195
-          },
-          "id": 36
-        },
-        "37": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 34,
-                      "span": {
-                        "start": 211,
-                        "end": 212
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 211,
-            "end": 212
-          },
-          "id": 37
-        },
-        "38": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 37,
-                "implicit_return": false
-              }
-            }
-          },
-          "span": {
-            "start": 211,
-            "end": 212
-          },
-          "id": 38
-        },
-        "39": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                38
-              ]
-            }
-          },
-          "span": {
-            "start": 201,
-            "end": 218
-          },
-          "id": 39
-        },
-        "40": {
-          "kind": {
-            "Stmt": {
-              "If": {
-                "condition": 33,
-                "if_true": 36,
-                "if_false": 39
-              }
-            }
-          },
-          "span": {
-            "start": 169,
-            "end": 218
-          },
-          "id": 40
-        },
-        "41": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                40
-              ]
-            }
-          },
-          "span": {
-            "start": 163,
-            "end": 220
-          },
-          "id": 41
-        },
-        "42": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 17,
-                  "span": {
-                    "start": 136,
-                    "end": 139
-                  }
-                },
-                "generic_params": {},
-                "params": {
-                  "34": 29,
-                  "33": 27
-                },
-                "return_type": 30
-              },
-              "body": 41
-            }
-          },
-          "span": {
-            "start": 133,
-            "end": 220
-          },
-          "id": 42
-        }
-      }
-    }
-  }
-]
+  ), (
+    name: 16,
+    id: (
+      id: 1,
+    ),
+    items: [8, 25, 42, 46],
+    nodes: {
+      0: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 11,
+          end: 14,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Param((
+          ident: (
+            ident: 33,
+            span: (
+              start: 8,
+              end: 9,
+            ),
+          ),
+          ty: 0,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 8,
+          end: 14,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 19,
+          end: 22,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Param((
+          ident: (
+            ident: 34,
+            span: (
+              start: 16,
+              end: 17,
+            ),
+          ),
+          ty: 2,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 16,
+          end: 22,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Ty(Primitive(F64)),
+        span: (
+          start: 27,
+          end: 30,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: Expr(Float(0.0)),
+        span: (
+          start: 37,
+          end: 40,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Stmt(Expression((
+          expr: 5,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 37,
+          end: 40,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: Block((
+          stmts: [6],
+        )),
+        span: (
+          start: 31,
+          end: 42,
+        ),
+        id: 7,
+      ),
+      8: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 32,
+              span: (
+                start: 3,
+                end: 7,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              33: 1,
+              34: 3,
+            },
+            return_type: Some(4),
+          ),
+          body: Some(7),
+        )),
+        span: (
+          start: 0,
+          end: 42,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 54,
+          end: 57,
+        ),
+        id: 9,
+      ),
+      10: (
+        kind: Param((
+          ident: (
+            ident: 33,
+            span: (
+              start: 51,
+              end: 52,
+            ),
+          ),
+          ty: 9,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 51,
+          end: 57,
+        ),
+        id: 10,
+      ),
+      11: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 62,
+          end: 65,
+        ),
+        id: 11,
+      ),
+      12: (
+        kind: Param((
+          ident: (
+            ident: 34,
+            span: (
+              start: 59,
+              end: 60,
+            ),
+          ),
+          ty: 11,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 59,
+          end: 65,
+        ),
+        id: 12,
+      ),
+      13: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 70,
+          end: 73,
+        ),
+        id: 13,
+      ),
+      14: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(10)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 83,
+          end: 84,
+        ),
+        id: 14,
+      ),
+      15: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(12)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 87,
+          end: 88,
+        ),
+        id: 15,
+      ),
+      16: (
+        kind: Expr(Infix((
+          operator: Greater,
+          lhs: 14,
+          rhs: 15,
+        ))),
+        span: (
+          start: 83,
+          end: 88,
+        ),
+        id: 16,
+      ),
+      17: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(10)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 99,
+          end: 100,
+        ),
+        id: 17,
+      ),
+      18: (
+        kind: Stmt(Expression((
+          expr: 17,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 99,
+          end: 100,
+        ),
+        id: 18,
+      ),
+      19: (
+        kind: Block((
+          stmts: [18],
+        )),
+        span: (
+          start: 89,
+          end: 106,
+        ),
+        id: 19,
+      ),
+      20: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(12)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 122,
+          end: 123,
+        ),
+        id: 20,
+      ),
+      21: (
+        kind: Stmt(Expression((
+          expr: 20,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 122,
+          end: 123,
+        ),
+        id: 21,
+      ),
+      22: (
+        kind: Block((
+          stmts: [21],
+        )),
+        span: (
+          start: 112,
+          end: 129,
+        ),
+        id: 22,
+      ),
+      23: (
+        kind: Stmt(If((
+          condition: 16,
+          if_true: 19,
+          if_false: Some(22),
+        ))),
+        span: (
+          start: 80,
+          end: 129,
+        ),
+        id: 23,
+      ),
+      24: (
+        kind: Block((
+          stmts: [23],
+        )),
+        span: (
+          start: 74,
+          end: 131,
+        ),
+        id: 24,
+      ),
+      25: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 23,
+              span: (
+                start: 47,
+                end: 50,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              33: 10,
+              34: 12,
+            },
+            return_type: Some(13),
+          ),
+          body: Some(24),
+        )),
+        span: (
+          start: 44,
+          end: 131,
+        ),
+        id: 25,
+      ),
+      26: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 143,
+          end: 146,
+        ),
+        id: 26,
+      ),
+      27: (
+        kind: Param((
+          ident: (
+            ident: 33,
+            span: (
+              start: 140,
+              end: 141,
+            ),
+          ),
+          ty: 26,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 140,
+          end: 146,
+        ),
+        id: 27,
+      ),
+      28: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 151,
+          end: 154,
+        ),
+        id: 28,
+      ),
+      29: (
+        kind: Param((
+          ident: (
+            ident: 34,
+            span: (
+              start: 148,
+              end: 149,
+            ),
+          ),
+          ty: 28,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 148,
+          end: 154,
+        ),
+        id: 29,
+      ),
+      30: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 159,
+          end: 162,
+        ),
+        id: 30,
+      ),
+      31: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(27)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 172,
+          end: 173,
+        ),
+        id: 31,
+      ),
+      32: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(29)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 176,
+          end: 177,
+        ),
+        id: 32,
+      ),
+      33: (
+        kind: Expr(Infix((
+          operator: Less,
+          lhs: 31,
+          rhs: 32,
+        ))),
+        span: (
+          start: 172,
+          end: 177,
+        ),
+        id: 33,
+      ),
+      34: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(27)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 188,
+          end: 189,
+        ),
+        id: 34,
+      ),
+      35: (
+        kind: Stmt(Expression((
+          expr: 34,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 188,
+          end: 189,
+        ),
+        id: 35,
+      ),
+      36: (
+        kind: Block((
+          stmts: [35],
+        )),
+        span: (
+          start: 178,
+          end: 195,
+        ),
+        id: 36,
+      ),
+      37: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(29)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 211,
+          end: 212,
+        ),
+        id: 37,
+      ),
+      38: (
+        kind: Stmt(Expression((
+          expr: 37,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 211,
+          end: 212,
+        ),
+        id: 38,
+      ),
+      39: (
+        kind: Block((
+          stmts: [38],
+        )),
+        span: (
+          start: 201,
+          end: 218,
+        ),
+        id: 39,
+      ),
+      40: (
+        kind: Stmt(If((
+          condition: 33,
+          if_true: 36,
+          if_false: Some(39),
+        ))),
+        span: (
+          start: 169,
+          end: 218,
+        ),
+        id: 40,
+      ),
+      41: (
+        kind: Block((
+          stmts: [40],
+        )),
+        span: (
+          start: 163,
+          end: 220,
+        ),
+        id: 41,
+      ),
+      42: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 18,
+              span: (
+                start: 136,
+                end: 139,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              33: 27,
+              34: 29,
+            },
+            return_type: Some(30),
+          ),
+          body: Some(41),
+        )),
+        span: (
+          start: 133,
+          end: 220,
+        ),
+        id: 42,
+      ),
+      43: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 18,
+          end: 21,
+        ),
+        id: 43,
+      ),
+      44: (
+        kind: Param((
+          ident: (
+            ident: 38,
+            span: (
+              start: 9,
+              end: 16,
+            ),
+          ),
+          ty: 43,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 9,
+          end: 21,
+        ),
+        id: 44,
+      ),
+      45: (
+        kind: Block((
+          stmts: [],
+)),
+        span: (
+          start: 23,
+          end: 27,
+        ),
+        id: 45,
+      ),
+      46: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 37,
+              span: (
+                start: 3,
+                end: 8,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              38: 44,
+            },
+            return_type: None,
+          ),
+          body: Some(45),
+        )),
+        span: (
+          start: 0,
+          end: 27,
+        ),
+        id: 46,
+      ),
+    },
+  )],
+  names_to_indices: [1, 16],
+))

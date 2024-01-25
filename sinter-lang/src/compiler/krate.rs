@@ -1,20 +1,19 @@
 use std::collections::{HashMap, HashSet};
-use std::fmt::{format, Formatter};
+use std::fmt::Formatter;
 use std::marker::PhantomData;
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref, DerefMut, Index};
 
+use radix_trie::Trie;
 use serde::de::{DeserializeOwned, SeqAccess, Visitor};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::compiler::ast::{AstPass, Field, Item, ItemKind, Module, QualifiedIdent};
+use crate::compiler::ast::{AstPass, Module, QualifiedIdent};
 use crate::compiler::ast_passes::{UsedCrate, UsedCrateCollector};
-use crate::compiler::compiler::CompileError;
-use crate::compiler::hir::{DefId, LocalDefId, ModuleId};
-use crate::compiler::parser::ParseError;
+use crate::compiler::hir::ModuleId;
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::{EnumDef, ResolveError};
-use crate::compiler::types::{InternedStr, StrMap};
+use crate::compiler::resolver::ValueDef;
+use crate::compiler::types::InternedStr;
 
 #[derive(PartialEq, Eq, Debug, Default, Copy, Clone, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CrateId {
@@ -24,6 +23,14 @@ pub struct CrateId {
 impl CrateId {
     pub fn new(id: u32) -> Self {
         Self { id }
+    }
+}
+
+impl<'a> Index<CrateId> for Vec<&'a Crate> {
+    type Output = Crate;
+
+    fn index(&self, index: CrateId) -> &Self::Output {
+        &self[index.id as usize]
     }
 }
 
@@ -140,12 +147,43 @@ where
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[serde(from = "DeserCrate")]
 pub struct Crate {
     pub(crate) name: InternedStr,
     pub(crate) crate_id: CrateId,
-    pub(crate) local_def_id: u32,
-    module_lookup: ModuleMap<ModuleId>,
+    #[serde(skip)]
+    module_trie: Trie<ModulePath, ModuleId>,
     modules: Vec<Module>,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+struct DeserCrate {
+    pub(crate) name: InternedStr,
+    pub(crate) crate_id: CrateId,
+    modules: Vec<Module>,
+}
+
+impl From<DeserCrate> for Crate {
+    fn from(value: DeserCrate) -> Self {
+        let mut module_trie = Trie::default();
+        for module in &value.modules {
+            module_trie.insert(module.path.clone(), module.id);
+        }
+        Crate {
+            name: value.name,
+            crate_id: value.crate_id,
+            module_trie,
+            modules: value.modules,
+        }
+    }
+}
+
+impl Index<ModuleId> for Crate {
+    type Output = Module;
+
+    fn index(&self, index: ModuleId) -> &Self::Output {
+        &self.modules[index]
+    }
 }
 
 impl Crate {
@@ -153,26 +191,20 @@ impl Crate {
         Self {
             name,
             crate_id,
-            local_def_id: 0,
-            module_lookup: Default::default(),
+            module_trie: Trie::default(),
+            // module_lookup: Default::default(),
             modules: Default::default(),
         }
     }
 
-    pub fn index(&self) -> usize {
-        self.crate_id.id as usize
-    }
-
-    pub fn add_module(&mut self, module_path: ModulePath, mut module: Module) {
+    pub fn add_module(&mut self, module_path: ModulePath, mut module: Module) -> ModuleId {
         let module_id = self.modules.len();
         let full_mod_id = ModuleId::new(self.crate_id.id, module_id as u32);
         module.id = full_mod_id;
-        self.module_lookup.insert(module_path, full_mod_id);
+        self.module_trie.insert(module_path, full_mod_id);
+        // self.module_lookup.insert(module_path, full_mod_id);
         self.modules.push(module);
-    }
-
-    pub fn find_module(&self, module_path: &ModulePath) -> Option<ModuleId> {
-        self.module_lookup.get(module_path).copied()
+        full_mod_id
     }
 
     pub fn find_definition(
@@ -184,47 +216,50 @@ impl Crate {
         if trim_crate_name {
             module_path.pop_front();
         }
-        match self.find_module(&module_path) {
-            Some(mod_id) => Some(CrateDef::Module(module_path.front()?, mod_id)),
-            None => {
-                let value = module_path.pop_back()?;
-                match self.find_module(&module_path) {
-                    Some(mod_id) => {
-                        let module = self.module(mod_id);
+        self.module_trie
+            .get(&module_path)
+            .copied()
+            // The module is an exact match, return it directly
+            .map(|id| CrateDef::Module(module_path.back().unwrap(), id))
+            .or_else(|| {
+                // The module is not an exact match, we need to search the nearest match for the remaining path segments.
+                self.module_trie
+                    .get_ancestor_value(&module_path)
+                    .copied()
+                    .and_then(|id| {
+                        // Search for a value in the given module namespace.
+                        let value = module_path.back()?;
+                        let module = &self.modules[id];
                         module
-                            .ns
+                            .namespace
                             .find_value(value)
-                            .map(|val| CrateDef::Value(value, val))
+                            .map(|val_def| CrateDef::Value(value, val_def.clone()))
                             .or_else(|| {
-                                module
-                                    .ns
-                                    .find_enum(value)
-                                    .map(|enum_def| CrateDef::Enum(value, enum_def.clone()))
+                                // Pop off a POTENTIAL enum discriminant and search for the enum.
+                                let discriminant = module_path.pop_back()?;
+                                let enum_val = module_path.back()?;
+                                let val_def = module
+                                    .namespace
+                                    .find_value(enum_val)
+                                    .and_then(|val_def| match val_def {
+                                        ValueDef::Enum(enum_def) => Some(enum_def),
+                                        _ => None,
+                                    })
+                                    .and_then(|enum_def| enum_def.members.get(&discriminant))
+                                    .map(|member_def| ValueDef::EnumMember(member_def.clone()))
+                                    .map(|val_def| CrateDef::Value(discriminant, val_def));
+                                val_def
                             })
-                    }
-                    None => {
-                        let enum_name = module_path.pop_back()?;
-                        // Reuse previously popped value
-                        let enum_discriminant = value;
-                        match self.module_lookup.get(&module_path) {
-                            Some(mod_id) => {
-                                let module = self.module(*mod_id);
-                                module
-                                    .ns
-                                    .find_enum(enum_name)
-                                    .and_then(|enum_def| enum_def.members.get(&enum_discriminant))
-                                    .map(|val| CrateDef::Value(enum_discriminant, *val))
-                            }
-                            None => None,
-                        }
-                    }
-                }
-            }
-        }
+                    })
+            })
+    }
+
+    pub fn module_trie(&self) -> &Trie<ModulePath, ModuleId> {
+        &self.module_trie
     }
 
     pub fn module(&self, mod_id: ModuleId) -> &Module {
-        self.modules.get(mod_id.module_id()).unwrap()
+        &self.modules[mod_id]
     }
 
     pub fn module_mut(&mut self, module_id: usize) -> &mut Module {
@@ -248,9 +283,8 @@ impl Crate {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum CrateDef {
     Module(InternedStr, ModuleId),
-    Enum(InternedStr, EnumDef),
-    Value(InternedStr, DefId),
+    Value(InternedStr, ValueDef),
 }

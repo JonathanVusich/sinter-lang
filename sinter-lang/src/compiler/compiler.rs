@@ -1,24 +1,29 @@
+use std::backtrace::Backtrace;
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::error::Error;
 use std::ffi::{OsStr, OsString};
-use std::fmt::{Display, Formatter};
-use std::path::{Path, PathBuf};
+use std::fmt::{Debug, Display, Formatter};
+use std::io;
+use std::ops::Deref;
+use std::path::{Path, PathBuf, StripPrefixError};
 
 use itertools::Itertools;
-use lasso::Key as K;
+use lasso::{Key as K, Resolver};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
-use crate::compiler::ast::{AstPass, Module};
-use crate::compiler::hir::{HirCrate, LocalDefId};
+use crate::compiler::ast::AstPass;
+use crate::compiler::errors::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
+use crate::compiler::hir::{HirMap, LocalDefId, ModuleId};
 use crate::compiler::krate::{Crate, CrateId};
-use crate::compiler::parser::{parse, ParseError};
+use crate::compiler::parser::{parse, ParseErrKind};
 use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::{resolve, ResolveError};
-use crate::compiler::tokens::tokenizer::tokenize_file;
+use crate::compiler::resolver::{resolve, ResolveErrKind};
+use crate::compiler::tokens::tokenized_file::{LineMap, Source, TokenizedSource};
+use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
+use crate::compiler::type_inference::ty_infer::{CrateInference, TypeErrKind, TypeMap};
 use crate::compiler::types::{InternedStr, StrMap};
-use crate::compiler::validator::{validate, ValidationError};
+use crate::compiler::validator::{validate, ValidationErrKind};
 use crate::compiler::StringInterner;
 
 #[derive(Default)]
@@ -33,66 +38,150 @@ impl From<Compiler> for CompilerCtxt {
     }
 }
 
-pub struct Application<'a> {
-    main_crate: &'a Path,
-    crate_path: &'a Path,
-}
-
-impl<'a> Application<'a> {
-    pub fn new(main_crate: &'a Path, crate_path: &'a Path) -> Self {
-        Application {
-            main_crate,
-            crate_path,
-        }
-    }
+pub enum Application<'a> {
+    Path {
+        main_crate: &'a Path,
+        crate_path: &'a Path,
+    },
+    Inline {
+        code: String,
+    },
 }
 
 pub struct ByteCode {}
 
-#[derive(Debug)]
+pub trait ErrorKind {
+    type Err;
+
+    fn backtrace(&self) -> &Backtrace;
+    fn error(&self) -> &Self::Err;
+}
+
+macro_rules! backtrace_err {
+    ($ty:ty, $name:ident) => {
+        #[derive(Debug)]
+        pub struct $name {
+            inner: $ty,
+            #[cfg(debug_assertions)]
+            backtrace: Backtrace,
+        }
+
+        impl From<$ty> for $name {
+            fn from(inner: $ty) -> Self {
+                Self {
+                    inner,
+                    #[cfg(debug_assertions)]
+                    backtrace: Backtrace::force_capture(),
+                }
+            }
+        }
+
+        impl $name {
+            #[cfg(debug_assertions)]
+            pub fn backtrace(&self) -> &Backtrace {
+                &self.backtrace
+            }
+
+            pub fn into_inner(self) -> $ty {
+                self.inner
+            }
+        }
+
+        impl Deref for $name {
+            type Target = $ty;
+
+            fn deref(&self) -> &Self::Target {
+                &self.inner
+            }
+        }
+    };
+}
+
+backtrace_err!(Box<dyn std::error::Error>, Generic);
+backtrace_err!(OsString, InvalidName);
+backtrace_err!(ParseErrKind, ParseError);
+backtrace_err!(ValidationErrKind, ValidationError);
+backtrace_err!(ResolveErrKind, ResolveError);
+backtrace_err!(TypeErrKind, TypeError);
+
 pub enum CompileError {
     /// Generic error type
-    Generic(Box<dyn Error>),
+    Generic(Generic),
     /// Crate name contains non UTF-8 characters
-    InvalidCrateName(OsString),
+    InvalidCrateName(InvalidName),
     /// Module name contains non UTF-8 characters
-    InvalidModuleName(OsString),
+    InvalidModuleName(InvalidName),
+    /// Errors found while parsing
+    ParseErrors(Vec<ParseError>),
 
+    /// Errors found while validating the AST.
     ValidationErrors(Vec<ValidationError>),
 
     /// Errors found during initial resolution
     ResolveErrors(Vec<ResolveError>),
 
-    /// Errors found while parsing
-    ParseErrors(Vec<ParseError>),
-
-    /// Duplicate definition found while parsing
-    DuplicateDefinition,
+    /// Errors found while inferring types
+    TypeErrors(Vec<TypeError>),
 }
 
 impl Display for CompileError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        match self {
+            CompileError::Generic(error) => Debug::fmt(error, f),
+            CompileError::InvalidCrateName(error) => Debug::fmt(error, f),
+            CompileError::InvalidModuleName(error) => Debug::fmt(error, f),
+            CompileError::ParseErrors(errors) => errors.fmt(f),
+            CompileError::ValidationErrors(errors) => errors.fmt(f),
+            CompileError::ResolveErrors(errors) => errors.fmt(f),
+            CompileError::TypeErrors(errors) => errors.fmt(f),
+        }
     }
 }
 
-impl<T> From<T> for CompileError
-where
-    T: Error + Sized + 'static,
-{
-    fn from(error: T) -> Self {
-        CompileError::Generic(Box::new(error))
+impl Debug for CompileError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self, f)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SourceCode {
+    #[serde(skip)]
+    pub(crate) source: Source,
+    pub(crate) line_map: LineMap,
+}
+
+// We need to exclude the source file on purpose because it is non-deterministic when representing a path.
+impl PartialEq for SourceCode {
+    fn eq(&self, other: &Self) -> bool {
+        self.line_map == other.line_map
+    }
+}
+
+impl SourceCode {
+    pub fn new(source: Source, line_map: LineMap) -> Self {
+        Self { source, line_map }
     }
 }
 
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct CompilerCtxt {
-    string_interner: StringInterner,
+    pub(crate) string_interner: StringInterner,
+    pub(crate) source_map: HashMap<ModuleId, SourceCode>,
+    pub(crate) diagnostics: Diagnostics,
     crate_id: usize,
     local_def_id: usize,
 }
 
 impl CompilerCtxt {
+    pub(crate) fn intern_source(&mut self, module_id: ModuleId, source: SourceCode) {
+        self.source_map.insert(module_id, source);
+    }
+
+    pub(crate) fn source_code(&self, module_id: &ModuleId) -> &SourceCode {
+        self.source_map.get(module_id).unwrap()
+    }
+
     pub(crate) fn intern_str(&mut self, str: &str) -> InternedStr {
         self.string_interner.get_or_intern(str).into()
     }
@@ -118,20 +207,19 @@ impl CompilerCtxt {
         self.local_def_id as u32
     }
 
-    pub(crate) fn module_path<T: AsRef<Path>>(
-        &mut self,
-        path: T,
-    ) -> Result<ModulePath, CompileError> {
+    pub(crate) fn module_path<T: AsRef<Path>>(&mut self, path: T) -> Option<ModulePath> {
         let mut segments = Vec::new();
         for segment in path.as_ref().iter() {
-            let segment = segment
-                .to_str()
-                .ok_or_else(|| CompileError::InvalidModuleName(segment.to_os_string()))?;
+            let segment = segment.to_str().or_else(|| {
+                self.diagnostics
+                    .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
+                None
+            })?;
             let interned_segment = self.intern_str(segment);
             segments.push(interned_segment);
         }
 
-        Ok(ModulePath::from_vec(segments))
+        Some(ModulePath::from_iter(segments))
     }
 }
 
@@ -142,80 +230,122 @@ impl From<CompilerCtxt> for StringInterner {
 }
 
 impl Compiler {
-    pub(crate) fn with_ctxt(compiler_ctxt: CompilerCtxt) -> Self {
-        Self { compiler_ctxt }
-    }
+    pub(crate) fn compile(&mut self, application: Application) -> Option<ByteCode> {
+        let mut crates = self.parse_crates(application)?;
 
-    pub(crate) fn compile(&mut self, application: Application) -> Result<ByteCode, CompileError> {
-        let mut crates = self.parse_crates(&application)?;
-
-        self.validate_crates(&crates)?;
+        self.validate_crates(&crates);
         let resolved_crates = self.resolve_crates(&mut crates)?;
 
-        // TODO: Implement type inference algorithm
-        self.infer_types(resolved_crates)?;
-        // TODO: Do type checking to ensure that all expressions evaluate to correct types
+        // TODO: Add validation step to check for function parameter matching.
 
+        self.infer_types(&resolved_crates)?;
         // TODO: Lower the AST to MIR with the provided metadata.
 
         // TODO: Generate bytecode
         todo!()
     }
 
-    pub(crate) fn parse_crates(
-        &mut self,
-        application: &Application,
-    ) -> Result<StrMap<Crate>, CompileError> {
-        let mut crates = HashMap::default();
+    pub(crate) fn parse_crates(&mut self, application: Application) -> Option<StrMap<Crate>> {
+        let crates = match application {
+            Application::Path {
+                main_crate,
+                crate_path,
+            } => {
+                let mut crates = StrMap::default();
 
-        // Parse main crate
-        let main_crate = self.parse_crate(application.main_crate)?;
-        let main_name = main_crate.name;
+                // Parse main crate
+                let main_crate = self.parse_crate(main_crate)?;
+                let main_name = main_crate.name;
 
-        // Insert crate into lookup map
-        crates.insert(main_name, main_crate);
+                // Insert crate into lookup map
+                crates.insert(main_name, main_crate);
 
-        // Collect all used crates from the main crate
-        let crates_visited = HashSet::from([main_name]);
-        let mut crates_to_visit: VecDeque<InternedStr> = VecDeque::from([main_name]);
+                // Collect all used crates from the main crate
+                let mut crates_visited = HashSet::from([main_name]);
+                let mut crates_to_visit: VecDeque<InternedStr> = VecDeque::from([main_name]);
 
-        while let Some(crate_name) = crates_to_visit.pop_front() {
-            let krate = crates.get(&crate_name).unwrap();
+                while let Some(crate_name) = crates_to_visit.pop_front() {
+                    let krate = crates.get(&crate_name).unwrap();
 
-            let mut new_crates = Vec::new();
-            for used_crate in krate.used_crates() {
-                if !crates_visited.contains(&used_crate.crate_name) {
-                    let crate_name = self.compiler_ctxt.resolve_str(used_crate.crate_name);
-                    let mut crate_path = application.crate_path.to_path_buf();
-                    crate_path.push(crate_name);
+                    let mut new_crates = Vec::new();
+                    for used_crate in krate.used_crates() {
+                        if !crates_visited.contains(&used_crate.crate_name) {
+                            let crate_name = self.compiler_ctxt.resolve_str(used_crate.crate_name);
+                            let mut crate_path = crate_path.to_path_buf();
+                            crate_path.push(crate_name);
 
-                    let krate = self.parse_crate(crate_path.as_path())?;
-                    crates_to_visit.push_back(krate.name);
+                            let krate = self.parse_crate(crate_path.as_path())?;
+                            crates_to_visit.push_back(krate.name);
+                            crates_visited.insert(krate.name);
 
-                    // Insert krate into lookup maps
-                    new_crates.push(krate);
+                            // Insert krate into lookup maps
+                            new_crates.push(krate);
+                        }
+                    }
+
+                    for krate in new_crates {
+                        crates.insert(krate.name, krate);
+                    }
                 }
-            }
 
-            for krate in new_crates {
-                crates.insert(krate.name, krate);
+                Some(crates)
             }
-        }
-
-        Ok(crates)
+            Application::Inline { code } => {
+                let krate = self.parse_inline_crate(code)?;
+                Some(StrMap::from([(krate.name, krate)]))
+            }
+        };
+        self.report_errors()?;
+        crates
     }
 
-    pub(crate) fn parse_crate(&mut self, path: &Path) -> Result<Crate, CompileError> {
-        let krate_name = path
-            .file_name()
-            .ok_or_else(|| CompileError::InvalidCrateName(path.as_os_str().to_os_string()))
-            .and_then(|name| {
-                name.to_str()
-                    .ok_or_else(|| CompileError::InvalidCrateName(name.to_os_string()))
-            })?;
-        let krate_name = self.compiler_ctxt.intern_str(krate_name);
+    pub(crate) fn parse_inline_crate(&mut self, code: String) -> Option<Crate> {
+        let krate_name = self.compiler_ctxt.intern_str("krate");
 
-        let mut code_files: Vec<DirEntry> = WalkDir::new(path)
+        let mut krate = Crate::new(krate_name, self.compiler_ctxt.crate_id());
+
+        let tokens = tokenize(&mut self.compiler_ctxt, code);
+        let TokenizedSource {
+            tokens,
+            line_map,
+            token_source,
+        } = tokens;
+
+        let mut ast = parse(&mut self.compiler_ctxt, tokens)?;
+        let module_name = self.compiler_ctxt.intern_str("module");
+        let module_path = ModulePath::from_iter([module_name]);
+
+        ast.path = module_path.clone();
+        let module_id = krate.add_module(module_path, ast);
+
+        let source = SourceCode::new(token_source, line_map);
+        self.compiler_ctxt.intern_source(module_id, source);
+
+        Some(krate)
+    }
+
+    pub(crate) fn parse_crate(&mut self, path: &Path) -> Option<Crate> {
+        let krate_name: OsString =
+            path.file_name()
+                .map(|path| path.to_os_string())
+                .or_else(|| {
+                    self.compiler_ctxt
+                        .diagnostics
+                        .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
+                    None
+                })?;
+
+        let krate_name = krate_name
+            .to_str()
+            .map(|str| self.compiler_ctxt.intern_str(str))
+            .or_else(|| {
+                self.compiler_ctxt
+                    .diagnostics
+                    .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
+                None
+            })?;
+
+        let code_files: Vec<DirEntry> = WalkDir::new(path)
             .follow_links(true)
             .into_iter()
             .filter_map(Result::ok)
@@ -234,59 +364,72 @@ impl Compiler {
         let mut krate = Crate::new(krate_name, self.compiler_ctxt.crate_id());
 
         for file in code_files {
-            let local_path = local_to_root(file.path(), path)?;
+            let local_path = local_to_root(file.path(), path)
+                .map_err(|err| {
+                    self.compiler_ctxt
+                        .diagnostics
+                        .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
+                })
+                .ok()?;
             let module_path = self.compiler_ctxt.module_path(local_path)?;
 
-            let mut module = self.parse_ast(file.path())?;
+            let tokens = tokenize_file(&mut self.compiler_ctxt, &file.into_path())?;
+            let TokenizedSource {
+                tokens,
+                line_map,
+                token_source,
+            } = tokens;
+            let mut module = parse(&mut self.compiler_ctxt, tokens)?;
 
             module.path = module_path.clone();
-            krate.add_module(module_path, module);
+            let module_id = krate.add_module(module_path, module);
+
+            self.compiler_ctxt
+                .intern_source(module_id, SourceCode::new(token_source, line_map));
         }
 
-        // Assign the last used local def id to the crate
-        krate.local_def_id = self.compiler_ctxt.crate_local_def_id();
-
-        Ok(krate)
+        Some(krate)
     }
 
-    pub(crate) fn parse_ast(&mut self, path: &Path) -> Result<Module, CompileError> {
-        let tokens = tokenize_file(&mut self.compiler_ctxt, path)?;
-        parse(&mut self.compiler_ctxt, tokens)
-    }
-
-    pub(crate) fn validate_crates(&mut self, crates: &StrMap<Crate>) -> Result<(), CompileError> {
-        let mut validation_errors = Vec::new();
+    pub(crate) fn validate_crates(&mut self, crates: &StrMap<Crate>) -> Option<()> {
         for krate in crates.values() {
             for module in krate.modules() {
-                validation_errors.extend(validate(crates, krate, module));
+                validate(&mut self.compiler_ctxt, module);
             }
         }
-        if !validation_errors.is_empty() {
-            Err(CompileError::ValidationErrors(validation_errors))
-        } else {
-            Ok(())
+        self.report_errors()
+    }
+
+    pub(crate) fn resolve_crates(&mut self, crates: &mut StrMap<Crate>) -> Option<HirMap> {
+        resolve(&self.compiler_ctxt, crates)
+    }
+
+    pub(crate) fn infer_types(&mut self, hir_map: &HirMap) -> Option<StrMap<TypeMap>> {
+        let mut ty_map = StrMap::default();
+        for krate in hir_map.krates() {
+            ty_map.insert(
+                krate.name,
+                CrateInference::new(&mut self.compiler_ctxt, krate, hir_map).infer_tys()?,
+            );
         }
+        Some(ty_map)
     }
 
-    pub(crate) fn resolve_crates(
-        &mut self,
-        crates: &mut StrMap<Crate>,
-    ) -> Result<StrMap<HirCrate>, CompileError> {
-        resolve(crates)
-    }
-
-    pub(crate) fn infer_types(
-        &mut self,
-        crates: StrMap<HirCrate>,
-    ) -> Result<StrMap<HirCrate>, CompileError> {
-        Ok(crates)
+    pub(crate) fn report_errors(&mut self) -> Option<()> {
+        let mut io_lock = io::stdout().lock();
+        if self
+            .compiler_ctxt
+            .diagnostics
+            .flush(DiagnosticKind::Error, &mut io_lock)
+        {
+            return None;
+        }
+        Some(())
     }
 }
 
-fn local_to_root(path: &Path, root: &Path) -> Result<PathBuf, CompileError> {
-    path.strip_prefix(root)
-        .map(|path| path.with_extension(""))
-        .map_err(|err| CompileError::Generic(Box::new(err)))
+fn local_to_root(path: &Path, root: &Path) -> Result<PathBuf, StripPrefixError> {
+    path.strip_prefix(root).map(|path| path.with_extension(""))
 }
 
 mod tests {
@@ -322,9 +465,7 @@ mod tests {
                 5
             }
         }
-
         let diameter = Test::Var.diameter();
-        dbg!(diameter);
 
         let krate_path = resolve_test_krate_path("complex_arithmetic");
         let mut compiler = Compiler::default();

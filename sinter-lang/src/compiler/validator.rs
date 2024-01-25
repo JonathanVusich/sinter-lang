@@ -1,22 +1,23 @@
-use std::collections::HashMap;
+use std::fmt::{Debug, Display, Formatter};
 
+use itertools::Itertools;
 use multimap::MultiMap;
+use serde::{Deserialize, Serialize};
 
 use crate::compiler::ast::{
-    Block, EnumMember, Field, Fields, FnSelfStmt, FnSig, FnStmt, GenericParam, GenericParams,
-    GlobalLetStmt, IdentType, Item, ItemKind, Module, Param, Params, QualifiedIdent, Stmt,
-    StmtKind, UseStmt,
+    Block, EnumMember, Fields, FnSelfStmt, FnSig, GenericParams, ItemKind, Module, Params,
+    QualifiedIdent, Stmt, StmtKind,
 };
-use crate::compiler::compiler::CompileError;
+use crate::compiler::compiler::{CompilerCtxt, SourceCode};
+use crate::compiler::errors::Diagnostic;
 use crate::compiler::hir::LocalDefId;
-use crate::compiler::krate::Crate;
-use crate::compiler::types::{InternedStr, StrMap};
-use serde::{Deserialize, Serialize};
+use crate::compiler::tokens::tokenized_file::Span;
+use crate::compiler::types::InternedStr;
 
 const MAX_NUM: usize = 65535;
 
 #[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub enum ValidationError {
+pub enum ValidationErrKind {
     DuplicateUseStmts(QualifiedIdent, Vec<LocalDefId>),
     DuplicateLetStmts(InternedStr, Vec<LocalDefId>),
     DuplicateTys(InternedStr, Vec<LocalDefId>),
@@ -25,32 +26,44 @@ pub enum ValidationError {
     DuplicateParam(InternedStr, Vec<LocalDefId>),
     DuplicateField(InternedStr, Vec<LocalDefId>),
     DuplicateEnumMember(InternedStr, Vec<LocalDefId>),
-    TooManyFns,
+    NoTypeProvided(LocalDefId),
 }
 
-pub fn validate(crates: &StrMap<Crate>, krate: &Crate, module: &Module) -> Vec<ValidationError> {
-    let validator = Validator::default();
-    validator.validate(crates, krate, module)
+impl Display for ValidationErrKind {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        // TODO: Implement pretty printing
+        Debug::fmt(self, f)
+    }
 }
 
-#[derive(Default)]
-struct Validator {
+pub fn validate(compiler_ctxt: &mut CompilerCtxt, module: &Module) {
+    let validator = Validator::new(compiler_ctxt, module);
+    validator.validate()
+}
+
+struct Validator<'a> {
+    ctxt: &'a mut CompilerCtxt,
+    module: &'a Module,
     use_stmts: MultiMap<QualifiedIdent, LocalDefId>,
     global_lets: MultiMap<InternedStr, LocalDefId>,
     tys: MultiMap<InternedStr, LocalDefId>,
     fns: MultiMap<InternedStr, LocalDefId>,
-
-    errors: Vec<ValidationError>,
 }
 
-impl Validator {
-    fn validate(
-        mut self,
-        crates: &StrMap<Crate>,
-        krate: &Crate,
-        module: &Module,
-    ) -> Vec<ValidationError> {
-        for item in &module.items {
+impl<'a> Validator<'a> {
+    pub(crate) fn new(ctxt: &'a mut CompilerCtxt, module: &'a Module) -> Self {
+        Self {
+            ctxt,
+            module,
+            use_stmts: Default::default(),
+            global_lets: Default::default(),
+            tys: Default::default(),
+            fns: Default::default(),
+        }
+    }
+
+    fn validate(mut self) {
+        for item in &self.module.items {
             match &item.kind {
                 ItemKind::Use(use_stmt) => {
                     self.use_stmts.insert(use_stmt.path.clone(), item.id);
@@ -87,42 +100,69 @@ impl Validator {
 
         for (path, use_stmts) in self.use_stmts.iter_all() {
             if use_stmts.len() > 1 {
-                self.errors.push(ValidationError::DuplicateUseStmts(
-                    path.clone(),
-                    use_stmts.clone(),
-                ));
+                self.ctxt.diagnostics.push(Diagnostic::BlankError);
+                // self.errors.push(ValidationErrKind::DuplicateUseStmts(
+                //     path.clone(),
+                //     use_stmts.clone(),
+                // ));
             }
         }
         for (name, global_lets) in self.global_lets.iter_all() {
             if global_lets.len() > 1 {
-                self.errors.push(ValidationError::DuplicateLetStmts(
-                    *name,
-                    global_lets.clone(),
-                ))
+                self.ctxt.diagnostics.push(Diagnostic::BlankError);
+                // self.errors.push(ValidationErrKind::DuplicateLetStmts(
+                //     *name,
+                //     global_lets.clone(),
+                // ))
             }
         }
         for (name, tys) in self.tys.iter_all() {
             if tys.len() > 1 {
-                self.errors
-                    .push(ValidationError::DuplicateTys(*name, tys.clone()))
+                // TODO: Emit better diagnostics
+                self.ctxt.diagnostics.push(Diagnostic::BlankError);
+                // self.errors
+                //     .push(ValidationErrKind::DuplicateTys(*name, tys.clone()))
             }
         }
         for (name, fns) in self.fns.iter_all() {
             if fns.len() > 1 {
-                self.errors
-                    .push(ValidationError::DuplicateFns(*name, fns.clone()))
+                // TODO: Emit better diagnostics
+                self.ctxt.diagnostics.push(Diagnostic::BlankError);
+                // self.errors
+                //     .push(ValidationErrKind::DuplicateFns(*name, fns.clone()))
             }
         }
+    }
 
-        self.errors
+    fn validate_block(&mut self, block: &Block) {
+        for stmt in &block.stmts {
+            self.validate_stmt(stmt);
+        }
+    }
+
+    fn validate_stmt(&mut self, stmt: &Stmt) {
+        match &stmt.kind {
+            StmtKind::Let(let_stmt) => {
+                if let_stmt.ty.is_none() && let_stmt.initializer.is_none() {
+                    self.ctxt.diagnostics.push(Diagnostic::BlankError);
+                    // self.errors.push(ValidationErrKind::NoTypeProvided(stmt.id));
+                }
+            }
+            StmtKind::For(_) => {}
+            StmtKind::If(_) => {}
+            StmtKind::Return(_) => {}
+            StmtKind::While(_) => {}
+            StmtKind::Block(block) => self.validate_block(block),
+            StmtKind::Expression(_) => {}
+        }
     }
 
     fn validate_generic_params(&mut self, generic_params: &GenericParams) {
         self.report_name_clashes(
             generic_params,
             |param| param.name.ident,
-            |param| param.id,
-            ValidationError::DuplicateGenericParam,
+            |param| param.span,
+            "generic parameters",
         );
     }
 
@@ -130,8 +170,8 @@ impl Validator {
         self.report_name_clashes(
             params,
             |param| param.name.ident,
-            |param| param.id,
-            ValidationError::DuplicateParam,
+            |param| param.span,
+            "parameters",
         );
     }
 
@@ -139,8 +179,8 @@ impl Validator {
         self.report_name_clashes(
             self_fns,
             |self_fn| self_fn.sig.name.ident,
-            |self_fn| self_fn.id,
-            ValidationError::DuplicateFns,
+            |self_fn| self_fn.span,
+            "functions",
         );
 
         for self_fn in self_fns {
@@ -152,8 +192,8 @@ impl Validator {
         self.report_name_clashes(
             fields,
             |field| field.name.ident,
-            |field| field.id,
-            ValidationError::DuplicateField,
+            |field| field.span,
+            "fields",
         );
     }
 
@@ -161,8 +201,8 @@ impl Validator {
         self.report_name_clashes(
             members,
             |member| member.name,
-            |member| member.id,
-            ValidationError::DuplicateEnumMember,
+            |member| member.span,
+            "enum members",
         );
 
         for member in members {
@@ -176,64 +216,98 @@ impl Validator {
         self.validate_params(&fn_sig.params);
     }
 
-    fn report_name_clashes<
-        T,
-        M: Fn(&T) -> InternedStr,
-        I: Fn(&T) -> LocalDefId,
-        E: Fn(InternedStr, Vec<LocalDefId>) -> ValidationError,
-    >(
+    fn source_code(&self) -> &SourceCode {
+        self.ctxt.source_code(&self.module.id)
+    }
+
+    fn report_name_clashes<T, M: Fn(&T) -> InternedStr, S: Fn(&T) -> Span>(
         &mut self,
         items: &[T],
         mapper: M,
-        id: I,
-        error: E,
+        span: S,
+        item_name: &'static str,
     ) {
-        items
-            .iter()
-            .map(|item| (mapper(item), item))
-            .collect::<MultiMap<InternedStr, &T>>()
+        let name_clashes = find_name_clashes(items, mapper);
+        let diagnostics = name_clashes
             .iter_all()
-            .filter(|entry| entry.1.len() > 1)
-            .map(|entry| {
-                let ids = entry.1.iter().map(|item| id(item)).collect();
-                error(*entry.0, ids)
+            .filter(|(name, vals)| vals.len() > 1)
+            .map(|(name, vals)| {
+                let source_code = self.ctxt.source_code(&self.module.id);
+                let name = self.ctxt.resolve_str(*name);
+                let mut message = format!("ERROR: Duplicate {item_name} `{name}` in scope\n");
+                let explanation = vals
+                    .iter()
+                    .map(|val| span(val))
+                    .map(|span| source_code.source.span(&span).unwrap_or("".to_string()))
+                    .join("\n\n");
+                message.push_str(&explanation);
+                Diagnostic::Error(message)
             })
-            .for_each(|error| self.errors.push(error));
+            .collect::<Vec<_>>();
+
+        diagnostics
+            .into_iter()
+            .for_each(|diagnostic| self.ctxt.diagnostics.push(diagnostic));
     }
 }
 
+fn find_name_clashes<T, M: Fn(&T) -> InternedStr>(
+    items: &[T],
+    mapper: M,
+) -> MultiMap<InternedStr, &T> {
+    items
+        .iter()
+        .map(|item| (mapper(item), item))
+        .collect::<MultiMap<InternedStr, &T>>()
+}
+
 mod tests {
-    use crate::compiler::compiler::CompilerCtxt;
+    use snap::snapshot;
+
+    use crate::compiler::compiler::{CompilerCtxt, SourceCode};
+    use crate::compiler::errors::{Diagnostic, DiagnosticKind};
     use crate::compiler::hir::ModuleId;
-    use crate::compiler::krate::{Crate, CrateId, ModuleMap};
+    use crate::compiler::krate::{Crate, CrateId};
     use crate::compiler::parser::parse;
     use crate::compiler::path::ModulePath;
-    use crate::compiler::tokens::tokenizer::tokenize;
+    use crate::compiler::tokens::tokenized_file::{Source, TokenizedOutput, TokenizedSource};
+    use crate::compiler::tokens::tokenizer::Tokenizer;
     use crate::compiler::types::StrMap;
-    use crate::compiler::validator::ValidationError;
-    use crate::compiler::{compiler, StringInterner};
-    use snap::snapshot;
-    use std::collections::HashMap;
+    use crate::compiler::StringInterner;
 
-    type ValidationOutput = (StringInterner, Vec<ValidationError>);
+    type ValidationOutput = (StringInterner, Vec<Diagnostic>);
 
     #[cfg(test)]
     fn validate<T: AsRef<str>>(code: T) -> ValidationOutput {
+        let code = code.as_ref().to_string();
         let mut compiler_ctxt = CompilerCtxt::default();
-        let tokenized_input = tokenize(&mut compiler_ctxt, code);
-        let module = parse(&mut compiler_ctxt, tokenized_input).unwrap();
+        let tokenizer = Tokenizer::new(&mut compiler_ctxt, code.as_ref());
+        let TokenizedOutput {
+            tokens, line_map, ..
+        } = tokenizer.tokenize();
+        let module = parse(&mut compiler_ctxt, tokens).unwrap();
         let krate_name = compiler_ctxt.intern_str("crate");
         let mut krate = Crate::new(krate_name, CrateId::new(0));
-        krate.add_module(
-            ModulePath::from_array([compiler_ctxt.intern_str("module")]),
+        let module_id = krate.add_module(
+            ModulePath::from_iter([compiler_ctxt.intern_str("module")]),
             module,
         );
+        let source_code = SourceCode::new(Source::Inline(code), line_map);
+        compiler_ctxt.intern_source(module_id, source_code);
         let krates = StrMap::from([(krate_name, krate)]);
         let krate = krates.get(&krate_name).unwrap();
         let module = krate.module(ModuleId::new(0, 0));
+
+        crate::compiler::validator::validate(&mut compiler_ctxt, module);
+        let CompilerCtxt {
+            string_interner,
+            source_map,
+            diagnostics,
+            ..
+        } = compiler_ctxt;
         (
-            StringInterner::from(compiler_ctxt),
-            crate::compiler::validator::validate(&krates, krate, module),
+            string_interner,
+            diagnostics.filter(DiagnosticKind::Error).collect(),
         )
     }
 

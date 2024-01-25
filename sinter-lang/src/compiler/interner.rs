@@ -13,9 +13,9 @@ use std::vec::IntoIter;
 
 use dashmap::{DashMap, DashSet};
 use hashbrown::hash_map::{HashMap, RawEntryMut};
-use serde::{de, Deserialize, Deserializer, ser, Serialize, Serializer};
 use serde::de::Error as DeserializeError;
 use serde::ser::Error as SerializeError;
+use serde::{de, ser, Deserialize, Deserializer, Serialize, Serializer};
 use typed_arena::Arena;
 
 const DEFAULT_CAPACITY: usize = 512;
@@ -46,9 +46,10 @@ pub struct Interner<T, H = RandomState> {
 }
 
 impl<T, H> Interner<T, H>
-    where T: PartialEq + Eq + Hash + Debug,
-          H: BuildHasher + Default {
-
+where
+    T: PartialEq + Eq + Hash + Debug,
+    H: BuildHasher + Default,
+{
     pub fn new() -> Self {
         Self {
             interner: HashMap::default(),
@@ -104,8 +105,9 @@ impl<T, H> Interner<T, H>
 }
 
 impl<T> PartialEq<Self> for Interner<T>
-    where T: PartialEq + Eq + Hash + Debug {
-
+where
+    T: PartialEq + Eq + Hash + Debug,
+{
     fn eq(&self, other: &Self) -> bool {
         self.values == other.values
     }
@@ -117,30 +119,37 @@ impl<T: Debug> Debug for Interner<T> {
     }
 }
 
-impl<T> Eq for Interner<T>
-    where T: PartialEq + Eq + Hash + Debug {}
+impl<T> Eq for Interner<T> where T: PartialEq + Eq + Hash + Debug {}
 
 impl<T> Default for Interner<T, RandomState>
-    where T: PartialEq + Eq + Hash + Debug {
+where
+    T: PartialEq + Eq + Hash + Debug,
+{
     fn default() -> Self {
         Self::new()
     }
 }
 
 impl<T> Serialize for Interner<T>
-    where T: PartialEq + Eq + Hash + Debug + Serialize {
+where
+    T: PartialEq + Eq + Hash + Debug + Serialize,
+{
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: Serializer {
+    where
+        S: Serializer,
+    {
         // Serialize all of self as a `Vec<K>`
         self.values.serialize(serializer)
     }
 }
 
 impl<'de, T> Deserialize<'de> for Interner<T>
-    where T: PartialEq + Eq + Hash + Debug + Deserialize<'de> + Clone
+where
+    T: PartialEq + Eq + Hash + Debug + Deserialize<'de> + Clone,
 {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let deserialized_values: Vec<T> = Vec::deserialize(deserializer)?;
         let mut interner = Self::new();
@@ -151,12 +160,11 @@ impl<'de, T> Deserialize<'de> for Interner<T>
     }
 }
 
-
 mod tests {
+    use rustc_hash::FxHasher;
     use std::collections::hash_map::RandomState;
     use std::hash::{BuildHasherDefault, Hasher};
     use std::num::NonZeroUsize;
-    use rustc_hash::FxHasher;
 
     use snap::snapshot;
 
@@ -168,7 +176,7 @@ mod tests {
         let mut interner = Interner::default();
         let key = interner.intern(123i128);
 
-        let expected_key= unsafe { Key::new(0) };
+        let expected_key = unsafe { Key::new(0) };
 
         assert_eq!(expected_key, key);
 
@@ -179,7 +187,10 @@ mod tests {
     #[test]
     pub fn stable_references() {
         let mut interner = Interner::default();
-        let keys = (0..128).into_iter().map(|num| interner.intern(num)).collect::<Vec<Key>>();
+        let keys = (0..128)
+            .into_iter()
+            .map(|num| interner.intern(num))
+            .collect::<Vec<Key>>();
         for (index, key) in keys.iter().enumerate() {
             assert_eq!(index, *interner.resolve(*key).unwrap())
         }
@@ -197,21 +208,19 @@ mod tests {
 
     #[test]
     pub fn same_hash() {
-        struct SameHash { }
+        struct SameHash {}
         impl Hasher for SameHash {
             fn finish(&self) -> u64 {
                 0
             }
 
-            fn write(&mut self, bytes: &[u8]) {
-            }
+            fn write(&mut self, bytes: &[u8]) {}
         }
         impl Default for SameHash {
             fn default() -> Self {
                 SameHash {}
             }
         }
-
 
         let mut interner = Interner::<usize, BuildHasherDefault<SameHash>>::new();
         let first_key = interner.intern(128);

@@ -1,136 +1,103 @@
-[
-  [
-    "Iterator",
-    "T",
-    "next"
-  ],
-  {
-    "tokens": [
-      {
-        "token_type": "Trait",
-        "span": {
-          "start": 0,
-          "end": 5
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 1
-        },
-        "span": {
-          "start": 6,
-          "end": 14
-        }
-      },
-      {
-        "token_type": "Less",
-        "span": {
-          "start": 14,
-          "end": 15
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 2
-        },
-        "span": {
-          "start": 15,
-          "end": 16
-        }
-      },
-      {
-        "token_type": "Greater",
-        "span": {
-          "start": 16,
-          "end": 17
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 18,
-          "end": 19
-        }
-      },
-      {
-        "token_type": "Fn",
-        "span": {
-          "start": 25,
-          "end": 27
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 3
-        },
-        "span": {
-          "start": 28,
-          "end": 32
-        }
-      },
-      {
-        "token_type": "LeftParentheses",
-        "span": {
-          "start": 32,
-          "end": 33
-        }
-      },
-      {
-        "token_type": "RightParentheses",
-        "span": {
-          "start": 33,
-          "end": 34
-        }
-      },
-      {
-        "token_type": "RightArrow",
-        "span": {
-          "start": 35,
-          "end": 37
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 2
-        },
-        "span": {
-          "start": 38,
-          "end": 39
-        }
-      },
-      {
-        "token_type": "BitwiseOr",
-        "span": {
-          "start": 40,
-          "end": 41
-        }
-      },
-      {
-        "token_type": "None",
-        "span": {
-          "start": 42,
-          "end": 46
-        }
-      },
-      {
-        "token_type": "Semicolon",
-        "span": {
-          "start": 46,
-          "end": 47
-        }
-      },
-      {
-        "token_type": "RightBrace",
-        "span": {
-          "start": 48,
-          "end": 49
-        }
-      }
-    ],
-    "line_map": [
-      19,
-      47
-    ],
-    "line_counter": 2
-  }
-]
+(["Iterator", "T", "next"], (
+  tokens: [(
+    token_type: Trait,
+    span: (
+      start: 0,
+      end: 5,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 6,
+      end: 14,
+    ),
+  ), (
+    token_type: Less,
+    span: (
+      start: 14,
+      end: 15,
+    ),
+  ), (
+    token_type: Identifier(2),
+    span: (
+      start: 15,
+      end: 16,
+    ),
+  ), (
+    token_type: Greater,
+    span: (
+      start: 16,
+      end: 17,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 18,
+      end: 19,
+    ),
+  ), (
+    token_type: Fn,
+    span: (
+      start: 25,
+      end: 27,
+    ),
+  ), (
+    token_type: Identifier(3),
+    span: (
+      start: 28,
+      end: 32,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 32,
+      end: 33,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 33,
+      end: 34,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 35,
+      end: 37,
+    ),
+  ), (
+    token_type: Identifier(2),
+    span: (
+      start: 38,
+      end: 39,
+    ),
+  ), (
+    token_type: BitwiseOr,
+    span: (
+      start: 40,
+      end: 41,
+    ),
+  ), (
+    token_type: None,
+    span: (
+      start: 42,
+      end: 46,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 46,
+      end: 47,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 48,
+      end: 49,
+    ),
+  )],
+  line_map: (
+    lines: [19, 47],
+  ),
+  line_counter: 2,
+))

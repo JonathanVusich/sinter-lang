@@ -1,126 +1,733 @@
-[
-  [
-    "hello_world",
-    "main",
-    "print",
-    "Hello world!"
-  ],
-  {
-    "1": {
-      "name": 1,
-      "id": {
-        "id": 0
-      },
-      "items": [],
-      "nodes": {
-        "0": {
-          "kind": {
-            "Expr": {
-              "Path": {
-                "segments": [
-                  {
-                    "ident": {
-                      "ident": 3,
-                      "span": {
-                        "start": 16,
-                        "end": 21
-                      }
-                    },
-                    "generics": null
-                  }
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 16,
-            "end": 21
-          },
-          "id": 0
-        },
-        "1": {
-          "kind": {
-            "Expr": {
-              "String": 4
-            }
-          },
-          "span": {
-            "start": 22,
-            "end": 36
-          },
-          "id": 1
-        },
-        "2": {
-          "kind": {
-            "Expr": {
-              "Call": {
-                "target": 0,
-                "args": [
-                  1
-                ]
-              }
-            }
-          },
-          "span": {
-            "start": 16,
-            "end": 37
-          },
-          "id": 2
-        },
-        "3": {
-          "kind": {
-            "Stmt": {
-              "Expression": {
-                "expr": 2,
-                "implicit_return": true
-              }
-            }
-          },
-          "span": {
-            "start": 16,
-            "end": 38
-          },
-          "id": 3
-        },
-        "4": {
-          "kind": {
-            "Block": {
-              "stmts": [
-                3
-              ]
-            }
-          },
-          "span": {
-            "start": 10,
-            "end": 40
-          },
-          "id": 4
-        },
-        "5": {
-          "kind": {
-            "Fn": {
-              "sig": {
-                "name": {
-                  "ident": 2,
-                  "span": {
-                    "start": 3,
-                    "end": 7
-                  }
-                },
-                "generic_params": {},
-                "params": {},
-                "return_type": null
-              },
-              "body": 4
-            }
-          },
-          "span": {
-            "start": 0,
-            "end": 40
-          },
-          "id": 5
-        }
-      }
-    }
-  }
-]
+((
+  string_interner: ["hello_world", "std", "out", "print", "main", "Hello world!", "math", "sqrt", "x", "u64", "y", "f64", "max", "min", "message", "str"],
+  source_map: {
+    (
+      crate_id: 1,
+      module_id: 0,
+    ): (
+      line_map: (
+        lines: [32, 40, 42, 43, 75, 90, 100, 113, 123, 129, 131, 132, 164, 179, 189, 202, 212, 218],
+      ),
+    ),
+    (
+      crate_id: 0,
+      module_id: 0,
+    ): (
+      line_map: (
+        lines: [20, 21, 33, 60],
+      ),
+    ),
+    (
+      crate_id: 1,
+      module_id: 1,
+    ): (
+      line_map: (
+        lines: [24, 25],
+      ),
+    ),
+  },
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 2,
+  local_def_id: 47,
+), (
+  crates: [(
+    name: 1,
+    id: (
+      id: 0,
+    ),
+    items: [6],
+    nodes: {
+      1: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Fn((
+              id: (
+                crate_id: 1,
+                local_id: 46,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 38,
+          end: 43,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Expr(String(6)),
+        span: (
+          start: 44,
+          end: 58,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Expr(Call((
+          target: 1,
+          args: [2],
+        ))),
+        span: (
+          start: 38,
+          end: 59,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Stmt(Expression((
+          expr: 3,
+          implicit_return: true,
+        ))),
+        span: (
+          start: 38,
+          end: 60,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: Block((
+          stmts: [4],
+        )),
+        span: (
+          start: 32,
+          end: 62,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 5,
+              span: (
+                start: 25,
+                end: 29,
+              ),
+            ),
+            generic_params: {},
+            params: {},
+            return_type: None,
+          ),
+          body: Some(5),
+        )),
+        span: (
+          start: 22,
+          end: 62,
+        ),
+        id: 6,
+      ),
+    },
+  ), (
+    name: 2,
+    id: (
+      id: 1,
+    ),
+    items: [8, 25, 42, 46],
+    nodes: {
+      0: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 11,
+          end: 14,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Param((
+          ident: (
+            ident: 9,
+            span: (
+              start: 8,
+              end: 9,
+            ),
+          ),
+          ty: 0,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 8,
+          end: 14,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 19,
+          end: 22,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Param((
+          ident: (
+            ident: 11,
+            span: (
+              start: 16,
+              end: 17,
+            ),
+          ),
+          ty: 2,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 16,
+          end: 22,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Ty(Primitive(F64)),
+        span: (
+          start: 27,
+          end: 30,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: Expr(Float(0.0)),
+        span: (
+          start: 37,
+          end: 40,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Stmt(Expression((
+          expr: 5,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 37,
+          end: 40,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: Block((
+          stmts: [6],
+        )),
+        span: (
+          start: 31,
+          end: 42,
+        ),
+        id: 7,
+      ),
+      8: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 8,
+              span: (
+                start: 3,
+                end: 7,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              9: 1,
+              11: 3,
+            },
+            return_type: Some(4),
+          ),
+          body: Some(7),
+        )),
+        span: (
+          start: 0,
+          end: 42,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 54,
+          end: 57,
+        ),
+        id: 9,
+      ),
+      10: (
+        kind: Param((
+          ident: (
+            ident: 9,
+            span: (
+              start: 51,
+              end: 52,
+            ),
+          ),
+          ty: 9,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 51,
+          end: 57,
+        ),
+        id: 10,
+      ),
+      11: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 62,
+          end: 65,
+        ),
+        id: 11,
+      ),
+      12: (
+        kind: Param((
+          ident: (
+            ident: 11,
+            span: (
+              start: 59,
+              end: 60,
+            ),
+          ),
+          ty: 11,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 59,
+          end: 65,
+        ),
+        id: 12,
+      ),
+      13: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 70,
+          end: 73,
+        ),
+        id: 13,
+      ),
+      14: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(10)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 83,
+          end: 84,
+        ),
+        id: 14,
+      ),
+      15: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(12)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 87,
+          end: 88,
+        ),
+        id: 15,
+      ),
+      16: (
+        kind: Expr(Infix((
+          operator: Greater,
+          lhs: 14,
+          rhs: 15,
+        ))),
+        span: (
+          start: 83,
+          end: 88,
+        ),
+        id: 16,
+      ),
+      17: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(10)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 99,
+          end: 100,
+        ),
+        id: 17,
+      ),
+      18: (
+        kind: Stmt(Expression((
+          expr: 17,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 99,
+          end: 100,
+        ),
+        id: 18,
+      ),
+      19: (
+        kind: Block((
+          stmts: [18],
+        )),
+        span: (
+          start: 89,
+          end: 106,
+        ),
+        id: 19,
+      ),
+      20: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(12)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 122,
+          end: 123,
+        ),
+        id: 20,
+      ),
+      21: (
+        kind: Stmt(Expression((
+          expr: 20,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 122,
+          end: 123,
+        ),
+        id: 21,
+      ),
+      22: (
+        kind: Block((
+          stmts: [21],
+        )),
+        span: (
+          start: 112,
+          end: 129,
+        ),
+        id: 22,
+      ),
+      23: (
+        kind: Stmt(If((
+          condition: 16,
+          if_true: 19,
+          if_false: Some(22),
+        ))),
+        span: (
+          start: 80,
+          end: 129,
+        ),
+        id: 23,
+      ),
+      24: (
+        kind: Block((
+          stmts: [23],
+        )),
+        span: (
+          start: 74,
+          end: 131,
+        ),
+        id: 24,
+      ),
+      25: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 13,
+              span: (
+                start: 47,
+                end: 50,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              9: 10,
+              11: 12,
+            },
+            return_type: Some(13),
+          ),
+          body: Some(24),
+        )),
+        span: (
+          start: 44,
+          end: 131,
+        ),
+        id: 25,
+      ),
+      26: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 143,
+          end: 146,
+        ),
+        id: 26,
+      ),
+      27: (
+        kind: Param((
+          ident: (
+            ident: 9,
+            span: (
+              start: 140,
+              end: 141,
+            ),
+          ),
+          ty: 26,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 140,
+          end: 146,
+        ),
+        id: 27,
+      ),
+      28: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 151,
+          end: 154,
+        ),
+        id: 28,
+      ),
+      29: (
+        kind: Param((
+          ident: (
+            ident: 11,
+            span: (
+              start: 148,
+              end: 149,
+            ),
+          ),
+          ty: 28,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 148,
+          end: 154,
+        ),
+        id: 29,
+      ),
+      30: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 159,
+          end: 162,
+        ),
+        id: 30,
+      ),
+      31: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(27)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 172,
+          end: 173,
+        ),
+        id: 31,
+      ),
+      32: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(29)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 176,
+          end: 177,
+        ),
+        id: 32,
+      ),
+      33: (
+        kind: Expr(Infix((
+          operator: Less,
+          lhs: 31,
+          rhs: 32,
+        ))),
+        span: (
+          start: 172,
+          end: 177,
+        ),
+        id: 33,
+      ),
+      34: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(27)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 188,
+          end: 189,
+        ),
+        id: 34,
+      ),
+      35: (
+        kind: Stmt(Expression((
+          expr: 34,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 188,
+          end: 189,
+        ),
+        id: 35,
+      ),
+      36: (
+        kind: Block((
+          stmts: [35],
+        )),
+        span: (
+          start: 178,
+          end: 195,
+        ),
+        id: 36,
+      ),
+      37: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(29)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 211,
+          end: 212,
+        ),
+        id: 37,
+      ),
+      38: (
+        kind: Stmt(Expression((
+          expr: 37,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 211,
+          end: 212,
+        ),
+        id: 38,
+      ),
+      39: (
+        kind: Block((
+          stmts: [38],
+        )),
+        span: (
+          start: 201,
+          end: 218,
+        ),
+        id: 39,
+      ),
+      40: (
+        kind: Stmt(If((
+          condition: 33,
+          if_true: 36,
+          if_false: Some(39),
+        ))),
+        span: (
+          start: 169,
+          end: 218,
+        ),
+        id: 40,
+      ),
+      41: (
+        kind: Block((
+          stmts: [40],
+        )),
+        span: (
+          start: 163,
+          end: 220,
+        ),
+        id: 41,
+      ),
+      42: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 14,
+              span: (
+                start: 136,
+                end: 139,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              9: 27,
+              11: 29,
+            },
+            return_type: Some(30),
+          ),
+          body: Some(41),
+        )),
+        span: (
+          start: 133,
+          end: 220,
+        ),
+        id: 42,
+      ),
+      43: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 18,
+          end: 21,
+        ),
+        id: 43,
+      ),
+      44: (
+        kind: Param((
+          ident: (
+            ident: 15,
+            span: (
+              start: 9,
+              end: 16,
+            ),
+          ),
+          ty: 43,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 9,
+          end: 21,
+        ),
+        id: 44,
+      ),
+      45: (
+        kind: Block((
+          stmts: [],
+)),
+        span: (
+          start: 23,
+          end: 27,
+        ),
+        id: 45,
+      ),
+      46: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 4,
+              span: (
+                start: 3,
+                end: 8,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              15: 44,
+            },
+            return_type: None,
+          ),
+          body: Some(45),
+        )),
+        span: (
+          start: 0,
+          end: 27,
+        ),
+        id: 46,
+      ),
+    },
+  )],
+  names_to_indices: [1, 2],
+))

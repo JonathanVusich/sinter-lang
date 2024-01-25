@@ -1,41 +1,31 @@
-[
-  [
-    "Serializable"
-  ],
-  {
-    "tokens": [
-      {
-        "token_type": "Trait",
-        "span": {
-          "start": 0,
-          "end": 5
-        }
-      },
-      {
-        "token_type": {
-          "Identifier": 1
-        },
-        "span": {
-          "start": 6,
-          "end": 18
-        }
-      },
-      {
-        "token_type": "LeftBrace",
-        "span": {
-          "start": 19,
-          "end": 20
-        }
-      },
-      {
-        "token_type": "RightBrace",
-        "span": {
-          "start": 21,
-          "end": 22
-        }
-      }
-    ],
-    "line_map": [],
-    "line_counter": 0
-  }
-]
+(["Serializable"], (
+  tokens: [(
+    token_type: Trait,
+    span: (
+      start: 0,
+      end: 5,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 6,
+      end: 18,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 19,
+      end: 20,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 21,
+      end: 22,
+    ),
+  )],
+  line_map: (
+    lines: [],
+),
+  line_counter: 0,
+))

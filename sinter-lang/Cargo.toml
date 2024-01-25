@@ -16,26 +16,29 @@ region = "3.0.0"
 winapi = "0.3.9"
 rustc-hash = "1.1.0"
 libc = "0.2.123"
-anyhow = "1.0.57"
+thiserror = "1.0.47"
 unicode-segmentation = "1.9.0"
-lasso = { version = "0.6.0", features = ["inline-more", "multi-threaded", "serialize"] }
-serde_json = "1.0.82"
+lasso = { version = "0.7.2", features = ["inline-more", "multi-threaded", "serialize"] }
 serde = { version = "1.0.140", features = ["derive", "rc"] }
+ron = "0.8.1"
 cfg-if = "1.0.0"
 phf = { version = "0.11.0", features = ["macros"] }
 dashmap = "5.4.0"
 thread_local = "1.1.4"
 typed-arena = "2.0.2"
-hashbrown = "0.13.2"
+hashbrown = "0.14.0"
 multimap = "0.9.0"
-itertools = "0.10.5"
+itertools = "0.11.0"
+radix_trie = { version = "0.2.1", features = ["serde"] }
+nibble_vec = "0.1.0"
 
 snap = { path = "../snap" }
 walkdir = "2.3.3"
+indexmap = { version = "2.0.2", features = ["serde"] }
 
 
 [dev-dependencies]
-criterion = "0.4.0"
+criterion = "0.5.1"
 
 
 [[bench]]

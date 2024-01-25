@@ -1,7 +1,7 @@
 ref class Node {
     bounds: Bounds,
 
-    fn is_target(pick_point: PickPoint) => bool {
+    fn is_target(self, pick_point: PickPoint) => bool {
         self.bounds.contains(pick_point)
     }
 }
