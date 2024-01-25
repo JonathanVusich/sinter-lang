@@ -3,18 +3,18 @@
   source_map: {
     (
       crate_id: 0,
-      module_id: 1,
+      module_id: 0,
     ): (
       line_map: (
-        lines: [36, 38, 71, 91],
+        lines: [33, 43],
       ),
     ),
     (
       crate_id: 0,
-      module_id: 0,
+      module_id: 1,
     ): (
       line_map: (
-        lines: [33, 44],
+        lines: [36, 37, 69, 88],
       ),
     ),
   },
