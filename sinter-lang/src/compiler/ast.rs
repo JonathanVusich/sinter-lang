@@ -1,21 +1,14 @@
-use std::alloc::Global;
-use std::collections::{HashMap, HashSet};
 use std::ops::{Deref, DerefMut};
-use std::path::{Path, Prefix};
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
 use crate::compiler::hir::{LocalDefId, ModuleId};
-use crate::compiler::krate::CrateId;
-use crate::compiler::parser::{ClassType, ParseErrKind};
+use crate::compiler::parser::ClassType;
 use crate::compiler::path::ModulePath;
 use crate::compiler::resolver::ModuleNS;
-use crate::compiler::tokens::tokenized_file::{LineMap, Span};
+use crate::compiler::tokens::tokenized_file::Span;
 use crate::compiler::types::InternedStr;
 use crate::compiler::utils::named_slice;
-use crate::traits::traits::Trait;
 
 /// This trait describes a visitor that can traverse the AST and collect information.
 pub trait AstPass<T>: Default
@@ -212,6 +205,7 @@ named_slice!(GenericCallSite, Ty);
 named_slice!(Params, Param);
 named_slice!(Fields, Field);
 named_slice!(Args, Expr);
+named_slice!(Segments, Segment);
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PathTy {
@@ -739,7 +733,7 @@ impl Segment {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PathExpr {
     pub ident_type: IdentType,
-    pub segments: Arc<[Segment]>,
+    pub segments: Segments,
 }
 
 impl PathExpr {
@@ -751,7 +745,7 @@ impl PathExpr {
     }
 
     pub fn is_single(&self) -> Option<&Segment> {
-        if let [first] = self.segments.as_ref() {
+        if let [first] = self.segments.as_slice() {
             Some(first)
         } else {
             None
@@ -761,7 +755,7 @@ impl PathExpr {
     pub fn to_module_path(&self) -> QualifiedIdent {
         let mut idents = self
             .segments
-            .iter()
+            .into_iter()
             .map(|f| f.ident)
             .collect::<Vec<Ident>>();
         // Remove the last ident because it is not part of the module path.

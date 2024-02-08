@@ -24,6 +24,7 @@ mod utils;
 pub mod validator;
 mod type_inference;
 mod errors;
+mod arena;
 
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
 pub type StringInterner = Rodeo;

@@ -3,7 +3,7 @@ macro_rules! named_slice {
         #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
         #[serde(transparent)]
         pub struct $ident {
-            inner: Arc<[$ty]>,
+            inner: ::std::sync::Arc<[$ty]>,
         }
 
         impl From<Vec<$ty>> for $ident {
@@ -28,13 +28,30 @@ macro_rules! named_slice {
             pub fn is_empty(&self) -> bool {
                 self.inner.is_empty()
             }
+
+            pub fn iter(&self) -> impl Iterator<Item = &$ty> {
+                self.inner.iter()
+            }
+
+            pub fn as_slice(&self) -> &[$ty] {
+                self.inner.as_ref()
+            }
         }
 
-        impl Deref for $ident {
-            type Target = [$ty];
+        impl ::std::ops::Index<usize> for $ident {
+            type Output = $ty;
 
-            fn deref(&self) -> &Self::Target {
-                &self.inner
+            fn index(&self, index: usize) -> &Self::Output {
+                &self.inner[index]
+            }
+        }
+
+        impl<'a> IntoIterator for &'a $ident {
+            type Item = &'a $ty;
+            type IntoIter = ::std::slice::Iter<'a, $ty>;
+
+            fn into_iter(self) -> Self::IntoIter {
+                self.inner.iter()
             }
         }
     };
@@ -45,13 +62,13 @@ macro_rules! named_strmap {
         #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
         #[serde(transparent)]
         pub struct $ident {
-            inner: Arc<StrMap<$ty>>,
+            inner: ::std::sync::Arc<StrMap<$ty>>,
         }
 
         impl $ident {
             pub fn empty() -> Self {
                 Self {
-                    inner: Arc::new(StrMap::new()),
+                    inner: ::std::sync::Arc::new(StrMap::new()),
                 }
             }
         }

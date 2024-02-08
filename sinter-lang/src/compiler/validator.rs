@@ -159,7 +159,7 @@ impl<'a> Validator<'a> {
 
     fn validate_generic_params(&mut self, generic_params: &GenericParams) {
         self.report_name_clashes(
-            generic_params,
+            generic_params.as_slice(),
             |param| param.name.ident,
             |param| param.span,
             "generic parameters",
@@ -168,7 +168,7 @@ impl<'a> Validator<'a> {
 
     fn validate_params(&mut self, params: &Params) {
         self.report_name_clashes(
-            params,
+            params.as_slice(),
             |param| param.name.ident,
             |param| param.span,
             "parameters",
@@ -190,7 +190,7 @@ impl<'a> Validator<'a> {
 
     fn validate_fields(&mut self, fields: &Fields) {
         self.report_name_clashes(
-            fields,
+            fields.as_slice(),
             |field| field.name.ident,
             |field| field.span,
             "fields",

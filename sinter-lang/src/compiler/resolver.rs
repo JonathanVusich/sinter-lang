@@ -485,7 +485,7 @@ fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
             ItemKind::Class(class_stmt) => {
                 let fields = class_stmt
                     .fields
-                    .iter()
+                    .into_iter()
                     .map(|field| {
                         (
                             field.name.ident,
@@ -722,7 +722,7 @@ impl<'a> CrateResolver<'a> {
 
     fn resolve_generics(&mut self, generics: &AstGenerics) -> Option<Generics> {
         let mut hir_generics = Vec::with_capacity(generics.len());
-        for generic in generics.iter() {
+        for generic in generics {
             hir_generics.push(self.resolve_ty(generic)?);
         }
         Some(Generics::from(hir_generics))
@@ -730,7 +730,7 @@ impl<'a> CrateResolver<'a> {
 
     fn resolve_params(&mut self, params: &AstParams) -> Option<Params> {
         let mut hir_params = StrMap::default();
-        for param in params.iter() {
+        for param in params {
             self.insert_param(param.name.ident, param.id)?;
 
             let ty = self.resolve_ty(&param.ty)?;
@@ -754,7 +754,7 @@ impl<'a> CrateResolver<'a> {
         generic_params: &AstGenericParams,
     ) -> Option<GenericParams> {
         let mut generics = StrMap::default();
-        for param in generic_params.iter() {
+        for param in generic_params {
             self.insert_generic_param(param.name.ident, param.id)?;
 
             let trait_bound = match &param.trait_bound {
@@ -900,7 +900,7 @@ impl<'a> CrateResolver<'a> {
 
     fn resolve_fields(&mut self, ast_fields: &AstFields) -> Option<Fields> {
         let mut fields = StrMap::default();
-        for field in ast_fields.iter() {
+        for field in ast_fields {
             let AstField {
                 name: ident,
                 ty,
@@ -1146,7 +1146,7 @@ impl<'a> CrateResolver<'a> {
             AstExprKind::Call(call) => {
                 let args = call
                     .args
-                    .iter()
+                    .into_iter()
                     .map(|expr| self.resolve_expr(expr))
                     .collect::<Option<Vec<_>>>()?;
                 let target = self.resolve_expr(&call.target)?;
@@ -1225,7 +1225,7 @@ impl<'a> CrateResolver<'a> {
         match path_expr.ident_type {
             IdentType::Crate => {
                 segments.push(Segment::new(Res::Crate(self.krate.crate_id), None));
-                let mut path = VecDeque::from_iter(path_expr.segments.iter());
+                let mut path = VecDeque::from_iter(&path_expr.segments);
                 while !path.is_empty() {
                     let prev_seg = segments.last().unwrap(); // Should be safe
                     let current = path.pop_front().unwrap(); // Should be safe
@@ -1242,7 +1242,7 @@ impl<'a> CrateResolver<'a> {
                     self.verify_last_segment(&candidate)?;
                     segments.push(candidate);
                 } else {
-                    let mut path = VecDeque::from_iter(path_expr.segments.iter());
+                    let mut path = VecDeque::from_iter(&path_expr.segments);
                     let first_seg = self.find_primary_segment(path.pop_front().unwrap())?;
                     segments.push(first_seg);
 
@@ -1492,7 +1492,7 @@ impl<'a> CrateResolver<'a> {
             TyKind::Path { path } => Ty::Path(self.resolve_path_ty(path)?),
             TyKind::TraitBound { trait_bound } => {
                 let mut paths = Vec::with_capacity(trait_bound.len());
-                for path in trait_bound.iter() {
+                for path in trait_bound {
                     let def = self.resolve_qualified_ident(&path.ident)?;
                     let generics = self.resolve_generics(&path.generics)?;
                     paths.push(PathTy::new(def, generics));
@@ -1556,7 +1556,7 @@ impl<'a> CrateResolver<'a> {
         id: LocalDefId,
     ) -> Option<LocalDefId> {
         let mut hir_bound = Vec::with_capacity(trait_bound.len());
-        for ty in trait_bound.iter() {
+        for ty in trait_bound {
             let resolved_ty = self.resolve_path_ty(ty)?;
             hir_bound.push(resolved_ty);
         }

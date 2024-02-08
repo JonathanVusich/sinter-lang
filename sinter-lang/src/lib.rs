@@ -4,6 +4,9 @@
 #![feature(allocator_api)]
 #![feature(assert_matches)]
 #![feature(error_generic_member_access)]
+#![feature(new_uninit)]
+#![feature(maybe_uninit_slice)]
+#![feature(ptr_sub_ptr)]
 
 extern crate core;
 
