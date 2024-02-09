@@ -10,6 +10,16 @@ channel = "nightly"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+arena = { path = "./arena" }
+diagnostics = { path = "./diagnostics" }
+tokenizer = { path = "./tokenizer" }
+interner = { path = "./interner" }
+ast = { path = "./ast" }
+span = { path = "./span" }
+id = { path = "./id" }
+types = { path = "./types" }
+
+
 rand = "0.8.4"
 bit-set = "0.5.2"
 region = "3.0.0"

@@ -1,12 +1,11 @@
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter};
 
-use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::StringInterner;
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::InternedStr;
+use interner::{InternedStr, StringInterner};
+
+use span::Span;
 
 #[derive(PartialEq, Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Token {
@@ -113,27 +112,27 @@ pub enum PrintOption {
 }
 
 impl TokenType {
-    pub(crate) fn pretty_print<'a>(
+    pub fn pretty_print<'a>(
         &'a self,
-        ctxt: &'a CompilerCtxt,
+        ctxt: &'a StringInterner,
         print_option: PrintOption,
     ) -> Cow<str> {
         match self {
             TokenType::Unrecognized(str) => {
-                let interned_str = ctxt.resolve_str(*str);
+                let interned_str = ctxt.resolve(*str);
                 Cow::Borrowed(interned_str)
             }
             TokenType::Identifier(str) => match print_option {
                 PrintOption::Type => Cow::Borrowed("'identifier'"),
                 PrintOption::Value => {
-                    let interned_str = ctxt.resolve_str(*str);
+                    let interned_str = ctxt.resolve(*str);
                     Cow::Borrowed(interned_str)
                 }
             },
             TokenType::String(str) => match print_option {
                 PrintOption::Type => Cow::Borrowed("'string'"),
                 PrintOption::Value => {
-                    let interned_str = ctxt.resolve_str(*str);
+                    let interned_str = ctxt.resolve(*str);
                     Cow::Borrowed(interned_str)
                 }
             },

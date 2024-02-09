@@ -29,8 +29,8 @@ jobs:
         working-directory: sinter-lang
       - name: Build Snap
         run: cargo build --verbose
-        working-directory: snap
+        working-directory: snap_macro
       - name: Test Snap
         run: cargo test --verbose
-        working-directory: snap
+        working-directory: snap_macro
       

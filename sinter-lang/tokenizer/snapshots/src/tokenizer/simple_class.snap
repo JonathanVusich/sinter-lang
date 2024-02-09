@@ -1,0 +1,37 @@
+(["Random"], (
+  tokens: [(
+    token_type: Pub,
+    span: (
+      start: 0,
+      end: 3,
+    ),
+  ), (
+    token_type: Class,
+    span: (
+      start: 4,
+      end: 9,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 10,
+      end: 16,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 17,
+      end: 18,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 18,
+      end: 19,
+    ),
+  )],
+  line_map: (
+    lines: [],
+),
+  line_counter: 0,
+))

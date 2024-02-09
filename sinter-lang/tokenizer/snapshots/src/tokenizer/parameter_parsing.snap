@@ -1,0 +1,61 @@
+(["mutate"], (
+  tokens: [(
+    token_type: Fn,
+    span: (
+      start: 0,
+      end: 2,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 3,
+      end: 9,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 9,
+      end: 10,
+    ),
+  ), (
+    token_type: Mut,
+    span: (
+      start: 10,
+      end: 13,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 14,
+      end: 18,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 18,
+      end: 19,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 20,
+      end: 22,
+    ),
+  ), (
+    token_type: None,
+    span: (
+      start: 23,
+      end: 27,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 27,
+      end: 28,
+    ),
+  )],
+  line_map: (
+    lines: [],
+),
+  line_counter: 0,
+))

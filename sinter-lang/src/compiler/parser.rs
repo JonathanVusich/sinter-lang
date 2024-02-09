@@ -1,29 +1,28 @@
 use std::error::Error;
-use std::fmt::{Display, Formatter};
+use std::fmt::Display;
 use std::ops::Deref;
-use std::thread::scope;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::Mutability::{Immutable, Mutable};
-use crate::compiler::ast::{
-    Args, ArrayExpr, Block, CallExpr, ClassStmt, ClosureExpr, ClosureParam, DestructureExpr,
-    DestructureExprKind, DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind, Expression,
-    Field, FieldExpr, Fields, FnSelfStmt, FnSig, FnStmt, ForStmt, GenericCallSite, GenericParam,
-    GenericParams, Generics, GlobalLetStmt, Ident, IdentType, IfStmt, IndexExpr, InfixExpr,
-    InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param,
-    Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal, PostfixOp, QualifiedIdent,
-    ReturnStmt, Segment, Stmt, StmtKind, TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind,
-    TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
+use ast::Mutability::{Immutable, Mutable};
+use ast::{
+    Args, ArrayExpr, Block, CallExpr, ClassStmt, ClassType, ClosureExpr, ClosureParam,
+    DestructureExpr, DestructureExprKind, DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind,
+    Expression, Field, FieldExpr, Fields, FnSelfStmt, FnSig, FnStmt, ForStmt, GenericCallSite,
+    GenericParam, GenericParams, Generics, GlobalLetStmt, Ident, IdentType, IfStmt, IndexExpr,
+    InfixExpr, InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module, Mutability,
+    OrPattern, Param, Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal, PostfixOp,
+    QualifiedIdent, ReturnStmt, Segment, Stmt, StmtKind, TraitBound, TraitImplStmt, TraitStmt, Ty,
+    TyKind, TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
 };
+use diagnostics::Diagnostic;
+use id::LocalDefId;
+use interner::InternedStr;
+use span::Span;
+use tokenizer::{PrintOption, Token, TokenType};
+
 use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::errors::Diagnostic;
-use crate::compiler::hir::LocalDefId;
-use crate::compiler::parser::ParseErrKind::{ExpectedToken, UnexpectedEof, UnexpectedToken};
-use crate::compiler::tokens::token::{PrintOption, Token, TokenType};
-use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span};
-use crate::compiler::types::InternedStr;
 
 const BLANK_STR: &str = "";
 
@@ -37,27 +36,6 @@ struct Parser<'ctxt> {
     tokens: Vec<Token>,
     pos: usize,
     spans: Vec<usize>,
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub enum ParseErrKind {
-    UnexpectedEof(NormalizedSpan),
-    ExpectedToken(TokenType, NormalizedSpan),
-    UnexpectedToken(TokenType, NormalizedSpan),
-
-    /// Use statement with less than three segments (crate, module, item).
-    InvalidUseStmt(NormalizedSpan),
-
-    /// Duplicate definition in module
-    DuplicateDefinition,
-    /// Duplicate module name
-    DuplicateModuleName,
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub enum ClassType {
-    Reference,
-    Inline,
 }
 
 impl<'ctxt> Parser<'ctxt> {
@@ -1730,8 +1708,10 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn expected_token<T>(&mut self, expected: TokenType, received: TokenType) -> Option<T> {
-        let expected = expected.pretty_print(self.compiler_ctxt, PrintOption::Type);
-        let received = received.pretty_print(self.compiler_ctxt, PrintOption::Value);
+        let expected =
+            expected.pretty_print(&self.compiler_ctxt.string_interner, PrintOption::Type);
+        let received =
+            received.pretty_print(&self.compiler_ctxt.string_interner, PrintOption::Value);
 
         let error_message = format!("ERROR: Expected {expected}, received {received}!\n");
         self.compiler_ctxt
@@ -1747,9 +1727,12 @@ impl<'ctxt> Parser<'ctxt> {
     ) -> Option<T> {
         let expected = token_types
             .iter()
-            .map(|token_type| token_type.pretty_print(self.compiler_ctxt, PrintOption::Type))
+            .map(|token_type| {
+                token_type.pretty_print(&self.compiler_ctxt.string_interner, PrintOption::Type)
+            })
             .join(" | ");
-        let received = received.pretty_print(self.compiler_ctxt, PrintOption::Value);
+        let received =
+            received.pretty_print(&self.compiler_ctxt.string_interner, PrintOption::Value);
 
         let error_message = format!("ERROR: Expected {expected}, received {received}!\n");
         self.compiler_ctxt
@@ -1826,63 +1809,23 @@ impl<'ctxt> Parser<'ctxt> {
     }
 }
 
-impl Display for ParseErrKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            UnexpectedEof(span) => write!(
-                f,
-                "unexpected eof at {}:{}!",
-                span.start_line, span.start_pos
-            ),
-            ExpectedToken(token_type, span) => write!(
-                f,
-                "expected token {} at {}:{}!",
-                token_type, span.start_line, span.start_pos
-            ),
-            UnexpectedToken(token_type, span) => write!(
-                f,
-                "unrecognized token {} at {}:{}!",
-                token_type, span.start_line, span.start_pos
-            ),
-            ParseErrKind::InvalidUseStmt(span) => write!(
-                f,
-                "invalid use stmt at {}:{}!",
-                span.start_line, span.start_pos
-            ),
-            ParseErrKind::DuplicateDefinition => write!(f, "duplicate definition!"),
-            ParseErrKind::DuplicateModuleName => write!(f, "duplicate module name!"),
-        }
-    }
-}
-
-impl Error for ParseErrKind {}
-
-unsafe impl Send for ParseErrKind {}
-
-unsafe impl Sync for ParseErrKind {}
-
 mod tests {
     use std::fmt::Debug;
-    use std::fs::File;
-    use std::io::{BufReader, BufWriter};
-    use std::path::PathBuf;
 
+    use diagnostics::{Diagnostic, DiagnosticKind};
+    use interner::StringInterner;
     use snap::snapshot;
+    use tokenizer::{tokenize, TokenizedSource};
 
-    use crate::compiler::ast::Module;
-    use crate::compiler::ast::{Expr, PathExpr, Stmt, Ty, TyKind};
     use crate::compiler::compiler::CompilerCtxt;
-    use crate::compiler::errors::{Diagnostic, DiagnosticKind};
-    use crate::compiler::hir::LocalDefId;
     use crate::compiler::parser::Parser;
-    use crate::compiler::tokens::tokenized_file::{Span, TokenizedSource};
-    use crate::compiler::tokens::tokenizer::tokenize;
-    use crate::compiler::StringInterner;
     use crate::util::utils;
+    use ast::{Expr, Module, PathExpr, Stmt, Ty, TyKind};
+    use id::LocalDefId;
 
     #[cfg(test)]
     fn create_parser(compiler_ctxt: &mut CompilerCtxt, code: String) -> Parser {
-        let TokenizedSource { tokens, .. } = tokenize(compiler_ctxt, code);
+        let TokenizedSource { tokens, .. } = tokenize(&mut compiler_ctxt.string_interner, code);
         Parser::new(compiler_ctxt, tokens)
     }
 
@@ -2196,6 +2139,8 @@ mod tests {
         ($typ:expr, $fn_name:ident, $code:literal) => {
             #[test]
             pub fn $fn_name() {
+                use ::span::Span;
+
                 let actual_ty = Ty::new($typ, Span::new(0, $code.len() as u32), LocalDefId::new(0));
                 let (ctxt, ty) = parse_ty!($code);
                 assert_eq!(actual_ty, ty);

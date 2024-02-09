@@ -10,206 +10,42 @@ use indexmap::IndexMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{
-    ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassStmt as AstClassStmt,
+use ast::{
+    ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassDef, ClassStmt as AstClassStmt,
     ClosureParam as AstClosureParam, DestructureExpr as AstDestructureExpr,
     DestructureExprKind as AstDestructureExprKind, DestructureExprKind,
-    DestructurePattern as AstDestructurePattern, EnumMember as AstEnumMember,
-    EnumStmt as AstEnumStmt, Expr as AstExpr, ExprKind as AstExprKind, Field as AstField,
-    Fields as AstFields, FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig,
-    FnStmt as AstFnStmt, GenericParams as AstGenericParams, Generics as AstGenerics,
-    GlobalLetStmt as AstGlobalLetStmt, IdentType, Item, ItemKind as AstItemKind, ItemKind,
-    MatchArm as AstMatchArm, Module, Params as AstParams, PathExpr as AstPathExpr,
-    PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Segment as AstSegment,
-    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
+    DestructurePattern as AstDestructurePattern, EnumDef, EnumMember as AstEnumMember,
+    EnumMemberDef, EnumStmt as AstEnumStmt, Expr as AstExpr, ExprKind as AstExprKind,
+    Field as AstField, FieldDef, Fields as AstFields, FnDef, FnSelfStmt as AstFnSelfStmt,
+    FnSelfStmt, FnSig as AstFnSig, FnStmt as AstFnStmt, GenericParams as AstGenericParams,
+    Generics as AstGenerics, GlobalLetStmt as AstGlobalLetStmt, GlobalVarDef, IdentType, Item,
+    ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm, MaybeFnDef, Module, ModuleNS,
+    ModulePath, Params as AstParams, PathExpr as AstPathExpr, PathTy as AstPathTy,
+    Pattern as AstPattern, QualifiedIdent, Segment as AstSegment, Stmt as AstStmt,
+    StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitDef,
     TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
-    TyKind as AstTyKind,
+    TyKind as AstTyKind, ValueDef,
 };
+use id::{CrateId, DefId, LocalDefId, ModuleId};
+use interner::InternedStr;
+use span::Span;
+
 use crate::compiler::compiler::CompilerCtxt;
 use crate::compiler::hir::{
     AnonParams, Args, Array, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure,
-    ClosureExpr, ClosureParam, ClosureParams, DefId, DestructureExpr, DestructurePattern,
-    EnumMember, EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt,
-    FnStmts, ForStmt, GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap,
-    HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, LocalDefId, MatchArm,
-    MatchExpr, ModuleId, OrPattern, Param, Params, PathExpr, PathTy, Pattern, PatternLocal,
-    Primitive, Res, ReturnStmt, Segment, Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern,
-    UnaryExpr, WhileStmt,
+    ClosureExpr, ClosureParam, ClosureParams, DestructureExpr, DestructurePattern, EnumMember,
+    EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts,
+    ForStmt, GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap, HirNode,
+    HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, MatchArm, MatchExpr, OrPattern,
+    Param, Params, PathExpr, PathTy, Pattern, PatternLocal, Primitive, Res, ReturnStmt, Segment,
+    Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
-use crate::compiler::krate::{Crate, CrateDef, CrateId};
-use crate::compiler::path::ModulePath;
-use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::{IStrMap, InternedStr, LDefMap, StrMap};
+use crate::compiler::krate::{Crate, CrateDef, CrateLookup};
+use crate::compiler::types::{LDefMap, StrMap};
 
 pub fn resolve(ctxt: &CompilerCtxt, crates: &mut StrMap<Crate>) -> Option<HirMap> {
     let resolver = Resolver::new(ctxt, crates);
     resolver.resolve()
-}
-
-#[derive(PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
-pub struct ModuleNS {
-    pub(crate) modules: IStrMap<ModuleId>,
-    // We have one namespace for classes, fns and constants because they are all callable and cannot
-    // be disambiguated at resolve time by their usage.
-    pub(crate) values: IStrMap<ValueDef>,
-}
-
-impl ModuleNS {
-    pub fn find_ident_with_module(&self, ident: &QualifiedIdent) -> Option<DefId> {
-        match ident.idents.as_slice() {
-            [module, ident] => self.values.get(&ident.ident).map(ValueDef::id),
-            [module, enm, member] => {
-                if let Some(ValueDef::Enum(enum_def)) = self.values.get(&enm.ident) {
-                    return enum_def.members.get(&member.ident).map(|def| def.id);
-                }
-                None
-            }
-            _ => None,
-        }
-    }
-    pub fn find_ident(&self, ident: &QualifiedIdent) -> Option<DefId> {
-        match ident.idents.as_slice() {
-            [ident] => self.values.get(&ident.ident).map(ValueDef::id),
-            [enm, member] => {
-                if let Some(ValueDef::Enum(enum_def)) = self.values.get(&enm.ident) {
-                    return enum_def.members.get(&member.ident).map(|def| def.id);
-                }
-                None
-            }
-            _ => None,
-        }
-    }
-
-    pub fn find_value(&self, value: InternedStr) -> Option<&ValueDef> {
-        self.values.get(&value)
-    }
-
-    pub fn find_module(&self, module: InternedStr) -> Option<ModuleId> {
-        self.modules.get(&module).copied()
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
-pub enum ValueDef {
-    GlobalVar(GlobalVarDef),
-    Class(ClassDef),
-    Enum(EnumDef),
-    EnumMember(EnumMemberDef),
-    Trait(TraitDef),
-    Fn(FnDef),
-}
-
-impl ValueDef {
-    pub fn id(&self) -> DefId {
-        match self {
-            ValueDef::GlobalVar(let_stmt) => let_stmt.id,
-            ValueDef::Class(class_stmt) => class_stmt.id,
-            ValueDef::Enum(enum_stmt) => enum_stmt.id,
-            ValueDef::EnumMember(enum_member) => enum_member.id,
-            ValueDef::Trait(trait_stmt) => trait_stmt.id,
-            ValueDef::Fn(fn_stmt) => fn_stmt.id,
-        }
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum MaybeFnDef {
-    None(InternedStr),
-    Some(FnDef),
-}
-
-#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct FnDef {
-    pub(crate) id: DefId,
-}
-
-impl FnDef {
-    pub fn new(id: DefId) -> Self {
-        Self { id }
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
-pub struct FieldDef {
-    pub(crate) id: DefId,
-}
-
-impl FieldDef {
-    pub fn new(id: DefId) -> Self {
-        Self { id }
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
-pub struct TraitFnDef {
-    pub(crate) trait_id: DefId,
-    pub(crate) id: DefId,
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
-pub struct TraitDef {
-    pub(crate) id: DefId,
-    pub(crate) fns: IStrMap<FnDef>,
-}
-
-impl TraitDef {
-    pub fn new(id: DefId, fns: IStrMap<FnDef>) -> Self {
-        Self { id, fns }
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct GlobalVarDef {
-    pub(crate) id: DefId,
-}
-
-impl GlobalVarDef {
-    pub fn new(id: DefId) -> Self {
-        Self { id }
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
-pub struct ClassDef {
-    pub(crate) id: DefId,
-    pub(crate) fields: IStrMap<FieldDef>,
-    pub(crate) fns: IStrMap<FnDef>,
-}
-
-impl ClassDef {
-    pub fn new(id: DefId, fields: StrMap<FieldDef>, fns: StrMap<FnDef>) -> Self {
-        Self {
-            id,
-            fields: Arc::new(fields),
-            fns: Arc::new(fns),
-        }
-    }
-}
-
-/// Cloning this type should be cheap since it uses an immutable map.
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
-pub struct EnumDef {
-    pub(crate) id: DefId,
-    pub(crate) members: IStrMap<EnumMemberDef>,
-    pub(crate) fns: IStrMap<FnDef>,
-}
-
-impl EnumDef {
-    pub fn new(id: DefId, members: IStrMap<EnumMemberDef>, fns: IStrMap<FnDef>) -> Self {
-        Self { id, members, fns }
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
-pub struct EnumMemberDef {
-    id: DefId,
-    fns: IStrMap<FnDef>,
-}
-
-impl EnumMemberDef {
-    pub fn new(id: DefId, fns: IStrMap<FnDef>) -> Self {
-        Self { id, fns }
-    }
 }
 
 #[derive(Debug)]
@@ -585,7 +421,7 @@ struct CrateResolver<'a> {
     ctxt: &'a CompilerCtxt,
     krate: &'a Crate,
     crates: &'a StrMap<Crate>,
-    crate_lookup: Vec<&'a Crate>,
+    crate_lookup: CrateLookup<'a>,
     module: Option<&'a Module>,
     items: Vec<LocalDefId>,
     nodes: LDefMap<HirNode>,
@@ -597,7 +433,8 @@ impl<'a> CrateResolver<'a> {
         let crate_lookup = crates
             .values()
             .sorted_by_key(|krate| krate.crate_id)
-            .collect_vec();
+            .collect_vec()
+            .into();
         Self {
             ctxt,
             krate,
@@ -1821,8 +1658,6 @@ mod tests {
 
     use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
     use crate::compiler::hir::HirMap;
-    use crate::compiler::types::StrMap;
-    use crate::compiler::StringInterner;
     use crate::util::utils;
 
     #[cfg(test)]

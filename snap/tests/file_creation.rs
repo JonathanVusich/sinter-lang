@@ -1,4 +1,4 @@
-use snap::{snapshot, snapshot_folder};
+use snap_macro::{snapshot, snapshot_folder};
 use std::fs::File;
 use std::io::BufReader;
 use std::panic;
@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 pub fn assert_file_is_created() -> std::io::Result<()> {
     let mut path: PathBuf = snapshot_folder!();
     path.push("write_usize");
-    path.set_extension("snap");
+    path.set_extension("snap_macro");
 
     fn actual_test(path: &Path) {
         File::open(&path).unwrap_err();

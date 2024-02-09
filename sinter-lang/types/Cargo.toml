@@ -1,0 +1,12 @@
+[package]
+name = "types"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+interner = { path = "../interner" }
+id = { path = "../id" }
+
+
+multimap = "0.10.0"
+indexmap = { version = "2.0.2", features = ["serde"] }

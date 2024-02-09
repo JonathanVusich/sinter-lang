@@ -1,40 +1,21 @@
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display};
 
 use itertools::Itertools;
 use multimap::MultiMap;
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{
+use ast::{
     Block, EnumMember, Fields, FnSelfStmt, FnSig, GenericParams, ItemKind, Module, Params,
     QualifiedIdent, Stmt, StmtKind,
 };
+use diagnostics::Diagnostic;
+use id::LocalDefId;
+use interner::InternedStr;
+use span::Span;
+
 use crate::compiler::compiler::{CompilerCtxt, SourceCode};
-use crate::compiler::errors::Diagnostic;
-use crate::compiler::hir::LocalDefId;
-use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::InternedStr;
 
 const MAX_NUM: usize = 65535;
-
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub enum ValidationErrKind {
-    DuplicateUseStmts(QualifiedIdent, Vec<LocalDefId>),
-    DuplicateLetStmts(InternedStr, Vec<LocalDefId>),
-    DuplicateTys(InternedStr, Vec<LocalDefId>),
-    DuplicateFns(InternedStr, Vec<LocalDefId>),
-    DuplicateGenericParam(InternedStr, Vec<LocalDefId>),
-    DuplicateParam(InternedStr, Vec<LocalDefId>),
-    DuplicateField(InternedStr, Vec<LocalDefId>),
-    DuplicateEnumMember(InternedStr, Vec<LocalDefId>),
-    NoTypeProvided(LocalDefId),
-}
-
-impl Display for ValidationErrKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        // TODO: Implement pretty printing
-        Debug::fmt(self, f)
-    }
-}
 
 pub fn validate(compiler_ctxt: &mut CompilerCtxt, module: &Module) {
     let validator = Validator::new(compiler_ctxt, module);
@@ -262,18 +243,17 @@ fn find_name_clashes<T, M: Fn(&T) -> InternedStr>(
 }
 
 mod tests {
+    use ast::ModulePath;
+    use diagnostics::{Diagnostic, DiagnosticKind};
+    use id::{CrateId, ModuleId};
+    use interner::StringInterner;
     use snap::snapshot;
+    use tokenizer::{tokenize, TokenizedSource};
 
     use crate::compiler::compiler::{CompilerCtxt, SourceCode};
-    use crate::compiler::errors::{Diagnostic, DiagnosticKind};
-    use crate::compiler::hir::ModuleId;
-    use crate::compiler::krate::{Crate, CrateId};
+    use crate::compiler::krate::Crate;
     use crate::compiler::parser::parse;
-    use crate::compiler::path::ModulePath;
-    use crate::compiler::tokens::tokenized_file::{Source, TokenizedOutput, TokenizedSource};
-    use crate::compiler::tokens::tokenizer::Tokenizer;
     use crate::compiler::types::StrMap;
-    use crate::compiler::StringInterner;
 
     type ValidationOutput = (StringInterner, Vec<Diagnostic>);
 
@@ -281,10 +261,11 @@ mod tests {
     fn validate<T: AsRef<str>>(code: T) -> ValidationOutput {
         let code = code.as_ref().to_string();
         let mut compiler_ctxt = CompilerCtxt::default();
-        let tokenizer = Tokenizer::new(&mut compiler_ctxt, code.as_ref());
-        let TokenizedOutput {
-            tokens, line_map, ..
-        } = tokenizer.tokenize();
+        let TokenizedSource {
+            tokens,
+            line_map,
+            token_source,
+        } = tokenize(&mut compiler_ctxt.string_interner, code);
         let module = parse(&mut compiler_ctxt, tokens).unwrap();
         let krate_name = compiler_ctxt.intern_str("crate");
         let mut krate = Crate::new(krate_name, CrateId::new(0));
@@ -292,7 +273,7 @@ mod tests {
             ModulePath::from_iter([compiler_ctxt.intern_str("module")]),
             module,
         );
-        let source_code = SourceCode::new(Source::Inline(code), line_map);
+        let source_code = SourceCode::new(token_source, line_map);
         compiler_ctxt.intern_source(module_id, source_code);
         let krates = StrMap::from([(krate_name, krate)]);
         let krate = krates.get(&krate_name).unwrap();

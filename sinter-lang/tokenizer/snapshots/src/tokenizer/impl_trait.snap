@@ -1,0 +1,277 @@
+(["core", "tweet", "Tweet", "Summary", "summarize", "str", "username", "content"], (
+  tokens: [(
+    token_type: Use,
+    span: (
+      start: 0,
+      end: 3,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 4,
+      end: 8,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 8,
+      end: 9,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 9,
+      end: 10,
+    ),
+  ), (
+    token_type: Identifier(2),
+    span: (
+      start: 10,
+      end: 15,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 15,
+      end: 16,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 16,
+      end: 17,
+    ),
+  ), (
+    token_type: Identifier(3),
+    span: (
+      start: 17,
+      end: 22,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 22,
+      end: 23,
+    ),
+  ), (
+    token_type: Trait,
+    span: (
+      start: 25,
+      end: 30,
+    ),
+  ), (
+    token_type: Identifier(4),
+    span: (
+      start: 31,
+      end: 38,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 39,
+      end: 40,
+    ),
+  ), (
+    token_type: Fn,
+    span: (
+      start: 45,
+      end: 47,
+    ),
+  ), (
+    token_type: Identifier(5),
+    span: (
+      start: 48,
+      end: 57,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 57,
+      end: 58,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 58,
+      end: 62,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 62,
+      end: 63,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 64,
+      end: 66,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 67,
+      end: 70,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 70,
+      end: 71,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 72,
+      end: 73,
+    ),
+  ), (
+    token_type: Impl,
+    span: (
+      start: 75,
+      end: 79,
+    ),
+  ), (
+    token_type: Identifier(4),
+    span: (
+      start: 80,
+      end: 87,
+    ),
+  ), (
+    token_type: For,
+    span: (
+      start: 88,
+      end: 91,
+    ),
+  ), (
+    token_type: Identifier(3),
+    span: (
+      start: 92,
+      end: 97,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 98,
+      end: 99,
+    ),
+  ), (
+    token_type: Fn,
+    span: (
+      start: 104,
+      end: 106,
+    ),
+  ), (
+    token_type: Identifier(5),
+    span: (
+      start: 107,
+      end: 116,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 116,
+      end: 117,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 117,
+      end: 121,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 121,
+      end: 122,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 123,
+      end: 125,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 126,
+      end: 129,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 130,
+      end: 131,
+    ),
+  ), (
+    token_type: Return,
+    span: (
+      start: 140,
+      end: 146,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 147,
+      end: 151,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 151,
+      end: 152,
+    ),
+  ), (
+    token_type: Identifier(7),
+    span: (
+      start: 152,
+      end: 160,
+    ),
+  ), (
+    token_type: Plus,
+    span: (
+      start: 161,
+      end: 162,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 163,
+      end: 167,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 167,
+      end: 168,
+    ),
+  ), (
+    token_type: Identifier(8),
+    span: (
+      start: 168,
+      end: 175,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 175,
+      end: 176,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 181,
+      end: 182,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 183,
+      end: 184,
+    ),
+  )],
+  line_map: (
+    lines: [23, 24, 40, 71, 73, 74, 99, 131, 176, 182],
+  ),
+  line_counter: 10,
+))

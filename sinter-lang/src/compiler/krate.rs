@@ -3,42 +3,15 @@ use std::fmt::Formatter;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut, Index};
 
+use interner::InternedStr;
 use radix_trie::Trie;
 use serde::de::{DeserializeOwned, SeqAccess, Visitor};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::compiler::ast::{AstPass, Module, QualifiedIdent};
 use crate::compiler::ast_passes::{UsedCrate, UsedCrateCollector};
-use crate::compiler::hir::ModuleId;
-use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::ValueDef;
-use crate::compiler::types::InternedStr;
-
-#[derive(PartialEq, Eq, Debug, Default, Copy, Clone, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct CrateId {
-    id: u32,
-}
-
-impl CrateId {
-    pub fn new(id: u32) -> Self {
-        Self { id }
-    }
-}
-
-impl<'a> Index<CrateId> for Vec<&'a Crate> {
-    type Output = Crate;
-
-    fn index(&self, index: CrateId) -> &Self::Output {
-        &self[index.id as usize]
-    }
-}
-
-impl From<CrateId> for u32 {
-    fn from(value: CrateId) -> Self {
-        value.id
-    }
-}
+use ast::{AstPass, Module, ModulePath, QualifiedIdent, ValueDef};
+use id::{CrateId, ModuleId};
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct ModuleMap<T> {
@@ -146,6 +119,33 @@ where
     }
 }
 
+pub struct CrateLookup<'a> {
+    crates: Vec<&'a Crate>,
+}
+
+impl<'a> From<Vec<&'a Crate>> for CrateLookup<'a> {
+    fn from(crates: Vec<&'a Crate>) -> Self {
+        Self { crates }
+    }
+}
+
+impl<'a> Index<ModuleId> for CrateLookup<'a> {
+    type Output = Module;
+
+    fn index(&self, index: ModuleId) -> &Self::Output {
+        let krate = self.crates[index.crate_id()];
+        &krate.modules[index.module_id()]
+    }
+}
+
+impl<'a> Index<CrateId> for CrateLookup<'a> {
+    type Output = Crate;
+
+    fn index(&self, index: CrateId) -> &Self::Output {
+        self.crates[index.as_usize()]
+    }
+}
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 #[serde(from = "DeserCrate")]
 pub struct Crate {
@@ -178,14 +178,6 @@ impl From<DeserCrate> for Crate {
     }
 }
 
-impl Index<ModuleId> for Crate {
-    type Output = Module;
-
-    fn index(&self, index: ModuleId) -> &Self::Output {
-        &self.modules[index]
-    }
-}
-
 impl Crate {
     pub fn new(name: InternedStr, crate_id: CrateId) -> Self {
         Self {
@@ -199,7 +191,7 @@ impl Crate {
 
     pub fn add_module(&mut self, module_path: ModulePath, mut module: Module) -> ModuleId {
         let module_id = self.modules.len();
-        let full_mod_id = ModuleId::new(self.crate_id.id, module_id as u32);
+        let full_mod_id = ModuleId::new(self.crate_id.into(), module_id as u32);
         module.id = full_mod_id;
         self.module_trie.insert(module_path, full_mod_id);
         // self.module_lookup.insert(module_path, full_mod_id);
@@ -229,7 +221,7 @@ impl Crate {
                     .and_then(|id| {
                         // Search for a value in the given module namespace.
                         let value = module_path.back()?;
-                        let module = &self.modules[id];
+                        let module = &self.modules[id.module_id() as usize];
                         module
                             .namespace
                             .find_value(value)
@@ -259,7 +251,7 @@ impl Crate {
     }
 
     pub fn module(&self, mod_id: ModuleId) -> &Module {
-        &self.modules[mod_id]
+        &self.modules[mod_id.module_id()]
     }
 
     pub fn module_mut(&mut self, module_id: usize) -> &mut Module {

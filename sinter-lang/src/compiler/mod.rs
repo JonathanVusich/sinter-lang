@@ -6,8 +6,8 @@ use std::hash::{BuildHasher, BuildHasherDefault};
 use std::rc::Rc;
 use std::sync::Arc;
 
-pub mod ast;
-pub mod ast_passes;
+mod arena;
+mod ast_passes;
 pub mod codegen;
 pub mod compiled_module;
 pub mod compiler;
@@ -18,13 +18,9 @@ pub mod mir;
 pub mod parser;
 pub mod path;
 pub mod resolver;
-pub mod tokens;
+mod type_inference;
 pub mod types;
 mod utils;
 pub mod validator;
-mod type_inference;
-mod errors;
-mod arena;
 
 pub type SeedableHasher = BuildHasherDefault<FxHasher>;
-pub type StringInterner = Rodeo;

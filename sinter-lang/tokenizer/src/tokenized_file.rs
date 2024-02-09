@@ -4,16 +4,17 @@ use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::str::from_utf8;
 
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::tokens::token::Token;
+use span::{NormalizedSpan, Span};
+
+use crate::token::Token;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct TokenizedSource {
-    pub(crate) tokens: Vec<Token>,
-    pub(crate) line_map: LineMap,
-    pub(crate) token_source: Source,
+    pub tokens: Vec<Token>,
+    pub line_map: LineMap,
+    pub token_source: Source,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -30,7 +31,7 @@ pub enum Source {
 }
 
 impl Source {
-    pub(crate) fn span(&self, span: &Span) -> Option<String> {
+    pub fn span(&self, span: &Span) -> Option<String> {
         match self {
             Source::Inline(string) => string
                 .as_bytes()
@@ -48,16 +49,12 @@ impl Source {
         }
     }
 
-    pub(crate) fn line(&self, line_no: usize) -> Option<String> {
+    pub fn line(&self, line_no: usize) -> Option<String> {
         match self {
-            Source::Inline(string) => string
-                .lines()
-                .skip(line_no)
-                .next()
-                .map(|str| str.to_string()),
+            Source::Inline(string) => string.lines().nth(line_no).map(|str| str.to_string()),
             Source::Path(path_buf) => fs::read_to_string(path_buf)
                 .ok()
-                .and_then(|str| str.lines().skip(line_no).next().map(|str| str.to_string())),
+                .and_then(|str| str.lines().nth(line_no).map(|str| str.to_string())),
         }
     }
 }
@@ -105,49 +102,6 @@ impl LineMap {
     }
 }
 
-#[derive(PartialEq, Default, Debug, Serialize, Deserialize)]
-pub struct NormalizedSpan {
-    pub start_pos: u32,
-    pub start_line: u32,
-    pub end_pos: u32,
-    pub end_line: u32,
-}
-
-impl NormalizedSpan {
-    pub fn new(start_pos: u32, start_line: u32, end_pos: u32, end_line: u32) -> Self {
-        Self {
-            start_pos,
-            start_line,
-            end_pos,
-            end_line,
-        }
-    }
-}
-
-#[derive(Eq, PartialEq, Default, Debug, Hash, Serialize, Deserialize, Copy, Clone)]
-pub struct Span {
-    pub start: u32,
-    pub end: u32,
-}
-
-impl Span {
-    pub fn new(start: u32, end: u32) -> Self {
-        assert!(end > start);
-        Self { start, end }
-    }
-
-    pub fn to(&self, other: Self) -> Self {
-        Self {
-            start: self.start,
-            end: other.end,
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        (self.end - self.start) as usize
-    }
-}
-
 impl TokenizedOutput {
     pub fn new() -> Self {
         Self {
@@ -168,7 +122,9 @@ impl TokenizedOutput {
 }
 
 mod tests {
-    use crate::compiler::tokens::tokenized_file::{NormalizedSpan, Span, TokenizedOutput};
+    use span::{NormalizedSpan, Span};
+
+    use crate::tokenized_file::TokenizedOutput;
 
     #[test]
     pub fn line_map() {

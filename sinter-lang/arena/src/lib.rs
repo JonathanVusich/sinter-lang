@@ -1,3 +1,7 @@
+#![feature(ptr_sub_ptr)]
+#![feature(new_uninit)]
+#![feature(maybe_uninit_slice)]
+
 use std::cell::{Cell, RefCell};
 use std::cmp::max;
 use std::mem::MaybeUninit;
@@ -110,8 +114,7 @@ impl<T> Drop for Chunk<T> {
 }
 
 mod tests {
-    use crate::util::arena::Arena;
-    use std::mem;
+    use crate::Arena;
 
     #[test]
     pub fn alloc() {

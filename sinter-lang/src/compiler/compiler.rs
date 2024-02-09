@@ -1,7 +1,7 @@
 use std::backtrace::Backtrace;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::ffi::{OsStr, OsString};
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Debug, Display};
 use std::io;
 use std::ops::Deref;
 use std::path::{Path, PathBuf, StripPrefixError};
@@ -12,23 +12,25 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 use walkdir::{DirEntry, WalkDir};
 
-use crate::compiler::ast::AstPass;
-use crate::compiler::errors::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
-use crate::compiler::hir::{HirMap, LocalDefId, ModuleId};
-use crate::compiler::krate::{Crate, CrateId};
-use crate::compiler::parser::{parse, ParseErrKind};
-use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::{resolve, ResolveErrKind};
-use crate::compiler::tokens::tokenized_file::{LineMap, Source, TokenizedSource};
-use crate::compiler::tokens::tokenizer::{tokenize, tokenize_file};
-use crate::compiler::type_inference::ty_infer::{CrateInference, TypeErrKind, TypeMap};
-use crate::compiler::types::{InternedStr, StrMap};
-use crate::compiler::validator::{validate, ValidationErrKind};
-use crate::compiler::StringInterner;
+use ast::{AstPass, ModulePath};
+use diagnostics::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
+use id::{CrateId, LocalDefId, ModuleId};
+use interner::{InternedStr, StringInterner};
+use tokenizer::{tokenize, tokenize_file, LineMap, Source, TokenizedSource};
+
+use crate::compiler::hir::HirMap;
+use crate::compiler::krate::Crate;
+use crate::compiler::parser::parse;
+use crate::compiler::resolver::resolve;
+use crate::compiler::type_inference::ty_infer::{CrateInference, TypeMap};
+use crate::compiler::types::StrMap;
+use crate::compiler::validator::validate;
 
 #[derive(Default)]
 pub struct Compiler {
     compiler_ctxt: CompilerCtxt,
+    string_interner: StringInterner,
+    diagnostics: Diagnostics,
 }
 
 #[cfg(test)]
@@ -55,93 +57,6 @@ pub trait ErrorKind {
 
     fn backtrace(&self) -> &Backtrace;
     fn error(&self) -> &Self::Err;
-}
-
-macro_rules! backtrace_err {
-    ($ty:ty, $name:ident) => {
-        #[derive(Debug)]
-        pub struct $name {
-            inner: $ty,
-            #[cfg(debug_assertions)]
-            backtrace: Backtrace,
-        }
-
-        impl From<$ty> for $name {
-            fn from(inner: $ty) -> Self {
-                Self {
-                    inner,
-                    #[cfg(debug_assertions)]
-                    backtrace: Backtrace::force_capture(),
-                }
-            }
-        }
-
-        impl $name {
-            #[cfg(debug_assertions)]
-            pub fn backtrace(&self) -> &Backtrace {
-                &self.backtrace
-            }
-
-            pub fn into_inner(self) -> $ty {
-                self.inner
-            }
-        }
-
-        impl Deref for $name {
-            type Target = $ty;
-
-            fn deref(&self) -> &Self::Target {
-                &self.inner
-            }
-        }
-    };
-}
-
-backtrace_err!(Box<dyn std::error::Error>, Generic);
-backtrace_err!(OsString, InvalidName);
-backtrace_err!(ParseErrKind, ParseError);
-backtrace_err!(ValidationErrKind, ValidationError);
-backtrace_err!(ResolveErrKind, ResolveError);
-backtrace_err!(TypeErrKind, TypeError);
-
-pub enum CompileError {
-    /// Generic error type
-    Generic(Generic),
-    /// Crate name contains non UTF-8 characters
-    InvalidCrateName(InvalidName),
-    /// Module name contains non UTF-8 characters
-    InvalidModuleName(InvalidName),
-    /// Errors found while parsing
-    ParseErrors(Vec<ParseError>),
-
-    /// Errors found while validating the AST.
-    ValidationErrors(Vec<ValidationError>),
-
-    /// Errors found during initial resolution
-    ResolveErrors(Vec<ResolveError>),
-
-    /// Errors found while inferring types
-    TypeErrors(Vec<TypeError>),
-}
-
-impl Display for CompileError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            CompileError::Generic(error) => Debug::fmt(error, f),
-            CompileError::InvalidCrateName(error) => Debug::fmt(error, f),
-            CompileError::InvalidModuleName(error) => Debug::fmt(error, f),
-            CompileError::ParseErrors(errors) => errors.fmt(f),
-            CompileError::ValidationErrors(errors) => errors.fmt(f),
-            CompileError::ResolveErrors(errors) => errors.fmt(f),
-            CompileError::TypeErrors(errors) => errors.fmt(f),
-        }
-    }
-}
-
-impl Debug for CompileError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        Display::fmt(self, f)
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -183,11 +98,11 @@ impl CompilerCtxt {
     }
 
     pub(crate) fn intern_str(&mut self, str: &str) -> InternedStr {
-        self.string_interner.get_or_intern(str).into()
+        self.string_interner.intern(str)
     }
 
     pub(crate) fn resolve_str(&self, str: InternedStr) -> &str {
-        self.string_interner.resolve(&str.into())
+        self.string_interner.resolve(str)
     }
 
     pub(crate) fn crate_id(&mut self) -> CrateId {
@@ -304,7 +219,7 @@ impl Compiler {
 
         let mut krate = Crate::new(krate_name, self.compiler_ctxt.crate_id());
 
-        let tokens = tokenize(&mut self.compiler_ctxt, code);
+        let tokens = tokenize(&mut self.compiler_ctxt.string_interner, code);
         let TokenizedSource {
             tokens,
             line_map,
@@ -373,7 +288,11 @@ impl Compiler {
                 .ok()?;
             let module_path = self.compiler_ctxt.module_path(local_path)?;
 
-            let tokens = tokenize_file(&mut self.compiler_ctxt, &file.into_path())?;
+            let tokens = tokenize_file(
+                &mut self.compiler_ctxt.string_interner,
+                &mut self.compiler_ctxt.diagnostics,
+                &file.into_path(),
+            )?;
             let TokenizedSource {
                 tokens,
                 line_map,

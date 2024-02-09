@@ -1,20 +1,19 @@
 use std::borrow::Borrow;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, Index};
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{Ident, InfixOp, Module, Mutability, UnaryOp};
-use crate::compiler::krate::{Crate, CrateId};
-use crate::compiler::parser::ClassType;
-use crate::compiler::path::ModulePath;
-use crate::compiler::resolver::{FnDef, MaybeFnDef, ValueDef};
-use crate::compiler::tokens::tokenized_file::Span;
-use crate::compiler::types::{InternedStr, LDefMap, StrMap, StrSet};
+use ast::{ClassType, Ident, InfixOp, ModulePath, Mutability, UnaryOp};
+use ast::{MaybeFnDef, ValueDef};
+use id::{CrateId, DefId, LocalDefId, ModuleId};
+use interner::InternedStr;
+use span::Span;
+use types::{LDefMap, StrMap, StrSet};
+
 use crate::compiler::utils::{named_slice, named_strmap};
-use crate::traits::traits::Trait;
 
 macro_rules! def_node_getter {
     ($fn_name:ident, $maybe_fn_name:ident, $patt:pat, $extractor:expr, $node_ty:ty) => {
@@ -34,83 +33,6 @@ macro_rules! def_node_getter {
             }
         }
     };
-}
-
-#[derive(PartialEq, Eq, Hash, Debug, Default, Clone, Copy, Serialize, Deserialize)]
-pub struct DefId {
-    crate_id: u32,
-    local_id: u32,
-}
-
-impl DefId {
-    pub fn local_id(&self) -> LocalDefId {
-        LocalDefId::new(self.local_id)
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Hash, Default, Copy, Clone, Serialize, Deserialize)]
-pub struct ModuleId {
-    crate_id: u32,
-    module_id: u32,
-}
-
-impl Index<ModuleId> for Vec<Module> {
-    type Output = Module;
-
-    fn index(&self, index: ModuleId) -> &Self::Output {
-        &self[index.module_id as usize]
-    }
-}
-
-impl<'a> Index<ModuleId> for Vec<&'a Crate> {
-    type Output = Module;
-
-    fn index(&self, index: ModuleId) -> &Self::Output {
-        &self[index.crate_id as usize][index]
-    }
-}
-
-impl ModuleId {
-    pub fn new(crate_id: u32, module_id: u32) -> Self {
-        Self {
-            crate_id,
-            module_id,
-        }
-    }
-}
-
-#[repr(transparent)]
-#[derive(
-    Copy, Clone, PartialEq, Eq, Ord, Default, PartialOrd, Debug, Hash, Serialize, Deserialize,
-)]
-#[serde(transparent)]
-pub struct LocalDefId {
-    local_id: u32,
-}
-
-impl LocalDefId {
-    pub fn new(local_id: u32) -> Self {
-        Self { local_id }
-    }
-
-    pub fn to_def_id(&self, crate_id: CrateId) -> DefId {
-        DefId {
-            crate_id: crate_id.into(),
-            local_id: self.local_id,
-        }
-    }
-}
-
-impl From<LocalDefId> for usize {
-    fn from(value: LocalDefId) -> Self {
-        value.local_id.try_into().unwrap()
-    }
-}
-
-impl From<u32> for LocalDefId {
-    fn from(value: u32) -> Self {
-        LocalDefId { local_id: value }
-    }
 }
 
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
@@ -504,6 +426,7 @@ pub enum ArrayExpr {
         initializers: Initializers,
     },
 }
+
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct CallExpr {
     pub target: LocalDefId,
@@ -728,7 +651,8 @@ pub enum Res {
     ModuleSegment(CrateId, ModulePath),
     Module(ModuleId),
     ValueDef(ValueDef),
-    Fn(MaybeFnDef), // These have to be late resolved after type information is deduced?
+    Fn(MaybeFnDef),
+    // These have to be late resolved after type information is deduced?
     Local(LocalDef),
     Primitive(Primitive),
 }
@@ -892,7 +816,7 @@ impl HirMap {
         &self.crates[index]
     }
     pub fn krate(&self, def_id: &DefId) -> &HirCrate {
-        &self.crates[def_id.crate_id as usize]
+        &self.crates[def_id.crate_id().as_usize()]
     }
     pub fn krates(&self) -> impl Iterator<Item = &HirCrate> {
         self.crates.iter()
@@ -903,7 +827,7 @@ impl HirMap {
     }
 
     pub fn node(&self, def_id: &DefId) -> &HirNodeKind {
-        let krate = &self.crates[def_id.crate_id as usize];
+        let krate = &self.crates[def_id.crate_id().as_usize()];
         krate.node(&def_id.local_id())
     }
 }

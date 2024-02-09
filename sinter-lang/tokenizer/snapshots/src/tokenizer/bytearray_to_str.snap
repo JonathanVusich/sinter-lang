@@ -1,0 +1,283 @@
+(["greeting", "Hello world!", "bytearray", "u8", "greeting_from_array", "str"], (
+  tokens: [(
+    token_type: Let,
+    span: (
+      start: 0,
+      end: 3,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 4,
+      end: 12,
+    ),
+  ), (
+    token_type: Equal,
+    span: (
+      start: 13,
+      end: 14,
+    ),
+  ), (
+    token_type: String(2),
+    span: (
+      start: 15,
+      end: 29,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 29,
+      end: 30,
+    ),
+  ), (
+    token_type: Let,
+    span: (
+      start: 57,
+      end: 60,
+    ),
+  ), (
+    token_type: Identifier(3),
+    span: (
+      start: 61,
+      end: 70,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 70,
+      end: 71,
+    ),
+  ), (
+    token_type: LeftBracket,
+    span: (
+      start: 72,
+      end: 73,
+    ),
+  ), (
+    token_type: Identifier(4),
+    span: (
+      start: 73,
+      end: 75,
+    ),
+  ), (
+    token_type: RightBracket,
+    span: (
+      start: 75,
+      end: 76,
+    ),
+  ), (
+    token_type: Equal,
+    span: (
+      start: 77,
+      end: 78,
+    ),
+  ), (
+    token_type: LeftBracket,
+    span: (
+      start: 79,
+      end: 80,
+    ),
+  ), (
+    token_type: Int(72),
+    span: (
+      start: 80,
+      end: 82,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 82,
+      end: 83,
+    ),
+  ), (
+    token_type: Int(101),
+    span: (
+      start: 84,
+      end: 87,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 87,
+      end: 88,
+    ),
+  ), (
+    token_type: Int(108),
+    span: (
+      start: 89,
+      end: 92,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 92,
+      end: 93,
+    ),
+  ), (
+    token_type: Int(108),
+    span: (
+      start: 94,
+      end: 97,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 97,
+      end: 98,
+    ),
+  ), (
+    token_type: Int(111),
+    span: (
+      start: 99,
+      end: 102,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 102,
+      end: 103,
+    ),
+  ), (
+    token_type: Int(32),
+    span: (
+      start: 104,
+      end: 106,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 106,
+      end: 107,
+    ),
+  ), (
+    token_type: Int(119),
+    span: (
+      start: 108,
+      end: 111,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 111,
+      end: 112,
+    ),
+  ), (
+    token_type: Int(111),
+    span: (
+      start: 113,
+      end: 116,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 116,
+      end: 117,
+    ),
+  ), (
+    token_type: Int(114),
+    span: (
+      start: 118,
+      end: 121,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 121,
+      end: 122,
+    ),
+  ), (
+    token_type: Int(108),
+    span: (
+      start: 123,
+      end: 126,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 126,
+      end: 127,
+    ),
+  ), (
+    token_type: Int(100),
+    span: (
+      start: 128,
+      end: 131,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 131,
+      end: 132,
+    ),
+  ), (
+    token_type: Int(33),
+    span: (
+      start: 133,
+      end: 135,
+    ),
+  ), (
+    token_type: RightBracket,
+    span: (
+      start: 135,
+      end: 136,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 136,
+      end: 137,
+    ),
+  ), (
+    token_type: Let,
+    span: (
+      start: 138,
+      end: 141,
+    ),
+  ), (
+    token_type: Identifier(5),
+    span: (
+      start: 142,
+      end: 161,
+    ),
+  ), (
+    token_type: Equal,
+    span: (
+      start: 162,
+      end: 163,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 164,
+      end: 167,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 167,
+      end: 168,
+    ),
+  ), (
+    token_type: Identifier(3),
+    span: (
+      start: 168,
+      end: 177,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 177,
+      end: 178,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 178,
+      end: 179,
+    ),
+  )],
+  line_map: (
+    lines: [56, 137],
+  ),
+  line_counter: 2,
+))

@@ -2,12 +2,9 @@ use std::collections::{HashMap, HashSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::compiler::ast::{
-    AstPass, Expr, Ident, IdentType, Item, ItemKind, QualifiedIdent, UseStmt,
-};
-use crate::compiler::hir::LocalDefId;
-use crate::compiler::path::ModulePath;
-use crate::compiler::types::InternedStr;
+use ast::{AstPass, Ident, IdentType, Item, ItemKind, ModulePath};
+use id::LocalDefId;
+use interner::InternedStr;
 
 #[derive(PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct UsedCrate {

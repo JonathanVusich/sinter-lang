@@ -1,12 +1,6 @@
-use crate::bytes::serializers::ByteWriter;
-use crate::compiler::hir::ModuleId;
-use crate::compiler::tokens::tokenized_file::{Source, Span};
-use serde::{Deserialize, Serialize};
-use std::error::Error;
-use std::fmt::format;
-use std::io;
 use std::io::Write;
-use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
 pub struct Diagnostics {

@@ -1,0 +1,79 @@
+(["x"], (
+  tokens: [(
+    token_type: Identifier(1),
+    span: (
+      start: 0,
+      end: 1,
+    ),
+  ), (
+    token_type: Equal,
+    span: (
+      start: 2,
+      end: 3,
+    ),
+  ), (
+    token_type: Int(123),
+    span: (
+      start: 4,
+      end: 7,
+    ),
+  ), (
+    token_type: Greater,
+    span: (
+      start: 8,
+      end: 9,
+    ),
+  ), (
+    token_type: Greater,
+    span: (
+      start: 9,
+      end: 10,
+    ),
+  ), (
+    token_type: Int(2),
+    span: (
+      start: 11,
+      end: 12,
+    ),
+  ), (
+    token_type: BitwiseOr,
+    span: (
+      start: 13,
+      end: 14,
+    ),
+  ), (
+    token_type: Int(89),
+    span: (
+      start: 15,
+      end: 17,
+    ),
+  ), (
+    token_type: Star,
+    span: (
+      start: 18,
+      end: 19,
+    ),
+  ), (
+    token_type: Int(21),
+    span: (
+      start: 20,
+      end: 22,
+    ),
+  ), (
+    token_type: BitwiseAnd,
+    span: (
+      start: 23,
+      end: 24,
+    ),
+  ), (
+    token_type: Int(2),
+    span: (
+      start: 25,
+      end: 26,
+    ),
+  )],
+  line_map: (
+    lines: [],
+),
+  line_counter: 0,
+))

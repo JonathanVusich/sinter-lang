@@ -1,0 +1,709 @@
+(["write", "T", "Serializable", "value", "Result", "bytes", "to_bytes", "buffer", "remaining", "len", "WriteError", "BufferOverflow", "write_bytes", "MalformedBytes", "Error", "message", "str", "BufferOverFlow", "source", "Option"], (
+  tokens: [(
+    token_type: Fn,
+    span: (
+      start: 0,
+      end: 2,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 3,
+      end: 8,
+    ),
+  ), (
+    token_type: Less,
+    span: (
+      start: 8,
+      end: 9,
+    ),
+  ), (
+    token_type: Identifier(2),
+    span: (
+      start: 9,
+      end: 10,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 10,
+      end: 11,
+    ),
+  ), (
+    token_type: Identifier(3),
+    span: (
+      start: 12,
+      end: 24,
+    ),
+  ), (
+    token_type: Greater,
+    span: (
+      start: 24,
+      end: 25,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 25,
+      end: 26,
+    ),
+  ), (
+    token_type: Identifier(4),
+    span: (
+      start: 26,
+      end: 31,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 31,
+      end: 32,
+    ),
+  ), (
+    token_type: Identifier(2),
+    span: (
+      start: 33,
+      end: 34,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 34,
+      end: 35,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 36,
+      end: 38,
+    ),
+  ), (
+    token_type: Identifier(5),
+    span: (
+      start: 39,
+      end: 45,
+    ),
+  ), (
+    token_type: Less,
+    span: (
+      start: 45,
+      end: 46,
+    ),
+  ), (
+    token_type: None,
+    span: (
+      start: 46,
+      end: 50,
+    ),
+  ), (
+    token_type: Greater,
+    span: (
+      start: 50,
+      end: 51,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 52,
+      end: 53,
+    ),
+  ), (
+    token_type: Let,
+    span: (
+      start: 58,
+      end: 61,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 62,
+      end: 67,
+    ),
+  ), (
+    token_type: Equal,
+    span: (
+      start: 68,
+      end: 69,
+    ),
+  ), (
+    token_type: Identifier(4),
+    span: (
+      start: 70,
+      end: 75,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 75,
+      end: 76,
+    ),
+  ), (
+    token_type: Identifier(7),
+    span: (
+      start: 76,
+      end: 84,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 84,
+      end: 85,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 85,
+      end: 86,
+    ),
+  ), (
+    token_type: Semicolon,
+    span: (
+      start: 86,
+      end: 87,
+    ),
+  ), (
+    token_type: If,
+    span: (
+      start: 92,
+      end: 94,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 95,
+      end: 96,
+    ),
+  ), (
+    token_type: Identifier(8),
+    span: (
+      start: 96,
+      end: 102,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 102,
+      end: 103,
+    ),
+  ), (
+    token_type: Identifier(9),
+    span: (
+      start: 103,
+      end: 112,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 112,
+      end: 113,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 113,
+      end: 114,
+    ),
+  ), (
+    token_type: Less,
+    span: (
+      start: 115,
+      end: 116,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 117,
+      end: 122,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 122,
+      end: 123,
+    ),
+  ), (
+    token_type: Identifier(10),
+    span: (
+      start: 123,
+      end: 126,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 126,
+      end: 127,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 127,
+      end: 128,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 128,
+      end: 129,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 130,
+      end: 131,
+    ),
+  ), (
+    token_type: Identifier(11),
+    span: (
+      start: 140,
+      end: 150,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 150,
+      end: 151,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 151,
+      end: 152,
+    ),
+  ), (
+    token_type: Identifier(12),
+    span: (
+      start: 152,
+      end: 166,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 171,
+      end: 172,
+    ),
+  ), (
+    token_type: Else,
+    span: (
+      start: 173,
+      end: 177,
+    ),
+  ), (
+    token_type: If,
+    span: (
+      start: 178,
+      end: 180,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 181,
+      end: 182,
+    ),
+  ), (
+    token_type: Bang,
+    span: (
+      start: 182,
+      end: 183,
+    ),
+  ), (
+    token_type: Identifier(8),
+    span: (
+      start: 183,
+      end: 189,
+    ),
+  ), (
+    token_type: Dot,
+    span: (
+      start: 189,
+      end: 190,
+    ),
+  ), (
+    token_type: Identifier(13),
+    span: (
+      start: 190,
+      end: 201,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 201,
+      end: 202,
+    ),
+  ), (
+    token_type: Identifier(6),
+    span: (
+      start: 202,
+      end: 207,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 207,
+      end: 208,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 208,
+      end: 209,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 210,
+      end: 211,
+    ),
+  ), (
+    token_type: Identifier(11),
+    span: (
+      start: 220,
+      end: 230,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 230,
+      end: 231,
+    ),
+  ), (
+    token_type: Colon,
+    span: (
+      start: 231,
+      end: 232,
+    ),
+  ), (
+    token_type: Identifier(14),
+    span: (
+      start: 232,
+      end: 246,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 251,
+      end: 252,
+    ),
+  ), (
+    token_type: Else,
+    span: (
+      start: 253,
+      end: 257,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 258,
+      end: 259,
+    ),
+  ), (
+    token_type: None,
+    span: (
+      start: 268,
+      end: 272,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 277,
+      end: 278,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 279,
+      end: 280,
+    ),
+  ), (
+    token_type: Enum,
+    span: (
+      start: 282,
+      end: 286,
+    ),
+  ), (
+    token_type: Identifier(11),
+    span: (
+      start: 287,
+      end: 297,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 298,
+      end: 299,
+    ),
+  ), (
+    token_type: Identifier(12),
+    span: (
+      start: 304,
+      end: 318,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 318,
+      end: 319,
+    ),
+  ), (
+    token_type: Identifier(14),
+    span: (
+      start: 324,
+      end: 338,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 338,
+      end: 339,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 340,
+      end: 341,
+    ),
+  ), (
+    token_type: Impl,
+    span: (
+      start: 343,
+      end: 347,
+    ),
+  ), (
+    token_type: Identifier(15),
+    span: (
+      start: 348,
+      end: 353,
+    ),
+  ), (
+    token_type: For,
+    span: (
+      start: 354,
+      end: 357,
+    ),
+  ), (
+    token_type: Identifier(11),
+    span: (
+      start: 358,
+      end: 368,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 369,
+      end: 370,
+    ),
+  ), (
+    token_type: Fn,
+    span: (
+      start: 376,
+      end: 378,
+    ),
+  ), (
+    token_type: Identifier(16),
+    span: (
+      start: 379,
+      end: 386,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 386,
+      end: 387,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 387,
+      end: 391,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 391,
+      end: 392,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 393,
+      end: 395,
+    ),
+  ), (
+    token_type: Identifier(17),
+    span: (
+      start: 396,
+      end: 399,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 400,
+      end: 401,
+    ),
+  ), (
+    token_type: Match,
+    span: (
+      start: 410,
+      end: 415,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 416,
+      end: 420,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 421,
+      end: 422,
+    ),
+  ), (
+    token_type: Identifier(18),
+    span: (
+      start: 435,
+      end: 449,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 450,
+      end: 452,
+    ),
+  ), (
+    token_type: String(18),
+    span: (
+      start: 453,
+      end: 469,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 469,
+      end: 470,
+    ),
+  ), (
+    token_type: Identifier(14),
+    span: (
+      start: 483,
+      end: 497,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 498,
+      end: 500,
+    ),
+  ), (
+    token_type: String(14),
+    span: (
+      start: 501,
+      end: 517,
+    ),
+  ), (
+    token_type: Comma,
+    span: (
+      start: 517,
+      end: 518,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 527,
+      end: 528,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 533,
+      end: 534,
+    ),
+  ), (
+    token_type: Fn,
+    span: (
+      start: 540,
+      end: 542,
+    ),
+  ), (
+    token_type: Identifier(19),
+    span: (
+      start: 543,
+      end: 549,
+    ),
+  ), (
+    token_type: LeftParentheses,
+    span: (
+      start: 549,
+      end: 550,
+    ),
+  ), (
+    token_type: SelfLowercase,
+    span: (
+      start: 550,
+      end: 554,
+    ),
+  ), (
+    token_type: RightParentheses,
+    span: (
+      start: 554,
+      end: 555,
+    ),
+  ), (
+    token_type: RightArrow,
+    span: (
+      start: 556,
+      end: 558,
+    ),
+  ), (
+    token_type: Identifier(20),
+    span: (
+      start: 559,
+      end: 565,
+    ),
+  ), (
+    token_type: Less,
+    span: (
+      start: 565,
+      end: 566,
+    ),
+  ), (
+    token_type: Identifier(15),
+    span: (
+      start: 566,
+      end: 571,
+    ),
+  ), (
+    token_type: Greater,
+    span: (
+      start: 571,
+      end: 572,
+    ),
+  ), (
+    token_type: LeftBrace,
+    span: (
+      start: 573,
+      end: 574,
+    ),
+  ), (
+    token_type: None,
+    span: (
+      start: 583,
+      end: 587,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 592,
+      end: 593,
+    ),
+  ), (
+    token_type: RightBrace,
+    span: (
+      start: 594,
+      end: 595,
+    ),
+  )],
+  line_map: (
+    lines: [53, 87, 131, 166, 211, 246, 259, 272, 278, 280, 281, 299, 319, 339, 341, 342, 370, 371, 401, 422, 470, 518, 528, 534, 535, 574, 587, 593],
+  ),
+  line_counter: 28,
+))

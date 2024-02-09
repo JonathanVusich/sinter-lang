@@ -1,0 +1,25 @@
+(["nativer", "enative"], (
+  tokens: [(
+    token_type: Native,
+    span: (
+      start: 0,
+      end: 6,
+    ),
+  ), (
+    token_type: Identifier(1),
+    span: (
+      start: 7,
+      end: 14,
+    ),
+  ), (
+    token_type: Identifier(2),
+    span: (
+      start: 15,
+      end: 22,
+    ),
+  )],
+  line_map: (
+    lines: [],
+),
+  line_counter: 0,
+))

@@ -1,0 +1,20 @@
+[package]
+name = "tokenizer"
+version = "0.1.0"
+edition = "2021"
+
+[toolchain]
+channel = "nightly"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+diagnostics = { path = "../diagnostics" }
+interner = { path = "../interner" }
+snap = { path = "../../snap" }
+sources = { path = "../sources" }
+span = { path = "../span" }
+
+unicode-segmentation = "1.11.0"
+phf = { version = "0.11.2", features = ["macros"] }
+serde = { version = "1.0.140", features = ["derive", "rc"] }
+itertools = "0.12.1"
