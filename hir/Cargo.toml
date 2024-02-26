@@ -1,0 +1,14 @@
+[package]
+name = "hir"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+interner = { path = "../interner" }
+span = { path = "../span" }
+types = { path = "../types" }
+id = { path = "../id" }
+macros = { path = "../macros" }
+ast = { path = "../ast" }
+
+serde = { version = "1.0.197", features = ["derive"] }

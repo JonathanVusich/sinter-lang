@@ -6,10 +6,6 @@ use std::hash::Hash;
 use std::ops::Deref;
 use std::sync::Arc;
 
-use indexmap::IndexMap;
-use itertools::Itertools;
-use serde::{Deserialize, Serialize};
-
 use ast::{
     ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassDef, ClassStmt as AstClassStmt,
     ClosureParam as AstClosureParam, DestructureExpr as AstDestructureExpr,
@@ -26,12 +22,7 @@ use ast::{
     TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
     TyKind as AstTyKind, ValueDef,
 };
-use id::{CrateId, DefId, LocalDefId, ModuleId};
-use interner::InternedStr;
-use span::Span;
-
-use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::hir::{
+use hir::{
     AnonParams, Args, Array, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure,
     ClosureExpr, ClosureParam, ClosureParams, DestructureExpr, DestructurePattern, EnumMember,
     EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts,
@@ -40,10 +31,18 @@ use crate::compiler::hir::{
     Param, Params, PathExpr, PathTy, Pattern, PatternLocal, Primitive, Res, ReturnStmt, Segment,
     Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
-use crate::compiler::krate::{Crate, CrateDef, CrateLookup};
-use crate::compiler::types::{LDefMap, StrMap};
+use id::{CrateId, DefId, LocalDefId, ModuleId};
+use indexmap::IndexMap;
+use interner::InternedStr;
+use itertools::Itertools;
+use span::Span;
+use types::{LDefMap, StrMap};
 
-pub fn resolve(ctxt: &CompilerCtxt, crates: &mut StrMap<Crate>) -> Option<HirMap> {
+use krate::{Crate, CrateDef, CrateLookup};
+
+use crate::compiler::compiler::CompilerCtxt;
+
+pub fn resolve(ctxt: &CompilerCtxt, crates: StrMap<Crate>) -> Option<HirMap> {
     let resolver = Resolver::new(ctxt, crates);
     resolver.resolve()
 }
@@ -214,11 +213,11 @@ type ResolveResult = Option<()>;
 
 struct Resolver<'a> {
     ctxt: &'a CompilerCtxt,
-    krates: &'a mut StrMap<Crate>,
+    krates: StrMap<Crate>,
 }
 
 impl<'a> Resolver<'a> {
-    fn new(ctxt: &'a CompilerCtxt, krates: &'a mut StrMap<Crate>) -> Self {
+    fn new(ctxt: &'a CompilerCtxt, krates: StrMap<Crate>) -> Self {
         Self { ctxt, krates }
     }
 
@@ -229,7 +228,7 @@ impl<'a> Resolver<'a> {
         self.build_crate_ns()?;
 
         for krate in self.krates.values() {
-            let crate_resolver = CrateResolver::new(self.ctxt, krate, self.krates);
+            let crate_resolver = CrateResolver::new(self.ctxt, krate, &self.krates);
             hir_map.insert(crate_resolver.resolve()?);
         }
 
@@ -693,6 +692,11 @@ impl<'a> CrateResolver<'a> {
 
     fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) {
         let index: usize = id.into();
+        if self.nodes.contains_key(&id) {
+            dbg!(&index);
+            dbg!(&hir_node);
+            dbg!(&self.nodes);
+        }
         assert!(self.nodes.insert(id, hir_node).is_none());
     }
 
@@ -1654,14 +1658,17 @@ impl<'a> CrateResolver<'a> {
 }
 
 mod tests {
+    use diagnostics::Diagnostics;
+    use hir::HirMap;
+    use interner::StringInterner;
+
     use snap::snapshot;
 
     use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
-    use crate::compiler::hir::HirMap;
     use crate::util::utils;
 
     #[cfg(test)]
-    type ResolvedCrates = (CompilerCtxt, HirMap);
+    type ResolvedCrates = (StringInterner, Diagnostics, HirMap);
 
     #[cfg(test)]
     fn resolve_crate(name: &str) -> ResolvedCrates {
@@ -1673,11 +1680,15 @@ mod tests {
             crate_path,
         };
         let mut crates = compiler.parse_crates(application).unwrap();
-        compiler.validate_crates(&crates).unwrap();
+        crates = compiler.validate_crates(crates).unwrap();
 
-        let hir_map = compiler.resolve_crates(&mut crates).unwrap();
-        let compiler_ctxt = CompilerCtxt::from(compiler);
-        (compiler_ctxt, hir_map)
+        let hir_map = compiler.resolve_crates(crates).unwrap();
+        let CompilerCtxt {
+            string_interner,
+            diagnostics,
+            ..
+        } = CompilerCtxt::from(compiler);
+        (string_interner, diagnostics, hir_map)
     }
 
     #[test]

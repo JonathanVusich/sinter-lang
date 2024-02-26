@@ -1,0 +1,13 @@
+(["geometry_classes"], (
+  diagnostics: [],
+), (
+  crates: [(
+    name: 1,
+    id: (
+      id: 0,
+    ),
+    items: [],
+    nodes: {},
+  )],
+  names_to_indices: [1],
+))

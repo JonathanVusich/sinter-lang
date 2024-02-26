@@ -1,0 +1,296 @@
+(["extracted_text", "str", "message", "Message", "Text", "null", "Photo", "photo", "", "caption"], (
+  diagnostics: [],
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: GlobalLet((
+      name: (
+        ident: 1,
+        span: (
+          start: 4,
+          end: 18,
+        ),
+      ),
+      ty: (
+        kind: Str,
+        span: (
+          start: 20,
+          end: 23,
+        ),
+        id: 0,
+      ),
+      initializer: (
+        kind: Match((
+          source: (
+            kind: Path((
+              ident_type: LocalOrUse,
+              segments: [(
+                ident: (
+                  ident: 3,
+                  span: (
+                    start: 32,
+                    end: 39,
+                  ),
+                ),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 32,
+              end: 39,
+            ),
+            id: 1,
+          ),
+          arms: [(
+            pattern: Or((
+              patterns: [Destructure((
+                ty: (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 4,
+                      span: (
+                        start: 46,
+                        end: 53,
+                      ),
+                    ), (
+                      ident: 5,
+                      span: (
+                        start: 55,
+                        end: 59,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+),
+                exprs: [(
+                  kind: String(6),
+                  span: (
+                    start: 60,
+                    end: 66,
+                  ),
+                  id: 2,
+                )],
+              )), Destructure((
+                ty: (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 4,
+                      span: (
+                        start: 70,
+                        end: 77,
+                      ),
+                    ), (
+                      ident: 7,
+                      span: (
+                        start: 79,
+                        end: 84,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+),
+                exprs: [(
+                  kind: String(6),
+                  span: (
+                    start: 85,
+                    end: 91,
+                  ),
+                  id: 3,
+                ), (
+                  kind: Identifier(8),
+                  span: (
+                    start: 93,
+                    end: 98,
+                  ),
+                  id: 4,
+                )],
+              ))],
+            )),
+            body: (
+              kind: Expression((
+                expr: (
+                  kind: String(9),
+                  span: (
+                    start: 103,
+                    end: 105,
+                  ),
+                  id: 5,
+                ),
+                implicit_return: true,
+              )),
+              span: (
+                start: 103,
+                end: 105,
+              ),
+              id: 6,
+            ),
+            span: (
+              start: 46,
+              end: 105,
+            ),
+            id: 7,
+          ), (
+            pattern: Destructure((
+              ty: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 4,
+                    span: (
+                      start: 111,
+                      end: 118,
+                    ),
+                  ), (
+                    ident: 5,
+                    span: (
+                      start: 120,
+                      end: 124,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+              exprs: [(
+                kind: Identifier(2),
+                span: (
+                  start: 125,
+                  end: 128,
+                ),
+                id: 8,
+              )],
+            )),
+            body: (
+              kind: Expression((
+                expr: (
+                  kind: Path((
+                    ident_type: LocalOrUse,
+                    segments: [(
+                      ident: (
+                        ident: 2,
+                        span: (
+                          start: 133,
+                          end: 136,
+                        ),
+                      ),
+                      generics: None,
+                    )],
+                  )),
+                  span: (
+                    start: 133,
+                    end: 136,
+                  ),
+                  id: 9,
+                ),
+                implicit_return: true,
+              )),
+              span: (
+                start: 133,
+                end: 136,
+              ),
+              id: 10,
+            ),
+            span: (
+              start: 111,
+              end: 136,
+            ),
+            id: 11,
+          ), (
+            pattern: Destructure((
+              ty: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 4,
+                    span: (
+                      start: 142,
+                      end: 149,
+                    ),
+                  ), (
+                    ident: 7,
+                    span: (
+                      start: 151,
+                      end: 156,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+              exprs: [(
+                kind: Identifier(10),
+                span: (
+                  start: 157,
+                  end: 164,
+                ),
+                id: 12,
+              ), (
+                kind: Identifier(8),
+                span: (
+                  start: 166,
+                  end: 171,
+                ),
+                id: 13,
+              )],
+            )),
+            body: (
+              kind: Expression((
+                expr: (
+                  kind: Path((
+                    ident_type: LocalOrUse,
+                    segments: [(
+                      ident: (
+                        ident: 10,
+                        span: (
+                          start: 176,
+                          end: 183,
+                        ),
+                      ),
+                      generics: None,
+                    )],
+                  )),
+                  span: (
+                    start: 176,
+                    end: 183,
+                  ),
+                  id: 14,
+                ),
+                implicit_return: true,
+              )),
+              span: (
+                start: 176,
+                end: 183,
+              ),
+              id: 15,
+            ),
+            span: (
+              start: 142,
+              end: 183,
+            ),
+            id: 16,
+          )],
+        )),
+        span: (
+          start: 26,
+          end: 186,
+        ),
+        id: 17,
+      ),
+    )),
+    span: (
+      start: 0,
+      end: 187,
+    ),
+    id: 18,
+  )],
+))

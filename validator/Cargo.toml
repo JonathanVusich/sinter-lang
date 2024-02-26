@@ -1,0 +1,23 @@
+[package]
+name = "validator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ast = { path = "../ast" }
+diagnostics = { path = "../diagnostics" }
+id = { path = "../id" }
+interner = { path = "../interner" }
+span = { path = "../span" }
+source = { path = "../source" }
+
+multimap = "0.10.0"
+serde = { version = "1.0.197", features = ["derive"] }
+itertools = "0.12.1"
+
+[dev-dependencies]
+parser = { path = "../parser" }
+tokenizer = { path = "../tokenizer" }
+types = { path = "../types" }
+krate = { path = "../krate" }
+snap = { path = "../snap" }

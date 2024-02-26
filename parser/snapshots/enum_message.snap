@@ -1,0 +1,260 @@
+((
+  string_interner: ["Message", "Text", "message", "str", "Photo", "caption", "photo", "SerializedPhoto", "size", "u64", "self"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 19,
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Enum((
+      name: (
+        ident: 1,
+        span: (
+          start: 5,
+          end: 12,
+        ),
+      ),
+      generic_params: [],
+      members: [(
+        name: 2,
+        fields: [(
+          name: (
+            ident: 3,
+            span: (
+              start: 24,
+              end: 31,
+            ),
+          ),
+          ty: (
+            kind: Str,
+            span: (
+              start: 33,
+              end: 36,
+            ),
+            id: 0,
+          ),
+          span: (
+            start: 24,
+            end: 36,
+          ),
+          id: 1,
+        )],
+        self_fns: [],
+        span: (
+          start: 19,
+          end: 37,
+        ),
+        id: 2,
+      ), (
+        name: 5,
+        fields: [(
+          name: (
+            ident: 6,
+            span: (
+              start: 49,
+              end: 56,
+            ),
+          ),
+          ty: (
+            kind: Str,
+            span: (
+              start: 58,
+              end: 61,
+            ),
+            id: 3,
+          ),
+          span: (
+            start: 49,
+            end: 61,
+          ),
+          id: 4,
+        ), (
+          name: (
+            ident: 7,
+            span: (
+              start: 63,
+              end: 68,
+            ),
+          ),
+          ty: (
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 8,
+                    span: (
+                      start: 70,
+                      end: 85,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 70,
+              end: 85,
+            ),
+            id: 5,
+          ),
+          span: (
+            start: 63,
+            end: 85,
+          ),
+          id: 6,
+        )],
+        self_fns: [(
+          sig: (
+            name: (
+              ident: 9,
+              span: (
+                start: 100,
+                end: 104,
+              ),
+            ),
+            generic_params: [],
+            params: [(
+              name: (
+                ident: 11,
+                span: (
+                  start: 105,
+                  end: 109,
+                ),
+              ),
+              ty: (
+                kind: QSelf,
+                span: (
+                  start: 105,
+                  end: 109,
+                ),
+                id: 7,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 105,
+                end: 109,
+              ),
+              id: 8,
+            )],
+            return_type: Some((
+              kind: U64,
+              span: (
+                start: 114,
+                end: 117,
+              ),
+              id: 9,
+            )),
+          ),
+          body: Some((
+            stmts: [(
+              kind: Return((
+                value: Some((
+                  kind: Call((
+                    target: (
+                      kind: Field((
+                        lhs: (
+                          kind: Field((
+                            lhs: (
+                              kind: Path((
+                                ident_type: LocalOrUse,
+                                segments: [(
+                                  ident: (
+                                    ident: 11,
+                                    span: (
+                                      start: 139,
+                                      end: 143,
+                                    ),
+                                  ),
+                                  generics: None,
+                                )],
+                              )),
+                              span: (
+                                start: 139,
+                                end: 143,
+                              ),
+                              id: 10,
+                            ),
+                            ident: (
+                              ident: 7,
+                              span: (
+                                start: 144,
+                                end: 149,
+                              ),
+                            ),
+                          )),
+                          span: (
+                            start: 139,
+                            end: 149,
+                          ),
+                          id: 11,
+                        ),
+                        ident: (
+                          ident: 9,
+                          span: (
+                            start: 150,
+                            end: 154,
+                          ),
+                        ),
+                      )),
+                      span: (
+                        start: 139,
+                        end: 154,
+                      ),
+                      id: 12,
+                    ),
+                    args: [],
+)),
+                  span: (
+                    start: 139,
+                    end: 156,
+                  ),
+                  id: 13,
+                )),
+              )),
+              span: (
+                start: 132,
+                end: 157,
+              ),
+              id: 14,
+            )],
+            span: (
+              start: 118,
+              end: 167,
+            ),
+            id: 15,
+          )),
+          span: (
+            start: 97,
+            end: 167,
+          ),
+          id: 16,
+        )],
+        span: (
+          start: 43,
+          end: 173,
+        ),
+        id: 17,
+      )],
+      self_fns: [],
+)),
+    span: (
+      start: 0,
+      end: 176,
+    ),
+    id: 18,
+  )],
+))

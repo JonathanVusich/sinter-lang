@@ -1,0 +1,71 @@
+(["f", "g"], (
+  diagnostics: [],
+), (
+  kind: Unary((
+    operator: Minus,
+    expr: (
+      kind: Unary((
+        operator: Minus,
+        expr: (
+          kind: Call((
+            target: (
+              kind: Path((
+                ident_type: LocalOrUse,
+                segments: [(
+                  ident: (
+                    ident: 1,
+                    span: (
+                      start: 2,
+                      end: 3,
+                    ),
+                  ),
+                  generics: None,
+                )],
+              )),
+              span: (
+                start: 2,
+                end: 3,
+              ),
+              id: 0,
+            ),
+            args: [(
+              kind: Path((
+                ident_type: LocalOrUse,
+                segments: [(
+                  ident: (
+                    ident: 2,
+                    span: (
+                      start: 4,
+                      end: 5,
+                    ),
+                  ),
+                  generics: None,
+                )],
+              )),
+              span: (
+                start: 4,
+                end: 5,
+              ),
+              id: 1,
+            )],
+          )),
+          span: (
+            start: 2,
+            end: 6,
+          ),
+          id: 2,
+        ),
+      )),
+      span: (
+        start: 1,
+        end: 6,
+      ),
+      id: 3,
+    ),
+  )),
+  span: (
+    start: 0,
+    end: 6,
+  ),
+  id: 4,
+))

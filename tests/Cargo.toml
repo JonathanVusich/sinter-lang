@@ -1,0 +1,10 @@
+[package]
+name = "tests"
+version = "0.1.0"
+edition = "2021"
+
+[dev-dependencies]
+sinter-lang = { path = "../sinter-lang" }
+diagnostics = { path = "../diagnostics" }
+ron = "0.8.1"
+serde = "1.0.197"

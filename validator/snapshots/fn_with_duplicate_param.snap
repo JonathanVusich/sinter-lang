@@ -1,0 +1,1 @@
+(["duplicate_param", "param", "u32", "crate", "module"], [Error("ERROR: Duplicate parameters `param` in scope\nparam: u32\n\nparam: u32")])

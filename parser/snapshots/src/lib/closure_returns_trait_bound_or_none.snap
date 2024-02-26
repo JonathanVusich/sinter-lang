@@ -1,0 +1,188 @@
+(["first", "party", "package", "Send", "K", "V", "third", "Sync", "T", "std", "Copy", "Clone"], (
+  kind: Closure(
+    params: [],
+    ret_ty: (
+      kind: Array(
+        ty: (
+          kind: TraitBound(
+            trait_bound: [(
+              ident: (
+                ident_type: LocalOrUse,
+                idents: [(
+                  ident: 1,
+                  span: (
+                    start: 7,
+                    end: 12,
+                  ),
+                ), (
+                  ident: 2,
+                  span: (
+                    start: 14,
+                    end: 19,
+                  ),
+                ), (
+                  ident: 3,
+                  span: (
+                    start: 21,
+                    end: 28,
+                  ),
+                ), (
+                  ident: 4,
+                  span: (
+                    start: 30,
+                    end: 34,
+                  ),
+                )],
+              ),
+              generics: [(
+                kind: Path(
+                  path: (
+                    ident: (
+                      ident_type: LocalOrUse,
+                      idents: [(
+                        ident: 5,
+                        span: (
+                          start: 35,
+                          end: 36,
+                        ),
+                      )],
+                    ),
+                    generics: [],
+),
+                ),
+                span: (
+                  start: 35,
+                  end: 36,
+                ),
+                id: 0,
+              ), (
+                kind: Path(
+                  path: (
+                    ident: (
+                      ident_type: LocalOrUse,
+                      idents: [(
+                        ident: 6,
+                        span: (
+                          start: 38,
+                          end: 39,
+                        ),
+                      )],
+                    ),
+                    generics: [],
+),
+                ),
+                span: (
+                  start: 38,
+                  end: 39,
+                ),
+                id: 1,
+              )],
+            ), (
+              ident: (
+                ident_type: LocalOrUse,
+                idents: [(
+                  ident: 7,
+                  span: (
+                    start: 43,
+                    end: 48,
+                  ),
+                ), (
+                  ident: 2,
+                  span: (
+                    start: 50,
+                    end: 55,
+                  ),
+                ), (
+                  ident: 3,
+                  span: (
+                    start: 57,
+                    end: 64,
+                  ),
+                ), (
+                  ident: 8,
+                  span: (
+                    start: 66,
+                    end: 70,
+                  ),
+                )],
+              ),
+              generics: [(
+                kind: Path(
+                  path: (
+                    ident: (
+                      ident_type: LocalOrUse,
+                      idents: [(
+                        ident: 9,
+                        span: (
+                          start: 71,
+                          end: 72,
+                        ),
+                      )],
+                    ),
+                    generics: [],
+),
+                ),
+                span: (
+                  start: 71,
+                  end: 72,
+                ),
+                id: 2,
+              )],
+            ), (
+              ident: (
+                ident_type: LocalOrUse,
+                idents: [(
+                  ident: 10,
+                  span: (
+                    start: 76,
+                    end: 79,
+                  ),
+                ), (
+                  ident: 11,
+                  span: (
+                    start: 81,
+                    end: 85,
+                  ),
+                )],
+              ),
+              generics: [],
+), (
+              ident: (
+                ident_type: LocalOrUse,
+                idents: [(
+                  ident: 10,
+                  span: (
+                    start: 88,
+                    end: 91,
+                  ),
+                ), (
+                  ident: 12,
+                  span: (
+                    start: 93,
+                    end: 98,
+                  ),
+                )],
+              ),
+              generics: [],
+)],
+          ),
+          span: (
+            start: 7,
+            end: 98,
+          ),
+          id: 3,
+        ),
+      ),
+      span: (
+        start: 6,
+        end: 98,
+      ),
+      id: 4,
+    ),
+  ),
+  span: (
+    start: 0,
+    end: 99,
+  ),
+  id: 5,
+))

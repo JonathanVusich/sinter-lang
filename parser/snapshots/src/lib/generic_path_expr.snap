@@ -1,0 +1,52 @@
+(["std", "HashMap", "T", "new"], (
+  ident_type: LocalOrUse,
+  segments: [(
+    ident: (
+      ident: 1,
+      span: (
+        start: 0,
+        end: 3,
+      ),
+    ),
+    generics: None,
+  ), (
+    ident: (
+      ident: 2,
+      span: (
+        start: 5,
+        end: 12,
+      ),
+    ),
+    generics: Some([(
+      kind: Path(
+        path: (
+          ident: (
+            ident_type: LocalOrUse,
+            idents: [(
+              ident: 3,
+              span: (
+                start: 15,
+                end: 16,
+              ),
+            )],
+          ),
+          generics: [],
+),
+      ),
+      span: (
+        start: 15,
+        end: 16,
+      ),
+      id: 0,
+    )]),
+  ), (
+    ident: (
+      ident: 4,
+      span: (
+        start: 19,
+        end: 22,
+      ),
+    ),
+    generics: None,
+  )],
+))

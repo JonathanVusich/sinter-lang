@@ -1,23 +1,18 @@
-use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::iter::zip;
-use std::ops::Deref;
 
-use indexmap::Equivalent;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use ast::{ClassDef, FnDef, GlobalVarDef, InfixOp, UnaryOp, ValueDef};
 use diagnostics::Diagnostic;
+use hir::{ArrayExpr, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, Primitive, Res, Stmt, Ty};
 use id::{DefId, LocalDefId};
+use macros::named_slice;
+use types::LDefMap;
 
 use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::hir::{
-    ArrayExpr, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, Primitive, Res, Stmt, Ty,
-};
 use crate::compiler::type_inference::unification::{TyVar, UnificationTable};
-use crate::compiler::types::LDefMap;
-use crate::compiler::utils::named_slice;
 
 #[derive(Debug)]
 pub enum TypeErrKind {
@@ -38,7 +33,7 @@ impl Display for TypeErrKind {
     }
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Debug)]
 pub struct TypeMap {
     tys: Box<[Option<Type>]>,
 }
@@ -1068,104 +1063,5 @@ impl Type {
             Type::F64 => 2,
             _ => 0,
         }
-    }
-}
-
-mod tests {
-    use itertools::Itertools;
-
-    use interner::StringInterner;
-
-    use crate::compiler::compiler::{Application, Compiler, CompilerCtxt};
-    use crate::compiler::hir::HirCrate;
-    use crate::compiler::type_inference::ty_infer::TypeMap;
-    use crate::util::utils;
-
-    type InferResult = (StringInterner, HirCrate, TypeMap);
-
-    #[cfg(test)]
-    fn parse_module(code: String) -> InferResult {
-        let mut compiler = Compiler::default();
-        let main_crate = utils::resolve_test_krate_path(&code);
-        let crate_path = main_crate.parent().unwrap();
-        let application = Application::Inline { code };
-        let mut crates = compiler.parse_crates(application).unwrap();
-        compiler.validate_crates(&crates).unwrap();
-
-        let resolved_crates = compiler.resolve_crates(&mut crates).unwrap();
-        let tys = compiler.infer_types(&resolved_crates).unwrap();
-
-        let krate = resolved_crates.into_krates().exactly_one().unwrap();
-        let tys = tys.into_values().exactly_one().unwrap();
-
-        let string_interner = StringInterner::from(CompilerCtxt::from(compiler));
-        (string_interner, krate, tys)
-    }
-
-    #[test]
-    pub fn infer_integer() {
-        // let mut hir = HirBuilder::default();
-        //
-        // let initializer = hir.add(HirNodeKind::Expr(Expr::Int(123)));
-        // let global_let = hir.add(HirNodeKind::GlobalLet(GlobalLetStmt::new(
-        //     InternedStr::default(),
-        //     None,
-        //     initializer,
-        // )));
-        // let krate = hir.infer_tys();
-        // assert_eq!(&Type::I64, krate.get(&global_let).unwrap());
-    }
-
-    #[test]
-    #[should_panic]
-    #[ignore]
-    pub fn infer_integer_mismatch() {
-        // let mut hir = HirBuilder::default();
-        // let initializer = hir.add(HirNodeKind::Expr(Expr::Int(123)));
-        // let f64_ty = hir.add(HirNodeKind::Ty(Ty::Primitive(Primitive::F64)));
-        // let global_let = hir.add(HirNodeKind::GlobalLet(GlobalLetStmt::new(
-        //     InternedStr::default(),
-        //     Some(f64_ty),
-        //     initializer,
-        // )));
-        // let krate = hir.infer_tys();
-    }
-
-    #[test]
-    pub fn infer_array_usize() {
-        // let mut hir = HirBuilder::default();
-        // let one = hir.add(HirNodeKind::Expr(Expr::Int(1)));
-        // let two = hir.add(HirNodeKind::Expr(Expr::Int(-2)));
-        // let initializer = hir.add(HirNodeKind::Expr(Expr::Array(ArrayExpr::Unsized {
-        //     initializers: vec![one, two].into(),
-        // })));
-        // let global_let = hir.add(HirNodeKind::GlobalLet(GlobalLetStmt::new(
-        //     InternedStr::default(),
-        //     None,
-        //     initializer,
-        // )));
-        //
-        // let types = hir.infer_tys();
-        // assert_eq!(
-        //     &Type::Array(Array::new(Type::I64)),
-        //     types.get(&global_let).unwrap()
-        // );
-    }
-
-    #[test]
-    #[ignore]
-    pub fn infer_generics() {
-        let code = r###"
-            class Option<T> {
-                inner: T,
-            } 
-        
-            fn options() {
-                let option_f64 = Option(123);
-                let option_str = Option("hi there"); 
-            }
-        "###;
-
-        let (si, krate, tys) = parse_module(code.to_owned());
     }
 }

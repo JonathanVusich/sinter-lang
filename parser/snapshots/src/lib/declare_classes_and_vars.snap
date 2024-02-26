@@ -1,0 +1,409 @@
+(["Point", "x", "f64", "y", "Node", "i32_array", "i32", "point_array", "node_array"], (
+  diagnostics: [],
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Class((
+      name: (
+        ident: 1,
+        span: (
+          start: 6,
+          end: 11,
+        ),
+      ),
+      class_type: Inline,
+      generic_params: [],
+      fields: [(
+        name: (
+          ident: 2,
+          span: (
+            start: 18,
+            end: 19,
+          ),
+        ),
+        ty: (
+          kind: F64,
+          span: (
+            start: 21,
+            end: 24,
+          ),
+          id: 0,
+        ),
+        span: (
+          start: 18,
+          end: 24,
+        ),
+        id: 1,
+      ), (
+        name: (
+          ident: 4,
+          span: (
+            start: 30,
+            end: 31,
+          ),
+        ),
+        ty: (
+          kind: F64,
+          span: (
+            start: 33,
+            end: 36,
+          ),
+          id: 2,
+        ),
+        span: (
+          start: 30,
+          end: 36,
+        ),
+        id: 3,
+      )],
+      self_fns: [],
+)),
+    span: (
+      start: 0,
+      end: 39,
+    ),
+    id: 4,
+  ), (
+    kind: Class((
+      name: (
+        ident: 5,
+        span: (
+          start: 50,
+          end: 54,
+        ),
+      ),
+      class_type: Reference,
+      generic_params: [],
+      fields: [],
+      self_fns: [],
+)),
+    span: (
+      start: 40,
+      end: 55,
+    ),
+    id: 5,
+  ), (
+    kind: GlobalLet((
+      name: (
+        ident: 6,
+        span: (
+          start: 60,
+          end: 69,
+        ),
+      ),
+      ty: (
+        kind: Array(
+          ty: (
+            kind: I32,
+            span: (
+              start: 72,
+              end: 75,
+            ),
+            id: 6,
+          ),
+        ),
+        span: (
+          start: 71,
+          end: 75,
+        ),
+        id: 7,
+      ),
+      initializer: (
+        kind: Array(Initializer([(
+          kind: Int(1),
+          span: (
+            start: 80,
+            end: 81,
+          ),
+          id: 8,
+        ), (
+          kind: Int(2),
+          span: (
+            start: 83,
+            end: 84,
+          ),
+          id: 9,
+        ), (
+          kind: Int(3),
+          span: (
+            start: 86,
+            end: 87,
+          ),
+          id: 10,
+        )])),
+        span: (
+          start: 79,
+          end: 88,
+        ),
+        id: 11,
+      ),
+    )),
+    span: (
+      start: 56,
+      end: 89,
+    ),
+    id: 12,
+  ), (
+    kind: GlobalLet((
+      name: (
+        ident: 8,
+        span: (
+          start: 94,
+          end: 105,
+        ),
+      ),
+      ty: (
+        kind: Array(
+          ty: (
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 1,
+                    span: (
+                      start: 108,
+                      end: 113,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 108,
+              end: 113,
+            ),
+            id: 13,
+          ),
+        ),
+        span: (
+          start: 107,
+          end: 113,
+        ),
+        id: 14,
+      ),
+      initializer: (
+        kind: Array(Initializer([(
+          kind: Call((
+            target: (
+              kind: Path((
+                ident_type: LocalOrUse,
+                segments: [(
+                  ident: (
+                    ident: 1,
+                    span: (
+                      start: 118,
+                      end: 123,
+                    ),
+                  ),
+                  generics: None,
+                )],
+              )),
+              span: (
+                start: 118,
+                end: 123,
+              ),
+              id: 15,
+            ),
+            args: [(
+              kind: Float(1.0),
+              span: (
+                start: 124,
+                end: 127,
+              ),
+              id: 16,
+            ), (
+              kind: Float(2.0),
+              span: (
+                start: 129,
+                end: 132,
+              ),
+              id: 17,
+            )],
+          )),
+          span: (
+            start: 118,
+            end: 133,
+          ),
+          id: 18,
+        ), (
+          kind: Call((
+            target: (
+              kind: Path((
+                ident_type: LocalOrUse,
+                segments: [(
+                  ident: (
+                    ident: 1,
+                    span: (
+                      start: 135,
+                      end: 140,
+                    ),
+                  ),
+                  generics: None,
+                )],
+              )),
+              span: (
+                start: 135,
+                end: 140,
+              ),
+              id: 19,
+            ),
+            args: [(
+              kind: Float(1.5),
+              span: (
+                start: 141,
+                end: 144,
+              ),
+              id: 20,
+            ), (
+              kind: Float(2.5),
+              span: (
+                start: 146,
+                end: 149,
+              ),
+              id: 21,
+            )],
+          )),
+          span: (
+            start: 135,
+            end: 150,
+          ),
+          id: 22,
+        )])),
+        span: (
+          start: 117,
+          end: 151,
+        ),
+        id: 23,
+      ),
+    )),
+    span: (
+      start: 90,
+      end: 152,
+    ),
+    id: 24,
+  ), (
+    kind: GlobalLet((
+      name: (
+        ident: 9,
+        span: (
+          start: 157,
+          end: 167,
+        ),
+      ),
+      ty: (
+        kind: Array(
+          ty: (
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 5,
+                    span: (
+                      start: 170,
+                      end: 174,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 170,
+              end: 174,
+            ),
+            id: 25,
+          ),
+        ),
+        span: (
+          start: 169,
+          end: 174,
+        ),
+        id: 26,
+      ),
+      initializer: (
+        kind: Array(Initializer([(
+          kind: Call((
+            target: (
+              kind: Path((
+                ident_type: LocalOrUse,
+                segments: [(
+                  ident: (
+                    ident: 5,
+                    span: (
+                      start: 179,
+                      end: 183,
+                    ),
+                  ),
+                  generics: None,
+                )],
+              )),
+              span: (
+                start: 179,
+                end: 183,
+              ),
+              id: 27,
+            ),
+            args: [],
+)),
+          span: (
+            start: 179,
+            end: 185,
+          ),
+          id: 28,
+        ), (
+          kind: Call((
+            target: (
+              kind: Path((
+                ident_type: LocalOrUse,
+                segments: [(
+                  ident: (
+                    ident: 5,
+                    span: (
+                      start: 187,
+                      end: 191,
+                    ),
+                  ),
+                  generics: None,
+                )],
+              )),
+              span: (
+                start: 187,
+                end: 191,
+              ),
+              id: 29,
+            ),
+            args: [],
+)),
+          span: (
+            start: 187,
+            end: 193,
+          ),
+          id: 30,
+        )])),
+        span: (
+          start: 178,
+          end: 194,
+        ),
+        id: 31,
+      ),
+    )),
+    span: (
+      start: 153,
+      end: 195,
+    ),
+    id: 32,
+  )],
+))

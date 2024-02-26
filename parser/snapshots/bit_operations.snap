@@ -1,0 +1,222 @@
+((
+  string_interner: ["x"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 17,
+), (
+  kind: Infix((
+    operator: BitwiseOr,
+    lhs: (
+      kind: Infix((
+        operator: RightShift,
+        lhs: (
+          kind: Infix((
+            operator: Add,
+            lhs: (
+              kind: Infix((
+                operator: Subtract,
+                lhs: (
+                  kind: Infix((
+                    operator: Add,
+                    lhs: (
+                      kind: Path((
+                        ident_type: LocalOrUse,
+                        segments: [(
+                          ident: (
+                            ident: 1,
+                            span: (
+                              start: 0,
+                              end: 1,
+                            ),
+                          ),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 0,
+                        end: 1,
+                      ),
+                      id: 0,
+                    ),
+                    rhs: (
+                      kind: Infix((
+                        operator: Divide,
+                        lhs: (
+                          kind: Infix((
+                            operator: Multiply,
+                            lhs: (
+                              kind: Path((
+                                ident_type: LocalOrUse,
+                                segments: [(
+                                  ident: (
+                                    ident: 1,
+                                    span: (
+                                      start: 4,
+                                      end: 5,
+                                    ),
+                                  ),
+                                  generics: None,
+                                )],
+                              )),
+                              span: (
+                                start: 4,
+                                end: 5,
+                              ),
+                              id: 1,
+                            ),
+                            rhs: (
+                              kind: Path((
+                                ident_type: LocalOrUse,
+                                segments: [(
+                                  ident: (
+                                    ident: 1,
+                                    span: (
+                                      start: 8,
+                                      end: 9,
+                                    ),
+                                  ),
+                                  generics: None,
+                                )],
+                              )),
+                              span: (
+                                start: 8,
+                                end: 9,
+                              ),
+                              id: 2,
+                            ),
+                          )),
+                          span: (
+                            start: 4,
+                            end: 9,
+                          ),
+                          id: 3,
+                        ),
+                        rhs: (
+                          kind: Path((
+                            ident_type: LocalOrUse,
+                            segments: [(
+                              ident: (
+                                ident: 1,
+                                span: (
+                                  start: 12,
+                                  end: 13,
+                                ),
+                              ),
+                              generics: None,
+                            )],
+                          )),
+                          span: (
+                            start: 12,
+                            end: 13,
+                          ),
+                          id: 4,
+                        ),
+                      )),
+                      span: (
+                        start: 4,
+                        end: 13,
+                      ),
+                      id: 5,
+                    ),
+                  )),
+                  span: (
+                    start: 0,
+                    end: 13,
+                  ),
+                  id: 6,
+                ),
+                rhs: (
+                  kind: Unary((
+                    operator: Minus,
+                    expr: (
+                      kind: Unary((
+                        operator: Minus,
+                        expr: (
+                          kind: Path((
+                            ident_type: LocalOrUse,
+                            segments: [(
+                              ident: (
+                                ident: 1,
+                                span: (
+                                  start: 18,
+                                  end: 19,
+                                ),
+                              ),
+                              generics: None,
+                            )],
+                          )),
+                          span: (
+                            start: 18,
+                            end: 19,
+                          ),
+                          id: 7,
+                        ),
+                      )),
+                      span: (
+                        start: 17,
+                        end: 19,
+                      ),
+                      id: 8,
+                    ),
+                  )),
+                  span: (
+                    start: 16,
+                    end: 19,
+                  ),
+                  id: 9,
+                ),
+              )),
+              span: (
+                start: 0,
+                end: 19,
+              ),
+              id: 10,
+            ),
+            rhs: (
+              kind: Int(3),
+              span: (
+                start: 22,
+                end: 23,
+              ),
+              id: 11,
+            ),
+          )),
+          span: (
+            start: 0,
+            end: 23,
+          ),
+          id: 12,
+        ),
+        rhs: (
+          kind: Int(1),
+          span: (
+            start: 27,
+            end: 28,
+          ),
+          id: 13,
+        ),
+      )),
+      span: (
+        start: 0,
+        end: 28,
+      ),
+      id: 14,
+    ),
+    rhs: (
+      kind: Int(2),
+      span: (
+        start: 31,
+        end: 32,
+      ),
+      id: 15,
+    ),
+  )),
+  span: (
+    start: 0,
+    end: 32,
+  ),
+  id: 16,
+))

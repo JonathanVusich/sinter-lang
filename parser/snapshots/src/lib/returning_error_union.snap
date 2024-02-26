@@ -1,0 +1,891 @@
+(["write", "T", "Serializable", "value", "Result", "bytes", "to_bytes", "buffer", "remaining", "len", "WriteError", "BufferOverflow", "write_bytes", "MalformedBytes", "Error", "message", "str", "BufferOverFlow", "source", "Option", "self"], (
+  diagnostics: [],
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Fn((
+      sig: (
+        name: (
+          ident: 1,
+          span: (
+            start: 3,
+            end: 8,
+          ),
+        ),
+        generic_params: [(
+          name: (
+            ident: 2,
+            span: (
+              start: 9,
+              end: 10,
+            ),
+          ),
+          trait_bound: Some((
+            kind: TraitBound(
+              trait_bound: [(
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 3,
+                    span: (
+                      start: 12,
+                      end: 24,
+                    ),
+                  )],
+                ),
+                generics: [],
+)],
+            ),
+            span: (
+              start: 12,
+              end: 24,
+            ),
+            id: 0,
+          )),
+          span: (
+            start: 9,
+            end: 24,
+          ),
+          id: 1,
+        )],
+        params: [(
+          name: (
+            ident: 4,
+            span: (
+              start: 26,
+              end: 31,
+            ),
+          ),
+          ty: (
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 2,
+                    span: (
+                      start: 33,
+                      end: 34,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 33,
+              end: 34,
+            ),
+            id: 2,
+          ),
+          mutability: Immutable,
+          span: (
+            start: 26,
+            end: 34,
+          ),
+          id: 3,
+        )],
+        return_type: Some((
+          kind: Path(
+            path: (
+              ident: (
+                ident_type: LocalOrUse,
+                idents: [(
+                  ident: 5,
+                  span: (
+                    start: 39,
+                    end: 45,
+                  ),
+                )],
+              ),
+              generics: [(
+                kind: None,
+                span: (
+                  start: 46,
+                  end: 50,
+                ),
+                id: 4,
+              )],
+            ),
+          ),
+          span: (
+            start: 39,
+            end: 51,
+          ),
+          id: 5,
+        )),
+      ),
+      body: Some((
+        stmts: [(
+          kind: Let((
+            ident: (
+              ident: 6,
+              span: (
+                start: 62,
+                end: 67,
+              ),
+            ),
+            mutability: Immutable,
+            ty: None,
+            initializer: Some((
+              kind: Call((
+                target: (
+                  kind: Field((
+                    lhs: (
+                      kind: Path((
+                        ident_type: LocalOrUse,
+                        segments: [(
+                          ident: (
+                            ident: 4,
+                            span: (
+                              start: 70,
+                              end: 75,
+                            ),
+                          ),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 70,
+                        end: 75,
+                      ),
+                      id: 6,
+                    ),
+                    ident: (
+                      ident: 7,
+                      span: (
+                        start: 76,
+                        end: 84,
+                      ),
+                    ),
+                  )),
+                  span: (
+                    start: 70,
+                    end: 84,
+                  ),
+                  id: 7,
+                ),
+                args: [],
+)),
+              span: (
+                start: 70,
+                end: 86,
+              ),
+              id: 8,
+            )),
+          )),
+          span: (
+            start: 58,
+            end: 87,
+          ),
+          id: 9,
+        ), (
+          kind: If((
+            condition: (
+              kind: Parentheses((
+                expr: (
+                  kind: Infix((
+                    operator: Less,
+                    lhs: (
+                      kind: Call((
+                        target: (
+                          kind: Field((
+                            lhs: (
+                              kind: Path((
+                                ident_type: LocalOrUse,
+                                segments: [(
+                                  ident: (
+                                    ident: 8,
+                                    span: (
+                                      start: 96,
+                                      end: 102,
+                                    ),
+                                  ),
+                                  generics: None,
+                                )],
+                              )),
+                              span: (
+                                start: 96,
+                                end: 102,
+                              ),
+                              id: 10,
+                            ),
+                            ident: (
+                              ident: 9,
+                              span: (
+                                start: 103,
+                                end: 112,
+                              ),
+                            ),
+                          )),
+                          span: (
+                            start: 96,
+                            end: 112,
+                          ),
+                          id: 11,
+                        ),
+                        args: [],
+)),
+                      span: (
+                        start: 96,
+                        end: 114,
+                      ),
+                      id: 12,
+                    ),
+                    rhs: (
+                      kind: Call((
+                        target: (
+                          kind: Field((
+                            lhs: (
+                              kind: Path((
+                                ident_type: LocalOrUse,
+                                segments: [(
+                                  ident: (
+                                    ident: 6,
+                                    span: (
+                                      start: 117,
+                                      end: 122,
+                                    ),
+                                  ),
+                                  generics: None,
+                                )],
+                              )),
+                              span: (
+                                start: 117,
+                                end: 122,
+                              ),
+                              id: 13,
+                            ),
+                            ident: (
+                              ident: 10,
+                              span: (
+                                start: 123,
+                                end: 126,
+                              ),
+                            ),
+                          )),
+                          span: (
+                            start: 117,
+                            end: 126,
+                          ),
+                          id: 14,
+                        ),
+                        args: [],
+)),
+                      span: (
+                        start: 117,
+                        end: 128,
+                      ),
+                      id: 15,
+                    ),
+                  )),
+                  span: (
+                    start: 96,
+                    end: 128,
+                  ),
+                  id: 16,
+                ),
+              )),
+              span: (
+                start: 95,
+                end: 129,
+              ),
+              id: 0,
+            ),
+            if_true: (
+              stmts: [(
+                kind: Expression((
+                  expr: (
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 11,
+                          span: (
+                            start: 140,
+                            end: 150,
+                          ),
+                        ),
+                        generics: None,
+                      ), (
+                        ident: (
+                          ident: 12,
+                          span: (
+                            start: 152,
+                            end: 166,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 140,
+                      end: 166,
+                    ),
+                    id: 17,
+                  ),
+                  implicit_return: false,
+                )),
+                span: (
+                  start: 140,
+                  end: 166,
+                ),
+                id: 18,
+              )],
+              span: (
+                start: 130,
+                end: 172,
+              ),
+              id: 19,
+            ),
+            if_false: Some((
+              stmts: [],
+              span: (
+                start: 178,
+                end: 177,
+              ),
+              id: 20,
+            )),
+          )),
+          span: (
+            start: 92,
+            end: 177,
+          ),
+          id: 21,
+        ), (
+          kind: If((
+            condition: (
+              kind: Parentheses((
+                expr: (
+                  kind: Unary((
+                    operator: Bang,
+                    expr: (
+                      kind: Call((
+                        target: (
+                          kind: Field((
+                            lhs: (
+                              kind: Path((
+                                ident_type: LocalOrUse,
+                                segments: [(
+                                  ident: (
+                                    ident: 8,
+                                    span: (
+                                      start: 183,
+                                      end: 189,
+                                    ),
+                                  ),
+                                  generics: None,
+                                )],
+                              )),
+                              span: (
+                                start: 183,
+                                end: 189,
+                              ),
+                              id: 22,
+                            ),
+                            ident: (
+                              ident: 13,
+                              span: (
+                                start: 190,
+                                end: 201,
+                              ),
+                            ),
+                          )),
+                          span: (
+                            start: 183,
+                            end: 201,
+                          ),
+                          id: 23,
+                        ),
+                        args: [(
+                          kind: Path((
+                            ident_type: LocalOrUse,
+                            segments: [(
+                              ident: (
+                                ident: 6,
+                                span: (
+                                  start: 202,
+                                  end: 207,
+                                ),
+                              ),
+                              generics: None,
+                            )],
+                          )),
+                          span: (
+                            start: 202,
+                            end: 207,
+                          ),
+                          id: 24,
+                        )],
+                      )),
+                      span: (
+                        start: 183,
+                        end: 208,
+                      ),
+                      id: 25,
+                    ),
+                  )),
+                  span: (
+                    start: 182,
+                    end: 208,
+                  ),
+                  id: 26,
+                ),
+              )),
+              span: (
+                start: 181,
+                end: 209,
+              ),
+              id: 0,
+            ),
+            if_true: (
+              stmts: [(
+                kind: Expression((
+                  expr: (
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 11,
+                          span: (
+                            start: 220,
+                            end: 230,
+                          ),
+                        ),
+                        generics: None,
+                      ), (
+                        ident: (
+                          ident: 14,
+                          span: (
+                            start: 232,
+                            end: 246,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 220,
+                      end: 246,
+                    ),
+                    id: 27,
+                  ),
+                  implicit_return: false,
+                )),
+                span: (
+                  start: 220,
+                  end: 246,
+                ),
+                id: 28,
+              )],
+              span: (
+                start: 210,
+                end: 252,
+              ),
+              id: 29,
+            ),
+            if_false: Some((
+              stmts: [(
+                kind: Expression((
+                  expr: (
+                    kind: None,
+                    span: (
+                      start: 268,
+                      end: 272,
+                    ),
+                    id: 30,
+                  ),
+                  implicit_return: false,
+                )),
+                span: (
+                  start: 268,
+                  end: 272,
+                ),
+                id: 31,
+              )],
+              span: (
+                start: 258,
+                end: 278,
+              ),
+              id: 32,
+            )),
+          )),
+          span: (
+            start: 178,
+            end: 278,
+          ),
+          id: 33,
+        )],
+        span: (
+          start: 52,
+          end: 280,
+        ),
+        id: 34,
+      )),
+    )),
+    span: (
+      start: 0,
+      end: 280,
+    ),
+    id: 35,
+  ), (
+    kind: Enum((
+      name: (
+        ident: 11,
+        span: (
+          start: 287,
+          end: 297,
+        ),
+      ),
+      generic_params: [],
+      members: [(
+        name: 12,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 304,
+          end: 318,
+        ),
+        id: 36,
+      ), (
+        name: 14,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 324,
+          end: 338,
+        ),
+        id: 37,
+      )],
+      self_fns: [],
+)),
+    span: (
+      start: 282,
+      end: 341,
+    ),
+    id: 38,
+  ), (
+    kind: TraitImpl((
+      trait_to_impl: (
+        ident: (
+          ident_type: LocalOrUse,
+          idents: [(
+            ident: 15,
+            span: (
+              start: 348,
+              end: 353,
+            ),
+          )],
+        ),
+        generics: [],
+),
+      target_ty: (
+        ident_type: LocalOrUse,
+        idents: [(
+          ident: 11,
+          span: (
+            start: 358,
+            end: 368,
+          ),
+        )],
+      ),
+      self_fns: [(
+        sig: (
+          name: (
+            ident: 16,
+            span: (
+              start: 379,
+              end: 386,
+            ),
+          ),
+          generic_params: [],
+          params: [(
+            name: (
+              ident: 21,
+              span: (
+                start: 387,
+                end: 391,
+              ),
+            ),
+            ty: (
+              kind: QSelf,
+              span: (
+                start: 387,
+                end: 391,
+              ),
+              id: 39,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 387,
+              end: 391,
+            ),
+            id: 40,
+          )],
+          return_type: Some((
+            kind: Str,
+            span: (
+              start: 396,
+              end: 399,
+            ),
+            id: 41,
+          )),
+        ),
+        body: Some((
+          stmts: [(
+            kind: Expression((
+              expr: (
+                kind: Match((
+                  source: (
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 21,
+                          span: (
+                            start: 416,
+                            end: 420,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 416,
+                      end: 420,
+                    ),
+                    id: 42,
+                  ),
+                  arms: [(
+                    pattern: Ty((
+                      ty: (
+                        ident: (
+                          ident_type: LocalOrUse,
+                          idents: [(
+                            ident: 18,
+                            span: (
+                              start: 435,
+                              end: 449,
+                            ),
+                          )],
+                        ),
+                        generics: [],
+),
+                      ident: None,
+                    )),
+                    body: (
+                      kind: Expression((
+                        expr: (
+                          kind: String(18),
+                          span: (
+                            start: 453,
+                            end: 469,
+                          ),
+                          id: 43,
+                        ),
+                        implicit_return: true,
+                      )),
+                      span: (
+                        start: 453,
+                        end: 469,
+                      ),
+                      id: 44,
+                    ),
+                    span: (
+                      start: 435,
+                      end: 469,
+                    ),
+                    id: 45,
+                  ), (
+                    pattern: Ty((
+                      ty: (
+                        ident: (
+                          ident_type: LocalOrUse,
+                          idents: [(
+                            ident: 14,
+                            span: (
+                              start: 483,
+                              end: 497,
+                            ),
+                          )],
+                        ),
+                        generics: [],
+),
+                      ident: None,
+                    )),
+                    body: (
+                      kind: Expression((
+                        expr: (
+                          kind: String(14),
+                          span: (
+                            start: 501,
+                            end: 517,
+                          ),
+                          id: 46,
+                        ),
+                        implicit_return: true,
+                      )),
+                      span: (
+                        start: 501,
+                        end: 517,
+                      ),
+                      id: 47,
+                    ),
+                    span: (
+                      start: 483,
+                      end: 517,
+                    ),
+                    id: 48,
+                  )],
+                )),
+                span: (
+                  start: 410,
+                  end: 528,
+                ),
+                id: 49,
+              ),
+              implicit_return: false,
+            )),
+            span: (
+              start: 410,
+              end: 528,
+            ),
+            id: 50,
+          )],
+          span: (
+            start: 400,
+            end: 534,
+          ),
+          id: 51,
+        )),
+        span: (
+          start: 376,
+          end: 534,
+        ),
+        id: 52,
+      ), (
+        sig: (
+          name: (
+            ident: 19,
+            span: (
+              start: 543,
+              end: 549,
+            ),
+          ),
+          generic_params: [],
+          params: [(
+            name: (
+              ident: 21,
+              span: (
+                start: 550,
+                end: 554,
+              ),
+            ),
+            ty: (
+              kind: QSelf,
+              span: (
+                start: 550,
+                end: 554,
+              ),
+              id: 53,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 550,
+              end: 554,
+            ),
+            id: 54,
+          )],
+          return_type: Some((
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 20,
+                    span: (
+                      start: 559,
+                      end: 565,
+                    ),
+                  )],
+                ),
+                generics: [(
+                  kind: Path(
+                    path: (
+                      ident: (
+                        ident_type: LocalOrUse,
+                        idents: [(
+                          ident: 15,
+                          span: (
+                            start: 566,
+                            end: 571,
+                          ),
+                        )],
+                      ),
+                      generics: [],
+),
+                  ),
+                  span: (
+                    start: 566,
+                    end: 571,
+                  ),
+                  id: 55,
+                )],
+              ),
+            ),
+            span: (
+              start: 559,
+              end: 572,
+            ),
+            id: 56,
+          )),
+        ),
+        body: Some((
+          stmts: [(
+            kind: Expression((
+              expr: (
+                kind: None,
+                span: (
+                  start: 583,
+                  end: 587,
+                ),
+                id: 57,
+              ),
+              implicit_return: false,
+            )),
+            span: (
+              start: 583,
+              end: 587,
+            ),
+            id: 58,
+          )],
+          span: (
+            start: 573,
+            end: 593,
+          ),
+          id: 59,
+        )),
+        span: (
+          start: 540,
+          end: 593,
+        ),
+        id: 60,
+      )],
+    )),
+    span: (
+      start: 343,
+      end: 595,
+    ),
+    id: 61,
+  )],
+))

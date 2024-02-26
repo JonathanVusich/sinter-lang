@@ -1,0 +1,8 @@
+class Option<T> {
+    inner: T,
+}
+
+fn options() {
+    let option_f64 = Option(123);
+    let option_str = Option("hi there");
+}

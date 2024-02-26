@@ -1,0 +1,149 @@
+(
+  crates: [(
+    name: 12,
+    id: (
+      id: 0,
+    ),
+    items: [9],
+    nodes: {
+      0: (
+        kind: EnumMember((
+          name: 2,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 18,
+          end: 25,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: EnumMember((
+          name: 3,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 31,
+          end: 36,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: EnumMember((
+          name: 4,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 42,
+          end: 47,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: EnumMember((
+          name: 5,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 53,
+          end: 57,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: EnumMember((
+          name: 6,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 63,
+          end: 70,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: EnumMember((
+          name: 7,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 76,
+          end: 82,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: EnumMember((
+          name: 8,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 88,
+          end: 94,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: EnumMember((
+          name: 9,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 100,
+          end: 107,
+        ),
+        id: 7,
+      ),
+      8: (
+        kind: EnumMember((
+          name: 10,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 113,
+          end: 118,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: Enum((
+          name: (
+            ident: 1,
+            span: (
+              start: 5,
+              end: 11,
+            ),
+          ),
+          generic_params: {},
+          members: {
+            2: 0,
+            3: 1,
+            4: 2,
+            5: 3,
+            6: 4,
+            7: 5,
+            8: 6,
+            9: 7,
+            10: 8,
+          },
+          member_fns: {},
+        )),
+        span: (
+          start: 0,
+          end: 121,
+        ),
+        id: 9,
+      ),
+    },
+  )],
+  names_to_indices: [12],
+)

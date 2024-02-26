@@ -1,0 +1,77 @@
+(["Point", "x", "u64", "y"], (
+  diagnostics: [],
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Class((
+      name: (
+        ident: 1,
+        span: (
+          start: 6,
+          end: 11,
+        ),
+      ),
+      class_type: Inline,
+      generic_params: [],
+      fields: [(
+        name: (
+          ident: 2,
+          span: (
+            start: 14,
+            end: 15,
+          ),
+        ),
+        ty: (
+          kind: U64,
+          span: (
+            start: 17,
+            end: 20,
+          ),
+          id: 0,
+        ),
+        span: (
+          start: 14,
+          end: 20,
+        ),
+        id: 1,
+      ), (
+        name: (
+          ident: 4,
+          span: (
+            start: 22,
+            end: 23,
+          ),
+        ),
+        ty: (
+          kind: U64,
+          span: (
+            start: 25,
+            end: 28,
+          ),
+          id: 2,
+        ),
+        span: (
+          start: 22,
+          end: 28,
+        ),
+        id: 3,
+      )],
+      self_fns: [],
+)),
+    span: (
+      start: 0,
+      end: 31,
+    ),
+    id: 4,
+  )],
+))

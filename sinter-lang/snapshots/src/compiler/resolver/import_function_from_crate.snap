@@ -1,28 +1,5 @@
-((
-  string_interner: ["complex_arithmetic", "multiplication", "multiply", "T", "x", "y", "square", "crate"],
-  source_map: {
-    (
-      crate_id: 0,
-      module_id: 0,
-    ): (
-      line_map: (
-        lines: [33, 43],
-      ),
-    ),
-    (
-      crate_id: 0,
-      module_id: 1,
-    ): (
-      line_map: (
-        lines: [36, 37, 69, 88],
-      ),
-    ),
-  },
-  diagnostics: (
-    diagnostics: [],
-),
-  crate_id: 1,
-  local_def_id: 26,
+(["complex_arithmetic", "multiplication", "multiply", "T", "x", "y", "square", "crate"], (
+  diagnostics: [],
 ), (
   crates: [(
     name: 1,
@@ -307,24 +284,6 @@
         ),
         id: 18,
       ),
-      19: (
-        kind: Expr(Path((
-          segments: [(
-            res: ValueDef(Fn((
-              id: (
-                crate_id: 0,
-                local_id: 11,
-              ),
-            ))),
-            generics: None,
-          )],
-        ))),
-        span: (
-          start: 74,
-          end: 82,
-        ),
-        id: 19,
-      ),
       20: (
         kind: Expr(Path((
           segments: [(
@@ -350,6 +309,24 @@
           end: 87,
         ),
         id: 21,
+      ),
+      19: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Fn((
+              id: (
+                crate_id: 0,
+                local_id: 11,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 74,
+          end: 82,
+        ),
+        id: 19,
       ),
       22: (
         kind: Expr(Call((

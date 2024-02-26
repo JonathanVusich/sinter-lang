@@ -1,0 +1,590 @@
+(["List", "T", "array", "size", "u64", "new", "list_of_ints", "i64", "list_of_lists", "f64", "trait_bounds", "Loggable", "Serializable", "Self"], (
+  diagnostics: [],
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Class((
+      name: (
+        ident: 1,
+        span: (
+          start: 10,
+          end: 14,
+        ),
+      ),
+      class_type: Reference,
+      generic_params: [(
+        name: (
+          ident: 2,
+          span: (
+            start: 15,
+            end: 16,
+          ),
+        ),
+        trait_bound: None,
+        span: (
+          start: 15,
+          end: 16,
+        ),
+        id: 0,
+      )],
+      fields: [(
+        name: (
+          ident: 3,
+          span: (
+            start: 24,
+            end: 29,
+          ),
+        ),
+        ty: (
+          kind: Array(
+            ty: (
+              kind: Path(
+                path: (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 2,
+                      span: (
+                        start: 32,
+                        end: 33,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+),
+              ),
+              span: (
+                start: 32,
+                end: 33,
+              ),
+              id: 1,
+            ),
+          ),
+          span: (
+            start: 31,
+            end: 33,
+          ),
+          id: 2,
+        ),
+        span: (
+          start: 24,
+          end: 34,
+        ),
+        id: 3,
+      ), (
+        name: (
+          ident: 4,
+          span: (
+            start: 40,
+            end: 44,
+          ),
+        ),
+        ty: (
+          kind: U64,
+          span: (
+            start: 46,
+            end: 49,
+          ),
+          id: 4,
+        ),
+        span: (
+          start: 40,
+          end: 49,
+        ),
+        id: 5,
+      )],
+      self_fns: [(
+        sig: (
+          name: (
+            ident: 6,
+            span: (
+              start: 59,
+              end: 62,
+            ),
+          ),
+          generic_params: [],
+          params: [],
+          return_type: Some((
+            kind: QSelf,
+            span: (
+              start: 68,
+              end: 72,
+            ),
+            id: 6,
+          )),
+        ),
+        body: Some((
+          stmts: [(
+            kind: Expression((
+              expr: (
+                kind: Call((
+                  target: (
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 14,
+                          span: (
+                            start: 83,
+                            end: 87,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 83,
+                      end: 87,
+                    ),
+                    id: 7,
+                  ),
+                  args: [(
+                    kind: Array(SizedInitializer((
+                      kind: Path((
+                        ident_type: LocalOrUse,
+                        segments: [(
+                          ident: (
+                            ident: 2,
+                            span: (
+                              start: 89,
+                              end: 90,
+                            ),
+                          ),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 89,
+                        end: 90,
+                      ),
+                      id: 8,
+                    ), (
+                      kind: Int(10),
+                      span: (
+                        start: 92,
+                        end: 94,
+                      ),
+                      id: 9,
+                    ))),
+                    span: (
+                      start: 88,
+                      end: 95,
+                    ),
+                    id: 10,
+                  ), (
+                    kind: Int(0),
+                    span: (
+                      start: 97,
+                      end: 98,
+                    ),
+                    id: 11,
+                  )],
+                )),
+                span: (
+                  start: 83,
+                  end: 99,
+                ),
+                id: 12,
+              ),
+              implicit_return: false,
+            )),
+            span: (
+              start: 83,
+              end: 99,
+            ),
+            id: 13,
+          )],
+          span: (
+            start: 73,
+            end: 105,
+          ),
+          id: 14,
+        )),
+        span: (
+          start: 56,
+          end: 105,
+        ),
+        id: 15,
+      )],
+    )),
+    span: (
+      start: 0,
+      end: 107,
+    ),
+    id: 16,
+  ), (
+    kind: GlobalLet((
+      name: (
+        ident: 7,
+        span: (
+          start: 113,
+          end: 125,
+        ),
+      ),
+      ty: (
+        kind: Path(
+          path: (
+            ident: (
+              ident_type: LocalOrUse,
+              idents: [(
+                ident: 1,
+                span: (
+                  start: 127,
+                  end: 131,
+                ),
+              )],
+            ),
+            generics: [(
+              kind: I64,
+              span: (
+                start: 132,
+                end: 135,
+              ),
+              id: 17,
+            )],
+          ),
+        ),
+        span: (
+          start: 127,
+          end: 136,
+        ),
+        id: 18,
+      ),
+      initializer: (
+        kind: Call((
+          target: (
+            kind: Path((
+              ident_type: LocalOrUse,
+              segments: [(
+                ident: (
+                  ident: 1,
+                  span: (
+                    start: 139,
+                    end: 143,
+                  ),
+                ),
+                generics: Some([(
+                  kind: I64,
+                  span: (
+                    start: 146,
+                    end: 149,
+                  ),
+                  id: 19,
+                )]),
+              ), (
+                ident: (
+                  ident: 6,
+                  span: (
+                    start: 152,
+                    end: 155,
+                  ),
+                ),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 139,
+              end: 155,
+            ),
+            id: 20,
+          ),
+          args: [],
+)),
+        span: (
+          start: 139,
+          end: 157,
+        ),
+        id: 21,
+      ),
+    )),
+    span: (
+      start: 109,
+      end: 158,
+    ),
+    id: 22,
+  ), (
+    kind: GlobalLet((
+      name: (
+        ident: 9,
+        span: (
+          start: 163,
+          end: 176,
+        ),
+      ),
+      ty: (
+        kind: Path(
+          path: (
+            ident: (
+              ident_type: LocalOrUse,
+              idents: [(
+                ident: 1,
+                span: (
+                  start: 178,
+                  end: 182,
+                ),
+              )],
+            ),
+            generics: [(
+              kind: Path(
+                path: (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 1,
+                      span: (
+                        start: 183,
+                        end: 187,
+                      ),
+                    )],
+                  ),
+                  generics: [(
+                    kind: F64,
+                    span: (
+                      start: 188,
+                      end: 191,
+                    ),
+                    id: 23,
+                  )],
+                ),
+              ),
+              span: (
+                start: 183,
+                end: 192,
+              ),
+              id: 24,
+            )],
+          ),
+        ),
+        span: (
+          start: 178,
+          end: 193,
+        ),
+        id: 25,
+      ),
+      initializer: (
+        kind: Call((
+          target: (
+            kind: Path((
+              ident_type: LocalOrUse,
+              segments: [(
+                ident: (
+                  ident: 1,
+                  span: (
+                    start: 196,
+                    end: 200,
+                  ),
+                ),
+                generics: Some([(
+                  kind: Path(
+                    path: (
+                      ident: (
+                        ident_type: LocalOrUse,
+                        idents: [(
+                          ident: 1,
+                          span: (
+                            start: 203,
+                            end: 207,
+                          ),
+                        )],
+                      ),
+                      generics: [(
+                        kind: F64,
+                        span: (
+                          start: 208,
+                          end: 211,
+                        ),
+                        id: 26,
+                      )],
+                    ),
+                  ),
+                  span: (
+                    start: 203,
+                    end: 212,
+                  ),
+                  id: 27,
+                )]),
+              ), (
+                ident: (
+                  ident: 6,
+                  span: (
+                    start: 215,
+                    end: 218,
+                  ),
+                ),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 196,
+              end: 218,
+            ),
+            id: 28,
+          ),
+          args: [],
+)),
+        span: (
+          start: 196,
+          end: 220,
+        ),
+        id: 29,
+      ),
+    )),
+    span: (
+      start: 159,
+      end: 221,
+    ),
+    id: 30,
+  ), (
+    kind: GlobalLet((
+      name: (
+        ident: 11,
+        span: (
+          start: 226,
+          end: 238,
+        ),
+      ),
+      ty: (
+        kind: Path(
+          path: (
+            ident: (
+              ident_type: LocalOrUse,
+              idents: [(
+                ident: 1,
+                span: (
+                  start: 240,
+                  end: 244,
+                ),
+              )],
+            ),
+            generics: [(
+              kind: TraitBound(
+                trait_bound: [(
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 12,
+                      span: (
+                        start: 245,
+                        end: 253,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+), (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 13,
+                      span: (
+                        start: 256,
+                        end: 268,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+)],
+              ),
+              span: (
+                start: 245,
+                end: 268,
+              ),
+              id: 31,
+            )],
+          ),
+        ),
+        span: (
+          start: 240,
+          end: 269,
+        ),
+        id: 32,
+      ),
+      initializer: (
+        kind: Call((
+          target: (
+            kind: Path((
+              ident_type: LocalOrUse,
+              segments: [(
+                ident: (
+                  ident: 1,
+                  span: (
+                    start: 272,
+                    end: 276,
+                  ),
+                ),
+                generics: Some([(
+                  kind: TraitBound(
+                    trait_bound: [(
+                      ident: (
+                        ident_type: LocalOrUse,
+                        idents: [(
+                          ident: 12,
+                          span: (
+                            start: 279,
+                            end: 287,
+                          ),
+                        )],
+                      ),
+                      generics: [],
+), (
+                      ident: (
+                        ident_type: LocalOrUse,
+                        idents: [(
+                          ident: 13,
+                          span: (
+                            start: 290,
+                            end: 302,
+                          ),
+                        )],
+                      ),
+                      generics: [],
+)],
+                  ),
+                  span: (
+                    start: 279,
+                    end: 302,
+                  ),
+                  id: 33,
+                )]),
+              ), (
+                ident: (
+                  ident: 6,
+                  span: (
+                    start: 305,
+                    end: 308,
+                  ),
+                ),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 272,
+              end: 308,
+            ),
+            id: 34,
+          ),
+          args: [],
+)),
+        span: (
+          start: 272,
+          end: 310,
+        ),
+        id: 35,
+      ),
+    )),
+    span: (
+      start: 222,
+      end: 311,
+    ),
+    id: 36,
+  )],
+))

@@ -1,0 +1,121 @@
+((
+  string_interner: ["Planet", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 10,
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Enum((
+      name: (
+        ident: 1,
+        span: (
+          start: 5,
+          end: 11,
+        ),
+      ),
+      generic_params: [],
+      members: [(
+        name: 2,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 18,
+          end: 25,
+        ),
+        id: 0,
+      ), (
+        name: 3,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 31,
+          end: 36,
+        ),
+        id: 1,
+      ), (
+        name: 4,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 42,
+          end: 47,
+        ),
+        id: 2,
+      ), (
+        name: 5,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 53,
+          end: 57,
+        ),
+        id: 3,
+      ), (
+        name: 6,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 63,
+          end: 70,
+        ),
+        id: 4,
+      ), (
+        name: 7,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 76,
+          end: 82,
+        ),
+        id: 5,
+      ), (
+        name: 8,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 88,
+          end: 94,
+        ),
+        id: 6,
+      ), (
+        name: 9,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 100,
+          end: 107,
+        ),
+        id: 7,
+      ), (
+        name: 10,
+        fields: [],
+        self_fns: [],
+        span: (
+          start: 113,
+          end: 118,
+        ),
+        id: 8,
+      )],
+      self_fns: [],
+)),
+    span: (
+      start: 0,
+      end: 121,
+    ),
+    id: 9,
+  )],
+))

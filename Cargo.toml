@@ -1,0 +1,26 @@
+[workspace]
+
+members = [
+    "arena",
+    "ast",
+    "diagnostics",
+    "hir",
+    "id",
+    "interner",
+    "krate",
+    "macros",
+    "parser",
+    "resolver",
+    "sinter-lang",
+    "snap",
+    "source",
+    "sources",
+    "span", "tests",
+    "tokenizer",
+    "types",
+    "validator"
+]
+
+[profile.dev]
+opt-level = 0
+incremental = true

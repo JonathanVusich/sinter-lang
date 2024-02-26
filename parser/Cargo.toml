@@ -1,0 +1,19 @@
+[package]
+name = "parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ast = { path = "../ast" }
+diagnostics = { path = "../diagnostics" }
+id = { path = "../id" }
+interner = { path = "../interner" }
+span = { path = "../span" }
+tokenizer = { path = "../tokenizer" }
+
+sources = { path = "../sources" }
+snap = { path = "../snap" }
+
+
+serde = { version = "1.0.197", features = ["derive"] }
+itertools = "0.12.1"

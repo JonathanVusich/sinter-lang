@@ -1,20 +1,5 @@
-((
-  string_interner: ["mutable_assignment", "mut_var", "x"],
-  source_map: {
-    (
-      crate_id: 0,
-      module_id: 0,
-    ): (
-      line_map: (
-        lines: [14, 59, 74, 76],
-      ),
-    ),
-  },
-  diagnostics: (
-    diagnostics: [],
-),
-  crate_id: 1,
-  local_def_id: 10,
+(["mutable_assignment", "mut_var", "x"], (
+  diagnostics: [],
 ), (
   crates: [(
     name: 1,

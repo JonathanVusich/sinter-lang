@@ -1,0 +1,1 @@
+(["Planet", "Mercury", "diameter", "u64", "crate", "module"], [Error("ERROR: Duplicate fields `diameter` in scope\ndiameter: u64\n\ndiameter: u64")])

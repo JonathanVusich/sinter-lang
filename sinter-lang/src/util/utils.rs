@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 #[cfg(test)]
 pub fn resolve_code_example_path(path: &str) -> PathBuf {
     let mut pathbuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    pathbuf.push("sources");
+    pathbuf.push("../../../sources");
     pathbuf.push("short_examples");
     pathbuf.push(path);
 
@@ -25,7 +25,7 @@ pub fn read_code_example(path: &str) -> String {
 pub fn resolve_test_krate_path(path: &str) -> PathBuf {
     let mut pathbuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
 
-    pathbuf.push("sources");
+    pathbuf.push("../../../sources");
     pathbuf.push("crates");
     pathbuf.push(path);
 

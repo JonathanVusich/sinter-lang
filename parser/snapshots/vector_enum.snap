@@ -1,0 +1,920 @@
+((
+  string_interner: ["std", "math", "Display", "Number", "Vector", "N", "Normalized", "x", "y", "Absolute", "to_normalized", "normalized", "abs", "magnitude", "sqrt", "self"],
+  source_map: {},
+  diagnostics: (
+    diagnostics: [],
+),
+  crate_id: 0,
+  local_def_id: 57,
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Use((
+      ident_type: LocalOrUse,
+      idents: [(
+        ident: 1,
+        span: (
+          start: 4,
+          end: 7,
+        ),
+      ), (
+        ident: 2,
+        span: (
+          start: 9,
+          end: 13,
+        ),
+      )],
+    )),
+    span: (
+      start: 0,
+      end: 14,
+    ),
+    id: 0,
+  ), (
+    kind: Use((
+      ident_type: LocalOrUse,
+      idents: [(
+        ident: 1,
+        span: (
+          start: 19,
+          end: 22,
+        ),
+      ), (
+        ident: 3,
+        span: (
+          start: 24,
+          end: 31,
+        ),
+      )],
+    )),
+    span: (
+      start: 15,
+      end: 32,
+    ),
+    id: 1,
+  ), (
+    kind: Use((
+      ident_type: LocalOrUse,
+      idents: [(
+        ident: 1,
+        span: (
+          start: 37,
+          end: 40,
+        ),
+      ), (
+        ident: 4,
+        span: (
+          start: 42,
+          end: 48,
+        ),
+      )],
+    )),
+    span: (
+      start: 33,
+      end: 49,
+    ),
+    id: 2,
+  ), (
+    kind: Enum((
+      name: (
+        ident: 5,
+        span: (
+          start: 56,
+          end: 62,
+        ),
+      ),
+      generic_params: [(
+        name: (
+          ident: 6,
+          span: (
+            start: 63,
+            end: 64,
+          ),
+        ),
+        trait_bound: Some((
+          kind: TraitBound(
+            trait_bound: [(
+              ident: (
+                ident_type: LocalOrUse,
+                idents: [(
+                  ident: 4,
+                  span: (
+                    start: 66,
+                    end: 72,
+                  ),
+                )],
+              ),
+              generics: [],
+), (
+              ident: (
+                ident_type: LocalOrUse,
+                idents: [(
+                  ident: 3,
+                  span: (
+                    start: 75,
+                    end: 82,
+                  ),
+                )],
+              ),
+              generics: [],
+)],
+          ),
+          span: (
+            start: 66,
+            end: 82,
+          ),
+          id: 3,
+        )),
+        span: (
+          start: 63,
+          end: 82,
+        ),
+        id: 4,
+      )],
+      members: [(
+        name: 7,
+        fields: [(
+          name: (
+            ident: 8,
+            span: (
+              start: 101,
+              end: 102,
+            ),
+          ),
+          ty: (
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 6,
+                    span: (
+                      start: 104,
+                      end: 105,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 104,
+              end: 105,
+            ),
+            id: 5,
+          ),
+          span: (
+            start: 101,
+            end: 105,
+          ),
+          id: 6,
+        ), (
+          name: (
+            ident: 9,
+            span: (
+              start: 107,
+              end: 108,
+            ),
+          ),
+          ty: (
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 6,
+                    span: (
+                      start: 110,
+                      end: 111,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 110,
+              end: 111,
+            ),
+            id: 7,
+          ),
+          span: (
+            start: 107,
+            end: 111,
+          ),
+          id: 8,
+        )],
+        self_fns: [],
+        span: (
+          start: 90,
+          end: 112,
+        ),
+        id: 9,
+      ), (
+        name: 10,
+        fields: [(
+          name: (
+            ident: 8,
+            span: (
+              start: 127,
+              end: 128,
+            ),
+          ),
+          ty: (
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 6,
+                    span: (
+                      start: 130,
+                      end: 131,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 130,
+              end: 131,
+            ),
+            id: 10,
+          ),
+          span: (
+            start: 127,
+            end: 131,
+          ),
+          id: 11,
+        ), (
+          name: (
+            ident: 9,
+            span: (
+              start: 133,
+              end: 134,
+            ),
+          ),
+          ty: (
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 6,
+                    span: (
+                      start: 136,
+                      end: 137,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 136,
+              end: 137,
+            ),
+            id: 12,
+          ),
+          span: (
+            start: 133,
+            end: 137,
+          ),
+          id: 13,
+        )],
+        self_fns: [],
+        span: (
+          start: 118,
+          end: 138,
+        ),
+        id: 14,
+      )],
+      self_fns: [(
+        sig: (
+          name: (
+            ident: 11,
+            span: (
+              start: 148,
+              end: 161,
+            ),
+          ),
+          generic_params: [],
+          params: [(
+            name: (
+              ident: 16,
+              span: (
+                start: 162,
+                end: 166,
+              ),
+            ),
+            ty: (
+              kind: QSelf,
+              span: (
+                start: 162,
+                end: 166,
+              ),
+              id: 15,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 162,
+              end: 166,
+            ),
+            id: 16,
+          )],
+          return_type: Some((
+            kind: Path(
+              path: (
+                ident: (
+                  ident_type: LocalOrUse,
+                  idents: [(
+                    ident: 5,
+                    span: (
+                      start: 171,
+                      end: 177,
+                    ),
+                  )],
+                ),
+                generics: [],
+),
+            ),
+            span: (
+              start: 171,
+              end: 177,
+            ),
+            id: 17,
+          )),
+        ),
+        body: Some((
+          stmts: [(
+            kind: Expression((
+              expr: (
+                kind: Match((
+                  source: (
+                    kind: Path((
+                      ident_type: LocalOrUse,
+                      segments: [(
+                        ident: (
+                          ident: 16,
+                          span: (
+                            start: 194,
+                            end: 198,
+                          ),
+                        ),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 194,
+                      end: 198,
+                    ),
+                    id: 18,
+                  ),
+                  arms: [(
+                    pattern: Ty((
+                      ty: (
+                        ident: (
+                          ident_type: LocalOrUse,
+                          idents: [(
+                            ident: 7,
+                            span: (
+                              start: 213,
+                              end: 223,
+                            ),
+                          )],
+                        ),
+                        generics: [],
+),
+                      ident: Some((
+                        ident: 12,
+                        span: (
+                          start: 224,
+                          end: 234,
+                        ),
+                        id: 19,
+                      )),
+                    )),
+                    body: (
+                      kind: Expression((
+                        expr: (
+                          kind: Path((
+                            ident_type: LocalOrUse,
+                            segments: [(
+                              ident: (
+                                ident: 12,
+                                span: (
+                                  start: 238,
+                                  end: 248,
+                                ),
+                              ),
+                              generics: None,
+                            )],
+                          )),
+                          span: (
+                            start: 238,
+                            end: 248,
+                          ),
+                          id: 20,
+                        ),
+                        implicit_return: true,
+                      )),
+                      span: (
+                        start: 238,
+                        end: 248,
+                      ),
+                      id: 21,
+                    ),
+                    span: (
+                      start: 213,
+                      end: 248,
+                    ),
+                    id: 22,
+                  ), (
+                    pattern: Ty((
+                      ty: (
+                        ident: (
+                          ident_type: LocalOrUse,
+                          idents: [(
+                            ident: 10,
+                            span: (
+                              start: 262,
+                              end: 270,
+                            ),
+                          )],
+                        ),
+                        generics: [],
+),
+                      ident: Some((
+                        ident: 13,
+                        span: (
+                          start: 271,
+                          end: 274,
+                        ),
+                        id: 23,
+                      )),
+                    )),
+                    body: (
+                      kind: Block((
+                        stmts: [(
+                          kind: Let((
+                            ident: (
+                              ident: 14,
+                              span: (
+                                start: 300,
+                                end: 309,
+                              ),
+                            ),
+                            mutability: Immutable,
+                            ty: None,
+                            initializer: Some((
+                              kind: Call((
+                                target: (
+                                  kind: Path((
+                                    ident_type: LocalOrUse,
+                                    segments: [(
+                                      ident: (
+                                        ident: 2,
+                                        span: (
+                                          start: 312,
+                                          end: 316,
+                                        ),
+                                      ),
+                                      generics: None,
+                                    ), (
+                                      ident: (
+                                        ident: 15,
+                                        span: (
+                                          start: 318,
+                                          end: 322,
+                                        ),
+                                      ),
+                                      generics: None,
+                                    )],
+                                  )),
+                                  span: (
+                                    start: 312,
+                                    end: 322,
+                                  ),
+                                  id: 24,
+                                ),
+                                args: [(
+                                  kind: Infix((
+                                    operator: Add,
+                                    lhs: (
+                                      kind: Infix((
+                                        operator: Multiply,
+                                        lhs: (
+                                          kind: Field((
+                                            lhs: (
+                                              kind: Path((
+                                                ident_type: LocalOrUse,
+                                                segments: [(
+                                                  ident: (
+                                                    ident: 13,
+                                                    span: (
+                                                      start: 323,
+                                                      end: 326,
+                                                    ),
+                                                  ),
+                                                  generics: None,
+                                                )],
+                                              )),
+                                              span: (
+                                                start: 323,
+                                                end: 326,
+                                              ),
+                                              id: 25,
+                                            ),
+                                            ident: (
+                                              ident: 8,
+                                              span: (
+                                                start: 327,
+                                                end: 328,
+                                              ),
+                                            ),
+                                          )),
+                                          span: (
+                                            start: 323,
+                                            end: 328,
+                                          ),
+                                          id: 26,
+                                        ),
+                                        rhs: (
+                                          kind: Field((
+                                            lhs: (
+                                              kind: Path((
+                                                ident_type: LocalOrUse,
+                                                segments: [(
+                                                  ident: (
+                                                    ident: 13,
+                                                    span: (
+                                                      start: 331,
+                                                      end: 334,
+                                                    ),
+                                                  ),
+                                                  generics: None,
+                                                )],
+                                              )),
+                                              span: (
+                                                start: 331,
+                                                end: 334,
+                                              ),
+                                              id: 27,
+                                            ),
+                                            ident: (
+                                              ident: 8,
+                                              span: (
+                                                start: 335,
+                                                end: 336,
+                                              ),
+                                            ),
+                                          )),
+                                          span: (
+                                            start: 331,
+                                            end: 336,
+                                          ),
+                                          id: 28,
+                                        ),
+                                      )),
+                                      span: (
+                                        start: 323,
+                                        end: 336,
+                                      ),
+                                      id: 29,
+                                    ),
+                                    rhs: (
+                                      kind: Infix((
+                                        operator: Multiply,
+                                        lhs: (
+                                          kind: Field((
+                                            lhs: (
+                                              kind: Path((
+                                                ident_type: LocalOrUse,
+                                                segments: [(
+                                                  ident: (
+                                                    ident: 13,
+                                                    span: (
+                                                      start: 339,
+                                                      end: 342,
+                                                    ),
+                                                  ),
+                                                  generics: None,
+                                                )],
+                                              )),
+                                              span: (
+                                                start: 339,
+                                                end: 342,
+                                              ),
+                                              id: 30,
+                                            ),
+                                            ident: (
+                                              ident: 9,
+                                              span: (
+                                                start: 343,
+                                                end: 344,
+                                              ),
+                                            ),
+                                          )),
+                                          span: (
+                                            start: 339,
+                                            end: 344,
+                                          ),
+                                          id: 31,
+                                        ),
+                                        rhs: (
+                                          kind: Field((
+                                            lhs: (
+                                              kind: Path((
+                                                ident_type: LocalOrUse,
+                                                segments: [(
+                                                  ident: (
+                                                    ident: 13,
+                                                    span: (
+                                                      start: 347,
+                                                      end: 350,
+                                                    ),
+                                                  ),
+                                                  generics: None,
+                                                )],
+                                              )),
+                                              span: (
+                                                start: 347,
+                                                end: 350,
+                                              ),
+                                              id: 32,
+                                            ),
+                                            ident: (
+                                              ident: 9,
+                                              span: (
+                                                start: 351,
+                                                end: 352,
+                                              ),
+                                            ),
+                                          )),
+                                          span: (
+                                            start: 347,
+                                            end: 352,
+                                          ),
+                                          id: 33,
+                                        ),
+                                      )),
+                                      span: (
+                                        start: 339,
+                                        end: 352,
+                                      ),
+                                      id: 34,
+                                    ),
+                                  )),
+                                  span: (
+                                    start: 323,
+                                    end: 352,
+                                  ),
+                                  id: 35,
+                                )],
+                              )),
+                              span: (
+                                start: 312,
+                                end: 353,
+                              ),
+                              id: 36,
+                            )),
+                          )),
+                          span: (
+                            start: 296,
+                            end: 354,
+                          ),
+                          id: 37,
+                        ), (
+                          kind: Expression((
+                            expr: (
+                              kind: Call((
+                                target: (
+                                  kind: Path((
+                                    ident_type: LocalOrUse,
+                                    segments: [(
+                                      ident: (
+                                        ident: 7,
+                                        span: (
+                                          start: 371,
+                                          end: 381,
+                                        ),
+                                      ),
+                                      generics: None,
+                                    )],
+                                  )),
+                                  span: (
+                                    start: 371,
+                                    end: 381,
+                                  ),
+                                  id: 38,
+                                ),
+                                args: [(
+                                  kind: Infix((
+                                    operator: Divide,
+                                    lhs: (
+                                      kind: Field((
+                                        lhs: (
+                                          kind: Path((
+                                            ident_type: LocalOrUse,
+                                            segments: [(
+                                              ident: (
+                                                ident: 13,
+                                                span: (
+                                                  start: 382,
+                                                  end: 385,
+                                                ),
+                                              ),
+                                              generics: None,
+                                            )],
+                                          )),
+                                          span: (
+                                            start: 382,
+                                            end: 385,
+                                          ),
+                                          id: 39,
+                                        ),
+                                        ident: (
+                                          ident: 8,
+                                          span: (
+                                            start: 386,
+                                            end: 387,
+                                          ),
+                                        ),
+                                      )),
+                                      span: (
+                                        start: 382,
+                                        end: 387,
+                                      ),
+                                      id: 40,
+                                    ),
+                                    rhs: (
+                                      kind: Path((
+                                        ident_type: LocalOrUse,
+                                        segments: [(
+                                          ident: (
+                                            ident: 14,
+                                            span: (
+                                              start: 390,
+                                              end: 399,
+                                            ),
+                                          ),
+                                          generics: None,
+                                        )],
+                                      )),
+                                      span: (
+                                        start: 390,
+                                        end: 399,
+                                      ),
+                                      id: 41,
+                                    ),
+                                  )),
+                                  span: (
+                                    start: 382,
+                                    end: 399,
+                                  ),
+                                  id: 42,
+                                ), (
+                                  kind: Infix((
+                                    operator: Divide,
+                                    lhs: (
+                                      kind: Field((
+                                        lhs: (
+                                          kind: Path((
+                                            ident_type: LocalOrUse,
+                                            segments: [(
+                                              ident: (
+                                                ident: 13,
+                                                span: (
+                                                  start: 401,
+                                                  end: 404,
+                                                ),
+                                              ),
+                                              generics: None,
+                                            )],
+                                          )),
+                                          span: (
+                                            start: 401,
+                                            end: 404,
+                                          ),
+                                          id: 43,
+                                        ),
+                                        ident: (
+                                          ident: 9,
+                                          span: (
+                                            start: 405,
+                                            end: 406,
+                                          ),
+                                        ),
+                                      )),
+                                      span: (
+                                        start: 401,
+                                        end: 406,
+                                      ),
+                                      id: 44,
+                                    ),
+                                    rhs: (
+                                      kind: Path((
+                                        ident_type: LocalOrUse,
+                                        segments: [(
+                                          ident: (
+                                            ident: 14,
+                                            span: (
+                                              start: 409,
+                                              end: 418,
+                                            ),
+                                          ),
+                                          generics: None,
+                                        )],
+                                      )),
+                                      span: (
+                                        start: 409,
+                                        end: 418,
+                                      ),
+                                      id: 45,
+                                    ),
+                                  )),
+                                  span: (
+                                    start: 401,
+                                    end: 418,
+                                  ),
+                                  id: 46,
+                                )],
+                              )),
+                              span: (
+                                start: 371,
+                                end: 419,
+                              ),
+                              id: 47,
+                            ),
+                            implicit_return: false,
+                          )),
+                          span: (
+                            start: 371,
+                            end: 419,
+                          ),
+                          id: 48,
+                        )],
+                        span: (
+                          start: 278,
+                          end: 433,
+                        ),
+                        id: 49,
+                      )),
+                      span: (
+                        start: 278,
+                        end: 433,
+                      ),
+                      id: 50,
+                    ),
+                    span: (
+                      start: 262,
+                      end: 433,
+                    ),
+                    id: 51,
+                  )],
+                )),
+                span: (
+                  start: 188,
+                  end: 443,
+                ),
+                id: 52,
+              ),
+              implicit_return: false,
+            )),
+            span: (
+              start: 188,
+              end: 443,
+            ),
+            id: 53,
+          )],
+          span: (
+            start: 178,
+            end: 449,
+          ),
+          id: 54,
+        )),
+        span: (
+          start: 145,
+          end: 449,
+        ),
+        id: 55,
+      )],
+    )),
+    span: (
+      start: 51,
+      end: 451,
+    ),
+    id: 56,
+  )],
+))

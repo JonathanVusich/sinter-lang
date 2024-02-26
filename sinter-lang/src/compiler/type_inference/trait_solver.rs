@@ -1,6 +1,7 @@
-use crate::compiler::hir::{Generics, HirCrate, HirNodeKind, PathTy};
+use hir::{Generics, HirCrate, HirNodeKind, PathTy};
+use types::DefMap;
+
 use crate::compiler::type_inference::ty_infer::TypeErrKind;
-use crate::compiler::types::DefMap;
 
 pub struct TraitSolver {
     impls: DefMap<TraitMap>,

@@ -1,0 +1,118 @@
+(["std", "out", "print", "main", "Hello world!"], (
+  diagnostics: [],
+), (
+  id: (
+    crate_id: 0,
+    module_id: 0,
+  ),
+  path: (
+    module_path: [],
+),
+  namespace: (
+    modules: {},
+    values: {},
+  ),
+  items: [(
+    kind: Use((
+      ident_type: LocalOrUse,
+      idents: [(
+        ident: 1,
+        span: (
+          start: 4,
+          end: 7,
+        ),
+      ), (
+        ident: 2,
+        span: (
+          start: 9,
+          end: 12,
+        ),
+      ), (
+        ident: 3,
+        span: (
+          start: 14,
+          end: 19,
+        ),
+      )],
+    )),
+    span: (
+      start: 0,
+      end: 20,
+    ),
+    id: 0,
+  ), (
+    kind: Fn((
+      sig: (
+        name: (
+          ident: 4,
+          span: (
+            start: 25,
+            end: 29,
+          ),
+        ),
+        generic_params: [],
+        params: [],
+        return_type: None,
+),
+      body: Some((
+        stmts: [(
+          kind: Expression((
+            expr: (
+              kind: Call((
+                target: (
+                  kind: Path((
+                    ident_type: LocalOrUse,
+                    segments: [(
+                      ident: (
+                        ident: 3,
+                        span: (
+                          start: 38,
+                          end: 43,
+                        ),
+                      ),
+                      generics: None,
+                    )],
+                  )),
+                  span: (
+                    start: 38,
+                    end: 43,
+                  ),
+                  id: 1,
+                ),
+                args: [(
+                  kind: String(5),
+                  span: (
+                    start: 44,
+                    end: 58,
+                  ),
+                  id: 2,
+                )],
+              )),
+              span: (
+                start: 38,
+                end: 59,
+              ),
+              id: 3,
+            ),
+            implicit_return: true,
+          )),
+          span: (
+            start: 38,
+            end: 60,
+          ),
+          id: 4,
+        )],
+        span: (
+          start: 32,
+          end: 62,
+        ),
+        id: 5,
+      )),
+    )),
+    span: (
+      start: 22,
+      end: 62,
+    ),
+    id: 6,
+  )],
+))

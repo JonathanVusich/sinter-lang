@@ -1,0 +1,37 @@
+([], (
+  diagnostics: [],
+), (
+  kind: Parentheses((
+    expr: (
+      kind: Parentheses((
+        expr: (
+          kind: Parentheses((
+            expr: (
+              kind: Int(0),
+              span: (
+                start: 3,
+                end: 4,
+              ),
+              id: 0,
+            ),
+          )),
+          span: (
+            start: 2,
+            end: 5,
+          ),
+          id: 0,
+        ),
+      )),
+      span: (
+        start: 1,
+        end: 6,
+      ),
+      id: 0,
+    ),
+  )),
+  span: (
+    start: 0,
+    end: 7,
+  ),
+  id: 0,
+))
