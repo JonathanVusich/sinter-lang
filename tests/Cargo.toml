@@ -8,3 +8,6 @@ sinter-lang = { path = "../sinter-lang" }
 diagnostics = { path = "../diagnostics" }
 ron = "0.8.1"
 serde = "1.0.197"
+
+[dependencies]
+pretty_assertions = "1.4.0"

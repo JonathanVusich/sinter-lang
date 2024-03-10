@@ -596,10 +596,10 @@ impl<'a> CrateResolver<'a> {
             let trait_bound = match &param.trait_bound {
                 None => None,
                 Some(AstTy {
-                    kind: AstTyKind::TraitBound { trait_bound },
-                    span,
-                    id,
-                }) => Some(self.resolve_trait_bound(trait_bound, *span, *id)?),
+                         kind: AstTyKind::TraitBound { trait_bound },
+                         span,
+                         id,
+                     }) => Some(self.resolve_trait_bound(trait_bound, *span, *id)?),
                 _ => unreachable!(),
             };
             /*
