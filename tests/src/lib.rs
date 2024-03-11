@@ -8,6 +8,21 @@ mod tests {
     use diagnostics::Diagnostics;
 
     #[derive(Copy, Clone)]
+    enum TestType {
+        Crate,
+        SingleFile,
+    }
+
+    impl TestType {
+        fn path(&self) -> &str {
+            match self {
+                TestType::Crate => "crate",
+                TestType::SingleFile => "single_file",
+            }
+        }
+    }
+
+    #[derive(Copy, Clone)]
     enum SnapshotType {
         Parsed,
         Validated,
@@ -36,9 +51,14 @@ mod tests {
         pathbuf
     }
 
-    fn resolve_snapshot_path(path: &str, snapshot_type: SnapshotType) -> PathBuf {
+    fn resolve_snapshot_path(
+        path: &str,
+        test_type: TestType,
+        snapshot_type: SnapshotType,
+    ) -> PathBuf {
         let mut pathbuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         pathbuf.push("snapshots");
+        pathbuf.push(test_type.path());
         pathbuf.push(path);
         pathbuf.push(snapshot_type.path());
         pathbuf.set_extension("snap");
@@ -50,47 +70,57 @@ mod tests {
         std::fs::read_to_string(file_path).unwrap()
     }
 
-    fn compare_or_snapshot<V: Serialize>(val: &V, path: &str, snapshot_type: SnapshotType) {
+    fn compare_or_snapshot<V: Serialize>(
+        val: &V,
+        path: &str,
+        test_type: TestType,
+        snapshot_type: SnapshotType,
+    ) {
         let serialized_val = ron::ser::to_string_pretty(
             val,
             ron::ser::PrettyConfig::new()
                 .indentor("  ".to_string())
                 .compact_arrays(true),
         )
-        .unwrap();
+            .unwrap();
 
-        if let Some(saved_val) = load_snapshot(path, snapshot_type) {
+        if let Some(saved_val) = load_snapshot(path, test_type, snapshot_type) {
             pretty_assertions::assert_eq!(saved_val, serialized_val);
         } else {
-            save_snapshot(serialized_val, path, snapshot_type);
+            save_snapshot(serialized_val, path, test_type, snapshot_type);
         }
     }
 
-    fn save_snapshot(val: String, path: &str, snapshot_type: SnapshotType) {
-        let snapshot_path = resolve_snapshot_path(path, snapshot_type);
+    fn save_snapshot(val: String, path: &str, test_type: TestType, snapshot_type: SnapshotType) {
+        let snapshot_path = resolve_snapshot_path(path, test_type, snapshot_type);
         if let Some(parent) = &snapshot_path.parent() {
             std::fs::create_dir_all(parent).unwrap();
         }
         std::fs::write(snapshot_path, val).unwrap();
     }
 
-    fn load_snapshot(path: &str, snapshot_type: SnapshotType) -> Option<String> {
-        let snapshot_path = resolve_snapshot_path(path, snapshot_type);
+    fn load_snapshot(
+        path: &str,
+        test_type: TestType,
+        snapshot_type: SnapshotType,
+    ) -> Option<String> {
+        let snapshot_path = resolve_snapshot_path(path, test_type, snapshot_type);
         std::fs::read_to_string(snapshot_path).ok()
     }
 
     fn validate_result<T: Serialize>(
         result: Result<T, Diagnostics>,
         path: &str,
+        test_type: TestType,
         snapshot_type: SnapshotType,
     ) -> Option<T> {
         match result {
             Ok(val) => {
-                compare_or_snapshot(&val, path, snapshot_type);
+                compare_or_snapshot(&val, path, test_type, snapshot_type);
                 Some(val)
             }
             Err(diagnostics) => {
-                compare_or_snapshot(&diagnostics, path, snapshot_type);
+                compare_or_snapshot(&diagnostics, path, test_type, snapshot_type);
                 None
             }
         }
@@ -99,12 +129,13 @@ mod tests {
     fn validate_diagnostics<T>(
         result: Result<T, Diagnostics>,
         path: &str,
+        test_type: TestType,
         snapshot_type: SnapshotType,
     ) -> Option<T> {
         match result {
             Ok(val) => Some(val),
             Err(diagnostics) => {
-                compare_or_snapshot(&diagnostics, path, snapshot_type);
+                compare_or_snapshot(&diagnostics, path, test_type, snapshot_type);
                 None
             }
         }
@@ -119,15 +150,18 @@ mod tests {
                 let application = ::compiler::Application::Inline {
                     code: load_single_file_crate(name),
                 };
+
                 validate_result(
                     compiler.parse_crates(application),
                     name,
+                    TestType::SingleFile,
                     SnapshotType::Parsed,
                 )
                 .and_then(|parsed_krates| {
                     validate_diagnostics(
                         compiler.validate_crates(parsed_krates),
                         name,
+                        TestType::SingleFile,
                         SnapshotType::Validated,
                     )
                 })
@@ -135,11 +169,17 @@ mod tests {
                     validate_result(
                         compiler.resolve_crates(parsed_krates),
                         name,
+                        TestType::SingleFile,
                         SnapshotType::Resolved,
                     )
                 })
                 .and_then(|hir_map| {
-                    validate_result(compiler.infer_types(hir_map), name, SnapshotType::Typed)
+                    validate_result(
+                        compiler.infer_types(hir_map),
+                        name,
+                        TestType::SingleFile,
+                        SnapshotType::Typed,
+                    )
                 });
             }
         };

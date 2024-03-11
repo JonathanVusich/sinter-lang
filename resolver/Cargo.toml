@@ -20,4 +20,3 @@ serde = { version = "1.0.197", features = ["derive"] }
 
 [dev-dependencies]
 snap = { path = "../snap" }
-sources = { path = "../sources" }

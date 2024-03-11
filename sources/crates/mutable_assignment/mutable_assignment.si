@@ -1,4 +1,0 @@
-fn mut_var() {
-    let mut x = 5; // `i64` type is inferred
-    x = x + 1;
-}

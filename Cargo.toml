@@ -14,9 +14,10 @@ members = [
     "sinter-lang",
     "snap",
     "source",
-    "sources",
-    "span", "tests",
-    "tokenizer", "ty_infer",
+    "span",
+    "tests",
+    "tokenizer",
+    "ty_infer",
     "types",
     "validator"
 ]

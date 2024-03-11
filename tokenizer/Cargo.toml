@@ -12,7 +12,6 @@ diagnostics = { path = "../diagnostics" }
 interner = { path = "../interner" }
 snap = { path = "../snap" }
 source = { path = "../source" }
-sources = { path = "../sources" }
 span = { path = "../span" }
 
 unicode-segmentation = "1.11.0"

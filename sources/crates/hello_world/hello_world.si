@@ -1,5 +1,0 @@
-use std::out::print;
-
-fn main() {
-    print("Hello world!");
-}

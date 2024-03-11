@@ -1,3 +1,0 @@
-fn subtract<T: Number>(lhs: T, rhs: T) => T {
-    lhs - rhs
-}

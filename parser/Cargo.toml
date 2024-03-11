@@ -11,7 +11,6 @@ interner = { path = "../interner" }
 span = { path = "../span" }
 tokenizer = { path = "../tokenizer" }
 
-sources = { path = "../sources" }
 snap = { path = "../snap" }
 
 
