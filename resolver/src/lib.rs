@@ -6,6 +6,9 @@ use std::hash::Hash;
 use std::ops::Deref;
 use std::sync::Arc;
 
+use itertools::Itertools;
+use serde::{Deserialize, Serialize};
+
 use ast::{
     ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassDef, ClassStmt as AstClassStmt,
     ClosureParam as AstClosureParam, DestructureExpr as AstDestructureExpr,
@@ -34,12 +37,9 @@ use hir::{
 };
 use id::{CrateId, DefId, LocalDefId, ModuleId};
 use interner::{InternedStr, StringInterner};
-use itertools::Itertools;
-use serde::{Deserialize, Serialize};
+use krate::{Crate, CrateDef, CrateLookup};
 use span::Span;
 use types::{LDefMap, StrMap};
-
-use krate::{Crate, CrateDef, CrateLookup};
 
 pub fn resolve(
     string_interner: &StringInterner,
@@ -1678,7 +1678,6 @@ mod tests {
     use diagnostics::Diagnostics;
     use hir::HirMap;
     use interner::StringInterner;
-
     use snap::snapshot;
 
     type ResolvedCrates = (StringInterner, Diagnostics, HirMap);

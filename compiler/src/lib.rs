@@ -1,30 +1,25 @@
 use std::collections::{HashSet, VecDeque};
 use std::ffi::{OsStr, OsString};
 use std::fmt::{Debug, Display};
-use std::io;
-use std::ops::Deref;
 use std::path::{Path, PathBuf, StripPrefixError};
 
-use ast::{AstPass, ModulePath};
+use itertools::Itertools;
+use serde::{Deserialize, Deserializer, Serialize};
+use walkdir::{DirEntry, WalkDir};
+
+use ast::ModulePath;
 use diagnostics::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
 use hir::HirMap;
 use id::IdGenerator;
 use interner::{InternedStr, StringInterner};
-use itertools::Itertools;
-use lasso::{Key as K, Resolver};
+use krate::Crate;
 use parser::parse;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Deserializer, Serialize};
+use resolver::resolve;
 use source::{SourceCode, SourceMap};
 use tokenizer::{tokenize, tokenize_file, TokenizedSource};
+use ty_infer::{CrateInference, TypeMap};
 use types::StrMap;
-use walkdir::{DirEntry, WalkDir};
-
-use krate::Crate;
 use validator::validate;
-
-use crate::compiler::resolver::resolve;
-use crate::compiler::type_inference::ty_infer::{CrateInference, TypeMap};
 
 #[derive(Default)]
 pub struct Compiler {
@@ -286,15 +281,21 @@ impl Compiler {
         self.check_errors(crates)
     }
 
-    pub fn resolve_crates(&mut self, crates: StrMap<Crate>) -> Result<HirMap, Diagnostics> {
-        resolve(&self.compiler_ctxt, crates).ok_or(self.diagnostics.clone())
+    pub fn resolve_crates(&mut self, mut crates: StrMap<Crate>) -> Result<HirMap, Diagnostics> {
+        resolve(
+            &self.compiler_ctxt.string_interner,
+            &mut self.compiler_ctxt.diagnostics,
+            &mut crates,
+        )
+            .ok_or(self.diagnostics.clone())
     }
 
     pub fn infer_types(&mut self, hir_map: HirMap) -> Result<StrMap<TypeMap>, Diagnostics> {
         let mut ty_map = StrMap::default();
         for krate in hir_map.krates() {
             if let Some(inferred_tys) =
-                CrateInference::new(&mut self.compiler_ctxt, krate, &hir_map).infer_tys()
+                CrateInference::new(&mut self.compiler_ctxt.diagnostics, krate, &hir_map)
+                    .infer_tys()
             {
                 ty_map.insert(krate.name, inferred_tys);
             }
@@ -317,51 +318,4 @@ impl Compiler {
 
 fn local_to_root(path: &Path, root: &Path) -> Result<PathBuf, StripPrefixError> {
     path.strip_prefix(root).map(|path| path.with_extension(""))
-}
-
-mod tests {
-    use krate::Crate;
-    use snap::snapshot;
-
-    use crate::compiler::compiler::Compiler;
-    #[cfg(test)]
-    use crate::util::utils::resolve_test_krate_path;
-
-    #[test]
-    #[snapshot]
-    pub fn simple_arithmetic() -> Crate {
-        let krate_path = resolve_test_krate_path("simple_arithmetic");
-        let mut compiler = Compiler::default();
-        let krate = compiler.parse_crate(&krate_path).unwrap();
-
-        assert_eq!(
-            "simple_arithmetic",
-            compiler.compiler_ctxt.resolve_str(krate.name)
-        );
-        krate
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn complex_arithmetic() -> Crate {
-        enum Test {
-            Var,
-        }
-        impl Test {
-            pub fn diameter(self) -> u32 {
-                5
-            }
-        }
-        let diameter = Test::Var.diameter();
-
-        let krate_path = resolve_test_krate_path("complex_arithmetic");
-        let mut compiler = Compiler::default();
-        let krate = compiler.parse_crate(&krate_path).unwrap();
-
-        assert_eq!(
-            "complex_arithmetic",
-            compiler.compiler_ctxt.resolve_str(krate.name)
-        );
-        krate
-    }
 }

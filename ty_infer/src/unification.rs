@@ -1,6 +1,5 @@
+use crate::Type;
 use serde::{Deserialize, Serialize};
-
-use crate::compiler::type_inference::ty_infer::Type;
 
 #[derive(Default, Debug)]
 pub(crate) struct UnificationTable {

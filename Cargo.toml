@@ -2,7 +2,7 @@
 
 members = [
     "arena",
-    "ast",
+    "ast", "compiler",
     "diagnostics",
     "hir",
     "id",
@@ -16,7 +16,7 @@ members = [
     "source",
     "sources",
     "span", "tests",
-    "tokenizer",
+    "tokenizer", "ty_infer",
     "types",
     "validator"
 ]

@@ -1,18 +1,19 @@
+mod trait_solver;
+mod unification;
+
 use std::fmt::{Debug, Display, Formatter};
 use std::iter::zip;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
+use crate::unification::{TyVar, UnificationTable};
 use ast::{ClassDef, FnDef, GlobalVarDef, InfixOp, UnaryOp, ValueDef};
-use diagnostics::Diagnostic;
+use diagnostics::{Diagnostic, Diagnostics};
 use hir::{ArrayExpr, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, Primitive, Res, Stmt, Ty};
 use id::{DefId, LocalDefId};
 use macros::named_slice;
 use types::LDefMap;
-
-use crate::compiler::compiler::CompilerCtxt;
-use crate::compiler::type_inference::unification::{TyVar, UnificationTable};
 
 #[derive(Debug)]
 pub enum TypeErrKind {
@@ -56,7 +57,7 @@ impl TypeMap {
 
 #[derive(Debug)]
 pub struct CrateInference<'a> {
-    ctxt: &'a mut CompilerCtxt,
+    diagnostics: &'a mut Diagnostics,
     hir_map: &'a HirMap,
     krate: &'a HirCrate,
     unify_table: UnificationTable,
@@ -69,9 +70,9 @@ pub struct CrateInference<'a> {
 /// Need to store all types in
 ///
 impl<'a> CrateInference<'a> {
-    pub fn new(ctxt: &'a mut CompilerCtxt, krate: &'a HirCrate, hir_map: &'a HirMap) -> Self {
+    pub fn new(diagnostics: &'a mut Diagnostics, krate: &'a HirCrate, hir_map: &'a HirMap) -> Self {
         Self {
-            ctxt,
+            diagnostics,
             hir_map,
             krate,
             unify_table: Default::default(),
@@ -429,7 +430,7 @@ impl<'a> CrateInference<'a> {
                 if lhs.assignable(&rhs) {
                     self.unify_ty_ty(lhs, rhs)
                 } else {
-                    self.ctxt.diagnostics.push(Diagnostic::BlankError);
+                    self.diagnostics.push(Diagnostic::BlankError);
                     return false;
                 }
             }
@@ -465,7 +466,7 @@ impl<'a> CrateInference<'a> {
                     | Type::Boolean
                     | Type::None
                     | Type::Infer(_) => {
-                        self.ctxt.diagnostics.push(Diagnostic::BlankError);
+                        self.diagnostics.push(Diagnostic::BlankError);
                         return false;
                     }
                 }
@@ -475,7 +476,7 @@ impl<'a> CrateInference<'a> {
 
     fn unify_fn_sig(&mut self, fn_sig: &FnSig, args: &[Type], ret_ty: Type) -> bool {
         if args.len() != fn_sig.params.len() {
-            self.ctxt.diagnostics.push(Diagnostic::BlankError);
+            self.diagnostics.push(Diagnostic::BlankError);
             return false;
         }
 
@@ -509,7 +510,7 @@ impl<'a> CrateInference<'a> {
         match ty {
             Type::Array(_) => true,
             _ => {
-                self.ctxt.diagnostics.push(Diagnostic::BlankError);
+                self.diagnostics.push(Diagnostic::BlankError);
                 return false;
             }
         }
@@ -529,21 +530,21 @@ impl<'a> CrateInference<'a> {
             (
                 Type::Infer(unknown)
                 | Type::GenericParam(GenericParam {
-                    ty_var: unknown, ..
-                }),
+                                         ty_var: unknown, ..
+                                     }),
                 ty,
             )
             | (
                 ty,
                 Type::Infer(unknown)
                 | Type::GenericParam(GenericParam {
-                    ty_var: unknown, ..
-                }),
+                                         ty_var: unknown, ..
+                                     }),
             ) => self.unify_var_ty(unknown, ty),
             // If both types are known, then we need to check for type compatibility.
             (lhs, rhs) => {
                 if lhs != rhs {
-                    self.ctxt.diagnostics.push(Diagnostic::BlankError);
+                    self.diagnostics.push(Diagnostic::BlankError);
                     return false;
                 }
                 true
@@ -553,7 +554,7 @@ impl<'a> CrateInference<'a> {
 
     fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> bool {
         if !self.unify_table.unify_var_var(lhs, rhs) {
-            self.ctxt.diagnostics.push(Diagnostic::BlankError);
+            self.diagnostics.push(Diagnostic::BlankError);
             return false;
         }
         true
@@ -561,7 +562,7 @@ impl<'a> CrateInference<'a> {
 
     fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> bool {
         if !self.unify_table.unify_var_ty(var, ty) {
-            self.ctxt.diagnostics.push(Diagnostic::BlankError);
+            self.diagnostics.push(Diagnostic::BlankError);
             return false;
         }
         true
@@ -1004,7 +1005,7 @@ impl Type {
                 if let Type::Class(rhs) = rhs {
                     return lhs.definition == rhs.definition
                         && zip(lhs.generics.values(), rhs.generics.values())
-                            .all(|(lhs, rhs)| lhs.assignable(rhs));
+                        .all(|(lhs, rhs)| lhs.assignable(rhs));
                 }
                 false
             }

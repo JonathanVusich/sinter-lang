@@ -13,6 +13,7 @@ channel = "nightly"
 arena = { path = "../arena" }
 diagnostics = { path = "../diagnostics" }
 tokenizer = { path = "../tokenizer" }
+resolver = { path = "../resolver" }
 interner = { path = "../interner" }
 ast = { path = "../ast" }
 hir = { path = "../hir" }

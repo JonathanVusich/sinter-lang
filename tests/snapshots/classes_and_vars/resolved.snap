@@ -1,0 +1,443 @@
+(
+  crates: [(
+    name: 11,
+    id: (
+      id: 0,
+    ),
+    items: [4, 5, 12, 24, 32],
+    nodes: {
+      0: (
+        kind: Ty(Primitive(F64)),
+        span: (
+          start: 21,
+          end: 24,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Field((
+          ident: (
+            ident: 2,
+            span: (
+              start: 18,
+              end: 19,
+            ),
+          ),
+          ty: 0,
+        )),
+        span: (
+          start: 18,
+          end: 24,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Ty(Primitive(F64)),
+        span: (
+          start: 33,
+          end: 36,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Field((
+          ident: (
+            ident: 4,
+            span: (
+              start: 30,
+              end: 31,
+            ),
+          ),
+          ty: 2,
+        )),
+        span: (
+          start: 30,
+          end: 36,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Class((
+          name: (
+            ident: 1,
+            span: (
+              start: 6,
+              end: 11,
+            ),
+          ),
+          class_type: Inline,
+          generic_params: {},
+          fields: {
+            2: 1,
+            4: 3,
+          },
+          fn_stmts: {},
+        )),
+        span: (
+          start: 0,
+          end: 39,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: Class((
+          name: (
+            ident: 5,
+            span: (
+              start: 50,
+              end: 54,
+            ),
+          ),
+          class_type: Reference,
+          generic_params: {},
+          fields: {},
+          fn_stmts: {},
+        )),
+        span: (
+          start: 40,
+          end: 55,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Ty(Primitive(I32)),
+        span: (
+          start: 72,
+          end: 75,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: Ty(Array((
+          ty: 6,
+        ))),
+        span: (
+          start: 71,
+          end: 75,
+        ),
+        id: 7,
+      ),
+      8: (
+        kind: Expr(Int(1)),
+        span: (
+          start: 80,
+          end: 81,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: Expr(Int(2)),
+        span: (
+          start: 83,
+          end: 84,
+        ),
+        id: 9,
+      ),
+      10: (
+        kind: Expr(Int(3)),
+        span: (
+          start: 86,
+          end: 87,
+        ),
+        id: 10,
+      ),
+      11: (
+        kind: Expr(Array(Unsized(
+          initializers: [8, 9, 10],
+        ))),
+        span: (
+          start: 79,
+          end: 88,
+        ),
+        id: 11,
+      ),
+      12: (
+        kind: GlobalLet((
+          ident: 6,
+          ty: 7,
+          initializer: 11,
+        )),
+        span: (
+          start: 56,
+          end: 89,
+        ),
+        id: 12,
+      ),
+      13: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 4,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 108,
+          end: 113,
+        ),
+        id: 13,
+      ),
+      14: (
+        kind: Ty(Array((
+          ty: 13,
+        ))),
+        span: (
+          start: 107,
+          end: 113,
+        ),
+        id: 14,
+      ),
+      16: (
+        kind: Expr(Float(1.0)),
+        span: (
+          start: 124,
+          end: 127,
+        ),
+        id: 16,
+      ),
+      17: (
+        kind: Expr(Float(2.0)),
+        span: (
+          start: 129,
+          end: 132,
+        ),
+        id: 17,
+      ),
+      15: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Class((
+              id: (
+                crate_id: 0,
+                local_id: 4,
+              ),
+              fields: {
+                2: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 1,
+                  ),
+                ),
+                4: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 3,
+                  ),
+                ),
+              },
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 118,
+          end: 123,
+        ),
+        id: 15,
+      ),
+      18: (
+        kind: Expr(Call((
+          target: 15,
+          args: [16, 17],
+        ))),
+        span: (
+          start: 118,
+          end: 133,
+        ),
+        id: 18,
+      ),
+      20: (
+        kind: Expr(Float(1.5)),
+        span: (
+          start: 141,
+          end: 144,
+        ),
+        id: 20,
+      ),
+      21: (
+        kind: Expr(Float(2.5)),
+        span: (
+          start: 146,
+          end: 149,
+        ),
+        id: 21,
+      ),
+      19: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Class((
+              id: (
+                crate_id: 0,
+                local_id: 4,
+              ),
+              fields: {
+                2: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 1,
+                  ),
+                ),
+                4: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 3,
+                  ),
+                ),
+              },
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 135,
+          end: 140,
+        ),
+        id: 19,
+      ),
+      22: (
+        kind: Expr(Call((
+          target: 19,
+          args: [20, 21],
+        ))),
+        span: (
+          start: 135,
+          end: 150,
+        ),
+        id: 22,
+      ),
+      23: (
+        kind: Expr(Array(Unsized(
+          initializers: [18, 22],
+        ))),
+        span: (
+          start: 117,
+          end: 151,
+        ),
+        id: 23,
+      ),
+      24: (
+        kind: GlobalLet((
+          ident: 8,
+          ty: 14,
+          initializer: 23,
+        )),
+        span: (
+          start: 90,
+          end: 152,
+        ),
+        id: 24,
+      ),
+      25: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 5,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 170,
+          end: 174,
+        ),
+        id: 25,
+      ),
+      26: (
+        kind: Ty(Array((
+          ty: 25,
+        ))),
+        span: (
+          start: 169,
+          end: 174,
+        ),
+        id: 26,
+      ),
+      27: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Class((
+              id: (
+                crate_id: 0,
+                local_id: 5,
+              ),
+              fields: {},
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 179,
+          end: 183,
+        ),
+        id: 27,
+      ),
+      28: (
+        kind: Expr(Call((
+          target: 27,
+          args: [],
+))),
+        span: (
+          start: 179,
+          end: 185,
+        ),
+        id: 28,
+      ),
+      29: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Class((
+              id: (
+                crate_id: 0,
+                local_id: 5,
+              ),
+              fields: {},
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 187,
+          end: 191,
+        ),
+        id: 29,
+      ),
+      30: (
+        kind: Expr(Call((
+          target: 29,
+          args: [],
+))),
+        span: (
+          start: 187,
+          end: 193,
+        ),
+        id: 30,
+      ),
+      31: (
+        kind: Expr(Array(Unsized(
+          initializers: [28, 30],
+        ))),
+        span: (
+          start: 178,
+          end: 194,
+        ),
+        id: 31,
+      ),
+      32: (
+        kind: GlobalLet((
+          ident: 9,
+          ty: 26,
+          initializer: 31,
+        )),
+        span: (
+          start: 153,
+          end: 195,
+        ),
+        id: 32,
+      ),
+    },
+  )],
+  names_to_indices: [11],
+)

@@ -1,0 +1,76 @@
+(
+  crates: [(
+    name: 13,
+    id: (
+      id: 0,
+    ),
+    items: [],
+    nodes: {
+      0: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 33,
+          end: 36,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Field((
+          ident: (
+            ident: 3,
+            span: (
+              start: 24,
+              end: 31,
+            ),
+          ),
+          ty: 0,
+        )),
+        span: (
+          start: 24,
+          end: 36,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: EnumMember((
+          name: 2,
+          fields: {
+            3: 1,
+          },
+          member_fns: {},
+        )),
+        span: (
+          start: 19,
+          end: 37,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 58,
+          end: 61,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Field((
+          ident: (
+            ident: 6,
+            span: (
+              start: 49,
+              end: 56,
+            ),
+          ),
+          ty: 3,
+        )),
+        span: (
+          start: 49,
+          end: 61,
+        ),
+        id: 4,
+      ),
+    },
+  )],
+  names_to_indices: [13],
+)

@@ -1,0 +1,226 @@
+{
+  9: (
+    name: 9,
+    crate_id: (
+      id: 0,
+    ),
+    modules: [(
+      id: (
+        crate_id: 0,
+        module_id: 0,
+      ),
+      path: (
+        module_path: [8],
+      ),
+      namespace: (
+        modules: {},
+        values: {},
+      ),
+      items: [(
+        kind: Class((
+          name: (
+            ident: 1,
+            span: (
+              start: 6,
+              end: 12,
+            ),
+          ),
+          class_type: Inline,
+          generic_params: [(
+            name: (
+              ident: 2,
+              span: (
+                start: 13,
+                end: 14,
+              ),
+            ),
+            trait_bound: None,
+            span: (
+              start: 13,
+              end: 14,
+            ),
+            id: 0,
+          )],
+          fields: [(
+            name: (
+              ident: 3,
+              span: (
+                start: 22,
+                end: 27,
+              ),
+            ),
+            ty: (
+              kind: Path(
+                path: (
+                  ident: (
+                    ident_type: LocalOrUse,
+                    idents: [(
+                      ident: 2,
+                      span: (
+                        start: 29,
+                        end: 30,
+                      ),
+                    )],
+                  ),
+                  generics: [],
+),
+              ),
+              span: (
+                start: 29,
+                end: 30,
+              ),
+              id: 1,
+            ),
+            span: (
+              start: 22,
+              end: 30,
+            ),
+            id: 2,
+          )],
+          self_fns: [],
+)),
+        span: (
+          start: 0,
+          end: 33,
+        ),
+        id: 3,
+      ), (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 4,
+              span: (
+                start: 38,
+                end: 45,
+              ),
+            ),
+            generic_params: [],
+            params: [],
+            return_type: None,
+),
+          body: Some((
+            stmts: [(
+              kind: Let((
+                ident: (
+                  ident: 5,
+                  span: (
+                    start: 58,
+                    end: 68,
+                  ),
+                ),
+                mutability: Immutable,
+                ty: None,
+                initializer: Some((
+                  kind: Call((
+                    target: (
+                      kind: Path((
+                        ident_type: LocalOrUse,
+                        segments: [(
+                          ident: (
+                            ident: 1,
+                            span: (
+                              start: 71,
+                              end: 77,
+                            ),
+                          ),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 71,
+                        end: 77,
+                      ),
+                      id: 4,
+                    ),
+                    args: [(
+                      kind: Int(123),
+                      span: (
+                        start: 78,
+                        end: 81,
+                      ),
+                      id: 5,
+                    )],
+                  )),
+                  span: (
+                    start: 71,
+                    end: 82,
+                  ),
+                  id: 6,
+                )),
+              )),
+              span: (
+                start: 54,
+                end: 83,
+              ),
+              id: 7,
+            ), (
+              kind: Let((
+                ident: (
+                  ident: 6,
+                  span: (
+                    start: 92,
+                    end: 102,
+                  ),
+                ),
+                mutability: Immutable,
+                ty: None,
+                initializer: Some((
+                  kind: Call((
+                    target: (
+                      kind: Path((
+                        ident_type: LocalOrUse,
+                        segments: [(
+                          ident: (
+                            ident: 1,
+                            span: (
+                              start: 105,
+                              end: 111,
+                            ),
+                          ),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 105,
+                        end: 111,
+                      ),
+                      id: 8,
+                    ),
+                    args: [(
+                      kind: String(7),
+                      span: (
+                        start: 112,
+                        end: 122,
+                      ),
+                      id: 9,
+                    )],
+                  )),
+                  span: (
+                    start: 105,
+                    end: 123,
+                  ),
+                  id: 10,
+                )),
+              )),
+              span: (
+                start: 88,
+                end: 124,
+              ),
+              id: 11,
+            )],
+            span: (
+              start: 48,
+              end: 126,
+            ),
+            id: 12,
+          )),
+        )),
+        span: (
+          start: 35,
+          end: 126,
+        ),
+        id: 13,
+      )],
+    )],
+  ),
+}

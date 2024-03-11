@@ -1,0 +1,23 @@
+[package]
+name = "compiler"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+itertools = "0.12.1"
+
+ast = { path = "../ast" }
+diagnostics = { path = "../diagnostics" }
+hir = { path = "../hir" }
+id = { path = "../id" }
+interner = { path = "../interner" }
+parser = { path = "../parser" }
+source = { path = "../source" }
+tokenizer = { path = "../tokenizer" }
+types = { path = "../types" }
+krate = { path = "../krate" }
+resolver = { path = "../resolver" }
+ty_infer = { path = "../ty_infer" }
+validator = { path = "../validator" }
+walkdir = "2.5.0"
+serde = { version = "1.0.197", features = ["derive"] }

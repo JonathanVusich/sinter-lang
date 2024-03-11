@@ -1,0 +1,165 @@
+{
+  7: (
+    name: 7,
+    crate_id: (
+      id: 0,
+    ),
+    modules: [(
+      id: (
+        crate_id: 0,
+        module_id: 0,
+      ),
+      path: (
+        module_path: [6],
+      ),
+      namespace: (
+        modules: {},
+        values: {},
+      ),
+      items: [(
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 1,
+              span: (
+                start: 3,
+                end: 7,
+              ),
+            ),
+            generic_params: [],
+            params: [(
+              name: (
+                ident: 2,
+                span: (
+                  start: 8,
+                  end: 12,
+                ),
+              ),
+              ty: (
+                kind: Array(
+                  ty: (
+                    kind: Str,
+                    span: (
+                      start: 15,
+                      end: 18,
+                    ),
+                    id: 0,
+                  ),
+                ),
+                span: (
+                  start: 14,
+                  end: 18,
+                ),
+                id: 1,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 8,
+                end: 19,
+              ),
+              id: 2,
+            )],
+            return_type: None,
+          ),
+          body: Some((
+            stmts: [(
+              kind: Expression((
+                expr: (
+                  kind: Call((
+                    target: (
+                      kind: Path((
+                        ident_type: LocalOrUse,
+                        segments: [(
+                          ident: (
+                            ident: 4,
+                            span: (
+                              start: 27,
+                              end: 32,
+                            ),
+                          ),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 27,
+                        end: 32,
+                      ),
+                      id: 3,
+                    ),
+                    args: [(
+                      kind: Call((
+                        target: (
+                          kind: Field((
+                            lhs: (
+                              kind: Path((
+                                ident_type: LocalOrUse,
+                                segments: [(
+                                  ident: (
+                                    ident: 2,
+                                    span: (
+                                      start: 33,
+                                      end: 37,
+                                    ),
+                                  ),
+                                  generics: None,
+                                )],
+                              )),
+                              span: (
+                                start: 33,
+                                end: 37,
+                              ),
+                              id: 4,
+                            ),
+                            ident: (
+                              ident: 5,
+                              span: (
+                                start: 38,
+                                end: 44,
+                              ),
+                            ),
+                          )),
+                          span: (
+                            start: 33,
+                            end: 44,
+                          ),
+                          id: 5,
+                        ),
+                        args: [],
+)),
+                      span: (
+                        start: 33,
+                        end: 46,
+                      ),
+                      id: 6,
+                    )],
+                  )),
+                  span: (
+                    start: 27,
+                    end: 47,
+                  ),
+                  id: 7,
+                ),
+                implicit_return: true,
+              )),
+              span: (
+                start: 27,
+                end: 48,
+              ),
+              id: 8,
+            )],
+            span: (
+              start: 21,
+              end: 50,
+            ),
+            id: 9,
+          )),
+        )),
+        span: (
+          start: 0,
+          end: 50,
+        ),
+        id: 10,
+      )],
+    )],
+  ),
+}

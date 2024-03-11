@@ -1,0 +1,156 @@
+(
+  crates: [(
+    name: 6,
+    id: (
+      id: 0,
+    ),
+    items: [10],
+    nodes: {
+      0: (
+        kind: Ty(Primitive(I64)),
+        span: (
+          start: 10,
+          end: 13,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Param((
+          ident: (
+            ident: 2,
+            span: (
+              start: 7,
+              end: 8,
+            ),
+          ),
+          ty: 0,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 7,
+          end: 13,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Ty(Primitive(I64)),
+        span: (
+          start: 18,
+          end: 21,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Param((
+          ident: (
+            ident: 4,
+            span: (
+              start: 15,
+              end: 16,
+            ),
+          ),
+          ty: 2,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 15,
+          end: 21,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Ty(Primitive(I64)),
+        span: (
+          start: 26,
+          end: 29,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(1)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 36,
+          end: 37,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(3)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 40,
+          end: 41,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: Expr(Infix((
+          operator: Add,
+          lhs: 5,
+          rhs: 6,
+        ))),
+        span: (
+          start: 36,
+          end: 41,
+        ),
+        id: 7,
+      ),
+      8: (
+        kind: Stmt(Expression((
+          expr: 7,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 36,
+          end: 41,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: Block((
+          stmts: [8],
+        )),
+        span: (
+          start: 30,
+          end: 43,
+        ),
+        id: 9,
+      ),
+      10: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 1,
+              span: (
+                start: 3,
+                end: 6,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              2: 1,
+              4: 3,
+            },
+            return_type: Some(4),
+          ),
+          body: Some(9),
+        )),
+        span: (
+          start: 0,
+          end: 43,
+        ),
+        id: 10,
+      ),
+    },
+  )],
+  names_to_indices: [6],
+)

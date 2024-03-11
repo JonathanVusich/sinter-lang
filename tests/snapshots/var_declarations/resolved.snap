@@ -1,0 +1,68 @@
+(
+  crates: [(
+    name: 5,
+    id: (
+      id: 0,
+    ),
+    items: [2, 5],
+    nodes: {
+      0: (
+        kind: Ty(Primitive(I64)),
+        span: (
+          start: 7,
+          end: 10,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Expr(Int(1)),
+        span: (
+          start: 13,
+          end: 14,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: GlobalLet((
+          ident: 1,
+          ty: 0,
+          initializer: 1,
+        )),
+        span: (
+          start: 0,
+          end: 15,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Ty(Primitive(I64)),
+        span: (
+          start: 47,
+          end: 50,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Expr(Int(2)),
+        span: (
+          start: 53,
+          end: 54,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: GlobalLet((
+          ident: 3,
+          ty: 3,
+          initializer: 4,
+        )),
+        span: (
+          start: 40,
+          end: 55,
+        ),
+        id: 5,
+      ),
+    },
+  )],
+  names_to_indices: [5],
+)

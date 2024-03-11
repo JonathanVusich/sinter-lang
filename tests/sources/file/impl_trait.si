@@ -1,0 +1,14 @@
+class Tweet {
+    username: str,
+    content: str,
+}
+
+trait Summary {
+    fn summarize(self) => str;
+}
+
+impl Summary for Tweet {
+    fn summarize(self) => str {
+        return self.username + self.content;
+    }
+}

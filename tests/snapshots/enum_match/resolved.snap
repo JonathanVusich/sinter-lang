@@ -1,0 +1,20 @@
+(
+  crates: [(
+    name: 12,
+    id: (
+      id: 0,
+    ),
+    items: [],
+    nodes: {
+      0: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 20,
+          end: 23,
+        ),
+        id: 0,
+      ),
+    },
+  )],
+  names_to_indices: [12],
+)

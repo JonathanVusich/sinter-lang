@@ -3,7 +3,6 @@ mod tests {
     use std::fmt::Debug;
     use std::path::PathBuf;
 
-    use serde::de::DeserializeOwned;
     use serde::Serialize;
 
     use diagnostics::Diagnostics;
@@ -48,7 +47,6 @@ mod tests {
 
     fn load_single_file_crate(file: &str) -> String {
         let file_path = resolve_file_path(file);
-        eprintln!("{:?}", &file_path);
         std::fs::read_to_string(file_path).unwrap()
     }
 
@@ -117,8 +115,8 @@ mod tests {
             #[test]
             pub fn $name() {
                 let name = ::std::stringify!($name);
-                let mut compiler = ::sinter_lang::compiler::compiler::Compiler::default();
-                let application = ::sinter_lang::compiler::compiler::Application::Inline {
+                let mut compiler = ::compiler::Compiler::default();
+                let application = ::compiler::Application::Inline {
                     code: load_single_file_crate(name),
                 };
                 validate_result(
@@ -148,4 +146,22 @@ mod tests {
     }
 
     single_crate!(basic_enum);
+    single_crate!(classes_and_vars);
+    single_crate!(enum_match);
+    single_crate!(enum_message);
+    single_crate!(generic_lists);
+    single_crate!(hello_world);
+    single_crate!(impl_trait);
+    single_crate!(infer_generics);
+    single_crate!(int_match);
+    single_crate!(main_fn);
+    single_crate!(mutable_assignment);
+    single_crate!(print_fn);
+    single_crate!(rectangle_class);
+    single_crate!(returning_error_union);
+    single_crate!(sum_fn);
+    single_crate!(trait_vs_generic);
+    single_crate!(use_stmts);
+    single_crate!(var_declarations);
+    single_crate!(vector_enum);
 }

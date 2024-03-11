@@ -1,0 +1,89 @@
+(
+  crates: [(
+    name: 7,
+    id: (
+      id: 0,
+    ),
+    items: [],
+    nodes: {
+      0: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 15,
+          end: 18,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Ty(Array((
+          ty: 0,
+        ))),
+        span: (
+          start: 14,
+          end: 18,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Param((
+          ident: (
+            ident: 2,
+            span: (
+              start: 8,
+              end: 12,
+            ),
+          ),
+          ty: 1,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 8,
+          end: 19,
+        ),
+        id: 2,
+      ),
+      4: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(2)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 33,
+          end: 37,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: Expr(Field((
+          lhs: 4,
+          ident: (
+            ident: 5,
+            span: (
+              start: 38,
+              end: 44,
+            ),
+          ),
+        ))),
+        span: (
+          start: 33,
+          end: 44,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Expr(Call((
+          target: 5,
+          args: [],
+))),
+        span: (
+          start: 33,
+          end: 46,
+        ),
+        id: 6,
+      ),
+    },
+  )],
+  names_to_indices: [7],
+)

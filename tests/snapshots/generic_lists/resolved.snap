@@ -1,0 +1,500 @@
+(
+  crates: [(
+    name: 16,
+    id: (
+      id: 0,
+    ),
+    items: [16, 22, 30],
+    nodes: {
+      0: (
+        kind: Ty(GenericParam((
+          ident: (
+            ident: 2,
+            span: (
+              start: 15,
+              end: 16,
+            ),
+          ),
+          trait_bound: None,
+        ))),
+        span: (
+          start: 15,
+          end: 16,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 0,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 32,
+          end: 33,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Ty(Array((
+          ty: 1,
+        ))),
+        span: (
+          start: 31,
+          end: 33,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Field((
+          ident: (
+            ident: 3,
+            span: (
+              start: 24,
+              end: 29,
+            ),
+          ),
+          ty: 2,
+        )),
+        span: (
+          start: 24,
+          end: 34,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Ty(Primitive(U64)),
+        span: (
+          start: 46,
+          end: 49,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: Field((
+          ident: (
+            ident: 4,
+            span: (
+              start: 40,
+              end: 44,
+            ),
+          ),
+          ty: 4,
+        )),
+        span: (
+          start: 40,
+          end: 49,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 16,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 68,
+          end: 72,
+        ),
+        id: 6,
+      ),
+      8: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Generic(0)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 89,
+          end: 90,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: Expr(Int(10)),
+        span: (
+          start: 92,
+          end: 94,
+        ),
+        id: 9,
+      ),
+      10: (
+        kind: Expr(Array(Sized(
+          initializer: 8,
+          size: 9,
+        ))),
+        span: (
+          start: 88,
+          end: 95,
+        ),
+        id: 10,
+      ),
+      11: (
+        kind: Expr(Int(0)),
+        span: (
+          start: 97,
+          end: 98,
+        ),
+        id: 11,
+      ),
+      7: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Class((
+              id: (
+                crate_id: 0,
+                local_id: 16,
+              ),
+              fields: {
+                3: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 3,
+                  ),
+                ),
+                4: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 5,
+                  ),
+                ),
+              },
+              fns: {
+                6: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 15,
+                  ),
+                ),
+              },
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 83,
+          end: 87,
+        ),
+        id: 7,
+      ),
+      12: (
+        kind: Expr(Call((
+          target: 7,
+          args: [10, 11],
+        ))),
+        span: (
+          start: 83,
+          end: 99,
+        ),
+        id: 12,
+      ),
+      13: (
+        kind: Stmt(Expression((
+          expr: 12,
+          implicit_return: false,
+        ))),
+        span: (
+          start: 83,
+          end: 99,
+        ),
+        id: 13,
+      ),
+      14: (
+        kind: Block((
+          stmts: [13],
+        )),
+        span: (
+          start: 73,
+          end: 105,
+        ),
+        id: 14,
+      ),
+      15: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 6,
+              span: (
+                start: 59,
+                end: 62,
+              ),
+            ),
+            generic_params: {},
+            params: {},
+            return_type: Some(6),
+          ),
+          body: Some(14),
+        )),
+        span: (
+          start: 56,
+          end: 105,
+        ),
+        id: 15,
+      ),
+      16: (
+        kind: Class((
+          name: (
+            ident: 1,
+            span: (
+              start: 10,
+              end: 14,
+            ),
+          ),
+          class_type: Reference,
+          generic_params: {
+            2: 0,
+          },
+          fields: {
+            3: 3,
+            4: 5,
+          },
+          fn_stmts: {
+            6: 15,
+          },
+        )),
+        span: (
+          start: 0,
+          end: 107,
+        ),
+        id: 16,
+      ),
+      17: (
+        kind: Ty(Primitive(I64)),
+        span: (
+          start: 132,
+          end: 135,
+        ),
+        id: 17,
+      ),
+      18: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 16,
+          ),
+          generics: [17],
+        ))),
+        span: (
+          start: 127,
+          end: 136,
+        ),
+        id: 18,
+      ),
+      19: (
+        kind: Ty(Primitive(I64)),
+        span: (
+          start: 146,
+          end: 149,
+        ),
+        id: 19,
+      ),
+      20: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Class((
+              id: (
+                crate_id: 0,
+                local_id: 16,
+              ),
+              fields: {
+                3: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 3,
+                  ),
+                ),
+                4: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 5,
+                  ),
+                ),
+              },
+              fns: {
+                6: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 15,
+                  ),
+                ),
+              },
+            ))),
+            generics: Some([19]),
+          ), (
+            res: Fn(Some((
+              id: (
+                crate_id: 0,
+                local_id: 15,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 139,
+          end: 155,
+        ),
+        id: 20,
+      ),
+      21: (
+        kind: Expr(Call((
+          target: 20,
+          args: [],
+))),
+        span: (
+          start: 139,
+          end: 157,
+        ),
+        id: 21,
+      ),
+      22: (
+        kind: GlobalLet((
+          ident: 7,
+          ty: 18,
+          initializer: 21,
+        )),
+        span: (
+          start: 109,
+          end: 158,
+        ),
+        id: 22,
+      ),
+      23: (
+        kind: Ty(Primitive(F64)),
+        span: (
+          start: 188,
+          end: 191,
+        ),
+        id: 23,
+      ),
+      24: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 16,
+          ),
+          generics: [23],
+        ))),
+        span: (
+          start: 183,
+          end: 192,
+        ),
+        id: 24,
+      ),
+      25: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 16,
+          ),
+          generics: [24],
+        ))),
+        span: (
+          start: 178,
+          end: 193,
+        ),
+        id: 25,
+      ),
+      26: (
+        kind: Ty(Primitive(F64)),
+        span: (
+          start: 208,
+          end: 211,
+        ),
+        id: 26,
+      ),
+      27: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 16,
+          ),
+          generics: [26],
+        ))),
+        span: (
+          start: 203,
+          end: 212,
+        ),
+        id: 27,
+      ),
+      28: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Class((
+              id: (
+                crate_id: 0,
+                local_id: 16,
+              ),
+              fields: {
+                3: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 3,
+                  ),
+                ),
+                4: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 5,
+                  ),
+                ),
+              },
+              fns: {
+                6: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 15,
+                  ),
+                ),
+              },
+            ))),
+            generics: Some([27]),
+          ), (
+            res: Fn(Some((
+              id: (
+                crate_id: 0,
+                local_id: 15,
+              ),
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 196,
+          end: 218,
+        ),
+        id: 28,
+      ),
+      29: (
+        kind: Expr(Call((
+          target: 28,
+          args: [],
+))),
+        span: (
+          start: 196,
+          end: 220,
+        ),
+        id: 29,
+      ),
+      30: (
+        kind: GlobalLet((
+          ident: 9,
+          ty: 25,
+          initializer: 29,
+        )),
+        span: (
+          start: 159,
+          end: 221,
+        ),
+        id: 30,
+      ),
+    },
+  )],
+  names_to_indices: [16],
+)

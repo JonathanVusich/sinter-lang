@@ -12,7 +12,6 @@ extern crate core;
 
 pub mod bytes;
 pub mod class;
-pub mod compiler;
 pub mod errors;
 pub mod function;
 pub mod gc;

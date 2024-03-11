@@ -1,0 +1,22 @@
+{
+  7: (
+    name: 7,
+    crate_id: (
+      id: 0,
+    ),
+    modules: [(
+      id: (
+        crate_id: 0,
+        module_id: 0,
+      ),
+      path: (
+        module_path: [6],
+      ),
+      namespace: (
+        modules: {},
+        values: {},
+      ),
+      items: [],
+)],
+  ),
+}

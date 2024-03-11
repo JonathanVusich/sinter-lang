@@ -1,0 +1,58 @@
+(
+  crates: [(
+    name: 23,
+    id: (
+      id: 0,
+    ),
+    items: [38],
+    nodes: {
+      36: (
+        kind: EnumMember((
+          name: 12,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 304,
+          end: 318,
+        ),
+        id: 36,
+      ),
+      37: (
+        kind: EnumMember((
+          name: 14,
+          fields: {},
+          member_fns: {},
+        )),
+        span: (
+          start: 324,
+          end: 338,
+        ),
+        id: 37,
+      ),
+      38: (
+        kind: Enum((
+          name: (
+            ident: 11,
+            span: (
+              start: 287,
+              end: 297,
+            ),
+          ),
+          generic_params: {},
+          members: {
+            12: 36,
+            14: 37,
+          },
+          member_fns: {},
+        )),
+        span: (
+          start: 282,
+          end: 341,
+        ),
+        id: 38,
+      ),
+    },
+  )],
+  names_to_indices: [23],
+)

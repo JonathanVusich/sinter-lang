@@ -1,8 +1,6 @@
 use hir::{Generics, HirCrate, HirNodeKind, PathTy};
 use types::DefMap;
 
-use crate::compiler::type_inference::ty_infer::TypeErrKind;
-
 pub struct TraitSolver {
     impls: DefMap<TraitMap>,
 }
@@ -13,16 +11,16 @@ struct TraitMap {
 }
 
 impl TraitMap {
-    fn add_impl(&mut self, trait_impl: &PathTy) -> Result<(), TypeErrKind> {
+    fn add_impl(&mut self, trait_impl: &PathTy) -> Option<()> {
         let generic_impls = self
             .traits
             .entry(trait_impl.definition)
             .or_insert_with(Vec::new);
         if generic_impls.contains(&trait_impl.generics) {
-            Err(TypeErrKind::DuplicateTraitImpl)
+            None
         } else {
             generic_impls.push(trait_impl.generics.clone());
-            Ok(())
+            Some(())
         }
     }
 }

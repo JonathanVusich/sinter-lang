@@ -1,0 +1,160 @@
+{
+  6: (
+    name: 6,
+    crate_id: (
+      id: 0,
+    ),
+    modules: [(
+      id: (
+        crate_id: 0,
+        module_id: 0,
+      ),
+      path: (
+        module_path: [5],
+      ),
+      namespace: (
+        modules: {},
+        values: {},
+      ),
+      items: [(
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 1,
+              span: (
+                start: 3,
+                end: 6,
+              ),
+            ),
+            generic_params: [],
+            params: [(
+              name: (
+                ident: 2,
+                span: (
+                  start: 7,
+                  end: 8,
+                ),
+              ),
+              ty: (
+                kind: I64,
+                span: (
+                  start: 10,
+                  end: 13,
+                ),
+                id: 0,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 7,
+                end: 13,
+              ),
+              id: 1,
+            ), (
+              name: (
+                ident: 4,
+                span: (
+                  start: 15,
+                  end: 16,
+                ),
+              ),
+              ty: (
+                kind: I64,
+                span: (
+                  start: 18,
+                  end: 21,
+                ),
+                id: 2,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 15,
+                end: 21,
+              ),
+              id: 3,
+            )],
+            return_type: Some((
+              kind: I64,
+              span: (
+                start: 26,
+                end: 29,
+              ),
+              id: 4,
+            )),
+          ),
+          body: Some((
+            stmts: [(
+              kind: Expression((
+                expr: (
+                  kind: Infix((
+                    operator: Add,
+                    lhs: (
+                      kind: Path((
+                        ident_type: LocalOrUse,
+                        segments: [(
+                          ident: (
+                            ident: 2,
+                            span: (
+                              start: 36,
+                              end: 37,
+                            ),
+                          ),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 36,
+                        end: 37,
+                      ),
+                      id: 5,
+                    ),
+                    rhs: (
+                      kind: Path((
+                        ident_type: LocalOrUse,
+                        segments: [(
+                          ident: (
+                            ident: 4,
+                            span: (
+                              start: 40,
+                              end: 41,
+                            ),
+                          ),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 40,
+                        end: 41,
+                      ),
+                      id: 6,
+                    ),
+                  )),
+                  span: (
+                    start: 36,
+                    end: 41,
+                  ),
+                  id: 7,
+                ),
+                implicit_return: false,
+              )),
+              span: (
+                start: 36,
+                end: 41,
+              ),
+              id: 8,
+            )],
+            span: (
+              start: 30,
+              end: 43,
+            ),
+            id: 9,
+          )),
+        )),
+        span: (
+          start: 0,
+          end: 43,
+        ),
+        id: 10,
+      )],
+    )],
+  ),
+}

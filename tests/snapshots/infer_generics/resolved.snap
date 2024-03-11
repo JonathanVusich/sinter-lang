@@ -1,0 +1,246 @@
+(
+  crates: [(
+    name: 9,
+    id: (
+      id: 0,
+    ),
+    items: [3, 13],
+    nodes: {
+      0: (
+        kind: Ty(GenericParam((
+          ident: (
+            ident: 2,
+            span: (
+              start: 13,
+              end: 14,
+            ),
+          ),
+          trait_bound: None,
+        ))),
+        span: (
+          start: 13,
+          end: 14,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 0,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 29,
+          end: 30,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Field((
+          ident: (
+            ident: 3,
+            span: (
+              start: 22,
+              end: 27,
+            ),
+          ),
+          ty: 1,
+        )),
+        span: (
+          start: 22,
+          end: 30,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Class((
+          name: (
+            ident: 1,
+            span: (
+              start: 6,
+              end: 12,
+            ),
+          ),
+          class_type: Inline,
+          generic_params: {
+            2: 0,
+          },
+          fields: {
+            3: 2,
+          },
+          fn_stmts: {},
+        )),
+        span: (
+          start: 0,
+          end: 33,
+        ),
+        id: 3,
+      ),
+      5: (
+        kind: Expr(Int(123)),
+        span: (
+          start: 78,
+          end: 81,
+        ),
+        id: 5,
+      ),
+      4: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Class((
+              id: (
+                crate_id: 0,
+                local_id: 3,
+              ),
+              fields: {
+                3: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 2,
+                  ),
+                ),
+              },
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 71,
+          end: 77,
+        ),
+        id: 4,
+      ),
+      6: (
+        kind: Expr(Call((
+          target: 4,
+          args: [5],
+        ))),
+        span: (
+          start: 71,
+          end: 82,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: Stmt(Let((
+          ident: (
+            ident: 5,
+            span: (
+              start: 58,
+              end: 68,
+            ),
+          ),
+          mutability: Immutable,
+          ty: None,
+          initializer: Some(6),
+        ))),
+        span: (
+          start: 54,
+          end: 83,
+        ),
+        id: 7,
+      ),
+      9: (
+        kind: Expr(String(7)),
+        span: (
+          start: 112,
+          end: 122,
+        ),
+        id: 9,
+      ),
+      8: (
+        kind: Expr(Path((
+          segments: [(
+            res: ValueDef(Class((
+              id: (
+                crate_id: 0,
+                local_id: 3,
+              ),
+              fields: {
+                3: (
+                  id: (
+                    crate_id: 0,
+                    local_id: 2,
+                  ),
+                ),
+              },
+              fns: {},
+            ))),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 105,
+          end: 111,
+        ),
+        id: 8,
+      ),
+      10: (
+        kind: Expr(Call((
+          target: 8,
+          args: [9],
+        ))),
+        span: (
+          start: 105,
+          end: 123,
+        ),
+        id: 10,
+      ),
+      11: (
+        kind: Stmt(Let((
+          ident: (
+            ident: 6,
+            span: (
+              start: 92,
+              end: 102,
+            ),
+          ),
+          mutability: Immutable,
+          ty: None,
+          initializer: Some(10),
+        ))),
+        span: (
+          start: 88,
+          end: 124,
+        ),
+        id: 11,
+      ),
+      12: (
+        kind: Block((
+          stmts: [7, 11],
+        )),
+        span: (
+          start: 48,
+          end: 126,
+        ),
+        id: 12,
+      ),
+      13: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 4,
+              span: (
+                start: 38,
+                end: 45,
+              ),
+            ),
+            generic_params: {},
+            params: {},
+            return_type: None,
+          ),
+          body: Some(12),
+        )),
+        span: (
+          start: 35,
+          end: 126,
+        ),
+        id: 13,
+      ),
+    },
+  )],
+  names_to_indices: [9],
+)

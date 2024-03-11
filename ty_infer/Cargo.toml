@@ -1,0 +1,16 @@
+[package]
+name = "ty_infer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+itertools = "0.12.1"
+serde = { version = "1.0.197", features = ["derive"] }
+
+ast = { path = "../ast" }
+diagnostics = { path = "../diagnostics" }
+id = { path = "../id" }
+macros = { path = "../macros" }
+krate = { path = "../krate" }
+hir = { path = "../hir" }
+types = { path = "../types" }
