@@ -1,5 +1,0 @@
-match number {
-    1 => print("One!"),
-    2 | 3 | 5 | 7 | 11 => print("This is a prime"),
-    _ => print("Unremarkable"),
-}

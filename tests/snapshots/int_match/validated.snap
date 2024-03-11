@@ -1,0 +1,3 @@
+(
+  diagnostics: [Error("ERROR: Expected \'use\' | \'ref\' | \'class\' | \'fn\' | \'let\' | \'enum\' | \'trait\' | \'impl\', received \'match\'!\n")],
+)

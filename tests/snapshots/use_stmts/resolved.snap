@@ -1,0 +1,3 @@
+(
+  diagnostics: [Error("Unable to resolve definition for std::vector"), Error("Unable to resolve definition for std::array"), Error("Unable to resolve definition for std::map::HashMap")],
+)

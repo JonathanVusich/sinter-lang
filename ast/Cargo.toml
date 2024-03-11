@@ -4,12 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-interner = { path = "../interner" }
-span = { path = "../span" }
 macros = { path = "../macros" }
 id = { path = "../id" }
+interner = { path = "../interner" }
+span = { path = "../span" }
 types = { path = "../types" }
 
 serde = { version = "1.0.197", features = ["derive", "rc"] }
 radix_trie = { version = "0.2.1", features = ["serde"] }
 nibble_vec = "0.1.0"
+itertools = "0.12.1"

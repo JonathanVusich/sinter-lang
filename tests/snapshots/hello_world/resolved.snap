@@ -1,0 +1,3 @@
+(
+  diagnostics: [Error("Unable to resolve definition for std::out::print")],
+)

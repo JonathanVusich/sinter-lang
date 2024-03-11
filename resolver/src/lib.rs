@@ -1,13 +1,10 @@
-use std::any::Any;
 use std::collections::{HashMap, VecDeque};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
-use std::ops::Deref;
 use std::sync::Arc;
 
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
 
 use ast::{
     ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassDef, ClassStmt as AstClassStmt,
@@ -25,7 +22,7 @@ use ast::{
     TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
     TyKind as AstTyKind, ValueDef,
 };
-use diagnostics::Diagnostics;
+use diagnostics::{Diagnostic, Diagnostics};
 use hir::{
     AnonParams, Args, Array, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure,
     ClosureExpr, ClosureParam, ClosureParams, DestructureExpr, DestructurePattern, EnumMember,
@@ -257,6 +254,7 @@ impl<'a> Resolver<'a> {
             }
         }
 
+        let mut missing_defs = false;
         // Second pass we need to process all use stmts since we now have all of the values
         // populated for each module.
         let mut module_crate_defs = HashMap::<ModuleId, Vec<CrateDef>>::default();
@@ -266,18 +264,37 @@ impl<'a> Resolver<'a> {
                     if let ItemKind::Use(use_stmt) = &item.kind {
                         let crate_def = match &use_stmt.path.ident_type {
                             IdentType::Crate => krate.find_definition(&use_stmt.path, false),
-                            IdentType::LocalOrUse => {
-                                let krate = self.krates.get(&use_stmt.path.first()).unwrap();
-                                krate.find_definition(&use_stmt.path, true)
+                            IdentType::LocalOrUse => self
+                                .krates
+                                .get(&use_stmt.path.first())
+                                .and_then(|krate| krate.find_definition(&use_stmt.path, true)),
+                        };
+                        // Handle case where definition is not found.
+                        match crate_def {
+                            Some(crate_def) => {
+                                module_crate_defs
+                                    .entry(module.id)
+                                    .or_default()
+                                    .push(crate_def);
                             }
-                        }?;
-                        module_crate_defs
-                            .entry(module.id)
-                            .or_default()
-                            .push(crate_def);
+                            None => {
+                                // We need to stop execution since we are unable to resolve all references.
+                                missing_defs = true;
+                                let error_message = format!(
+                                    "Unable to resolve definition for {}",
+                                    use_stmt.path.format(self.string_interner)
+                                );
+                                self.diagnostics.push(Diagnostic::Error(error_message))
+                            }
+                        }
                     }
                 }
             }
+        }
+
+        // Do an early return since not all definitions were able to be resolved.
+        if missing_defs {
+            return None;
         }
 
         for krate in self.krates.values_mut() {
@@ -1670,77 +1687,5 @@ impl<'a> CrateResolver<'a> {
             .map(|param| (param.ident.ident, ClosureParam::new(param.ident)))
             .collect();
         Some(ClosureParams::from(params))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use diagnostics::Diagnostics;
-    use hir::HirMap;
-    use interner::StringInterner;
-    use snap::snapshot;
-
-    type ResolvedCrates = (StringInterner, Diagnostics, HirMap);
-
-    fn resolve_crate(name: &str) -> ResolvedCrates {
-        let mut compiler = Compiler::default();
-        let main_crate = &sources::resolve_test_krate_path(name);
-        let crate_path = main_crate.parent().unwrap();
-        let application = Application::Path {
-            main_crate,
-            crate_path,
-        };
-        let mut crates = compiler.parse_crates(application).unwrap();
-        compiler.validate_crates(&crates).unwrap();
-
-        let hir_map = compiler.resolve_crates(&mut crates).unwrap();
-        let CompilerCtxt {
-            string_interner,
-            diagnostics,
-            ..
-        } = CompilerCtxt::from(compiler);
-        (string_interner, diagnostics, hir_map)
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn hello_world() -> ResolvedCrates {
-        resolve_crate("hello_world")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn mutable_assignment() -> ResolvedCrates {
-        resolve_crate("mutable_assignment")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn geometry_classes() -> ResolvedCrates {
-        resolve_crate("geometry_classes")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn import_function_from_crate() -> ResolvedCrates {
-        resolve_crate("complex_arithmetic")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn rectangle_class() -> ResolvedCrates {
-        resolve_crate("rectangle")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn enum_match() -> ResolvedCrates {
-        resolve_crate("enum_matching")
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn path_resolution() -> ResolvedCrates {
-        resolve_crate("path_resolution")
     }
 }

@@ -7,5 +7,6 @@ enum Planet {
     Saturn,
     Uranus,
     Neptune,
-    Pluto,
 }
+
+let NUM_PLANETS: u64 = 8;

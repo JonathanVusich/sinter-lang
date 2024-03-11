@@ -1,2 +1,0 @@
-let a: i64 = 1; // Immediate assignment
-let b: i64 = 2; // `i64` type would be inferred, but has to be declared for constant types.

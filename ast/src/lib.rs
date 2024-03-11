@@ -2,12 +2,14 @@ use std::borrow::Borrow;
 use std::collections::VecDeque;
 use std::sync::Arc;
 
-use id::{DefId, LocalDefId, ModuleId};
-use interner::InternedStr;
-use macros::named_slice;
+use itertools::Itertools;
 use nibble_vec::Nibblet;
 use radix_trie::TrieKey;
 use serde::{Deserialize, Serialize};
+
+use id::{DefId, LocalDefId, ModuleId};
+use interner::{InternedStr, StringInterner};
+use macros::named_slice;
 use span::Span;
 use types::{IStrMap, StrMap};
 
@@ -440,6 +442,13 @@ impl QualifiedIdent {
         } else {
             None
         }
+    }
+
+    pub fn format(&self, string_interner: &StringInterner) -> String {
+        self.idents
+            .iter()
+            .map(|ident| string_interner.resolve(ident.ident))
+            .join("::")
     }
 }
 

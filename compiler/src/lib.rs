@@ -4,7 +4,7 @@ use std::fmt::{Debug, Display};
 use std::path::{Path, PathBuf, StripPrefixError};
 
 use itertools::Itertools;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::Deserializer;
 use walkdir::{DirEntry, WalkDir};
 
 use ast::ModulePath;
@@ -23,17 +23,10 @@ use validator::validate;
 
 #[derive(Default)]
 pub struct Compiler {
-    compiler_ctxt: CompilerCtxt,
     string_interner: StringInterner,
     diagnostics: Diagnostics,
     source_map: SourceMap,
-}
-
-#[cfg(test)]
-impl From<Compiler> for CompilerCtxt {
-    fn from(compiler: Compiler) -> Self {
-        compiler.compiler_ctxt
-    }
+    id_generator: IdGenerator,
 }
 
 pub enum Application<'a> {
@@ -47,45 +40,6 @@ pub enum Application<'a> {
 }
 
 pub struct ByteCode {}
-
-#[derive(PartialEq, Debug, Default, Serialize, Deserialize)]
-pub struct CompilerCtxt {
-    pub(crate) string_interner: StringInterner,
-    pub(crate) source_map: SourceMap,
-    pub(crate) diagnostics: Diagnostics,
-    pub(crate) id_generator: IdGenerator,
-}
-
-impl CompilerCtxt {
-    pub(crate) fn intern_str(&mut self, str: &str) -> InternedStr {
-        self.string_interner.intern(str)
-    }
-
-    pub(crate) fn resolve_str(&self, str: InternedStr) -> &str {
-        self.string_interner.resolve(str)
-    }
-
-    pub(crate) fn module_path<T: AsRef<Path>>(&mut self, path: T) -> Option<ModulePath> {
-        let mut segments = Vec::new();
-        for segment in path.as_ref().iter() {
-            let segment = segment.to_str().or_else(|| {
-                self.diagnostics
-                    .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
-                None
-            })?;
-            let interned_segment = self.intern_str(segment);
-            segments.push(interned_segment);
-        }
-
-        Some(ModulePath::from_iter(segments))
-    }
-}
-
-impl From<CompilerCtxt> for StringInterner {
-    fn from(value: CompilerCtxt) -> Self {
-        value.string_interner
-    }
-}
 
 impl Compiler {
     pub(crate) fn compile(&mut self, application: Application) -> Result<ByteCode, Diagnostics> {
@@ -127,7 +81,7 @@ impl Compiler {
                     let mut new_crates = Vec::new();
                     for used_crate in krate.used_crates() {
                         if !crates_visited.contains(&used_crate.crate_name) {
-                            let crate_name = self.compiler_ctxt.resolve_str(used_crate.crate_name);
+                            let crate_name = self.string_interner.resolve(used_crate.crate_name);
                             let mut crate_path = crate_path.to_path_buf();
                             crate_path.push(crate_name);
 
@@ -160,7 +114,7 @@ impl Compiler {
     }
 
     fn parse_inline_crate(&mut self, code: String) -> Option<Crate> {
-        let tokens = tokenize(&mut self.compiler_ctxt.string_interner, code);
+        let tokens = tokenize(&mut self.string_interner, code);
         let TokenizedSource {
             tokens,
             line_map,
@@ -168,17 +122,17 @@ impl Compiler {
         } = tokens;
 
         let mut ast = parse(
-            &mut self.compiler_ctxt.string_interner,
-            &mut self.compiler_ctxt.diagnostics,
-            &mut self.compiler_ctxt.id_generator,
+            &mut self.string_interner,
+            &mut self.diagnostics,
+            &mut self.id_generator,
             tokens,
         )?;
-        let module_name = self.compiler_ctxt.intern_str("module");
+        let module_name = self.string_interner.intern("module");
         let module_path = ModulePath::from_iter([module_name]);
 
-        let krate_name = self.compiler_ctxt.intern_str("crate");
+        let krate_name = self.string_interner.intern("crate");
 
-        let crate_id = self.compiler_ctxt.id_generator.crate_id();
+        let crate_id = self.id_generator.crate_id();
         let mut krate = Crate::new(krate_name, crate_id);
 
         ast.path = module_path.clone();
@@ -195,18 +149,16 @@ impl Compiler {
             path.file_name()
                 .map(|path| path.to_os_string())
                 .or_else(|| {
-                    self.compiler_ctxt
-                        .diagnostics
+                    self.diagnostics
                         .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                     None
                 })?;
 
         let krate_name = krate_name
             .to_str()
-            .map(|str| self.compiler_ctxt.intern_str(str))
+            .map(|str| self.string_interner.intern(str))
             .or_else(|| {
-                self.compiler_ctxt
-                    .diagnostics
+                self.diagnostics
                     .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 None
             })?;
@@ -227,22 +179,21 @@ impl Compiler {
             .sorted_by_key(|entry| entry.file_name().to_os_string()) // TODO: Maybe make this only apply to tests?
             .collect();
 
-        let crate_id = self.compiler_ctxt.id_generator.crate_id();
+        let crate_id = self.id_generator.crate_id();
         let mut krate = Crate::new(krate_name, crate_id);
 
         for file in code_files {
             let local_path = local_to_root(file.path(), path)
                 .map_err(|err| {
-                    self.compiler_ctxt
-                        .diagnostics
+                    self.diagnostics
                         .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 })
                 .ok()?;
-            let module_path = self.compiler_ctxt.module_path(local_path)?;
+            let module_path = self.module_path(local_path)?;
 
             let tokens = tokenize_file(
-                &mut self.compiler_ctxt.string_interner,
-                &mut self.compiler_ctxt.diagnostics,
+                &mut self.string_interner,
+                &mut self.diagnostics,
                 &file.into_path(),
             )?;
             let TokenizedSource {
@@ -251,9 +202,9 @@ impl Compiler {
                 token_source,
             } = tokens;
             let mut module = parse(
-                &mut self.compiler_ctxt.string_interner,
-                &mut self.compiler_ctxt.diagnostics,
-                &mut self.compiler_ctxt.id_generator,
+                &mut self.string_interner,
+                &mut self.diagnostics,
+                &mut self.id_generator,
                 tokens,
             )?;
 
@@ -282,11 +233,7 @@ impl Compiler {
     }
 
     pub fn resolve_crates(&mut self, mut crates: StrMap<Crate>) -> Result<HirMap, Diagnostics> {
-        resolve(
-            &self.compiler_ctxt.string_interner,
-            &mut self.compiler_ctxt.diagnostics,
-            &mut crates,
-        )
+        resolve(&self.string_interner, &mut self.diagnostics, &mut crates)
             .ok_or(self.diagnostics.clone())
     }
 
@@ -294,8 +241,7 @@ impl Compiler {
         let mut ty_map = StrMap::default();
         for krate in hir_map.krates() {
             if let Some(inferred_tys) =
-                CrateInference::new(&mut self.compiler_ctxt.diagnostics, krate, &hir_map)
-                    .infer_tys()
+                CrateInference::new(&mut self.diagnostics, krate, &hir_map).infer_tys()
             {
                 ty_map.insert(krate.name, inferred_tys);
             }
@@ -313,6 +259,21 @@ impl Compiler {
             return Err(self.diagnostics.clone());
         }
         Ok(val)
+    }
+
+    fn module_path<T: AsRef<Path>>(&mut self, path: T) -> Option<ModulePath> {
+        let mut segments = Vec::new();
+        for segment in path.as_ref().iter() {
+            let segment = segment.to_str().or_else(|| {
+                self.diagnostics
+                    .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
+                None
+            })?;
+            let interned_segment = self.string_interner.intern(segment);
+            segments.push(interned_segment);
+        }
+
+        Some(ModulePath::from_iter(segments))
     }
 }
 

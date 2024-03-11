@@ -1,0 +1,3 @@
+fn add<T: Number>(lhs: T, rhs: T) => T {
+    lhs + rhs
+}
