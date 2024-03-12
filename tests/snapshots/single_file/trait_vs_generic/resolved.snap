@@ -1,0 +1,96 @@
+(
+  crates: [(
+    name: 12,
+    id: (
+      id: 0,
+    ),
+    items: [4],
+    nodes: {
+      0: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 4,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 43,
+          end: 47,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Param((
+          ident: (
+            ident: 10,
+            span: (
+              start: 43,
+              end: 47,
+            ),
+          ),
+          ty: 0,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 43,
+          end: 47,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 52,
+          end: 55,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 2,
+              span: (
+                start: 24,
+                end: 42,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              10: 1,
+            },
+            return_type: Some(2),
+          ),
+          body: None,
+        )),
+        span: (
+          start: 21,
+          end: 56,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Trait((
+          name: (
+            ident: 1,
+            span: (
+              start: 6,
+              end: 14,
+            ),
+          ),
+          generic_params: {},
+          member_fns: {
+            2: 3,
+          },
+        )),
+        span: (
+          start: 0,
+          end: 58,
+        ),
+        id: 4,
+      ),
+    },
+  )],
+  names_to_indices: [12],
+)

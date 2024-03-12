@@ -1792,7 +1792,6 @@ mod tests {
     use id::{IdGenerator, LocalDefId};
     use interner::StringInterner;
     use snap::snapshot;
-    use sources::read_code_example;
     use tokenizer::{tokenize, TokenizedSource};
 
     use crate::Parser;
@@ -2160,114 +2159,6 @@ mod tests {
     simple_type!(TyKind::F64, f64_type, "f64");
     simple_type!(TyKind::None, none_type, "None");
     simple_type!(TyKind::Boolean, bool_type, "bool");
-
-    #[test]
-    #[snapshot]
-    pub fn use_statements() -> ModuleOutput {
-        parse(read_code_example("use_stmts.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn basic_enum() -> ModuleOutput {
-        parse(read_code_example("basic_enum.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn vector_enum() -> ModuleOutput {
-        parse(read_code_example("vector_enum.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn main_fn() -> ModuleOutput {
-        parse(read_code_example("hello_world.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn main_fn_with_args() -> ModuleOutput {
-        parse(read_code_example("main_fn.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn declare_classes_and_vars() -> ModuleOutput {
-        parse(read_code_example("classes_and_vars.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn simple_add_func() -> ModuleOutput {
-        parse(read_code_example("sum_fn.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn var_declarations() -> ModuleOutput {
-        parse(read_code_example("var_declarations.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn mutable_assignment() -> ModuleOutput {
-        parse(read_code_example("mutable_assignment.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn print_fn() -> ModuleOutput {
-        parse(read_code_example("print_fn.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn returning_error_union() -> ModuleOutput {
-        parse(read_code_example("returning_error_union.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn trait_vs_generic() -> ModuleOutput {
-        parse(read_code_example("trait_vs_generic.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn generic_lists() -> ModuleOutput {
-        parse(read_code_example("generic_lists.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn rectangle_class() -> ModuleOutput {
-        parse(read_code_example("rectangle_class.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn enum_message() -> ModuleOutput {
-        parse(read_code_example("enum_message.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn int_match() -> ExprOutput {
-        parse_expr!(read_code_example("int_match.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn enum_match() -> ModuleOutput {
-        parse(read_code_example("enum_match.si"))
-    }
-
-    #[test]
-    #[snapshot]
-    pub fn impl_trait() -> ModuleOutput {
-        parse(read_code_example("impl_trait.si"))
-    }
 
     #[test]
     #[snapshot]

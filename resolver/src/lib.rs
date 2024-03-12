@@ -139,7 +139,11 @@ impl Scope {
             Scope::Class { self_fns, .. } => self_fns,
             Scope::Enum { self_fns, .. } => self_fns,
             Scope::EnumMember { self_fns, .. } => self_fns,
-            _ => panic!("Cannot insert self fn into this scope!"),
+            Scope::Trait { self_fns, .. } => self_fns,
+            Scope::TraitImpl { self_fns, .. } => self_fns,
+            _ => {
+                panic!("Cannot insert self fn into this scope!")
+            }
         };
         self_fns.insert(ident, id)
     }

@@ -1,19 +1,22 @@
-mod trait_solver;
-mod unification;
-
 use std::fmt::{Debug, Display, Formatter};
 use std::iter::zip;
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use crate::unification::{TyVar, UnificationTable};
 use ast::{ClassDef, FnDef, GlobalVarDef, InfixOp, UnaryOp, ValueDef};
 use diagnostics::{Diagnostic, Diagnostics};
-use hir::{ArrayExpr, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, Primitive, Res, Stmt, Ty};
+use hir::{
+    ArrayExpr, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, LocalDef, Primitive, Res, Stmt, Ty,
+};
 use id::{DefId, LocalDefId};
 use macros::named_slice;
 use types::LDefMap;
+
+use crate::unification::{TyVar, UnificationTable};
+
+mod trait_solver;
+mod unification;
 
 #[derive(Debug)]
 pub enum TypeErrKind {
@@ -383,9 +386,12 @@ impl<'a> CrateInference<'a> {
                         Res::Fn(_) => {
                             todo!()
                         }
-                        Res::Local(_) => {
-                            todo!()
-                        }
+                        Res::Local(local) => match local {
+                            LocalDef::Var(node) => self.infer(node),
+                            LocalDef::Generic(_) => {
+                                todo!()
+                            }
+                        },
                         Res::Primitive(_) => {
                             todo!()
                         }
@@ -425,14 +431,9 @@ impl<'a> CrateInference<'a> {
 
     fn unify(&mut self, constraint: Constraint) -> bool {
         match constraint {
-            Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs),
+            Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs, |lhs, rhs| lhs == rhs),
             Constraint::Assignable(lhs, rhs) => {
-                if lhs.assignable(&rhs) {
-                    self.unify_ty_ty(lhs, rhs)
-                } else {
-                    self.diagnostics.push(Diagnostic::BlankError);
-                    return false;
-                }
+                self.unify_ty_ty(lhs, rhs, |lhs, rhs| lhs.assignable(rhs))
             }
             Constraint::Array(ty) => self.unify_ty_array(ty),
             Constraint::Infix(lhs, rhs, op) => self.unify_infix_op(lhs, rhs, op),
@@ -516,7 +517,12 @@ impl<'a> CrateInference<'a> {
         }
     }
 
-    fn unify_ty_ty(&mut self, lhs: Type, rhs: Type) -> bool {
+    fn unify_ty_ty<F: Fn(&Type, &Type) -> bool>(
+        &mut self,
+        lhs: Type,
+        rhs: Type,
+        assignable_check: F,
+    ) -> bool {
         let lhs = self.normalize_ty(lhs);
         let rhs = self.normalize_ty(rhs);
 
@@ -530,20 +536,20 @@ impl<'a> CrateInference<'a> {
             (
                 Type::Infer(unknown)
                 | Type::GenericParam(GenericParam {
-                                         ty_var: unknown, ..
-                                     }),
+                    ty_var: unknown, ..
+                }),
                 ty,
             )
             | (
                 ty,
                 Type::Infer(unknown)
                 | Type::GenericParam(GenericParam {
-                                         ty_var: unknown, ..
-                                     }),
+                    ty_var: unknown, ..
+                }),
             ) => self.unify_var_ty(unknown, ty),
             // If both types are known, then we need to check for type compatibility.
             (lhs, rhs) => {
-                if lhs != rhs {
+                if !assignable_check(&lhs, &rhs) {
                     self.diagnostics.push(Diagnostic::BlankError);
                     return false;
                 }
@@ -1005,7 +1011,7 @@ impl Type {
                 if let Type::Class(rhs) = rhs {
                     return lhs.definition == rhs.definition
                         && zip(lhs.generics.values(), rhs.generics.values())
-                        .all(|(lhs, rhs)| lhs.assignable(rhs));
+                            .all(|(lhs, rhs)| lhs.assignable(rhs));
                 }
                 false
             }

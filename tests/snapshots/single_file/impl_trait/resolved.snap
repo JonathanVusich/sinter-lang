@@ -1,0 +1,348 @@
+(
+  crates: [(
+    name: 9,
+    id: (
+      id: 0,
+    ),
+    items: [4, 9, 21],
+    nodes: {
+      0: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 28,
+          end: 31,
+        ),
+        id: 0,
+      ),
+      1: (
+        kind: Field((
+          ident: (
+            ident: 2,
+            span: (
+              start: 18,
+              end: 26,
+            ),
+          ),
+          ty: 0,
+        )),
+        span: (
+          start: 18,
+          end: 31,
+        ),
+        id: 1,
+      ),
+      2: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 46,
+          end: 49,
+        ),
+        id: 2,
+      ),
+      3: (
+        kind: Field((
+          ident: (
+            ident: 4,
+            span: (
+              start: 37,
+              end: 44,
+            ),
+          ),
+          ty: 2,
+        )),
+        span: (
+          start: 37,
+          end: 49,
+        ),
+        id: 3,
+      ),
+      4: (
+        kind: Class((
+          name: (
+            ident: 1,
+            span: (
+              start: 6,
+              end: 11,
+            ),
+          ),
+          class_type: Inline,
+          generic_params: {},
+          fields: {
+            2: 1,
+            4: 3,
+          },
+          fn_stmts: {},
+        )),
+        span: (
+          start: 0,
+          end: 52,
+        ),
+        id: 4,
+      ),
+      5: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 9,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 87,
+          end: 91,
+        ),
+        id: 5,
+      ),
+      6: (
+        kind: Param((
+          ident: (
+            ident: 7,
+            span: (
+              start: 87,
+              end: 91,
+            ),
+          ),
+          ty: 5,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 87,
+          end: 91,
+        ),
+        id: 6,
+      ),
+      7: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 96,
+          end: 99,
+        ),
+        id: 7,
+      ),
+      8: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 6,
+              span: (
+                start: 77,
+                end: 86,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              7: 6,
+            },
+            return_type: Some(7),
+          ),
+          body: None,
+        )),
+        span: (
+          start: 74,
+          end: 100,
+        ),
+        id: 8,
+      ),
+      9: (
+        kind: Trait((
+          name: (
+            ident: 5,
+            span: (
+              start: 60,
+              end: 67,
+            ),
+          ),
+          generic_params: {},
+          member_fns: {
+            6: 8,
+          },
+        )),
+        span: (
+          start: 54,
+          end: 102,
+        ),
+        id: 9,
+      ),
+      10: (
+        kind: Ty(Path((
+          definition: (
+            crate_id: 0,
+            local_id: 4,
+          ),
+          generics: [],
+))),
+        span: (
+          start: 146,
+          end: 150,
+        ),
+        id: 10,
+      ),
+      11: (
+        kind: Param((
+          ident: (
+            ident: 7,
+            span: (
+              start: 146,
+              end: 150,
+            ),
+          ),
+          ty: 10,
+          mutability: Immutable,
+        )),
+        span: (
+          start: 146,
+          end: 150,
+        ),
+        id: 11,
+      ),
+      12: (
+        kind: Ty(Primitive(Str)),
+        span: (
+          start: 155,
+          end: 158,
+        ),
+        id: 12,
+      ),
+      13: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(11)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 176,
+          end: 180,
+        ),
+        id: 13,
+      ),
+      14: (
+        kind: Expr(Field((
+          lhs: 13,
+          ident: (
+            ident: 2,
+            span: (
+              start: 181,
+              end: 189,
+            ),
+          ),
+        ))),
+        span: (
+          start: 176,
+          end: 189,
+        ),
+        id: 14,
+      ),
+      15: (
+        kind: Expr(Path((
+          segments: [(
+            res: Local(Var(11)),
+            generics: None,
+          )],
+        ))),
+        span: (
+          start: 192,
+          end: 196,
+        ),
+        id: 15,
+      ),
+      16: (
+        kind: Expr(Field((
+          lhs: 15,
+          ident: (
+            ident: 4,
+            span: (
+              start: 197,
+              end: 204,
+            ),
+          ),
+        ))),
+        span: (
+          start: 192,
+          end: 204,
+        ),
+        id: 16,
+      ),
+      17: (
+        kind: Expr(Infix((
+          operator: Add,
+          lhs: 14,
+          rhs: 16,
+        ))),
+        span: (
+          start: 176,
+          end: 204,
+        ),
+        id: 17,
+      ),
+      18: (
+        kind: Stmt(Return((
+          value: Some(17),
+        ))),
+        span: (
+          start: 169,
+          end: 205,
+        ),
+        id: 18,
+      ),
+      19: (
+        kind: Block((
+          stmts: [18],
+        )),
+        span: (
+          start: 159,
+          end: 211,
+        ),
+        id: 19,
+      ),
+      20: (
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 6,
+              span: (
+                start: 136,
+                end: 145,
+              ),
+            ),
+            generic_params: {},
+            params: {
+              7: 11,
+            },
+            return_type: Some(12),
+          ),
+          body: Some(19),
+        )),
+        span: (
+          start: 133,
+          end: 211,
+        ),
+        id: 20,
+      ),
+      21: (
+        kind: TraitImpl((
+          trait_to_impl: (
+            definition: (
+              crate_id: 0,
+              local_id: 9,
+            ),
+            generics: [],
+),
+          target_ty: (
+            crate_id: 0,
+            local_id: 4,
+          ),
+          member_fns: {
+            6: 20,
+          },
+        )),
+        span: (
+          start: 104,
+          end: 213,
+        ),
+        id: 21,
+      ),
+    },
+  )],
+  names_to_indices: [9],
+)
