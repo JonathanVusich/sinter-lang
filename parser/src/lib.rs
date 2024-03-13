@@ -6,10 +6,10 @@ use ast::{
     DestructureExpr, DestructureExprKind, DestructurePattern, EnumMember, EnumStmt, Expr, ExprKind,
     Expression, Field, FieldExpr, Fields, FnSelfStmt, FnSig, FnStmt, ForStmt, GenericParam,
     GenericParams, Generics, GlobalLetStmt, Ident, IdentType, IfStmt, IndexExpr, InfixExpr,
-    InfixOp, Item, ItemKind, LetStmt, MatchArm, MatchExpr, Module, Mutability, OrPattern, Param,
-    Params, Parentheses, PathExpr, PathTy, Pattern, PatternLocal, PostfixOp, QualifiedIdent,
-    ReturnStmt, Segment, Stmt, StmtKind, TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind,
-    TyPattern, UnaryExpr, UnaryOp, UseStmt, WhileStmt,
+    InfixOp, Item, ItemKind, LetStmt, LocalVar, MatchArm, MatchExpr, Module, Mutability, OrPattern,
+    Param, Params, Parentheses, PathExpr, PathTy, Pattern, PostfixOp, QualifiedIdent, ReturnStmt,
+    Segment, Stmt, StmtKind, TraitBound, TraitImplStmt, TraitStmt, Ty, TyKind, TyPattern,
+    UnaryExpr, UnaryOp, UseStmt, WhileStmt,
 };
 use diagnostics::{Diagnostic, Diagnostics};
 use id::{IdGenerator, LocalDefId};
@@ -323,7 +323,7 @@ impl<'ctxt> Parser<'ctxt> {
                 return self.unexpected_end();
             }
         };
-        let identifier = self.identifier()?;
+        let local_var = self.local_var()?;
         let mut ty = None;
         let mut initializer = None;
         if self.matches(TokenType::Colon) {
@@ -336,7 +336,7 @@ impl<'ctxt> Parser<'ctxt> {
         }
         self.expect(TokenType::Semicolon)?;
 
-        let let_stmt = LetStmt::new(identifier, mutability, ty, initializer);
+        let let_stmt = LetStmt::new(local_var, mutability, ty, initializer);
 
         Some(let_stmt)
     }
@@ -429,9 +429,9 @@ impl<'ctxt> Parser<'ctxt> {
         let expr = self.expr()?;
         let implicit_return = if self.matches(TokenType::Semicolon) {
             self.advance();
-            true
-        } else {
             false
+        } else {
+            true
         };
         Some(Stmt::new(
             StmtKind::Expression(Expression::new(expr, implicit_return)),
@@ -505,9 +505,9 @@ impl<'ctxt> Parser<'ctxt> {
     fn identifier(&mut self) -> Option<Ident> {
         match self.current_token() {
             Some(Token {
-                     token_type: TokenType::Identifier(ident),
-                     span,
-                 }) => {
+                token_type: TokenType::Identifier(ident),
+                span,
+            }) => {
                 self.advance();
                 Some(Ident::new(ident, span))
             }
@@ -519,14 +519,19 @@ impl<'ctxt> Parser<'ctxt> {
         }
     }
 
+    fn local_var(&mut self) -> Option<LocalVar> {
+        self.identifier()
+            .map(|ident| LocalVar::new(ident.ident, ident.span, self.get_id()))
+    }
+
     fn qualified_ident(&mut self) -> Option<QualifiedIdent> {
         let mut idents = Vec::new();
         loop {
             match self.current_token() {
                 Some(Token {
-                         token_type: TokenType::Identifier(identifier),
-                         span,
-                     }) => {
+                    token_type: TokenType::Identifier(identifier),
+                    span,
+                }) => {
                     let ident = Ident::new(identifier, span);
                     idents.push(ident);
                     if self.matches_multiple([
@@ -696,9 +701,9 @@ impl<'ctxt> Parser<'ctxt> {
         let ident;
         let ty;
         if let Some(Token {
-                        token_type: TokenType::SelfLowercase,
-                        span,
-                    }) = self.current_token()
+            token_type: TokenType::SelfLowercase,
+            span,
+        }) = self.current_token()
         {
             self.advance();
             ident = Ident::new(self.intern_str("self"), span);
@@ -718,9 +723,9 @@ impl<'ctxt> Parser<'ctxt> {
 
         match self.current_token() {
             Some(Token {
-                     token_type: TokenType::SelfLowercase,
-                     span,
-                 }) => {
+                token_type: TokenType::SelfLowercase,
+                span,
+            }) => {
                 self.advance();
                 let ident = Ident::new(self.intern_str("self"), span);
                 let ty = Ty::new(TyKind::QSelf, span, self.get_id());
@@ -788,24 +793,24 @@ impl<'ctxt> Parser<'ctxt> {
     fn parse_ty(&mut self) -> Option<Ty> {
         match self.current_token() {
             Some(Token {
-                     token_type: TokenType::LeftParentheses,
-                     ..
-                 }) => self.parse_closure_ty(),
+                token_type: TokenType::LeftParentheses,
+                ..
+            }) => self.parse_closure_ty(),
             Some(Token {
-                     token_type: TokenType::LeftBracket,
-                     ..
-                 }) => self.parse_array_ty(),
+                token_type: TokenType::LeftBracket,
+                ..
+            }) => self.parse_array_ty(),
             Some(Token {
-                     token_type: TokenType::None,
-                     span,
-                 }) => {
+                token_type: TokenType::None,
+                span,
+            }) => {
                 self.advance();
                 Some(Ty::new(TyKind::None, span, self.get_id()))
             }
             Some(Token {
-                     token_type: TokenType::Identifier(ident),
-                     span,
-                 }) => {
+                token_type: TokenType::Identifier(ident),
+                span,
+            }) => {
                 // These built in types are officially encoded as strings to avoid them being
                 // tokenized as keywords.
                 let ident = self.resolve_str(ident);
@@ -862,9 +867,9 @@ impl<'ctxt> Parser<'ctxt> {
                 }
             }
             Some(Token {
-                     token_type: TokenType::SelfCapitalized,
-                     span,
-                 }) => {
+                token_type: TokenType::SelfCapitalized,
+                span,
+            }) => {
                 self.advance();
                 Some(Ty::new(TyKind::QSelf, span, self.get_id()))
             }
@@ -1028,9 +1033,9 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance_multiple(2);
                 match self.current_token() {
                     Some(Token {
-                             token_type: TokenType::Less,
-                             ..
-                         }) => {
+                        token_type: TokenType::Less,
+                        ..
+                    }) => {
                         let generic_paths = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
                             |parser| parser.parse_ty(),
                             TokenType::Comma,
@@ -1048,9 +1053,9 @@ impl<'ctxt> Parser<'ctxt> {
                         break;
                     }
                     Some(Token {
-                             token_type: TokenType::Identifier(ident),
-                             span,
-                         }) => {
+                        token_type: TokenType::Identifier(ident),
+                        span,
+                    }) => {
                         let ident = Ident::new(ident, span);
                         path_segments.push(Segment::new(ident, None));
                         self.advance();
@@ -1424,7 +1429,7 @@ impl<'ctxt> Parser<'ctxt> {
                         self.advance();
                         let ty_pat = TyPattern::new(
                             ty,
-                            Some(PatternLocal::new(str, self.get_span(), self.get_id())),
+                            Some(LocalVar::new(str, self.get_span(), self.get_id())),
                         );
                         Some(Pattern::Ty(ty_pat))
                     }

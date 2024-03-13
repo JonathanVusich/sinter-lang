@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use hir::{Generics, HirCrate, HirNodeKind, PathTy};
 use types::DefMap;
 

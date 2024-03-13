@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::collections::BTreeMap;
 use std::fmt::{Debug, Formatter};
 use std::ops::Deref;
@@ -70,6 +72,7 @@ pub enum HirNodeKind {
 
     Param(Param),
     Field(Field),
+    LocalVar(LocalVar),
     Pattern(Pattern),
     MatchArm(MatchArm),
 }
@@ -514,11 +517,11 @@ impl OrPattern {
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct TyPattern {
     pub ty: PathTy,
-    pub ident: Option<PatternLocal>,
+    pub ident: Option<LocalVar>,
 }
 
 impl TyPattern {
-    pub fn new(ty: PathTy, ident: Option<PatternLocal>) -> Self {
+    pub fn new(ty: PathTy, ident: Option<LocalVar>) -> Self {
         Self { ty, ident }
     }
 }
@@ -526,11 +529,11 @@ impl TyPattern {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 #[repr(transparent)]
 #[serde(transparent)]
-pub struct PatternLocal {
+pub struct LocalVar {
     pub ident: InternedStr,
 }
 
-impl PatternLocal {
+impl LocalVar {
     pub fn new(ident: InternedStr) -> Self {
         Self { ident }
     }
@@ -696,7 +699,7 @@ impl Field {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct LetStmt {
-    pub ident: Ident,
+    pub local_var: LocalDefId,
     pub mutability: Mutability,
     pub ty: Option<LocalDefId>,
     pub initializer: Option<LocalDefId>,
@@ -704,13 +707,13 @@ pub struct LetStmt {
 
 impl LetStmt {
     pub fn new(
-        ident: Ident,
+        local_var: LocalDefId,
         mutability: Mutability,
         ty: Option<LocalDefId>,
         initializer: Option<LocalDefId>,
     ) -> Self {
         Self {
-            ident,
+            local_var,
             mutability,
             ty,
             initializer,

@@ -29,7 +29,12 @@ impl UnificationTable {
         lhs == rhs
     }
 
-    pub(crate) fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> bool {
+    pub(crate) fn unify_var_ty<F: Fn(&Type, &Type) -> bool>(
+        &mut self,
+        var: TyVar,
+        ty: Type,
+        assignable_check: F,
+    ) -> bool {
         let root = self.get_root_key(var);
         let entry = self.entry(root);
         match &entry.value {
@@ -37,7 +42,7 @@ impl UnificationTable {
                 entry.value = Some(ty);
                 true
             }
-            Some(prev_ty) => prev_ty == &ty,
+            Some(prev_ty) => assignable_check(prev_ty, &ty),
         }
     }
 

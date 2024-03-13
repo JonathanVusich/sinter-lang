@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::collections::{HashMap, HashSet};
 use std::fmt::Formatter;
 use std::marker::PhantomData;

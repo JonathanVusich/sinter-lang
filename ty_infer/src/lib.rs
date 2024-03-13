@@ -1,3 +1,6 @@
+#![allow(unused)]
+
+use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::iter::zip;
 
@@ -59,13 +62,20 @@ impl TypeMap {
 }
 
 #[derive(Debug)]
+struct LocalEnv {
+    // locals: HashMap<>
+}
+
+#[derive(Debug)]
 pub struct CrateInference<'a> {
     diagnostics: &'a mut Diagnostics,
     hir_map: &'a HirMap,
     krate: &'a HirCrate,
+
     unify_table: UnificationTable,
     ty_map: TypeMap,
 
+    // environments: Vec<LocalEnv>,
     generic_tys: Vec<LDefMap<Type>>,
     ret_tys: Vec<Type>,
 }
@@ -187,16 +197,29 @@ impl<'a> CrateInference<'a> {
             HirNodeKind::Stmt(stmt) => {
                 match stmt {
                     Stmt::Let(let_stmt) => {
+                        // Create fresh type var for the var type. This will be either inferred or
+                        // constrained to the assigned type.
+                        let ty_var = self.fresh_ty(&let_stmt.local_var);
+                        let mut constraints = Constraints::default();
+
                         if let Some(ty) = let_stmt.ty {
+                            let var_ty = self.existing_ty(ty.to_def_id(self.krate.id));
+                            constraints.push(Constraint::Equal(ty_var, var_ty.clone()));
+
+                            // TODO: Handle late assignment correctly.
                             let initializer = let_stmt.initializer.unwrap();
-                            let ret_ty = self.existing_ty(initializer.to_def_id(self.krate.id));
-                            return (self.check(&initializer, ret_ty), Type::None);
+                            let initializer_ty =
+                                self.existing_ty(initializer.to_def_id(self.krate.id));
+                            constraints.push(Constraint::Assignable(var_ty, initializer_ty));
+
+                            return (constraints, Type::None);
                         }
-                        // Create fresh type var for the var type that needs to be inferred
-                        let ty_var = self.fresh_ty(node);
-                        let (mut c, ty) = self.infer(&let_stmt.initializer.unwrap()); // Unwrap should be safe because it is invalid to have no type and no stmt.
-                        c.push(Constraint::Assignable(ty_var, ty));
-                        (c, Type::None)
+
+                        let (c, initializer_ty) = self.infer(&let_stmt.initializer.unwrap());
+                        constraints.extend(c);
+                        constraints.push(Constraint::Assignable(ty_var, initializer_ty));
+
+                        (constraints, Type::None)
                     }
                     Stmt::Return(return_stmt) => {
                         let ret_ty = self.ret_tys.last().unwrap().clone();
@@ -398,7 +421,14 @@ impl<'a> CrateInference<'a> {
                             todo!()
                         }
                         Res::Local(local) => match local {
-                            LocalDef::Var(node) => self.infer(node),
+                            LocalDef::Var(node) => {
+                                // Unwrap should be safe here since we should always have a
+                                // preceding let stmt.
+                                (
+                                    Constraints::default(),
+                                    self.ty_map.get(node).unwrap().clone(),
+                                )
+                            }
                             LocalDef::Generic(_) => {
                                 todo!()
                             }
@@ -410,7 +440,10 @@ impl<'a> CrateInference<'a> {
                 }
                 _ => todo!(),
             },
-            _ => todo!(),
+            node => {
+                dbg!(node);
+                todo!()
+            }
         };
         self.ty_map.insert(node, ty.clone());
         (constraints, ty)
@@ -435,7 +468,6 @@ impl<'a> CrateInference<'a> {
     }
 
     fn unify_constraints(&mut self, constraints: Constraints) -> bool {
-        dbg!(&constraints);
         constraints
             .into_iter()
             .all(|constraint| self.unify(constraint))
@@ -556,7 +588,7 @@ impl<'a> CrateInference<'a> {
                 | Type::GenericParam(GenericParam {
                     ty_var: unknown, ..
                 }),
-            ) => self.unify_var_ty(unknown, ty),
+            ) => self.unify_var_ty(unknown, ty, assignable_check),
             // If both types are known, then we need to check for type compatibility.
             (lhs, rhs) => {
                 if !assignable_check(&lhs, &rhs) {
@@ -576,8 +608,13 @@ impl<'a> CrateInference<'a> {
         true
     }
 
-    fn unify_var_ty(&mut self, var: TyVar, ty: Type) -> bool {
-        if !self.unify_table.unify_var_ty(var, ty) {
+    fn unify_var_ty<F: Fn(&Type, &Type) -> bool>(
+        &mut self,
+        var: TyVar,
+        ty: Type,
+        assignable_check: F,
+    ) -> bool {
+        if !self.unify_table.unify_var_ty(var, ty, assignable_check) {
             self.diagnostics.push(Diagnostic::BlankError);
             return false;
         }
@@ -703,6 +740,7 @@ impl<'a> CrateInference<'a> {
                         .initializer
                         .as_ref()
                         .map(|initializer| self.substitute(initializer));
+                    self.substitute(&let_stmt.local_var);
                 }
                 Stmt::For(for_stmt) => {
                     self.substitute(&for_stmt.body);
@@ -737,6 +775,7 @@ impl<'a> CrateInference<'a> {
             }
             HirNodeKind::Param(_) => {}
             HirNodeKind::Field(_) => {}
+            HirNodeKind::LocalVar(_) => {}
             HirNodeKind::Pattern(_) => {}
             HirNodeKind::MatchArm(_) => {}
             // These can safely be ignored since they should not be traversed.
@@ -746,6 +785,8 @@ impl<'a> CrateInference<'a> {
             HirNodeKind::TraitImpl(_) => {}
         }
 
+        dbg!(node_id);
+        dbg!(&self.ty_map);
         let ty = self.ty_map.get(node_id).unwrap().clone();
         let ty = self.probe_ty(ty);
         self.ty_map.insert(node_id, ty);

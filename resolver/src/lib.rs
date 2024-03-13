@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::collections::{HashMap, VecDeque};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
@@ -15,10 +17,10 @@ use ast::{
     Field as AstField, FieldDef, Fields as AstFields, FnDef, FnSelfStmt as AstFnSelfStmt,
     FnSelfStmt, FnSig as AstFnSig, FnStmt as AstFnStmt, GenericParams as AstGenericParams,
     Generics as AstGenerics, GlobalLetStmt as AstGlobalLetStmt, GlobalVarDef, IdentType, Item,
-    ItemKind as AstItemKind, ItemKind, MatchArm as AstMatchArm, MaybeFnDef, Module, ModuleNS,
-    ModulePath, Params as AstParams, PathExpr as AstPathExpr, PathTy as AstPathTy,
-    Pattern as AstPattern, QualifiedIdent, Segment as AstSegment, Stmt as AstStmt,
-    StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitDef,
+    ItemKind as AstItemKind, ItemKind, LocalVar as AstLocalVar, MatchArm as AstMatchArm,
+    MaybeFnDef, Module, ModuleNS, ModulePath, Params as AstParams, PathExpr as AstPathExpr,
+    PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Segment as AstSegment,
+    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitDef,
     TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
     TyKind as AstTyKind, ValueDef,
 };
@@ -28,9 +30,9 @@ use hir::{
     ClosureExpr, ClosureParam, ClosureParams, DestructureExpr, DestructurePattern, EnumMember,
     EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts,
     ForStmt, GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap, HirNode,
-    HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, MatchArm, MatchExpr, OrPattern,
-    Param, Params, PathExpr, PathTy, Pattern, PatternLocal, Primitive, Res, ReturnStmt, Segment,
-    Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
+    HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, LocalVar, MatchArm, MatchExpr,
+    OrPattern, Param, Params, PathExpr, PathTy, Pattern, Primitive, Res, ReturnStmt, Segment, Stmt,
+    TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use id::{CrateId, DefId, LocalDefId, ModuleId};
 use interner::{InternedStr, StringInterner};
@@ -1096,9 +1098,20 @@ impl<'a> CrateResolver<'a> {
         Some(id)
     }
 
+    fn resolve_local_var(&mut self, local_var: &AstLocalVar) -> LocalDefId {
+        self.insert_var(local_var.ident, local_var.id);
+
+        let node = HirNode::new(
+            HirNodeKind::LocalVar(LocalVar::new(local_var.ident)),
+            local_var.span,
+            local_var.id,
+        );
+        self.insert_node(local_var.id, node);
+        local_var.id
+    }
+
     /// This method can resolve qualified idents as well.
     fn resolve_path(&mut self, path_expr: &AstPathExpr) -> Option<PathExpr> {
-        let module_ns = &self.module.unwrap().namespace;
         let mut segments = Vec::with_capacity(path_expr.segments.len());
         match path_expr.ident_type {
             IdentType::Crate => {
@@ -1107,7 +1120,6 @@ impl<'a> CrateResolver<'a> {
                 while !path.is_empty() {
                     let prev_seg = segments.last().unwrap(); // Should be safe
                     let current = path.pop_front().unwrap(); // Should be safe
-                    let curr_ident = current.ident.ident;
                     let segment = self.find_secondary_segment(&prev_seg.res, current)?;
 
                     segments.push(segment);
@@ -1127,7 +1139,6 @@ impl<'a> CrateResolver<'a> {
                     while !path.is_empty() {
                         let prev_seg = segments.last().unwrap(); // Should be safe
                         let current = path.pop_front().unwrap(); // Should be safe
-                        let curr_ident = current.ident.ident;
                         let segment = self.find_secondary_segment(&prev_seg.res, current)?;
 
                         segments.push(segment);
@@ -1452,13 +1463,12 @@ impl<'a> CrateResolver<'a> {
         let id = stmt.id;
         let hir_stmt = match &stmt.kind {
             AstStmtKind::Let(let_stmt) => {
-                self.insert_var(let_stmt.ident.ident, id);
-
+                let resolved_var = self.resolve_local_var(&let_stmt.local_var);
                 let resolved_ty = self.maybe_resolve_ty(&let_stmt.ty)?;
                 let resolved_initializer = self.maybe_resolve_expr(&let_stmt.initializer).ok()?;
 
                 Stmt::Let(LetStmt::new(
-                    let_stmt.ident,
+                    resolved_var,
                     let_stmt.mutability,
                     resolved_ty,
                     resolved_initializer,
@@ -1587,7 +1597,7 @@ impl<'a> CrateResolver<'a> {
                 let resolved_ty = self.resolve_path_ty(&ty_patt.ty)?;
                 let resolved_ident = ty_patt.ident.map(|pattern_local| {
                     self.insert_var(pattern_local.ident, pattern_local.id);
-                    PatternLocal::new(pattern_local.ident)
+                    LocalVar::new(pattern_local.ident)
                 });
                 Pattern::Ty(TyPattern::new(resolved_ty, resolved_ident))
             }

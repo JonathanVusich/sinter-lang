@@ -33,12 +33,13 @@
           body: Some((
             stmts: [(
               kind: Let((
-                ident: (
+                local_var: (
                   ident: 2,
                   span: (
                     start: 27,
                     end: 28,
                   ),
+                  id: 0,
                 ),
                 mutability: Mutable,
                 ty: None,
@@ -48,14 +49,14 @@
                     start: 31,
                     end: 32,
                   ),
-                  id: 0,
+                  id: 1,
                 )),
               )),
               span: (
                 start: 19,
                 end: 33,
               ),
-              id: 1,
+              id: 2,
             ), (
               kind: Expression((
                 expr: (
@@ -79,7 +80,7 @@
                         start: 64,
                         end: 65,
                       ),
-                      id: 2,
+                      id: 3,
                     ),
                     rhs: (
                       kind: Infix((
@@ -102,7 +103,7 @@
                             start: 68,
                             end: 69,
                           ),
-                          id: 3,
+                          id: 4,
                         ),
                         rhs: (
                           kind: Int(1),
@@ -110,42 +111,42 @@
                             start: 72,
                             end: 73,
                           ),
-                          id: 4,
+                          id: 5,
                         ),
                       )),
                       span: (
                         start: 68,
                         end: 73,
                       ),
-                      id: 5,
+                      id: 6,
                     ),
                   )),
                   span: (
                     start: 64,
                     end: 73,
                   ),
-                  id: 6,
+                  id: 7,
                 ),
-                implicit_return: true,
+                implicit_return: false,
               )),
               span: (
                 start: 64,
                 end: 74,
               ),
-              id: 7,
+              id: 8,
             )],
             span: (
               start: 13,
               end: 76,
             ),
-            id: 8,
+            id: 9,
           )),
         )),
         span: (
           start: 0,
           end: 76,
         ),
-        id: 9,
+        id: 10,
       )],
     )],
   ),

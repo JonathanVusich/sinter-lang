@@ -1,3 +1,5 @@
-(
-  diagnostics: [BlankError],
-)
+{
+  4: (
+    tys: [Some(I64), Some(I64), Some(None), Some(I64), Some(I64), Some(I64), Some(I64), Some(None), Some(None), Some(None), None],
+  ),
+}

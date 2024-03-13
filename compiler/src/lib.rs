@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::collections::{HashSet, VecDeque};
 use std::ffi::{OsStr, OsString};
 use std::fmt::{Debug, Display};

@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::borrow::Borrow;
 use std::collections::VecDeque;
 use std::sync::Arc;
@@ -802,7 +804,7 @@ impl GlobalLetStmt {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct LetStmt {
-    pub ident: Ident,
+    pub local_var: LocalVar,
     pub mutability: Mutability,
     pub ty: Option<Ty>,
     pub initializer: Option<Box<Expr>>,
@@ -810,13 +812,13 @@ pub struct LetStmt {
 
 impl LetStmt {
     pub fn new(
-        ident: Ident,
+        local_var: LocalVar,
         mutability: Mutability,
         ty: Option<Ty>,
         initializer: Option<Expr>,
     ) -> Self {
         Self {
-            ident,
+            local_var,
             mutability,
             ty,
             initializer: initializer.map(Box::new),
@@ -1098,13 +1100,13 @@ impl OrPattern {
 }
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct PatternLocal {
+pub struct LocalVar {
     pub ident: InternedStr,
     pub span: Span,
     pub id: LocalDefId,
 }
 
-impl PatternLocal {
+impl LocalVar {
     pub fn new(ident: InternedStr, span: Span, id: LocalDefId) -> Self {
         Self { ident, span, id }
     }
@@ -1113,11 +1115,11 @@ impl PatternLocal {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TyPattern {
     pub ty: PathTy,
-    pub ident: Option<PatternLocal>,
+    pub ident: Option<LocalVar>,
 }
 
 impl TyPattern {
-    pub fn new(ty: PathTy, ident: Option<PatternLocal>) -> Self {
+    pub fn new(ty: PathTy, ident: Option<LocalVar>) -> Self {
         Self { ty, ident }
     }
 }
