@@ -245,8 +245,19 @@ impl<'a> CrateInference<'a> {
                     let mut new_constr = Vec::with_capacity(lhs_c.len() + rhs_c.len() + 1);
                     new_constr.extend(lhs_c);
                     new_constr.extend(rhs_c);
-                    new_constr.push(Constraint::Infix(lhs_ty.clone(), rhs_ty, infix.operator));
-                    (new_constr, lhs_ty)
+                    match &infix.operator {
+                        InfixOp::Assign => {
+                            new_constr.push(Constraint::Assignable(lhs_ty, rhs_ty));
+                            (new_constr, Type::None)
+                        }
+                        InfixOp::Add => {
+                            new_constr.push(Constraint::Assignable(lhs_ty.clone(), rhs_ty));
+                            (new_constr, lhs_ty)
+                        }
+                        token => {
+                            todo!("{:?}", token)
+                        }
+                    }
                 }
                 Expr::Unary(unary) => {
                     let (mut constraints, ty) = self.infer(&unary.expr);
@@ -424,6 +435,7 @@ impl<'a> CrateInference<'a> {
     }
 
     fn unify_constraints(&mut self, constraints: Constraints) -> bool {
+        dbg!(&constraints);
         constraints
             .into_iter()
             .all(|constraint| self.unify(constraint))
@@ -431,10 +443,8 @@ impl<'a> CrateInference<'a> {
 
     fn unify(&mut self, constraint: Constraint) -> bool {
         match constraint {
-            Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs, |lhs, rhs| lhs == rhs),
-            Constraint::Assignable(lhs, rhs) => {
-                self.unify_ty_ty(lhs, rhs, |lhs, rhs| lhs.assignable(rhs))
-            }
+            Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs, Type::eq),
+            Constraint::Assignable(lhs, rhs) => self.unify_ty_ty(lhs, rhs, Type::assignable),
             Constraint::Array(ty) => self.unify_ty_array(ty),
             Constraint::Infix(lhs, rhs, op) => self.unify_infix_op(lhs, rhs, op),
             Constraint::Unary(ty, unary_op) => self.unify_unary_op(ty, unary_op),
@@ -485,12 +495,12 @@ impl<'a> CrateInference<'a> {
             let arg = args[x].clone();
             let param = fn_sig.params[x].clone();
 
-            if !(param.assignable(&arg) && self.unify_ty_ty(param, arg)) {
+            if !self.unify_ty_ty(param, arg, Type::assignable) {
                 return false;
             }
         }
 
-        return self.unify_ty_ty(ret_ty, *fn_sig.ret_ty.clone());
+        self.unify_ty_ty(ret_ty, *fn_sig.ret_ty.clone(), Type::assignable)
     }
 
     fn unify_unary_op(&mut self, ty: Type, unary_op: UnaryOp) -> bool {
@@ -502,7 +512,7 @@ impl<'a> CrateInference<'a> {
 
     fn unify_infix_op(&mut self, lhs: Type, rhs: Type, op: InfixOp) -> bool {
         // TODO: Add infix op checking
-        self.unify_ty_ty(lhs, rhs)
+        self.unify_ty_ty(lhs, rhs, Type::assignable)
     }
 
     fn unify_ty_array(&mut self, ty: Type) -> bool {
@@ -766,8 +776,6 @@ impl<'a> CrateInference<'a> {
             Type::Infer(ty_var) => self.unify_table.probe(ty_var).unwrap(),
             Type::GenericParam(generic_param) => {
                 let p_ty = self.unify_table.probe(generic_param.ty_var);
-                dbg!(&generic_param);
-                dbg!(&p_ty);
                 p_ty.unwrap()
             }
             Type::U8 => Type::U8,

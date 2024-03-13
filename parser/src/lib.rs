@@ -505,9 +505,9 @@ impl<'ctxt> Parser<'ctxt> {
     fn identifier(&mut self) -> Option<Ident> {
         match self.current_token() {
             Some(Token {
-                token_type: TokenType::Identifier(ident),
-                span,
-            }) => {
+                     token_type: TokenType::Identifier(ident),
+                     span,
+                 }) => {
                 self.advance();
                 Some(Ident::new(ident, span))
             }
@@ -524,9 +524,9 @@ impl<'ctxt> Parser<'ctxt> {
         loop {
             match self.current_token() {
                 Some(Token {
-                    token_type: TokenType::Identifier(identifier),
-                    span,
-                }) => {
+                         token_type: TokenType::Identifier(identifier),
+                         span,
+                     }) => {
                     let ident = Ident::new(identifier, span);
                     idents.push(ident);
                     if self.matches_multiple([
@@ -696,9 +696,9 @@ impl<'ctxt> Parser<'ctxt> {
         let ident;
         let ty;
         if let Some(Token {
-            token_type: TokenType::SelfLowercase,
-            span,
-        }) = self.current_token()
+                        token_type: TokenType::SelfLowercase,
+                        span,
+                    }) = self.current_token()
         {
             self.advance();
             ident = Ident::new(self.intern_str("self"), span);
@@ -718,9 +718,9 @@ impl<'ctxt> Parser<'ctxt> {
 
         match self.current_token() {
             Some(Token {
-                token_type: TokenType::SelfLowercase,
-                span,
-            }) => {
+                     token_type: TokenType::SelfLowercase,
+                     span,
+                 }) => {
                 self.advance();
                 let ident = Ident::new(self.intern_str("self"), span);
                 let ty = Ty::new(TyKind::QSelf, span, self.get_id());
@@ -788,24 +788,24 @@ impl<'ctxt> Parser<'ctxt> {
     fn parse_ty(&mut self) -> Option<Ty> {
         match self.current_token() {
             Some(Token {
-                token_type: TokenType::LeftParentheses,
-                ..
-            }) => self.parse_closure_ty(),
+                     token_type: TokenType::LeftParentheses,
+                     ..
+                 }) => self.parse_closure_ty(),
             Some(Token {
-                token_type: TokenType::LeftBracket,
-                ..
-            }) => self.parse_array_ty(),
+                     token_type: TokenType::LeftBracket,
+                     ..
+                 }) => self.parse_array_ty(),
             Some(Token {
-                token_type: TokenType::None,
-                span,
-            }) => {
+                     token_type: TokenType::None,
+                     span,
+                 }) => {
                 self.advance();
                 Some(Ty::new(TyKind::None, span, self.get_id()))
             }
             Some(Token {
-                token_type: TokenType::Identifier(ident),
-                span,
-            }) => {
+                     token_type: TokenType::Identifier(ident),
+                     span,
+                 }) => {
                 // These built in types are officially encoded as strings to avoid them being
                 // tokenized as keywords.
                 let ident = self.resolve_str(ident);
@@ -862,9 +862,9 @@ impl<'ctxt> Parser<'ctxt> {
                 }
             }
             Some(Token {
-                token_type: TokenType::SelfCapitalized,
-                span,
-            }) => {
+                     token_type: TokenType::SelfCapitalized,
+                     span,
+                 }) => {
                 self.advance();
                 Some(Ty::new(TyKind::QSelf, span, self.get_id()))
             }
@@ -1028,9 +1028,9 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance_multiple(2);
                 match self.current_token() {
                     Some(Token {
-                        token_type: TokenType::Less,
-                        ..
-                    }) => {
+                             token_type: TokenType::Less,
+                             ..
+                         }) => {
                         let generic_paths = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
                             |parser| parser.parse_ty(),
                             TokenType::Comma,
@@ -1048,9 +1048,9 @@ impl<'ctxt> Parser<'ctxt> {
                         break;
                     }
                     Some(Token {
-                        token_type: TokenType::Identifier(ident),
-                        span,
-                    }) => {
+                             token_type: TokenType::Identifier(ident),
+                             span,
+                         }) => {
                         let ident = Ident::new(ident, span);
                         path_segments.push(Segment::new(ident, None));
                         self.advance();
