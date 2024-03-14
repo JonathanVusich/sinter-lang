@@ -17,7 +17,7 @@ members = [
     "span",
     "tests",
     "tokenizer",
-    "ty_infer",
+    "ty_infer", "typed_hir",
     "types",
     "validator"
 ]

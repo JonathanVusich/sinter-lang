@@ -1,17 +1,18 @@
 #![allow(unused)]
 
 use std::collections::HashMap;
-use std::f32::NAN;
 use std::fmt::{Debug, Display, Formatter};
 use std::iter::zip;
 
+use arena::Arena;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use ast::{ClassDef, FnDef, GlobalVarDef, InfixOp, UnaryOp, ValueDef};
 use diagnostics::{Diagnostic, Diagnostics};
 use hir::{
-    ArrayExpr, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, LocalDef, Primitive, Res, Stmt, Ty,
+    ArrayExpr, Expr, FnStmts, HirCrate, HirMap, HirNode, HirNodeKind, LocalDef, Primitive, Res,
+    Stmt, Ty as HirTy,
 };
 use id::{DefId, LocalDefId};
 use macros::named_slice;
@@ -63,30 +64,29 @@ impl TypeMap {
 }
 
 #[derive(Debug)]
-struct LocalEnv {
-    // locals: HashMap<>
-}
-
-#[derive(Debug)]
 pub struct CrateInference<'a> {
     diagnostics: &'a mut Diagnostics,
-    hir_map: &'a HirMap,
-    krate: &'a HirCrate,
+    hir_map: &'a HirMap<'a>,
+    krate: &'a HirCrate<'a>,
+    arena: &'a Arena<Ty<'a>>,
 
     unify_table: UnificationTable,
     ty_map: TypeMap,
 
-    // environments: Vec<LocalEnv>,
     generic_tys: Vec<LDefMap<Type>>,
     ret_tys: Vec<Type>,
 }
 
-/// Need to store all types in
-///
 impl<'a> CrateInference<'a> {
-    pub fn new(diagnostics: &'a mut Diagnostics, krate: &'a HirCrate, hir_map: &'a HirMap) -> Self {
+    pub fn new(
+        diagnostics: &'a mut Diagnostics,
+        arena: &'a Arena<Ty<'a>>,
+        krate: &'a HirCrate,
+        hir_map: &'a HirMap,
+    ) -> Self {
         Self {
             diagnostics,
+            arena,
             hir_map,
             krate,
             unify_table: Default::default(),
@@ -176,7 +176,7 @@ impl<'a> CrateInference<'a> {
         }
     }
 
-    fn infer(&mut self, node: &LocalDefId) -> (Constraints, Type) {
+    fn infer(&mut self, node: &LocalDefId) -> (Constraints, &'a Ty<'a>) {
         let (constraints, ty) = match self.krate.node(node) {
             HirNodeKind::GlobalLet(global_let) => {
                 let ty = self.existing_ty(global_let.ty.to_def_id(self.krate.id));
@@ -216,7 +216,7 @@ impl<'a> CrateInference<'a> {
                                 self.existing_ty(initializer.to_def_id(self.krate.id));
                             constraints.push(Constraint::Assignable(var_ty, initializer_ty));
 
-                            return (constraints, Type::None);
+                            return (constraints, Ty::none());
                         }
 
                         ty_var = self.fresh_ty(&let_stmt.local_var);
@@ -570,14 +570,8 @@ impl<'a> CrateInference<'a> {
         rhs: Type,
         assignable_check: F,
     ) -> bool {
-        dbg!(&lhs);
-        dbg!(&rhs);
-
         let lhs = self.normalize_ty(lhs);
         let rhs = self.normalize_ty(rhs);
-
-        dbg!(&lhs);
-        dbg!(&rhs);
 
         // Check for type equality
         match (lhs, rhs) {
@@ -936,9 +930,9 @@ impl CallableConstraint {
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Array {
-    ty: Box<Type>,
+#[derive(Clone, PartialEq, Debug, Serialize)]
+pub struct Array<'a> {
+    ty: &'a Ty<'a>,
 }
 
 impl Array {
@@ -949,7 +943,7 @@ impl Array {
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize)]
 pub struct Path {
     path: DefId,
     generics: Vec<Type>,
@@ -964,10 +958,10 @@ impl Path {
 named_slice!(Types, Type);
 
 /// Defines a concrete type of a potentially generic Class.
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Class {
+#[derive(Clone, PartialEq, Debug, Serialize)]
+pub struct Class<'a> {
     definition: DefId,
-    fields: Types,
+    fields: Vec<&'a Ty>,
     generics: LDefMap<Type>,
 }
 
@@ -987,14 +981,14 @@ impl Class {
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct GenericParam {
+#[derive(Clone, PartialEq, Debug, Serialize)]
+pub struct GenericParam<'a> {
     pub(crate) ty_var: TyVar,
-    pub(crate) trait_bound: Option<TraitBound>,
+    pub(crate) trait_bound: Option<TraitBound<'a>>,
 }
 
-impl GenericParam {
-    pub fn new(ty_var: TyVar, trait_bound: Option<TraitBound>) -> Self {
+impl<'a> GenericParam<'a> {
+    pub fn new(ty_var: TyVar, trait_bound: Option<TraitBound<'a>>) -> Self {
         Self {
             ty_var,
             trait_bound,
@@ -1002,37 +996,67 @@ impl GenericParam {
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct TraitBound {
-    bounds: Vec<Type>,
+#[derive(Clone, PartialEq, Debug, Serialize)]
+pub struct TraitBound<'a> {
+    bounds: &'a [&'a Ty<'a>],
 }
 
-impl TraitBound {
-    pub fn new(trait_bound: Vec<Type>) -> Self {
-        Self {
-            bounds: trait_bound,
-        }
+impl<'a> TraitBound<'a> {
+    pub fn new(bounds: &'a [&'a Ty<'a>]) -> Self {
+        Self { bounds }
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct FnSig {
-    params: Types,
-    ret_ty: Box<Type>,
+#[derive(Clone, PartialEq, Debug, Serialize)]
+pub struct FnSig<'a> {
+    params: &'a [&'a Ty<'a>],
+    ret_ty: &'a Ty<'a>,
 }
 
-impl FnSig {
-    pub fn new(params: Types, ret_ty: Type) -> Self {
-        Self {
-            params,
-            ret_ty: Box::new(ret_ty),
-        }
+impl<'a> FnSig<'a> {
+    pub fn new(params: &'a [&'a Ty<'a>], ret_ty: &'a Ty<'a>) -> Self {
+        Self { params, ret_ty }
     }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize)]
+pub struct Ty<'a> {
+    ty_kind: TyKind<'a>,
+    node: LocalDefId,
+}
+
+impl<'a> Ty<'a> {
+    fn assignable<'b>(&self, rhs: &'b Ty) -> bool {
+        todo!()
+    }
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize)]
+pub enum TyKind<'a> {
+    Array(Array<'a>),
+    Class(Class<'a>),
+    Fn(FnSig<'a>),
+    GenericParam(GenericParam<'a>),
+    TraitBound(TraitBound<'a>),
+    U8,
+    U16,
+    U32,
+    U64,
+    I8,
+    I16,
+    I32,
+    I64,
+    F32,
+    F64,
+    Str,
+    Boolean,
+    None,
+    Infer(TyVar),
 }
 
 /// This enum supports recursive types whose inner types are not yet known.
 /// Allows full type definitions to be built incrementally from partial information.
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize)]
 pub enum Type {
     Array(Array),
     Class(Class),

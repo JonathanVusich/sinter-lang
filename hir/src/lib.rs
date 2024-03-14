@@ -16,15 +16,15 @@ use types::{LDefMap, StrMap, StrSet};
 
 macro_rules! def_node_getter {
     ($fn_name:ident, $maybe_fn_name:ident, $patt:pat, $extractor:expr, $node_ty:ty) => {
-        impl HirCrate {
-            pub fn $fn_name(&self, node_id: &LocalDefId) -> $node_ty {
+        impl<'a> HirCrate<'a> {
+            pub fn $fn_name(&self, node_id: &&'a HirNode<'a>) -> $node_ty {
                 match self.nodes.get(node_id) {
                     Some(HirNode { kind: $patt, .. }) => $extractor,
                     _ => unreachable!(),
                 }
             }
 
-            pub fn $maybe_fn_name(&self, node_id: &LocalDefId) -> Option<$node_ty> {
+            pub fn $maybe_fn_name(&self, node_id: &&'a HirNode<'a>) -> Option<$node_ty> {
                 match self.nodes.get(node_id) {
                     Some(HirNode { kind: $patt, .. }) => Some($extractor),
                     _ => None,
@@ -34,58 +34,62 @@ macro_rules! def_node_getter {
     };
 }
 
-#[derive(PartialEq, Clone, Serialize, Deserialize)]
-pub struct HirNode {
-    pub(crate) kind: HirNodeKind,
+#[derive(PartialEq, Clone, Serialize)]
+pub struct HirNode<'a> {
+    pub(crate) kind: HirNodeKind<'a>,
     pub(crate) span: Span,
     pub(crate) id: LocalDefId,
 }
 
-impl Debug for HirNode {
+impl<'a> Debug for HirNode<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         self.kind.fmt(f)
     }
 }
 
-impl HirNode {
-    pub fn new(kind: HirNodeKind, span: Span, id: LocalDefId) -> Self {
+impl<'a> HirNode<'a> {
+    pub fn new(kind: HirNodeKind<'a>, span: Span, id: LocalDefId) -> Self {
         Self { kind, span, id }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum HirNodeKind {
-    GlobalLet(GlobalLetStmt),
-    Class(ClassStmt),
-    Enum(EnumStmt),
-    Trait(TraitStmt),
-    TraitImpl(TraitImplStmt),
-    Fn(FnStmt),
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum HirNodeKind<'a> {
+    GlobalLet(GlobalLetStmt<'a>),
+    Class(ClassStmt<'a>),
+    Enum(EnumStmt<'a>),
+    Trait(TraitStmt<'a>),
+    TraitImpl(TraitImplStmt<'a>),
+    Fn(FnStmt<'a>),
 
-    EnumMember(EnumMember),
+    EnumMember(EnumMember<'a>),
 
-    Expr(Expr),
-    Ty(Ty),
-    DestructureExpr(DestructureExpr),
-    Stmt(Stmt),
-    Block(Block),
+    Expr(Expr<'a>),
+    Ty(Ty<'a>),
+    DestructureExpr(DestructureExpr<'a>),
+    Stmt(Stmt<'a>),
+    Block(Block<'a>),
 
-    Param(Param),
-    Field(Field),
+    Param(Param<'a>),
+    Field(Field<'a>),
     LocalVar(LocalVar),
-    Pattern(Pattern),
-    MatchArm(MatchArm),
+    Pattern(Pattern<'a>),
+    MatchArm(MatchArm<'a>),
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct GlobalLetStmt {
-    pub local_var: LocalDefId,
-    pub ty: LocalDefId,
-    pub initializer: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct GlobalLetStmt<'a> {
+    pub local_var: &'a HirNode<'a>,
+    pub ty: &'a HirNode<'a>,
+    pub initializer: &'a HirNode<'a>,
 }
 
-impl GlobalLetStmt {
-    pub fn new(local_var: LocalDefId, ty: LocalDefId, initializer: LocalDefId) -> Self {
+impl<'a> GlobalLetStmt<'a> {
+    pub fn new(
+        local_var: &'a HirNode<'a>,
+        ty: &'a HirNode<'a>,
+        initializer: &'a HirNode<'a>,
+    ) -> Self {
         Self {
             local_var,
             ty,
@@ -94,22 +98,22 @@ impl GlobalLetStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct ClassStmt {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct ClassStmt<'a> {
     pub name: Ident,
     pub class_type: ClassType,
-    pub generic_params: GenericParams,
-    pub fields: Fields,
-    pub fn_stmts: FnStmts,
+    pub generic_params: GenericParams<'a>,
+    pub fields: Fields<'a>,
+    pub fn_stmts: FnStmts<'a>,
 }
 
-impl ClassStmt {
+impl<'a> ClassStmt<'a> {
     pub fn new(
         name: Ident,
         class_type: ClassType,
-        generic_params: GenericParams,
-        fields: Fields,
-        fn_stmts: FnStmts,
+        generic_params: GenericParams<'a>,
+        fields: Fields<'a>,
+        fn_stmts: FnStmts<'a>,
     ) -> Self {
         Self {
             name,
@@ -121,20 +125,20 @@ impl ClassStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct EnumStmt {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct EnumStmt<'a> {
     pub name: Ident,
-    pub generic_params: GenericParams,
-    pub members: EnumMembers,
-    pub member_fns: FnStmts,
+    pub generic_params: GenericParams<'a>,
+    pub members: EnumMembers<'a>,
+    pub member_fns: FnStmts<'a>,
 }
 
-impl EnumStmt {
+impl<'a> EnumStmt<'a> {
     pub fn new(
         name: Ident,
-        generic_params: GenericParams,
-        members: EnumMembers,
-        member_fns: FnStmts,
+        generic_params: GenericParams<'a>,
+        members: EnumMembers<'a>,
+        member_fns: FnStmts<'a>,
     ) -> Self {
         Self {
             name,
@@ -145,15 +149,15 @@ impl EnumStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct EnumMember {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct EnumMember<'a> {
     pub name: InternedStr,
-    pub fields: Fields,
-    pub member_fns: FnStmts,
+    pub fields: Fields<'a>,
+    pub member_fns: FnStmts<'a>,
 }
 
-impl EnumMember {
-    pub fn new(name: InternedStr, fields: Fields, member_fns: FnStmts) -> Self {
+impl<'a> EnumMember<'a> {
+    pub fn new(name: InternedStr, fields: Fields<'a>, member_fns: FnStmts<'a>) -> Self {
         Self {
             name,
             fields,
@@ -162,15 +166,15 @@ impl EnumMember {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct TraitStmt {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct TraitStmt<'a> {
     pub name: Ident,
-    pub generic_params: GenericParams,
-    pub member_fns: FnStmts,
+    pub generic_params: GenericParams<'a>,
+    pub member_fns: FnStmts<'a>,
 }
 
-impl TraitStmt {
-    pub fn new(name: Ident, generic_params: GenericParams, member_fns: FnStmts) -> Self {
+impl<'a> TraitStmt<'a> {
+    pub fn new(name: Ident, generic_params: GenericParams<'a>, member_fns: FnStmts<'a>) -> Self {
         Self {
             name,
             generic_params,
@@ -179,15 +183,15 @@ impl TraitStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct TraitImplStmt {
-    pub trait_to_impl: PathTy,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct TraitImplStmt<'a> {
+    pub trait_to_impl: PathTy<'a>,
     pub target_ty: DefId,
-    pub member_fns: FnStmts,
+    pub member_fns: FnStmts<'a>,
 }
 
-impl TraitImplStmt {
-    pub fn new(trait_to_impl: PathTy, target_ty: DefId, member_fns: FnStmts) -> Self {
+impl<'a> TraitImplStmt<'a> {
+    pub fn new(trait_to_impl: PathTy<'a>, target_ty: DefId, member_fns: FnStmts<'a>) -> Self {
         Self {
             trait_to_impl,
             target_ty,
@@ -196,32 +200,32 @@ impl TraitImplStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct FnStmt {
-    pub sig: FnSig,
-    pub body: Option<LocalDefId>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct FnStmt<'a> {
+    pub sig: FnSig<'a>,
+    pub body: Option<&'a HirNode<'a>>,
 }
 
-impl FnStmt {
-    pub fn new(sig: FnSig, body: Option<LocalDefId>) -> Self {
+impl<'a> FnStmt<'a> {
+    pub fn new(sig: FnSig<'a>, body: Option<&'a HirNode<'a>>) -> Self {
         Self { sig, body }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct FnSig {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct FnSig<'a> {
     pub name: Ident,
-    pub generic_params: GenericParams,
-    pub params: Params,
-    pub return_type: Option<LocalDefId>,
+    pub generic_params: GenericParams<'a>,
+    pub params: Params<'a>,
+    pub return_type: Option<&'a HirNode<'a>>,
 }
 
-impl FnSig {
+impl<'a> FnSig<'a> {
     pub fn new(
         name: Ident,
-        generic_params: GenericParams,
-        params: Params,
-        return_type: Option<LocalDefId>,
+        generic_params: GenericParams<'a>,
+        params: Params<'a>,
+        return_type: Option<&'a HirNode<'a>>,
     ) -> Self {
         Self {
             name,
@@ -232,15 +236,15 @@ impl FnSig {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct Param {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Param<'a> {
     pub ident: Ident,
-    pub ty: LocalDefId,
+    pub ty: &'a HirNode<'a>,
     pub mutability: Mutability,
 }
 
-impl Param {
-    pub fn new(ident: Ident, ty: LocalDefId, mutability: Mutability) -> Self {
+impl<'a> Param<'a> {
+    pub fn new(ident: Ident, ty: &'a HirNode<'a>, mutability: Mutability) -> Self {
         Self {
             ident,
             ty,
@@ -249,25 +253,25 @@ impl Param {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct Block {
-    pub stmts: Stmts,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Block<'a> {
+    pub stmts: Stmts<'a>,
 }
 
-impl Block {
-    pub fn new(stmts: Stmts) -> Self {
+impl<'a> Block<'a> {
+    pub fn new(stmts: Stmts<'a>) -> Self {
         Self { stmts }
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Expression {
-    pub expr: LocalDefId,
+#[derive(Clone, PartialEq, Debug, Serialize)]
+pub struct Expression<'a> {
+    pub expr: &'a HirNode<'a>,
     pub implicit_return: bool,
 }
 
-impl Expression {
-    pub fn new(expr: LocalDefId, implicit_return: bool) -> Self {
+impl<'a> Expression<'a> {
+    pub fn new(expr: &'a HirNode<'a>, implicit_return: bool) -> Self {
         Self {
             expr,
             implicit_return,
@@ -275,7 +279,7 @@ impl Expression {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Primitive {
     U8,
     U16,
@@ -292,18 +296,18 @@ pub enum Primitive {
     None,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 //noinspection DuplicatedCode
-pub enum Ty {
-    Array(Array),
-    Path(PathTy),
-    GenericParam(GenericParam),
-    TraitBound(TraitBound),
-    Closure(Closure),
+pub enum Ty<'a> {
+    Array(Array<'a>),
+    Path(PathTy<'a>),
+    GenericParam(GenericParam<'a>),
+    TraitBound(TraitBound<'a>),
+    Closure(Closure<'a>),
     Primitive(Primitive),
 }
 
-impl Ty {
+impl<'a> Ty<'a> {
     fn contains_ty(&self, other: &Ty) -> bool {
         todo!()
         // match self {
@@ -330,25 +334,25 @@ impl Ty {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum Stmt {
-    Let(LetStmt),
-    For(ForStmt),
-    If(IfStmt),
-    Return(ReturnStmt),
-    While(WhileStmt),
-    Block(LocalDefId),
-    Expression(Expression),
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum Stmt<'a> {
+    Let(LetStmt<'a>),
+    For(ForStmt<'a>),
+    If(IfStmt<'a>),
+    Return(ReturnStmt<'a>),
+    While(WhileStmt<'a>),
+    Block(&'a HirNode<'a>),
+    Expression(Expression<'a>),
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct PathTy {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct PathTy<'a> {
     pub definition: DefId,
-    pub generics: Generics,
+    pub generics: Generics<'a>,
 }
 
-impl PathTy {
-    pub fn new(definition: DefId, generics: Generics) -> Self {
+impl<'a> PathTy<'a> {
+    pub fn new(definition: DefId, generics: Generics<'a>) -> Self {
         Self {
             definition,
             generics,
@@ -356,26 +360,26 @@ impl PathTy {
     }
 }
 
-named_slice!(TraitBound, PathTy);
-named_slice!(Generics, LocalDefId);
-named_slice!(Args, LocalDefId);
-named_slice!(Stmts, LocalDefId);
-named_slice!(AnonParams, LocalDefId);
-named_slice!(Initializers, LocalDefId);
-named_slice!(Exprs, LocalDefId);
+named_slice!('a, TraitBound, PathTy<'a>);
+named_slice!('a, Generics, &'a HirNode<'a>);
+named_slice!('a, Args, &'a HirNode<'a>);
+named_slice!('a, Stmts, &'a HirNode<'a>);
+named_slice!('a, AnonParams, &'a HirNode<'a>);
+named_slice!('a, Initializers, &'a HirNode<'a>);
+named_slice!('a, Exprs, &'a HirNode<'a>);
 named_strmap!(ClosureParams, ClosureParam);
-named_strmap!(GenericParams, LocalDefId);
-named_strmap!(Params, LocalDefId);
-named_strmap!(Fields, LocalDefId);
-named_strmap!(FnStmts, LocalDefId);
-named_strmap!(EnumMembers, LocalDefId);
+named_strmap!('a, GenericParams, &'a GenericParam<'a>);
+named_strmap!('a, Params, &'a Param<'a>);
+named_strmap!('a, Fields, &'a Field<'a>);
+named_strmap!('a, FnStmts, &'a FnStmt<'a>);
+named_strmap!('a, EnumMembers, &'a EnumMember<'a>);
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum Expr {
-    Array(ArrayExpr),
-    Call(CallExpr),
-    Infix(InfixExpr),
-    Unary(UnaryExpr),
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum Expr<'a> {
+    Array(ArrayExpr<'a>),
+    Call(CallExpr<'a>),
+    Infix(InfixExpr<'a>),
+    Unary(UnaryExpr<'a>),
     None,
     True,
     False,
@@ -383,19 +387,19 @@ pub enum Expr {
     UInt(u64),
     Float(f64),
     String(InternedStr),
-    Match(MatchExpr),
-    Closure(ClosureExpr),
-    Assign(AssignExpr),
-    Field(FieldExpr),
-    Index(IndexExpr),
-    Path(PathExpr),
+    Match(MatchExpr<'a>),
+    Closure(ClosureExpr<'a>),
+    Assign(AssignExpr<'a>),
+    Field(FieldExpr<'a>),
+    Index(IndexExpr<'a>),
+    Path(PathExpr<'a>),
     Break,
     Continue,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum DestructureExpr {
-    Pattern(DestructurePattern),
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum DestructureExpr<'a> {
+    Pattern(DestructurePattern<'a>),
     Identifier(InternedStr),
     None,
     True,
@@ -406,7 +410,7 @@ pub enum DestructureExpr {
     String(InternedStr),
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
 pub enum Literal {
     None,
     True,
@@ -416,82 +420,82 @@ pub enum Literal {
     String(InternedStr),
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum ArrayExpr {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum ArrayExpr<'a> {
     Sized {
-        initializer: LocalDefId,
-        size: LocalDefId,
+        initializer: &'a HirNode<'a>,
+        size: &'a HirNode<'a>,
     },
     Unsized {
-        initializers: Initializers,
+        initializers: Initializers<'a>,
     },
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct CallExpr {
-    pub target: LocalDefId,
-    pub args: Args,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct CallExpr<'a> {
+    pub target: &'a HirNode<'a>,
+    pub args: Args<'a>,
 }
 
-impl CallExpr {
-    pub fn new(target: LocalDefId, args: Args) -> Self {
+impl<'a> CallExpr<'a> {
+    pub fn new(target: &'a HirNode<'a>, args: Args<'a>) -> Self {
         Self { target, args }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct UnaryExpr {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct UnaryExpr<'a> {
     pub operator: UnaryOp,
-    pub expr: LocalDefId,
+    pub expr: &'a HirNode<'a>,
 }
 
-impl UnaryExpr {
-    pub fn new(operator: UnaryOp, expr: LocalDefId) -> Self {
+impl<'a> UnaryExpr<'a> {
+    pub fn new(operator: UnaryOp, expr: &'a HirNode<'a>) -> Self {
         Self { operator, expr }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct InfixExpr {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct InfixExpr<'a> {
     pub operator: InfixOp,
-    pub lhs: LocalDefId,
-    pub rhs: LocalDefId,
+    pub lhs: &'a HirNode<'a>,
+    pub rhs: &'a HirNode<'a>,
 }
 
-impl InfixExpr {
-    pub fn new(operator: InfixOp, lhs: LocalDefId, rhs: LocalDefId) -> Self {
+impl<'a> InfixExpr<'a> {
+    pub fn new(operator: InfixOp, lhs: &'a HirNode<'a>, rhs: &'a HirNode<'a>) -> Self {
         Self { operator, lhs, rhs }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct MatchExpr {
-    pub source: LocalDefId,
-    pub arms: Vec<MatchArm>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct MatchExpr<'a> {
+    pub source: &'a HirNode<'a>,
+    pub arms: Vec<MatchArm<'a>>,
 }
 
-impl MatchExpr {
-    pub fn new(source: LocalDefId, arms: Vec<MatchArm>) -> Self {
+impl<'a> MatchExpr<'a> {
+    pub fn new(source: &'a HirNode<'a>, arms: Vec<MatchArm<'a>>) -> Self {
         Self { source, arms }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct MatchArm {
-    pub pattern: Pattern,
-    pub body: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct MatchArm<'a> {
+    pub pattern: Pattern<'a>,
+    pub body: &'a HirNode<'a>,
 }
 
-impl MatchArm {
-    pub fn new(pattern: Pattern, body: LocalDefId) -> Self {
+impl<'a> MatchArm<'a> {
+    pub fn new(pattern: Pattern<'a>, body: &'a HirNode<'a>) -> Self {
         Self { pattern, body }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum Pattern {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum Pattern<'a> {
     Wildcard,
-    Or(OrPattern),
+    Or(OrPattern<'a>),
     None,
     True,
     False,
@@ -499,34 +503,34 @@ pub enum Pattern {
     UInt(u64),
     Float(f64),
     String(InternedStr),
-    Ty(TyPattern),
-    Destructure(DestructurePattern),
+    Ty(TyPattern<'a>),
+    Destructure(DestructurePattern<'a>),
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct OrPattern {
-    patterns: Vec<Pattern>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct OrPattern<'a> {
+    patterns: Vec<Pattern<'a>>,
 }
 
-impl OrPattern {
-    pub fn new(patterns: Vec<Pattern>) -> Self {
+impl<'a> OrPattern<'a> {
+    pub fn new(patterns: Vec<Pattern<'a>>) -> Self {
         Self { patterns }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct TyPattern {
-    pub ty: PathTy,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct TyPattern<'a> {
+    pub ty: PathTy<'a>,
     pub ident: Option<LocalVar>,
 }
 
-impl TyPattern {
-    pub fn new(ty: PathTy, ident: Option<LocalVar>) -> Self {
+impl<'a> TyPattern<'a> {
+    pub fn new(ty: PathTy<'a>, ident: Option<LocalVar>) -> Self {
         Self { ty, ident }
     }
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize)]
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct LocalVar {
@@ -539,14 +543,14 @@ impl LocalVar {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct DestructurePattern {
-    pub ty: PathTy,
-    pub exprs: Exprs,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct DestructurePattern<'a> {
+    pub ty: PathTy<'a>,
+    pub exprs: Exprs<'a>,
 }
 
-impl DestructurePattern {
-    pub fn new(ty: PathTy, exprs: Vec<LocalDefId>) -> Self {
+impl<'a> DestructurePattern<'a> {
+    pub fn new(ty: PathTy<'a>, exprs: Vec<&'a HirNode<'a>>) -> Self {
         Self {
             ty,
             exprs: Exprs::from(exprs),
@@ -554,84 +558,84 @@ impl DestructurePattern {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct Array {
-    pub ty: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Array<'a> {
+    pub ty: &'a HirNode<'a>,
 }
 
-impl Array {
-    pub fn new(ty: LocalDefId) -> Self {
+impl<'a> Array<'a> {
+    pub fn new(ty: &'a HirNode<'a>) -> Self {
         Self { ty }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct Closure {
-    pub params: AnonParams,
-    pub ret_ty: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Closure<'a> {
+    pub params: AnonParams<'a>,
+    pub ret_ty: &'a HirNode<'a>,
 }
 
-impl Closure {
-    pub fn new(params: AnonParams, ret_ty: LocalDefId) -> Self {
+impl<'a> Closure<'a> {
+    pub fn new(params: AnonParams<'a>, ret_ty: &'a HirNode<'a>) -> Self {
         Self { params, ret_ty }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct ClosureExpr {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct ClosureExpr<'a> {
     pub params: ClosureParams,
-    pub stmt: LocalDefId,
+    pub stmt: &'a HirNode<'a>,
 }
 
-impl ClosureExpr {
-    pub fn new(params: ClosureParams, stmt: LocalDefId) -> Self {
+impl<'a> ClosureExpr<'a> {
+    pub fn new(params: ClosureParams, stmt: &'a HirNode<'a>) -> Self {
         Self { params, stmt }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct AssignExpr {
-    pub lhs: LocalDefId,
-    pub rhs: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct AssignExpr<'a> {
+    pub lhs: &'a HirNode<'a>,
+    pub rhs: &'a HirNode<'a>,
 }
 
-impl AssignExpr {
-    pub fn new(lhs: LocalDefId, rhs: LocalDefId) -> Self {
+impl<'a> AssignExpr<'a> {
+    pub fn new(lhs: &'a HirNode<'a>, rhs: &'a HirNode<'a>) -> Self {
         Self { lhs, rhs }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct FieldExpr {
-    pub lhs: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct FieldExpr<'a> {
+    pub lhs: &'a HirNode<'a>,
     pub ident: Ident,
 }
 
-impl FieldExpr {
-    pub fn new(lhs: LocalDefId, ident: Ident) -> Self {
+impl<'a> FieldExpr<'a> {
+    pub fn new(lhs: &'a HirNode<'a>, ident: Ident) -> Self {
         Self { lhs, ident }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct IndexExpr {
-    pub expr: LocalDefId,
-    pub key: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct IndexExpr<'a> {
+    pub expr: &'a HirNode<'a>,
+    pub key: &'a HirNode<'a>,
 }
 
-impl IndexExpr {
-    pub fn new(expr: LocalDefId, key: LocalDefId) -> Self {
+impl<'a> IndexExpr<'a> {
+    pub fn new(expr: &'a HirNode<'a>, key: &'a HirNode<'a>) -> Self {
         Self { expr, key }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct PathExpr {
-    pub segments: Arc<[Segment]>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct PathExpr<'a> {
+    pub segments: Arc<[Segment<'a>]>,
 }
 
-impl PathExpr {
-    pub fn new(segments: Vec<Segment>) -> Self {
+impl<'a> PathExpr<'a> {
+    pub fn new(segments: Vec<Segment<'a>>) -> Self {
         Self {
             segments: segments.into(),
         }
@@ -645,25 +649,25 @@ impl PathExpr {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub enum Res {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum Res<'a> {
     Crate(CrateId),
     ModuleSegment(CrateId, ModulePath),
     Module(ModuleId),
     ValueDef(ValueDef),
     Fn(MaybeFnDef),
     // These have to be late resolved after type information is deduced?
-    Local(LocalDef),
+    Local(LocalDef<'a>),
     Primitive(Primitive),
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum LocalDef {
-    Var(LocalDefId),
-    Generic(LocalDefId),
+#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
+pub enum LocalDef<'a> {
+    Var(&'a HirNode<'a>),
+    Generic(&'a HirNode<'a>),
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
 pub enum DefTy {
     GlobalLet,
     Class,
@@ -673,44 +677,44 @@ pub enum DefTy {
     Fn,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct Segment {
-    pub res: Res,
-    pub generics: Option<Generics>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Segment<'a> {
+    pub res: Res<'a>,
+    pub generics: Option<Generics<'a>>,
 }
 
-impl Segment {
-    pub fn new(res: Res, generics: Option<Generics>) -> Self {
+impl<'a> Segment<'a> {
+    pub fn new(res: Res<'a>, generics: Option<Generics<'a>>) -> Self {
         Self { res, generics }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct Field {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Field<'a> {
     pub ident: Ident,
-    pub ty: LocalDefId,
+    pub ty: &'a HirNode<'a>,
 }
 
-impl Field {
-    pub fn new(ident: Ident, ty: LocalDefId) -> Self {
+impl<'a> Field<'a> {
+    pub fn new(ident: Ident, ty: &'a HirNode<'a>) -> Self {
         Self { ident, ty }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct LetStmt {
-    pub local_var: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct LetStmt<'a> {
+    pub local_var: &'a HirNode<'a>,
     pub mutability: Mutability,
-    pub ty: Option<LocalDefId>,
-    pub initializer: Option<LocalDefId>,
+    pub ty: Option<&'a HirNode<'a>>,
+    pub initializer: Option<&'a HirNode<'a>>,
 }
 
-impl LetStmt {
+impl<'a> LetStmt<'a> {
     pub fn new(
-        local_var: LocalDefId,
+        local_var: &'a HirNode<'a>,
         mutability: Mutability,
-        ty: Option<LocalDefId>,
-        initializer: Option<LocalDefId>,
+        ty: Option<&'a HirNode<'a>>,
+        initializer: Option<&'a HirNode<'a>>,
     ) -> Self {
         Self {
             local_var,
@@ -721,51 +725,55 @@ impl LetStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct ReturnStmt {
-    pub value: Option<LocalDefId>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct ReturnStmt<'a> {
+    pub value: Option<&'a HirNode<'a>>,
 }
 
-impl ReturnStmt {
-    pub fn new(value: Option<LocalDefId>) -> Self {
+impl<'a> ReturnStmt<'a> {
+    pub fn new(value: Option<&'a HirNode<'a>>) -> Self {
         Self { value }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct WhileStmt {
-    pub condition: LocalDefId,
-    pub block: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct WhileStmt<'a> {
+    pub condition: &'a HirNode<'a>,
+    pub block: &'a HirNode<'a>,
 }
 
-impl WhileStmt {
-    pub fn new(condition: LocalDefId, block: LocalDefId) -> Self {
+impl<'a> WhileStmt<'a> {
+    pub fn new(condition: &'a HirNode<'a>, block: &'a HirNode<'a>) -> Self {
         Self { condition, block }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct ForStmt {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct ForStmt<'a> {
     pub ident: Ident,
-    pub range: LocalDefId,
-    pub body: LocalDefId,
+    pub range: &'a HirNode<'a>,
+    pub body: &'a HirNode<'a>,
 }
 
-impl ForStmt {
-    pub fn new(ident: Ident, range: LocalDefId, body: LocalDefId) -> Self {
+impl<'a> ForStmt<'a> {
+    pub fn new(ident: Ident, range: &'a HirNode<'a>, body: &'a HirNode<'a>) -> Self {
         Self { ident, range, body }
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct IfStmt {
-    pub condition: LocalDefId,
-    pub if_true: LocalDefId,
-    pub if_false: Option<LocalDefId>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct IfStmt<'a> {
+    pub condition: &'a HirNode<'a>,
+    pub if_true: &'a HirNode<'a>,
+    pub if_false: Option<&'a HirNode<'a>>,
 }
 
-impl IfStmt {
-    pub fn new(condition: LocalDefId, if_true: LocalDefId, if_false: Option<LocalDefId>) -> Self {
+impl<'a> IfStmt<'a> {
+    pub fn new(
+        condition: &'a HirNode<'a>,
+        if_true: &'a HirNode<'a>,
+        if_false: Option<&'a HirNode<'a>>,
+    ) -> Self {
         Self {
             condition,
             if_true,
@@ -774,7 +782,7 @@ impl IfStmt {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct ClosureParam {
@@ -787,26 +795,26 @@ impl ClosureParam {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct GenericParam {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct GenericParam<'a> {
     pub ident: Ident,
-    pub trait_bound: Option<LocalDefId>,
+    pub trait_bound: Option<&'a HirNode<'a>>,
 }
 
-impl GenericParam {
-    pub fn new(ident: Ident, trait_bound: Option<LocalDefId>) -> Self {
+impl<'a> GenericParam<'a> {
+    pub fn new(ident: Ident, trait_bound: Option<&'a HirNode<'a>>) -> Self {
         Self { ident, trait_bound }
     }
 }
 
-#[derive(PartialEq, Debug, Default, Clone, Serialize, Deserialize)]
-pub struct HirMap {
-    crates: Vec<HirCrate>,
+#[derive(PartialEq, Debug, Default, Clone, Serialize)]
+pub struct HirMap<'a> {
+    crates: Vec<HirCrate<'a>>,
     names_to_indices: StrSet,
 }
 
-impl HirMap {
-    pub fn insert(&mut self, krate: HirCrate) {
+impl<'a> HirMap<'a> {
+    pub fn insert(&mut self, krate: HirCrate<'a>) {
         self.names_to_indices.insert(krate.name);
         self.crates.push(krate);
     }
@@ -822,81 +830,28 @@ impl HirMap {
         self.crates.iter()
     }
 
-    pub fn into_krates(self) -> impl Iterator<Item = HirCrate> + Debug {
+    pub fn into_krates(self) -> impl Iterator<Item = HirCrate<'a>> + Debug {
         self.crates.into_iter()
     }
-
-    pub fn node(&self, def_id: &DefId) -> &HirNodeKind {
-        let krate = &self.crates[def_id.crate_id().as_usize()];
-        krate.node(&def_id.local_id())
-    }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
-pub struct HirCrate {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct HirCrate<'a> {
     pub name: InternedStr,
     pub id: CrateId,
-    pub items: Vec<LocalDefId>,
+    pub items: Vec<&'a HirNode<'a>>,
     #[cfg(not(test))]
-    pub nodes: LDefMap<HirNode>,
+    pub nodes: LDefMap<&'a HirNode<'a>>,
     #[cfg(test)]
-    pub nodes: BTreeMap<LocalDefId, HirNode>,
+    pub nodes: BTreeMap<LocalDefId, &'a HirNode<'a>>,
 }
 
-def_node_getter!(
-    let_stmt,
-    maybe_let_stmt,
-    HirNodeKind::Stmt(Stmt::Let(let_stmt)),
-    let_stmt,
-    &LetStmt
-);
-def_node_getter!(
-    fn_stmt,
-    maybe_fn_stmt,
-    HirNodeKind::Fn(fn_stmt),
-    fn_stmt,
-    &FnStmt
-);
-def_node_getter!(ty_stmt, maybe_ty_stmt, HirNodeKind::Ty(ty), ty, &Ty);
-def_node_getter!(
-    global_let_stmt,
-    maybe_global_let_stmt,
-    HirNodeKind::GlobalLet(global_let_stmt),
-    global_let_stmt,
-    &GlobalLetStmt
-);
-def_node_getter!(
-    class_stmt,
-    maybe_class_stmt,
-    HirNodeKind::Class(class_stmt),
-    class_stmt,
-    &ClassStmt
-);
-def_node_getter!(
-    enum_member,
-    maybe_enum_member,
-    HirNodeKind::EnumMember(enum_member),
-    enum_member,
-    &EnumMember
-);
-
-def_node_getter!(
-    trait_bound,
-    maybe_trait_bound,
-    HirNodeKind::Ty(Ty::TraitBound(trait_bound)),
-    trait_bound,
-    &TraitBound
-);
-
-def_node_getter!(param, maybe_param, HirNodeKind::Param(param), param, &Param);
-def_node_getter!(field, maybe_field, HirNodeKind::Field(field), field, &Field);
-
-impl HirCrate {
+impl<'a> HirCrate<'a> {
     pub fn new(
         name: InternedStr,
         id: CrateId,
-        items: Vec<LocalDefId>,
-        nodes: LDefMap<HirNode>,
+        items: Vec<&'a HirNode<'a>>,
+        nodes: LDefMap<&'a HirNode<'a>>,
     ) -> Self {
         #[cfg(test)]
         let nodes = BTreeMap::from_iter(nodes);
@@ -905,20 +860,6 @@ impl HirCrate {
             id,
             items,
             nodes,
-        }
-    }
-
-    pub fn node(&self, node: &LocalDefId) -> &HirNodeKind {
-        self.nodes.get(node).map(|node| &node.kind).unwrap()
-    }
-
-    pub fn stmt(&self, stmt_id: LocalDefId) -> &Stmt {
-        match self.nodes.get(&stmt_id) {
-            Some(HirNode {
-                kind: HirNodeKind::Stmt(stmt),
-                ..
-            }) => stmt,
-            _ => unreachable!(),
         }
     }
 }

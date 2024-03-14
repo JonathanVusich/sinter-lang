@@ -6,6 +6,7 @@ use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::sync::Arc;
 
+use arena::Arena;
 use itertools::Itertools;
 
 use ast::{
@@ -40,12 +41,13 @@ use krate::{Crate, CrateDef, CrateLookup};
 use span::Span;
 use types::{LDefMap, StrMap};
 
-pub fn resolve(
-    string_interner: &StringInterner,
-    diagnostics: &mut Diagnostics,
+pub fn resolve<'a>(
+    string_interner: &'a StringInterner,
+    diagnostics: &'a mut Diagnostics,
+    arena: &'a Arena<HirNode<'a>>,
     crates: &mut StrMap<Crate>,
-) -> Option<HirMap> {
-    let resolver = Resolver::new(string_interner, diagnostics, crates);
+) -> Option<HirMap<'a>> {
+    let resolver = Resolver::new(string_interner, diagnostics, arena, crates);
     resolver.resolve()
 }
 
@@ -181,45 +183,12 @@ impl Scope {
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum ResolveErrKind {
-    /// Error from looking up definition in crate
-    QualifiedIdentNotFound(QualifiedIdent),
-    /// Error for getting a fn instead of a class
-    ExpectedDefinition(QualifiedIdent),
-    /// Path not found
-    PathNotFound(AstPathExpr),
-    /// Invalid generics
-    InvalidGenerics(Generics),
-
-    /// Error for single segment path that points to crate
-    InvalidPath,
-    /// Error
-    VarNotFound(InternedStr),
-    /// Error
-    FnNotFound(InternedStr),
-    /// Error when resolving path, expected value but was module
-    ExpectedValueWasModule,
-    /// Duplicate nodes created for a single local definition.
-    DuplicateLocalDefIds,
-    /// Error for duplicate definitions
-    DuplicateDefinition { existing: DefId, new: DefId },
-}
-
-impl Display for ResolveErrKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        // TODO: Implement pretty printing
-        Debug::fmt(self, f)
-    }
-}
-
-impl Error for ResolveErrKind {}
-
 type ResolveResult = Option<()>;
 
 struct Resolver<'a> {
     string_interner: &'a StringInterner,
     diagnostics: &'a mut Diagnostics,
+    node_arena: &'a Arena<HirNode<'a>>,
     krates: &'a mut StrMap<Crate>,
 }
 
@@ -227,23 +196,26 @@ impl<'a> Resolver<'a> {
     fn new(
         string_interner: &'a StringInterner,
         diagnostics: &'a mut Diagnostics,
+        node_arena: &'a Arena<HirNode<'a>>,
         krates: &'a mut StrMap<Crate>,
     ) -> Self {
         Self {
             string_interner,
             diagnostics,
+            node_arena,
             krates,
         }
     }
 
-    fn resolve(mut self) -> Option<HirMap> {
+    fn resolve(mut self) -> Option<HirMap<'a>> {
         let mut hir_map = HirMap::default();
         // We are building lookup maps for each module so that we can query the types and constants in that module
         // when resolving use stmts later.
         self.build_crate_ns()?;
 
         for krate in self.krates.values() {
-            let crate_resolver = CrateResolver::new(self.string_interner, krate, self.krates);
+            let crate_resolver =
+                CrateResolver::new(self.string_interner, self.node_arena, krate, self.krates);
             hir_map.insert(crate_resolver.resolve()?);
         }
 
@@ -453,28 +425,31 @@ fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
 
 struct CrateResolver<'a> {
     string_interner: &'a StringInterner,
+    arena: &'a Arena<HirNode<'a>>,
     krate: &'a Crate,
     crates: &'a StrMap<Crate>,
     crate_lookup: CrateLookup<'a>,
     module: Option<&'a Module>,
-    items: Vec<LocalDefId>,
-    nodes: LDefMap<HirNode>,
+    items: Vec<&'a HirNode<'a>>,
+    nodes: LDefMap<&'a HirNode<'a>>,
     scopes: Vec<Scope>,
 }
 
 impl<'a> CrateResolver<'a> {
     fn new(
         string_interner: &'a StringInterner,
-        krate: &'a Crate,
-        crates: &'a StrMap<Crate>,
+        arena: &'a Arena<HirNode<'a>>,
+        krate: &Crate,
+        crates: &mut StrMap<Crate>,
     ) -> Self {
-        let crate_lookup = crates
+        let crate_lookup = krate
             .values()
             .sorted_by_key(|krate| krate.crate_id)
             .collect_vec()
             .into();
         Self {
             string_interner,
+            arena,
             krate,
             crates,
             crate_lookup,
@@ -485,7 +460,7 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve(mut self) -> Option<HirCrate> {
+    fn resolve(mut self) -> Option<HirCrate<'a>> {
         for module in self.krate.modules() {
             self.resolve_module(module);
 
@@ -524,7 +499,7 @@ impl<'a> CrateResolver<'a> {
 
         match hir_node {
             Some(hir_node) => {
-                self.items.push(id);
+                self.items.push(hir_node);
                 self.nodes.insert(id, hir_node);
             }
             _ => {}
@@ -540,7 +515,7 @@ impl<'a> CrateResolver<'a> {
         let_stmt: &AstGlobalLetStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<HirNode> {
+    ) -> Option<&'a HirNode<'a>> {
         // Lower expression
         let local_var = self.resolve_local_var(&let_stmt.local_var);
         let ty = self.resolve_ty(&let_stmt.ty)?;
@@ -548,11 +523,11 @@ impl<'a> CrateResolver<'a> {
 
         // We don't need to insert constants into a local scope since it is already part of the module ns.
         let hir_node = HirNode::new(
-            HirNodeKind::GlobalLet(GlobalLetStmt::new(let_stmt.local_var.id, ty, expr)),
+            HirNodeKind::GlobalLet(GlobalLetStmt::new(local_var, ty, expr)),
             span,
             id,
         );
-        Some(hir_node)
+        Some(self.arena.alloc(hir_node))
     }
 
     fn resolve_class_stmt(
@@ -733,14 +708,11 @@ impl<'a> CrateResolver<'a> {
             .find_map(|scope| scope.contains_enum_member(ident))
     }
 
-    fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) {
+    fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) -> &'a HirNode<'a> {
+        let node = self.arena.alloc(hir_node);
         let index: usize = id.into();
-        if self.nodes.contains_key(&id) {
-            dbg!(&index);
-            dbg!(&hir_node);
-            dbg!(&self.nodes);
-        }
-        assert!(self.nodes.insert(id, hir_node).is_none());
+        assert!(self.nodes.insert(id, node).is_none());
+        node
     }
 
     fn find_var(&mut self, ident: InternedStr) -> Option<LocalDefId> {
@@ -851,9 +823,7 @@ impl<'a> CrateResolver<'a> {
             let fields = self.resolve_fields(&member.fields)?;
             let self_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
 
-            enum_members.insert(member.name, member.id);
-
-            self.nodes.insert(
+            let node = self.insert_node(
                 member.id,
                 HirNode::new(
                     HirNodeKind::EnumMember(EnumMember::new(member.name, fields, self_fns)),
@@ -861,6 +831,8 @@ impl<'a> CrateResolver<'a> {
                     member.id,
                 ),
             );
+
+            enum_members.insert(member.name, node);
 
             self.scopes.pop();
         }
@@ -996,7 +968,7 @@ impl<'a> CrateResolver<'a> {
     fn maybe_resolve_expr(
         &mut self,
         expr: &Option<Box<AstExpr>>,
-    ) -> Result<Option<LocalDefId>, ()> {
+    ) -> Result<Option<&'a HirNode<'a>>, ()> {
         match expr {
             None => Ok(None),
             Some(expr) => match self.resolve_expr(expr) {
@@ -1006,7 +978,7 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve_expr(&mut self, expr: &AstExpr) -> Option<LocalDefId> {
+    fn resolve_expr(&mut self, expr: &AstExpr) -> Option<&'a HirNode<'a>> {
         let span = expr.span;
         let id = expr.id;
         let resolved_expr = match &expr.kind {
@@ -1092,17 +1064,16 @@ impl<'a> CrateResolver<'a> {
             AstExprKind::Parentheses(parentheses) => {
                 // Special logic for stripping parentheses (since they are just for pretty printing)
                 let resolved_expr = self.resolve_expr(&parentheses.expr)?;
-                return Some(id);
+                return Some(resolved_expr);
             }
             AstExprKind::Break => Expr::Break,
             AstExprKind::Continue => Expr::Continue,
         };
 
-        self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id));
-        Some(id)
+        Some(self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id)))
     }
 
-    fn resolve_local_var(&mut self, local_var: &AstLocalVar) -> LocalDefId {
+    fn resolve_local_var(&mut self, local_var: &AstLocalVar) -> &'a HirNode<'a> {
         self.insert_var(local_var.ident, local_var.id);
 
         let node = HirNode::new(
@@ -1110,8 +1081,7 @@ impl<'a> CrateResolver<'a> {
             local_var.span,
             local_var.id,
         );
-        self.insert_node(local_var.id, node);
-        local_var.id
+        self.insert_node(local_var.id, node)
     }
 
     /// This method can resolve qualified idents as well.
@@ -1341,7 +1311,7 @@ impl<'a> CrateResolver<'a> {
     fn resolve_destructure_expr(
         &mut self,
         destructure_expr: &AstDestructureExpr,
-    ) -> Option<LocalDefId> {
+    ) -> Option<&'a HirNode<'a>> {
         let id = destructure_expr.id;
         let span = destructure_expr.span;
         let expr = match &destructure_expr.kind {
@@ -1362,14 +1332,13 @@ impl<'a> CrateResolver<'a> {
             DestructureExprKind::None => DestructureExpr::None,
         };
 
-        self.insert_node(
+        Some(self.insert_node(
             id,
             HirNode::new(HirNodeKind::DestructureExpr(expr), span, id),
-        );
-        Some(id)
+        ))
     }
 
-    fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Option<Option<LocalDefId>> {
+    fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Option<Option<&'a HirNode<'a>>> {
         if let Some(ty) = ty {
             self.resolve_ty(ty).map(Some)
         } else {
@@ -1377,7 +1346,7 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve_ty(&mut self, ty: &AstTy) -> Option<LocalDefId> {
+    fn resolve_ty(&mut self, ty: &AstTy) -> Option<&'a HirNode<'a>> {
         let span = ty.span;
         let id = ty.id;
         let hir_ty = match &ty.kind {
@@ -1432,8 +1401,7 @@ impl<'a> CrateResolver<'a> {
             TyKind::None => Ty::Primitive(Primitive::None),
         };
 
-        self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id));
-        Some(id)
+        Some(self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id)))
     }
 
     fn resolve_path_ty(&mut self, path_ty: &AstPathTy) -> Option<PathTy> {
@@ -1447,22 +1415,20 @@ impl<'a> CrateResolver<'a> {
         trait_bound: &AstTraitBound,
         span: Span,
         id: LocalDefId,
-    ) -> Option<LocalDefId> {
+    ) -> Option<&'a HirNode<'a>> {
         let mut hir_bound = Vec::with_capacity(trait_bound.len());
         for ty in trait_bound {
             let resolved_ty = self.resolve_path_ty(ty)?;
             hir_bound.push(resolved_ty);
         }
 
-        self.insert_node(
+        Some(self.insert_node(
             id,
             HirNode::new(HirNodeKind::Ty(Ty::TraitBound(hir_bound.into())), span, id),
-        );
-
-        Some(id)
+        ))
     }
 
-    fn resolve_stmt(&mut self, stmt: &AstStmt) -> Option<LocalDefId> {
+    fn resolve_stmt(&mut self, stmt: &AstStmt) -> Option<&'a HirNode<'a>> {
         let span = stmt.span;
         let id = stmt.id;
         let hir_stmt = match &stmt.kind {
@@ -1536,15 +1502,16 @@ impl<'a> CrateResolver<'a> {
             }
         };
 
-        self.insert_node(
+        Some(self.insert_node(
             stmt.id,
             HirNode::new(HirNodeKind::Stmt(hir_stmt), stmt.span, stmt.id),
-        );
-
-        Some(stmt.id)
+        ))
     }
 
-    fn maybe_resolve_block(&mut self, block: &Option<AstBlock>) -> Result<Option<LocalDefId>, ()> {
+    fn maybe_resolve_block(
+        &mut self,
+        block: &Option<AstBlock>,
+    ) -> Result<Option<&'a HirNode<'a>>, ()> {
         match block {
             None => Ok(None),
             Some(block) => match self.resolve_block(block) {
@@ -1554,22 +1521,20 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve_block(&mut self, block: &AstBlock) -> Option<LocalDefId> {
+    fn resolve_block(&mut self, block: &AstBlock) -> Option<&'a HirNode<'a>> {
         let mut stmts = Vec::with_capacity(block.stmts.len());
         for stmt in &block.stmts {
             stmts.push(self.resolve_stmt(stmt)?);
         }
 
-        self.insert_node(
+        Some(self.insert_node(
             block.id,
             HirNode::new(
                 HirNodeKind::Block(Block::new(stmts.into())),
                 block.span,
                 block.id,
             ),
-        );
-
-        Some(block.id)
+        ))
     }
 
     fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Option<MatchArm> {

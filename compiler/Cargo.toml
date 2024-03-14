@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 itertools = "0.12.1"
 
+arena = { path = "../arena" }
 ast = { path = "../ast" }
 diagnostics = { path = "../diagnostics" }
 hir = { path = "../hir" }

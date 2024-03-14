@@ -1,5 +1,8 @@
 #![allow(unused)]
 
+mod arenas;
+
+use std::any::TypeId;
 use std::collections::{HashSet, VecDeque};
 use std::ffi::{OsStr, OsString};
 use std::fmt::{Debug, Display};
@@ -9,6 +12,7 @@ use itertools::Itertools;
 use serde::Deserializer;
 use walkdir::{DirEntry, WalkDir};
 
+use crate::arenas::Arenas;
 use ast::ModulePath;
 use diagnostics::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
 use hir::HirMap;
@@ -24,11 +28,12 @@ use types::StrMap;
 use validator::validate;
 
 #[derive(Default)]
-pub struct Compiler {
+pub struct Compiler<'a> {
     string_interner: StringInterner,
     diagnostics: Diagnostics,
     source_map: SourceMap,
     id_generator: IdGenerator,
+    arenas: Arenas<'a>,
 }
 
 pub enum Application<'a> {
@@ -43,7 +48,7 @@ pub enum Application<'a> {
 
 pub struct ByteCode {}
 
-impl Compiler {
+impl<'a> Compiler<'a> {
     pub(crate) fn compile(&mut self, application: Application) -> Result<ByteCode, Diagnostics> {
         let mut crates = self.parse_crates(application)?;
         crates = self.validate_crates(crates)?;

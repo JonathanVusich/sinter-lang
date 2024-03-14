@@ -1,23 +1,14 @@
 [package]
-name = "resolver"
+name = "typed_hir"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-arena = { path = "../arena" }
 ast = { path = "../ast" }
-diagnostics = { path = "../diagnostics" }
-hir = { path = "../hir" }
 id = { path = "../id" }
 interner = { path = "../interner" }
-krate = { path = "../krate" }
+macros = { path = "../macros" }
 span = { path = "../span" }
 types = { path = "../types" }
 
-
-indexmap = "2.2.2"
-itertools = "0.12.1"
 serde = { version = "1.0.197", features = ["derive"] }
-
-[dev-dependencies]
-snap = { path = "../snap" }
