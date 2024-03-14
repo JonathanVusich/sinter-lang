@@ -296,7 +296,7 @@ impl<'ctxt> Parser<'ctxt> {
 
     fn global_let_stmt(&mut self) -> Option<GlobalLetStmt> {
         self.expect(TokenType::Let)?;
-        let identifier = self.identifier()?;
+        let identifier = self.local_var()?;
         self.expect(TokenType::Colon)?;
         let ty = self.parse_ty()?;
         self.expect(TokenType::Equal)?;

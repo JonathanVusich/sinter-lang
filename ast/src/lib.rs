@@ -787,15 +787,15 @@ impl Field {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
-    pub name: Ident,
+    pub local_var: LocalVar,
     pub ty: Ty,
     pub initializer: Expr,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: Ident, ty: Ty, initializer: Expr) -> Self {
+    pub fn new(name: LocalVar, ty: Ty, initializer: Expr) -> Self {
         Self {
-            name: ident,
+            local_var: name,
             ty,
             initializer,
         }

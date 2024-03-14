@@ -348,7 +348,7 @@ fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
         match &item.kind {
             ItemKind::GlobalLet(global_let_stmt) => {
                 values.insert(
-                    global_let_stmt.name.ident,
+                    global_let_stmt.local_var.ident,
                     ValueDef::GlobalVar(GlobalVarDef::new(def_id)),
                 );
             }
@@ -542,12 +542,13 @@ impl<'a> CrateResolver<'a> {
         id: LocalDefId,
     ) -> Option<HirNode> {
         // Lower expression
+        let local_var = self.resolve_local_var(&let_stmt.local_var);
         let ty = self.resolve_ty(&let_stmt.ty)?;
         let expr = self.resolve_expr(&let_stmt.initializer)?;
 
         // We don't need to insert constants into a local scope since it is already part of the module ns.
         let hir_node = HirNode::new(
-            HirNodeKind::GlobalLet(GlobalLetStmt::new(let_stmt.name.ident, ty, expr)),
+            HirNodeKind::GlobalLet(GlobalLetStmt::new(let_stmt.local_var.id, ty, expr)),
             span,
             id,
         );
@@ -670,7 +671,10 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn insert_var(&mut self, var_name: InternedStr, id: LocalDefId) {
-        self.scopes.last_mut().unwrap().insert_var(var_name, id);
+        // Need to handle global let case where there is no scope (maybe introduce a global scope?)
+        if let Some(scope) = self.scopes.last_mut() {
+            scope.insert_var(var_name, id);
+        }
     }
 
     fn insert_self_fn(&mut self, fn_name: InternedStr, id: LocalDefId) -> Option<()> {

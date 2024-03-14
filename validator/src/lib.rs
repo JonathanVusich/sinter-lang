@@ -57,9 +57,9 @@ impl<'a> Validator<'a> {
                     self.use_stmts.insert(use_stmt.path.clone(), item.id);
                     // TODO: Add check to verify that the imported ty does not clash with an existing ty.
                 }
-                ItemKind::GlobalLet(global_let_stmt) => {
-                    self.global_lets.insert(global_let_stmt.name.ident, item.id)
-                }
+                ItemKind::GlobalLet(global_let_stmt) => self
+                    .global_lets
+                    .insert(global_let_stmt.local_var.ident, item.id),
                 ItemKind::Class(class_stmt) => {
                     self.tys.insert(class_stmt.name.ident, item.id);
                     self.validate_generic_params(&class_stmt.generic_params);

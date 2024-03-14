@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Single test" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="test tests::mutable_assignment -- --exact" />
+    <option name="command" value="test tests::f64_to_i64_error -- --exact" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$/tests" />
     <envs />
     <option name="emulateTerminal" value="false" />

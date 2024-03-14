@@ -143,7 +143,7 @@ mod tests {
         }
     }
 
-    macro_rules! single_crate {
+    macro_rules! single_file {
         ($name:ident) => {
             #[test]
             pub fn $name() {
@@ -187,23 +187,24 @@ mod tests {
         };
     }
 
-    single_crate!(basic_enum);
-    single_crate!(classes_and_vars);
-    single_crate!(enum_match);
-    single_crate!(enum_message);
-    single_crate!(generic_lists);
-    single_crate!(hello_world);
-    single_crate!(impl_trait);
-    single_crate!(infer_generics);
-    single_crate!(int_match);
-    single_crate!(main_fn);
-    single_crate!(mutable_assignment);
-    single_crate!(print_fn);
-    single_crate!(rectangle_class);
-    single_crate!(returning_error_union);
-    single_crate!(sum_fn);
-    single_crate!(trait_vs_generic);
-    single_crate!(use_stmts);
-    single_crate!(var_declarations);
-    single_crate!(vector_enum);
+    single_file!(basic_enum);
+    single_file!(classes_and_vars);
+    single_file!(enum_match);
+    single_file!(enum_message);
+    single_file!(generic_lists);
+    single_file!(hello_world);
+    single_file!(impl_trait);
+    single_file!(infer_generics);
+    single_file!(int_match);
+    single_file!(main_fn);
+    single_file!(mutable_assignment);
+    single_file!(print_fn);
+    single_file!(rectangle_class);
+    single_file!(returning_error_union);
+    single_file!(sum_fn);
+    single_file!(trait_vs_generic);
+    single_file!(use_stmts);
+    single_file!(var_declarations);
+    single_file!(vector_enum);
+    single_file!(f64_to_i64_error);
 }

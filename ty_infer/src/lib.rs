@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use std::collections::HashMap;
+use std::f32::NAN;
 use std::fmt::{Debug, Display, Formatter};
 use std::iter::zip;
 
@@ -179,8 +180,11 @@ impl<'a> CrateInference<'a> {
         let (constraints, ty) = match self.krate.node(node) {
             HirNodeKind::GlobalLet(global_let) => {
                 let ty = self.existing_ty(global_let.ty.to_def_id(self.krate.id));
-                let constraints = self.check(&global_let.initializer, ty.clone());
-                (constraints, ty)
+                self.ty_map.insert(&global_let.ty, ty.clone());
+                self.ty_map.insert(&global_let.local_var, ty.clone());
+
+                let constraints = self.check(&global_let.initializer, ty);
+                (constraints, Type::None)
             }
             HirNodeKind::Block(block) => {
                 // Create a new scope to track constraints on the return type.
@@ -199,12 +203,12 @@ impl<'a> CrateInference<'a> {
                     Stmt::Let(let_stmt) => {
                         // Create fresh type var for the var type. This will be either inferred or
                         // constrained to the assigned type.
-                        let ty_var = self.fresh_ty(&let_stmt.local_var);
                         let mut constraints = Constraints::default();
 
+                        let ty_var;
                         if let Some(ty) = let_stmt.ty {
                             let var_ty = self.existing_ty(ty.to_def_id(self.krate.id));
-                            constraints.push(Constraint::Equal(ty_var, var_ty.clone()));
+                            ty_var = var_ty.clone();
 
                             // TODO: Handle late assignment correctly.
                             let initializer = let_stmt.initializer.unwrap();
@@ -215,6 +219,7 @@ impl<'a> CrateInference<'a> {
                             return (constraints, Type::None);
                         }
 
+                        ty_var = self.fresh_ty(&let_stmt.local_var);
                         let (c, initializer_ty) = self.infer(&let_stmt.initializer.unwrap());
                         constraints.extend(c);
                         constraints.push(Constraint::Assignable(ty_var, initializer_ty));
@@ -565,8 +570,14 @@ impl<'a> CrateInference<'a> {
         rhs: Type,
         assignable_check: F,
     ) -> bool {
+        dbg!(&lhs);
+        dbg!(&rhs);
+
         let lhs = self.normalize_ty(lhs);
         let rhs = self.normalize_ty(rhs);
+
+        dbg!(&lhs);
+        dbg!(&rhs);
 
         // Check for type equality
         match (lhs, rhs) {
@@ -785,8 +796,6 @@ impl<'a> CrateInference<'a> {
             HirNodeKind::TraitImpl(_) => {}
         }
 
-        dbg!(node_id);
-        dbg!(&self.ty_map);
         let ty = self.ty_map.get(node_id).unwrap().clone();
         let ty = self.probe_ty(ty);
         self.ty_map.insert(node_id, ty);
@@ -1109,7 +1118,7 @@ impl Type {
             Type::I16 => 2,
             Type::I32 => 3,
             Type::I64 => 4,
-            _ => 0,
+            _ => usize::MAX,
         }
     }
 
@@ -1117,7 +1126,7 @@ impl Type {
         match self {
             Type::F32 => 1,
             Type::F64 => 2,
-            _ => 0,
+            _ => usize::MAX,
         }
     }
 }

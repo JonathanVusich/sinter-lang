@@ -79,15 +79,15 @@ pub enum HirNodeKind {
 
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct GlobalLetStmt {
-    pub ident: InternedStr,
+    pub local_var: LocalDefId,
     pub ty: LocalDefId,
     pub initializer: LocalDefId,
 }
 
 impl GlobalLetStmt {
-    pub fn new(ident: InternedStr, ty: LocalDefId, initializer: LocalDefId) -> Self {
+    pub fn new(local_var: LocalDefId, ty: LocalDefId, initializer: LocalDefId) -> Self {
         Self {
-            ident,
+            local_var,
             ty,
             initializer,
         }
