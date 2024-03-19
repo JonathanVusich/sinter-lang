@@ -1,5 +1,6 @@
 #![allow(unused)]
 
+use bumpalo::Bump;
 use std::collections::{HashMap, VecDeque};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
@@ -10,19 +11,19 @@ use arena::Arena;
 use itertools::Itertools;
 
 use ast::{
-    ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassDef, ClassStmt as AstClassStmt,
-    ClosureParam as AstClosureParam, DestructureExpr as AstDestructureExpr,
-    DestructureExprKind as AstDestructureExprKind, DestructureExprKind,
-    DestructurePattern as AstDestructurePattern, EnumDef, EnumMember as AstEnumMember,
-    EnumMemberDef, EnumStmt as AstEnumStmt, Expr as AstExpr, ExprKind as AstExprKind,
-    Field as AstField, FieldDef, Fields as AstFields, FnDef, FnSelfStmt as AstFnSelfStmt,
-    FnSelfStmt, FnSig as AstFnSig, FnStmt as AstFnStmt, GenericParams as AstGenericParams,
-    Generics as AstGenerics, GlobalLetStmt as AstGlobalLetStmt, GlobalVarDef, IdentType, Item,
-    ItemKind as AstItemKind, ItemKind, LocalVar as AstLocalVar, MatchArm as AstMatchArm,
-    MaybeFnDef, Module, ModuleNS, ModulePath, Params as AstParams, PathExpr as AstPathExpr,
-    PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent, Segment as AstSegment,
-    Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound, TraitDef,
-    TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
+    Args as AstArgs, ArrayExpr as AstArrayExpr, AstPass, Block as AstBlock, ClassDef,
+    ClassStmt as AstClassStmt, ClosureParam as AstClosureParam,
+    DestructureExpr as AstDestructureExpr, DestructureExprKind as AstDestructureExprKind,
+    DestructureExprKind, DestructurePattern as AstDestructurePattern, EnumDef,
+    EnumMember as AstEnumMember, EnumMemberDef, EnumStmt as AstEnumStmt, Expr as AstExpr,
+    ExprKind as AstExprKind, Field as AstField, FieldDef, Fields as AstFields, FnDef,
+    FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig, FnStmt as AstFnStmt,
+    GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt as AstGlobalLetStmt,
+    GlobalVarDef, IdentType, Item, ItemKind as AstItemKind, ItemKind, LocalVar as AstLocalVar,
+    MatchArm as AstMatchArm, MaybeFnDef, Module, ModuleNS, ModulePath, Params as AstParams,
+    PathExpr as AstPathExpr, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
+    Segment as AstSegment, Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
+    TraitDef, TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
     TyKind as AstTyKind, ValueDef,
 };
 use diagnostics::{Diagnostic, Diagnostics};
@@ -31,9 +32,9 @@ use hir::{
     ClosureExpr, ClosureParam, ClosureParams, DestructureExpr, DestructurePattern, EnumMember,
     EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts,
     ForStmt, GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap, HirNode,
-    HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, LocalVar, MatchArm, MatchExpr,
-    OrPattern, Param, Params, PathExpr, PathTy, Pattern, Primitive, Res, ReturnStmt, Segment, Stmt,
-    TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
+    HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, LocalVar, MatchArm, MatchArms,
+    MatchExpr, OrPattern, Param, Params, PathExpr, PathTy, Pattern, Primitive, Res, ReturnStmt,
+    Segment, Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use id::{CrateId, DefId, LocalDefId, ModuleId};
 use interner::{InternedStr, StringInterner};
@@ -44,7 +45,7 @@ use types::{LDefMap, StrMap};
 pub fn resolve<'a>(
     string_interner: &'a StringInterner,
     diagnostics: &'a mut Diagnostics,
-    arena: &'a Arena<HirNode<'a>>,
+    arena: &'a mut Bump,
     crates: &mut StrMap<Crate>,
 ) -> Option<HirMap<'a>> {
     let resolver = Resolver::new(string_interner, diagnostics, arena, crates);
@@ -188,7 +189,7 @@ type ResolveResult = Option<()>;
 struct Resolver<'a> {
     string_interner: &'a StringInterner,
     diagnostics: &'a mut Diagnostics,
-    node_arena: &'a Arena<HirNode<'a>>,
+    allocator: &'a Bump,
     krates: &'a mut StrMap<Crate>,
 }
 
@@ -196,13 +197,13 @@ impl<'a> Resolver<'a> {
     fn new(
         string_interner: &'a StringInterner,
         diagnostics: &'a mut Diagnostics,
-        node_arena: &'a Arena<HirNode<'a>>,
+        allocator: &'a Bump,
         krates: &'a mut StrMap<Crate>,
     ) -> Self {
         Self {
             string_interner,
             diagnostics,
-            node_arena,
+            allocator,
             krates,
         }
     }
@@ -215,7 +216,7 @@ impl<'a> Resolver<'a> {
 
         for krate in self.krates.values() {
             let crate_resolver =
-                CrateResolver::new(self.string_interner, self.node_arena, krate, self.krates);
+                CrateResolver::new(self.string_interner, self.allocator, krate, self.krates);
             hir_map.insert(crate_resolver.resolve()?);
         }
 
@@ -425,37 +426,37 @@ fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
 
 struct CrateResolver<'a> {
     string_interner: &'a StringInterner,
-    arena: &'a Arena<HirNode<'a>>,
+    allocator: &'a Bump,
     krate: &'a Crate,
     crates: &'a StrMap<Crate>,
     crate_lookup: CrateLookup<'a>,
     module: Option<&'a Module>,
-    items: Vec<&'a HirNode<'a>>,
-    nodes: LDefMap<&'a HirNode<'a>>,
+    nodes: LDefMap<HirNode<'a>>,
+    items: Vec<LocalDefId>,
     scopes: Vec<Scope>,
 }
 
 impl<'a> CrateResolver<'a> {
     fn new(
         string_interner: &'a StringInterner,
-        arena: &'a Arena<HirNode<'a>>,
+        arena: &'a Bump,
         krate: &Crate,
         crates: &mut StrMap<Crate>,
     ) -> Self {
-        let crate_lookup = krate
+        let crate_lookup = crates
             .values()
             .sorted_by_key(|krate| krate.crate_id)
             .collect_vec()
             .into();
         Self {
             string_interner,
-            arena,
+            allocator: arena,
             krate,
             crates,
             crate_lookup,
             module: Default::default(),
-            items: Default::default(),
             nodes: Default::default(),
+            items: Default::default(),
             scopes: Default::default(),
         }
     }
@@ -500,7 +501,6 @@ impl<'a> CrateResolver<'a> {
         match hir_node {
             Some(hir_node) => {
                 self.items.push(hir_node);
-                self.nodes.insert(id, hir_node);
             }
             _ => {}
         }
@@ -515,19 +515,19 @@ impl<'a> CrateResolver<'a> {
         let_stmt: &AstGlobalLetStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<&'a HirNode<'a>> {
+    ) -> Option<HirNode<'a>> {
         // Lower expression
         let local_var = self.resolve_local_var(&let_stmt.local_var);
         let ty = self.resolve_ty(&let_stmt.ty)?;
         let expr = self.resolve_expr(&let_stmt.initializer)?;
 
+        let global_let_stmt = self
+            .allocator
+            .alloc(GlobalLetStmt::new(local_var, ty, expr));
+
         // We don't need to insert constants into a local scope since it is already part of the module ns.
-        let hir_node = HirNode::new(
-            HirNodeKind::GlobalLet(GlobalLetStmt::new(local_var, ty, expr)),
-            span,
-            id,
-        );
-        Some(self.arena.alloc(hir_node))
+        let hir_node = HirNode::new(HirNodeKind::GlobalLet(global_let_stmt), span, id);
+        Some(hir_node)
     }
 
     fn resolve_class_stmt(
@@ -535,7 +535,7 @@ impl<'a> CrateResolver<'a> {
         class_stmt: &AstClassStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<HirNode> {
+    ) -> Option<HirNode<'a>> {
         self.scopes.push(Scope::Class {
             id: id.to_def_id(self.krate.crate_id),
             fields: Default::default(),
@@ -548,14 +548,16 @@ impl<'a> CrateResolver<'a> {
         let fields = self.resolve_fields(&class_stmt.fields)?;
         let fn_stmts = self.resolve_self_fn_stmts(&class_stmt.self_fns)?;
 
-        let hir_class = ClassStmt::new(
+        let hir_class = self.allocator.alloc(ClassStmt::new(
             class_stmt.name,
             class_stmt.class_type,
             generic_params,
             fields,
             fn_stmts,
-        );
-        Some(HirNode::new(HirNodeKind::Class(hir_class), span, id))
+        ));
+
+        let hir_node = HirNode::new(HirNodeKind::Class(hir_class), span, id);
+        Some(hir_node)
     }
 
     fn maybe_resolve_generics(
@@ -586,16 +588,16 @@ impl<'a> CrateResolver<'a> {
 
             let ty = self.resolve_ty(&param.ty)?;
 
-            self.insert_node(
+            let hir_param = self
+                .allocator
+                .alloc(Param::new(param.name, ty, param.mutability));
+            self.items.push(HirNode::new(
+                HirNodeKind::Param(hir_param),
+                param.span,
                 param.id,
-                HirNode::new(
-                    HirNodeKind::Param(Param::new(param.name, ty, param.mutability)),
-                    param.span,
-                    param.id,
-                ),
-            );
+            ));
 
-            hir_params.insert(param.name.ident, param.id);
+            hir_params.insert(param.name.ident, hir_param);
         }
         Some(Params::from(hir_params))
     }
@@ -604,7 +606,7 @@ impl<'a> CrateResolver<'a> {
         &mut self,
         generic_params: &AstGenericParams,
     ) -> Option<GenericParams> {
-        let mut generics = StrMap::default();
+        let mut generics = Vec::with_capacity(generic_params.len());
         for param in generic_params {
             self.insert_generic_param(param.name.ident, param.id)?;
 
@@ -617,22 +619,24 @@ impl<'a> CrateResolver<'a> {
                 }) => Some(self.resolve_trait_bound(trait_bound, *span, *id)?),
                 _ => unreachable!(),
             };
+
+            let generic_param = self
+                .allocator
+                .alloc(GenericParam::new(param.name, trait_bound));
+            let generic_ty = self.allocator.alloc(Ty::GenericParam(generic_param));
             /*
                 We always want to insert the node, even if it clashes with another generic param.
                 Otherwise we can't look it up later when handling errors.
             */
-            self.insert_node(
+            self.insert_node(HirNode::new(
+                HirNodeKind::Ty(generic_ty),
+                param.span,
                 param.id,
-                HirNode::new(
-                    HirNodeKind::Ty(Ty::GenericParam(GenericParam::new(param.name, trait_bound))),
-                    param.span,
-                    param.id,
-                ),
-            );
+            ));
 
-            generics.insert(param.name.ident, param.id);
+            generics.push(generic_param);
         }
-        Some(GenericParams::from(generics))
+        Some(self.allocator.alloc_slice_clone(generics))
     }
 
     fn insert_field(&mut self, field_name: InternedStr, id: LocalDefId) -> Option<()> {
@@ -708,13 +712,6 @@ impl<'a> CrateResolver<'a> {
             .find_map(|scope| scope.contains_enum_member(ident))
     }
 
-    fn insert_node(&mut self, id: LocalDefId, hir_node: HirNode) -> &'a HirNode<'a> {
-        let node = self.arena.alloc(hir_node);
-        let index: usize = id.into();
-        assert!(self.nodes.insert(id, node).is_none());
-        node
-    }
-
     fn find_var(&mut self, ident: InternedStr) -> Option<LocalDefId> {
         self.scopes
             .iter()
@@ -755,7 +752,7 @@ impl<'a> CrateResolver<'a> {
     }
 
     fn resolve_fields(&mut self, ast_fields: &AstFields) -> Option<Fields> {
-        let mut fields = StrMap::default();
+        let mut fields = Vec::<&'a Field<'a>>::with_capacity(ast_fields.len());
         for field in ast_fields {
             let AstField {
                 name: ident,
@@ -771,17 +768,12 @@ impl<'a> CrateResolver<'a> {
                 We always want to insert the node, even if it clashes with another field.
                 Otherwise we can't look it up later when handling errors.
             */
-            self.insert_node(
-                *id,
-                HirNode::new(
-                    HirNodeKind::Field(Field::new(*ident, resolved_ty)),
-                    *span,
-                    *id,
-                ),
-            );
-            fields.insert(ident.ident, *id);
+            let field = self.allocator.alloc(Field::new(*ident, resolved_ty));
+            self.insert_node(HirNode::new(HirNodeKind::Field(field), *span, *id));
+
+            fields.push(field);
         }
-        Some(Fields::from(fields))
+        Some(self.allocator.alloc_slice_copy(&*fields))
     }
 
     fn resolve_enum_stmt(
@@ -789,7 +781,7 @@ impl<'a> CrateResolver<'a> {
         enum_stmt: &AstEnumStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<HirNode> {
+    ) -> Option<&'a EnumStmt<'a>> {
         self.scopes.push(Scope::Enum {
             id: id.to_def_id(self.krate.crate_id),
             members: Default::default(),
@@ -803,8 +795,14 @@ impl<'a> CrateResolver<'a> {
 
         self.scopes.pop();
 
-        let hir_enum = EnumStmt::new(enum_stmt.name, generic_params, enum_members, member_fns);
-        Some(HirNode::new(HirNodeKind::Enum(hir_enum), span, id))
+        let hir_enum = self.allocator.alloc(EnumStmt::new(
+            enum_stmt.name,
+            generic_params,
+            enum_members,
+            member_fns,
+        ));
+        self.insert_node(HirNode::new(HirNodeKind::Enum(hir_enum), span, id));
+        Some(hir_enum)
     }
 
     fn resolve_enum_members(
@@ -844,7 +842,7 @@ impl<'a> CrateResolver<'a> {
         trait_stmt: &AstTraitStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<HirNode> {
+    ) -> Option<&'a TraitStmt<'a>> {
         self.scopes.push(Scope::Trait {
             id: id.to_def_id(self.krate.crate_id),
             self_fns: Default::default(),
@@ -856,8 +854,12 @@ impl<'a> CrateResolver<'a> {
 
         self.scopes.pop();
 
-        let hir_trait = TraitStmt::new(trait_stmt.name, generic_params, member_fns);
-        Some(HirNode::new(HirNodeKind::Trait(hir_trait), span, id))
+        let hir_trait =
+            self.allocator
+                .alloc(TraitStmt::new(trait_stmt.name, generic_params, member_fns));
+        let node = HirNode::new(HirNodeKind::Trait(hir_trait), span, id);
+        self.items.push(node);
+        Some(hir_trait)
     }
 
     fn resolve_trait_impl_stmt(
@@ -865,7 +867,7 @@ impl<'a> CrateResolver<'a> {
         trait_stmt: &AstTraitImplStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<HirNode> {
+    ) -> Option<&'a TraitImplStmt<'a>> {
         let target_ty = self.resolve_qualified_ident(&trait_stmt.target_ty)?;
         let trait_to_impl = self.resolve_path_ty(&trait_stmt.trait_to_impl)?;
 
@@ -875,12 +877,15 @@ impl<'a> CrateResolver<'a> {
         });
 
         let self_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
-
-        Some(HirNode::new(
-            HirNodeKind::TraitImpl(TraitImplStmt::new(trait_to_impl, target_ty, self_fns)),
+        let trait_impl_stmt =
+            self.allocator
+                .alloc(TraitImplStmt::new(trait_to_impl, target_ty, self_fns));
+        self.items.push(HirNode::new(
+            HirNodeKind::TraitImpl(trait_impl_stmt),
             span,
             id,
-        ))
+        ));
+        Some(trait_impl_stmt)
     }
 
     fn resolve_fn_stmt(
@@ -888,7 +893,7 @@ impl<'a> CrateResolver<'a> {
         fn_stmt: &AstFnStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<HirNode> {
+    ) -> Option<HirNode<'a>> {
         self.scopes.push(Scope::Fn {
             params: Default::default(),
             generics: Default::default(),
@@ -908,10 +913,7 @@ impl<'a> CrateResolver<'a> {
         ))
     }
 
-    fn resolve_self_fn_stmt(
-        &mut self,
-        fn_stmt: &AstFnSelfStmt,
-    ) -> Option<(InternedStr, LocalDefId)> {
+    fn resolve_self_fn_stmt(&mut self, fn_stmt: &AstFnSelfStmt) -> Option<&'a FnStmt<'a>> {
         let AstFnSelfStmt {
             sig,
             body,
@@ -948,12 +950,12 @@ impl<'a> CrateResolver<'a> {
         }
 
         // This is safe because we have already checked to ensure that there are no name collisions.
-        let mut fn_stmts = StrMap::default();
+        let mut fn_stmts = Vec::<&'a FnStmt<'a>>::with_capacity(stmts.len());
         for fn_stmt in stmts {
-            let (name, stmt) = self.resolve_self_fn_stmt(fn_stmt)?;
-            fn_stmts.insert(name, stmt);
+            let fn_stmt = self.resolve_self_fn_stmt(fn_stmt)?;
+            fn_stmts.push(fn_stmt);
         }
-        Some(FnStmts::from(fn_stmts))
+        Some(self.allocator.alloc_slice_copy(&*fn_stmts))
     }
 
     fn resolve_fn_sig(&mut self, fn_sig: &AstFnSig) -> Option<FnSig> {
@@ -968,7 +970,7 @@ impl<'a> CrateResolver<'a> {
     fn maybe_resolve_expr(
         &mut self,
         expr: &Option<Box<AstExpr>>,
-    ) -> Result<Option<&'a HirNode<'a>>, ()> {
+    ) -> Result<Option<&'a Expr<'a>>, ()> {
         match expr {
             None => Ok(None),
             Some(expr) => match self.resolve_expr(expr) {
@@ -978,7 +980,7 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve_expr(&mut self, expr: &AstExpr) -> Option<&'a HirNode<'a>> {
+    fn resolve_expr(&mut self, expr: &AstExpr) -> Option<&'a Expr<'a>> {
         let span = expr.span;
         let id = expr.id;
         let resolved_expr = match &expr.kind {
@@ -1000,14 +1002,10 @@ impl<'a> CrateResolver<'a> {
                 }
             },
             AstExprKind::Call(call) => {
-                let args = call
-                    .args
-                    .into_iter()
-                    .map(|expr| self.resolve_expr(expr))
-                    .collect::<Option<Vec<_>>>()?;
+                let args = self.resolve_args(&call.args)?;
                 let target = self.resolve_expr(&call.target)?;
 
-                Expr::Call(CallExpr::new(target, Args::from(args)))
+                Expr::Call(CallExpr::new(target, args))
             }
             AstExprKind::Infix(infix) => {
                 let lhs = self.resolve_expr(&infix.lhs)?;
@@ -1029,12 +1027,7 @@ impl<'a> CrateResolver<'a> {
             AstExprKind::None => Expr::None,
             AstExprKind::Match(match_expr) => {
                 let source = self.resolve_expr(&match_expr.source)?;
-                let arms = match_expr
-                    .arms
-                    .iter()
-                    .map(|arm| self.resolve_match_arm(arm))
-                    .collect::<Option<Vec<_>>>()?;
-
+                let arms = self.resolve_match_arms(&match_expr.arms)?;
                 Expr::Match(MatchExpr::new(source, arms))
             }
             AstExprKind::Closure(closure) => {
@@ -1069,19 +1062,30 @@ impl<'a> CrateResolver<'a> {
             AstExprKind::Break => Expr::Break,
             AstExprKind::Continue => Expr::Continue,
         };
-
-        Some(self.insert_node(id, HirNode::new(HirNodeKind::Expr(resolved_expr), span, id)))
+        let resolved_expr = self.allocator.alloc(resolved_expr);
+        self.insert_node(HirNode::new(HirNodeKind::Expr(resolved_expr), span, id));
+        Some(resolved_expr)
     }
 
-    fn resolve_local_var(&mut self, local_var: &AstLocalVar) -> &'a HirNode<'a> {
+    fn resolve_args(&mut self, args: &AstArgs) -> Option<Args> {
+        let mut hir_args = Vec::<&'a Expr<'a>>::with_capacity(args.len());
+        for arg in args {
+            hir_args.push(self.resolve_expr(arg)?);
+        }
+        Some(self.allocator.alloc_slice_copy(&*hir_args))
+    }
+
+    fn resolve_local_var(&mut self, local_var: &AstLocalVar) -> LocalVar {
         self.insert_var(local_var.ident, local_var.id);
 
-        let node = HirNode::new(
-            HirNodeKind::LocalVar(LocalVar::new(local_var.ident)),
+        let hir_local_var = LocalVar::new(local_var.ident);
+
+        self.insert_node(HirNode::new(
+            HirNodeKind::LocalVar(hir_local_var),
             local_var.span,
             local_var.id,
-        );
-        self.insert_node(local_var.id, node)
+        ));
+        Some(hir_local_var)
     }
 
     /// This method can resolve qualified idents as well.
@@ -1311,7 +1315,7 @@ impl<'a> CrateResolver<'a> {
     fn resolve_destructure_expr(
         &mut self,
         destructure_expr: &AstDestructureExpr,
-    ) -> Option<&'a HirNode<'a>> {
+    ) -> Option<DestructureExpr<'a>> {
         let id = destructure_expr.id;
         let span = destructure_expr.span;
         let expr = match &destructure_expr.kind {
@@ -1331,14 +1335,11 @@ impl<'a> CrateResolver<'a> {
             DestructureExprKind::String(string) => DestructureExpr::String(*string),
             DestructureExprKind::None => DestructureExpr::None,
         };
-
-        Some(self.insert_node(
-            id,
-            HirNode::new(HirNodeKind::DestructureExpr(expr), span, id),
-        ))
+        self.insert_node(HirNode::new(HirNodeKind::DestructureExpr(expr), span, id));
+        Some(expr)
     }
 
-    fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Option<Option<&'a HirNode<'a>>> {
+    fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Option<Option<&'a Ty<'a>>> {
         if let Some(ty) = ty {
             self.resolve_ty(ty).map(Some)
         } else {
@@ -1346,7 +1347,7 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve_ty(&mut self, ty: &AstTy) -> Option<&'a HirNode<'a>> {
+    fn resolve_ty(&mut self, ty: &AstTy) -> Option<&'a Ty<'a>> {
         let span = ty.span;
         let id = ty.id;
         let hir_ty = match &ty.kind {
@@ -1415,7 +1416,7 @@ impl<'a> CrateResolver<'a> {
         trait_bound: &AstTraitBound,
         span: Span,
         id: LocalDefId,
-    ) -> Option<&'a HirNode<'a>> {
+    ) -> Option<TraitBound<'a>> {
         let mut hir_bound = Vec::with_capacity(trait_bound.len());
         for ty in trait_bound {
             let resolved_ty = self.resolve_path_ty(ty)?;
@@ -1537,7 +1538,15 @@ impl<'a> CrateResolver<'a> {
         ))
     }
 
-    fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Option<MatchArm> {
+    fn resolve_match_arms(&mut self, arms: &[AstMatchArm]) -> Option<MatchArms<'a>> {
+        let mut hir_arms = Vec::<MatchArm<'a>>::with_capacity(arms.len());
+        for arm in arms {
+            hir_arms.push(self.resolve_match_arm(arm)?);
+        }
+        Some(self.allocator.alloc_slice_copy(&*hir_arms))
+    }
+
+    fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Option<MatchArm<'a>> {
         self.scopes.push(Scope::MatchArm {
             vars: Default::default(),
         });
@@ -1670,5 +1679,9 @@ impl<'a> CrateResolver<'a> {
             .map(|param| (param.ident.ident, ClosureParam::new(param.ident)))
             .collect();
         Some(ClosureParams::from(params))
+    }
+
+    fn insert_node(&mut self, node: HirNode<'a>) {
+        assert!(self.nodes.insert(node.id, node).is_none());
     }
 }

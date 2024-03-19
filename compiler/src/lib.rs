@@ -1,8 +1,6 @@
 #![allow(unused)]
 
-mod arenas;
-
-use std::any::TypeId;
+use bumpalo::Bump;
 use std::collections::{HashSet, VecDeque};
 use std::ffi::{OsStr, OsString};
 use std::fmt::{Debug, Display};
@@ -12,7 +10,6 @@ use itertools::Itertools;
 use serde::Deserializer;
 use walkdir::{DirEntry, WalkDir};
 
-use crate::arenas::Arenas;
 use ast::ModulePath;
 use diagnostics::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
 use hir::HirMap;
@@ -23,17 +20,22 @@ use parser::parse;
 use resolver::resolve;
 use source::{SourceCode, SourceMap};
 use tokenizer::{tokenize, tokenize_file, TokenizedSource};
-use ty_infer::{CrateInference, TypeMap};
+use ty_infer::CrateInference;
+use typed_hir::TypedHirMap;
 use types::StrMap;
 use validator::validate;
+
+use crate::arenas::Arenas;
+
+mod arenas;
 
 #[derive(Default)]
 pub struct Compiler<'a> {
     string_interner: StringInterner,
     diagnostics: Diagnostics,
+    allocator: Bump,
     source_map: SourceMap,
     id_generator: IdGenerator,
-    arenas: Arenas<'a>,
 }
 
 pub enum Application<'a> {
@@ -240,20 +242,25 @@ impl<'a> Compiler<'a> {
     }
 
     pub fn resolve_crates(&mut self, mut crates: StrMap<Crate>) -> Result<HirMap, Diagnostics> {
-        resolve(&self.string_interner, &mut self.diagnostics, &mut crates)
-            .ok_or(self.diagnostics.clone())
+        resolve(
+            &self.string_interner,
+            &mut self.diagnostics,
+            &mut self.allocator,
+            &mut crates,
+        )
+        .ok_or(self.diagnostics.clone())
     }
 
-    pub fn infer_types(&mut self, hir_map: HirMap) -> Result<StrMap<TypeMap>, Diagnostics> {
-        let mut ty_map = StrMap::default();
+    pub fn infer_types(&mut self, hir_map: HirMap) -> Result<TypedHirMap, Diagnostics> {
+        let mut typed_hir = TypedHirMap::default();
         for krate in hir_map.krates() {
-            if let Some(inferred_tys) =
-                CrateInference::new(&mut self.diagnostics, krate, &hir_map).infer_tys()
-            {
-                ty_map.insert(krate.name, inferred_tys);
+            let crate_inference =
+                CrateInference::new(&mut self.diagnostics, &mut self.allocator, krate, &hir_map);
+            if let Some(typed_crate) = crate_inference.infer_tys() {
+                typed_hir.insert(typed_crate);
             }
         }
-        self.check_errors(ty_map)
+        self.check_errors(typed_hir)
     }
 
     fn check_errors<T>(&mut self, val: T) -> Result<T, Diagnostics> {

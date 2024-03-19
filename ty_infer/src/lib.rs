@@ -1,21 +1,21 @@
 #![allow(unused)]
 
-use std::collections::HashMap;
-use std::fmt::{Debug, Display, Formatter};
+use bumpalo::Bump;
+use std::fmt::{Debug, Display};
 use std::iter::zip;
 
-use arena::Arena;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
+use arena::Arena;
 use ast::{ClassDef, FnDef, GlobalVarDef, InfixOp, UnaryOp, ValueDef};
 use diagnostics::{Diagnostic, Diagnostics};
 use hir::{
-    ArrayExpr, Expr, FnStmts, HirCrate, HirMap, HirNode, HirNodeKind, LocalDef, Primitive, Res,
-    Stmt, Ty as HirTy,
+    ArrayExpr, Expr, FnStmts, HirCrate, HirMap, HirNodeKind, LocalDef, Primitive, Res, Stmt,
 };
 use id::{DefId, LocalDefId};
 use macros::named_slice;
+use typed_hir::TypedCrate;
 use types::LDefMap;
 
 use crate::unification::{TyVar, UnificationTable};
@@ -24,63 +24,22 @@ mod trait_solver;
 mod unification;
 
 #[derive(Debug)]
-pub enum TypeErrKind {
-    NotEqual(Type, Type),
-    NotAssignable(Type, Type),
-    NotArray(Type),
-    NotCallable(Type),
-    InvalidArgs(Type, Vec<Type>),
-    DuplicateTraitImpl,
-    UnificationError,
-    CyclicType,
-}
-
-impl Display for TypeErrKind {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        // TODO: Implement pretty printing
-        Debug::fmt(self, f)
-    }
-}
-
-#[derive(Serialize, Debug)]
-pub struct TypeMap {
-    tys: Box<[Option<Type>]>,
-}
-
-impl TypeMap {
-    fn new(allocated_size: usize) -> Self {
-        Self {
-            tys: vec![None; allocated_size].into_boxed_slice(),
-        }
-    }
-
-    fn insert(&mut self, node: &LocalDefId, ty: Type) {
-        self.tys[usize::from(*node)] = Some(ty);
-    }
-
-    fn get(&self, node: &LocalDefId) -> Option<&Type> {
-        self.tys[usize::from(*node)].as_ref()
-    }
-}
-
-#[derive(Debug)]
 pub struct CrateInference<'a> {
     diagnostics: &'a mut Diagnostics,
     hir_map: &'a HirMap<'a>,
     krate: &'a HirCrate<'a>,
-    arena: &'a Arena<Ty<'a>>,
+    arena: &'a mut Bump,
 
-    unify_table: UnificationTable,
-    ty_map: TypeMap,
+    unify_table: UnificationTable<'a>,
 
-    generic_tys: Vec<LDefMap<Type>>,
-    ret_tys: Vec<Type>,
+    generic_tys: Vec<LDefMap<Ty<'a>>>,
+    ret_tys: Vec<Ty<'a>>,
 }
 
 impl<'a> CrateInference<'a> {
     pub fn new(
         diagnostics: &'a mut Diagnostics,
-        arena: &'a Arena<Ty<'a>>,
+        arena: &'a mut Bump,
         krate: &'a HirCrate,
         hir_map: &'a HirMap,
     ) -> Self {
@@ -90,8 +49,6 @@ impl<'a> CrateInference<'a> {
             hir_map,
             krate,
             unify_table: Default::default(),
-            ty_map: TypeMap::new(krate.nodes.len()),
-
             generic_tys: Default::default(),
             ret_tys: Vec::default(),
         }
@@ -99,7 +56,7 @@ impl<'a> CrateInference<'a> {
 
     // TODO: Returned interned ty representation to reduce memory overhead.
     // TODO: Record existing types for class fields and other nodes whose types are known statically.
-    pub fn infer_tys(mut self) -> Option<TypeMap> {
+    pub fn infer_tys(mut self) -> Option<TypedCrate<'a>> {
         for item in self.krate.items.iter() {
             let node = self.krate.node(item);
             match node {
@@ -583,16 +540,16 @@ impl<'a> CrateInference<'a> {
             (
                 Type::Infer(unknown)
                 | Type::GenericParam(GenericParam {
-                    ty_var: unknown, ..
-                }),
+                                         ty_var: unknown, ..
+                                     }),
                 ty,
             )
             | (
                 ty,
                 Type::Infer(unknown)
                 | Type::GenericParam(GenericParam {
-                    ty_var: unknown, ..
-                }),
+                                         ty_var: unknown, ..
+                                     }),
             ) => self.unify_var_ty(unknown, ty, assignable_check),
             // If both types are known, then we need to check for type compatibility.
             (lhs, rhs) => {
@@ -965,8 +922,6 @@ pub struct Class<'a> {
     generics: LDefMap<Type>,
 }
 
-pub struct ClassInner {}
-
 impl Class {
     pub fn new(definition: DefId, fields: Types, generics: LDefMap<Type>) -> Self {
         Self {
@@ -1019,6 +974,8 @@ impl<'a> FnSig<'a> {
     }
 }
 
+/// This enum supports recursive types whose inner types are not yet known.
+/// Allows full type definitions to be built incrementally from partial information.
 #[derive(Clone, PartialEq, Debug, Serialize)]
 pub struct Ty<'a> {
     ty_kind: TyKind<'a>,
@@ -1027,7 +984,76 @@ pub struct Ty<'a> {
 
 impl<'a> Ty<'a> {
     fn assignable<'b>(&self, rhs: &'b Ty) -> bool {
-        todo!()
+        match &self.ty_kind {
+            TyKind::Array(lhs) => {
+                if let TyKind::Array(rhs) = &rhs.ty_kind {
+                    return lhs.ty.assignable(&rhs.ty);
+                }
+                false
+            }
+            TyKind::Class(lhs) => {
+                if let TyKind::Class(rhs) = &rhs.ty_kind {
+                    return lhs.definition == rhs.definition
+                        && zip(lhs.generics.values(), rhs.generics.values())
+                        .all(|(lhs, rhs)| lhs.assignable(rhs));
+                }
+                false
+            }
+            TyKind::TraitBound(trait_bound) => {
+                return trait_bound.bounds.iter().all(|bound| bound.assignable(rhs));
+            }
+            TyKind::GenericParam(param) => {
+                if let Some(trait_bound) = &param.trait_bound {
+                    return trait_bound.bounds.iter().all(|bound| bound.assignable(rhs));
+                }
+                true
+            }
+            TyKind::Fn(lhs_sig) => match &rhs.ty_kind {
+                TyKind::Fn(rhs_sig) => lhs_sig == rhs_sig,
+                _ => false,
+            },
+            TyKind::U8 => rhs.uint_width() <= 1,
+            TyKind::U16 => rhs.uint_width() <= 2,
+            TyKind::U32 => rhs.uint_width() <= 3,
+            TyKind::U64 => rhs.uint_width() <= 4,
+            TyKind::I8 => rhs.int_width() <= 1,
+            TyKind::I16 => rhs.int_width() <= 2,
+            TyKind::I32 => rhs.int_width() <= 3,
+            TyKind::I64 => rhs.int_width() <= 4,
+            TyKind::F32 => rhs.floating_width() <= 1,
+            TyKind::F64 => rhs.floating_width() <= 2,
+            TyKind::Str => &rhs.ty_kind == &TyKind::Str,
+            TyKind::Boolean => &rhs.ty_kind == &TyKind::Boolean,
+            TyKind::None => &rhs.ty_kind == &TyKind::None,
+            TyKind::Infer(_) => false,
+        }
+    }
+    fn uint_width(&self) -> usize {
+        match &self.ty_kind {
+            TyKind::U8 => 1,
+            TyKind::U16 => 2,
+            TyKind::U32 => 3,
+            TyKind::U64 => 4,
+            _ => 0,
+        }
+    }
+
+    fn int_width(&self) -> usize {
+        match &self.ty_kind {
+            TyKind::I8 => 1,
+            TyKind::I16 => 2,
+            TyKind::I32 => 3,
+            TyKind::I64 => 4,
+            _ => usize::MAX,
+        }
+    }
+
+    fn floating_width(&self) -> usize {
+        match &self.ty_kind {
+            TyKind::F32 => 1,
+            TyKind::F64 => 2,
+            _ => usize::MAX,
+        }
     }
 }
 
@@ -1052,105 +1078,4 @@ pub enum TyKind<'a> {
     Boolean,
     None,
     Infer(TyVar),
-}
-
-/// This enum supports recursive types whose inner types are not yet known.
-/// Allows full type definitions to be built incrementally from partial information.
-#[derive(Clone, PartialEq, Debug, Serialize)]
-pub enum Type {
-    Array(Array),
-    Class(Class),
-    Fn(FnSig),
-    GenericParam(GenericParam),
-    TraitBound(TraitBound),
-    U8,
-    U16,
-    U32,
-    U64,
-    I8,
-    I16,
-    I32,
-    I64,
-    F32,
-    F64,
-    Str,
-    Boolean,
-    None,
-    Infer(TyVar),
-}
-
-impl Type {
-    /// Whether or not the right hand type is a valid type that can be assigned to this type.
-    fn assignable(&self, rhs: &Type) -> bool {
-        match self {
-            Type::Array(lhs) => {
-                if let Type::Array(rhs) = rhs {
-                    return lhs.ty.assignable(&rhs.ty);
-                }
-                false
-            }
-            Type::Class(lhs) => {
-                if let Type::Class(rhs) = rhs {
-                    return lhs.definition == rhs.definition
-                        && zip(lhs.generics.values(), rhs.generics.values())
-                            .all(|(lhs, rhs)| lhs.assignable(rhs));
-                }
-                false
-            }
-            Type::TraitBound(trait_bound) => {
-                return trait_bound.bounds.iter().all(|bound| bound.assignable(rhs));
-            }
-            Type::GenericParam(param) => {
-                if let Some(trait_bound) = &param.trait_bound {
-                    return trait_bound.bounds.iter().all(|bound| bound.assignable(rhs));
-                }
-                true
-            }
-            Type::Fn(lhs_sig) => match rhs {
-                Type::Fn(rhs_sig) => lhs_sig == rhs_sig,
-                _ => false,
-            },
-            Type::U8 => rhs.uint_width() <= 1,
-            Type::U16 => rhs.uint_width() <= 2,
-            Type::U32 => rhs.uint_width() <= 3,
-            Type::U64 => rhs.uint_width() <= 4,
-            Type::I8 => rhs.int_width() <= 1,
-            Type::I16 => rhs.int_width() <= 2,
-            Type::I32 => rhs.int_width() <= 3,
-            Type::I64 => rhs.int_width() <= 4,
-            Type::F32 => rhs.floating_width() <= 1,
-            Type::F64 => rhs.floating_width() <= 2,
-            Type::Str => rhs == &Type::Str,
-            Type::Boolean => rhs == &Type::Boolean,
-            Type::None => rhs == &Type::None,
-            Type::Infer(_) => false,
-        }
-    }
-    fn uint_width(&self) -> usize {
-        match self {
-            Type::U8 => 1,
-            Type::U16 => 2,
-            Type::U32 => 3,
-            Type::U64 => 4,
-            _ => 0,
-        }
-    }
-
-    fn int_width(&self) -> usize {
-        match self {
-            Type::I8 => 1,
-            Type::I16 => 2,
-            Type::I32 => 3,
-            Type::I64 => 4,
-            _ => usize::MAX,
-        }
-    }
-
-    fn floating_width(&self) -> usize {
-        match self {
-            Type::F32 => 1,
-            Type::F64 => 2,
-            _ => usize::MAX,
-        }
-    }
 }

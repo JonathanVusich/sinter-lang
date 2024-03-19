@@ -8,8 +8,10 @@ itertools = "0.12.1"
 
 arena = { path = "../arena" }
 ast = { path = "../ast" }
+bumpalo = "3.15.4"
 diagnostics = { path = "../diagnostics" }
 hir = { path = "../hir" }
+typed_hir = { path = "../typed_hir" }
 id = { path = "../id" }
 interner = { path = "../interner" }
 parser = { path = "../parser" }

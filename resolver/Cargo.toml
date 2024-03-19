@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 arena = { path = "../arena" }
 ast = { path = "../ast" }
+bumpalo = "3.15.4"
 diagnostics = { path = "../diagnostics" }
 hir = { path = "../hir" }
 id = { path = "../id" }

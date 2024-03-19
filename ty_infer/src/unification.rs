@@ -1,18 +1,18 @@
-use crate::Type;
+use crate::Ty;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug)]
-pub(crate) struct UnificationTable {
-    table: Vec<Entry>,
+pub(crate) struct UnificationTable<'a> {
+    table: Vec<Entry<'a>>,
 }
 
 #[derive(Debug)]
-struct Entry {
+struct Entry<'a> {
     parent: TyVar,
-    value: Option<Type>,
+    value: Option<Ty<'a>>,
 }
 
-impl Entry {
+impl<'a> Entry<'a> {
     pub fn new(parent: TyVar) -> Self {
         Self {
             parent,
@@ -21,7 +21,7 @@ impl Entry {
     }
 }
 
-impl UnificationTable {
+impl<'a> UnificationTable<'a> {
     pub(crate) fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> bool {
         let lhs = self.get_root_key(lhs);
         let rhs = self.get_root_key(rhs);
@@ -29,10 +29,10 @@ impl UnificationTable {
         lhs == rhs
     }
 
-    pub(crate) fn unify_var_ty<F: Fn(&Type, &Type) -> bool>(
+    pub(crate) fn unify_var_ty<'b, F: Fn(&Ty<'b>, &Ty<'b>) -> bool>(
         &mut self,
         var: TyVar,
-        ty: Type,
+        ty: Ty<'b>,
         assignable_check: F,
     ) -> bool {
         let root = self.get_root_key(var);
@@ -46,7 +46,7 @@ impl UnificationTable {
         }
     }
 
-    pub(crate) fn probe(&mut self, key: TyVar) -> Option<Type> {
+    pub(crate) fn probe(&mut self, key: TyVar) -> Option<Ty<'a>> {
         let root_key = self.get_root_key(key);
         self.entry(root_key).value.clone()
     }

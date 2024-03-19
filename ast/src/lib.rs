@@ -373,7 +373,7 @@ impl EnumMemberDef {
 pub enum ValueDef {
     GlobalVar(GlobalVarDef),
     Class(ClassDef),
-    Enum(EnumDef),
+    Enum(),
     EnumMember(EnumMemberDef),
     Trait(TraitDef),
     Fn(FnDef),
