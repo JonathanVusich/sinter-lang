@@ -20,20 +20,20 @@ use ast::{
     FnSelfStmt as AstFnSelfStmt, FnSelfStmt, FnSig as AstFnSig, FnStmt as AstFnStmt,
     GenericParams as AstGenericParams, Generics as AstGenerics, GlobalLetStmt as AstGlobalLetStmt,
     GlobalVarDef, IdentType, Item, ItemKind as AstItemKind, ItemKind, LocalVar as AstLocalVar,
-    MatchArm as AstMatchArm, MaybeFnDef, Module, ModuleNS, ModulePath, Params as AstParams,
-    PathExpr as AstPathExpr, PathTy as AstPathTy, Pattern as AstPattern, QualifiedIdent,
-    Segment as AstSegment, Stmt as AstStmt, StmtKind as AstStmtKind, TraitBound as AstTraitBound,
-    TraitDef, TraitImplStmt as AstTraitImplStmt, TraitStmt as AstTraitStmt, Ty as AstTy, TyKind,
-    TyKind as AstTyKind, ValueDef,
+    MatchArm as AstMatchArm, MaybeFnDef, Module, ModuleNS, ModulePath as AstModulePath,
+    Params as AstParams, PathExpr as AstPathExpr, PathTy as AstPathTy, Pattern as AstPattern,
+    QualifiedIdent, Segment as AstSegment, Stmt as AstStmt, StmtKind as AstStmtKind,
+    TraitBound as AstTraitBound, TraitDef, TraitImplStmt as AstTraitImplStmt,
+    TraitStmt as AstTraitStmt, Ty as AstTy, TyKind, TyKind as AstTyKind, ValueDef,
 };
 use diagnostics::{Diagnostic, Diagnostics};
 use hir::{
-    AnonParams, Args, Array, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure,
-    ClosureExpr, ClosureParam, ClosureParams, DestructureExpr, DestructurePattern, EnumMember,
-    EnumMembers, EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts,
-    ForStmt, GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap, HirNode,
-    HirNodeKind, IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, LocalVar, MatchArm, MatchArms,
-    MatchExpr, OrPattern, Param, Params, PathExpr, PathTy, Pattern, Primitive, Res, ReturnStmt,
+    AnonParams, Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure, ClosureExpr,
+    ClosureParam, ClosureParams, DestructureExpr, DestructurePattern, EnumMember, EnumMembers,
+    EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt,
+    GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap, HirNode, HirNodeKind,
+    IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, LocalVar, MatchArm, MatchArms, MatchExpr,
+    ModulePath, OrPattern, Param, Params, PathExpr, PathTy, Pattern, Primitive, Res, ReturnStmt,
     Segment, Stmt, TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use id::{CrateId, DefId, LocalDefId, ModuleId};
@@ -320,10 +320,7 @@ fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
         let def_id = item.id.to_def_id(krate_id);
         match &item.kind {
             ItemKind::GlobalLet(global_let_stmt) => {
-                values.insert(
-                    global_let_stmt.local_var.ident,
-                    ValueDef::GlobalVar(GlobalVarDef::new(def_id)),
-                );
+                values.insert(global_let_stmt.local_var.ident, ValueDef::GlobalVar(def_id));
             }
             ItemKind::Class(class_stmt) => {
                 let fields = class_stmt
@@ -346,48 +343,19 @@ fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
                         )
                     })
                     .collect::<StrMap<FnDef>>();
-                values.insert(
-                    class_stmt.name.ident,
-                    ValueDef::Class(ClassDef::new(def_id, fields, fns)),
-                );
+                values.insert(class_stmt.name.ident, ValueDef::Class(def_id));
             }
             ItemKind::Enum(enum_stmt) => {
-                let fns = Arc::new(
-                    enum_stmt
-                        .self_fns
-                        .iter()
-                        .map(|self_fn| {
-                            (
-                                self_fn.sig.name.ident,
-                                FnDef::new(self_fn.id.to_def_id(krate_id)),
-                            )
-                        })
-                        .collect(),
-                );
-                let members = Arc::new(
-                    enum_stmt
-                        .members
-                        .iter()
-                        .map(|member| {
-                            let fns = Arc::new(
-                                member
-                                    .self_fns
-                                    .iter()
-                                    .map(|self_fn| {
-                                        (
-                                            self_fn.sig.name.ident,
-                                            FnDef::new(self_fn.id.to_def_id(krate_id)),
-                                        )
-                                    })
-                                    .collect(),
-                            );
-                            (
-                                member.name,
-                                EnumMemberDef::new(member.id.to_def_id(krate_id), fns),
-                            )
-                        })
-                        .collect(),
-                );
+                let members = enum_stmt
+                    .members
+                    .iter()
+                    .map(|member| member.id.to_def_id(krate_id))
+                    .collect();
+                let fns = enum_stmt
+                    .self_fns
+                    .iter()
+                    .map(|self_fn| self_fn.id.to_def_id(krate_id))
+                    .collect();
                 values.insert(
                     enum_stmt.name.ident,
                     ValueDef::Enum(EnumDef::new(def_id, members, fns)),
@@ -406,13 +374,10 @@ fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
                         })
                         .collect(),
                 );
-                values.insert(
-                    trait_stmt.name.ident,
-                    ValueDef::Trait(TraitDef::new(def_id, fns)),
-                );
+                values.insert(trait_stmt.name.ident, ValueDef::Trait(def_id));
             }
             ItemKind::Fn(fn_stmt) => {
-                values.insert(fn_stmt.sig.name.ident, ValueDef::Fn(FnDef::new(def_id)));
+                values.insert(fn_stmt.sig.name.ident, ValueDef::Fn(def_id));
             }
             ItemKind::Use(use_stmt) => {}
             ItemKind::TraitImpl(trait_impl_stmt) => {}
@@ -420,7 +385,7 @@ fn generate_mod_values(module: &Module, krate_id: CrateId) -> ModuleNS {
     }
     ModuleNS {
         modules: Arc::new(Default::default()),
-        values: values.into(),
+        values: Arc::new(values),
     }
 }
 
@@ -499,8 +464,8 @@ impl<'a> CrateResolver<'a> {
         };
 
         match hir_node {
-            Some(hir_node) => {
-                self.items.push(hir_node);
+            Some(node_id) => {
+                self.items.push(node_id);
             }
             _ => {}
         }
@@ -515,7 +480,7 @@ impl<'a> CrateResolver<'a> {
         let_stmt: &AstGlobalLetStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<HirNode<'a>> {
+    ) -> Option<LocalDefId> {
         // Lower expression
         let local_var = self.resolve_local_var(&let_stmt.local_var);
         let ty = self.resolve_ty(&let_stmt.ty)?;
@@ -526,8 +491,12 @@ impl<'a> CrateResolver<'a> {
             .alloc(GlobalLetStmt::new(local_var, ty, expr));
 
         // We don't need to insert constants into a local scope since it is already part of the module ns.
-        let hir_node = HirNode::new(HirNodeKind::GlobalLet(global_let_stmt), span, id);
-        Some(hir_node)
+        self.insert_node(HirNode::new(
+            HirNodeKind::GlobalLet(global_let_stmt),
+            span,
+            id,
+        ));
+        Some(id)
     }
 
     fn resolve_class_stmt(
@@ -535,7 +504,7 @@ impl<'a> CrateResolver<'a> {
         class_stmt: &AstClassStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<HirNode<'a>> {
+    ) -> Option<LocalDefId> {
         self.scopes.push(Scope::Class {
             id: id.to_def_id(self.krate.crate_id),
             fields: Default::default(),
@@ -556,8 +525,8 @@ impl<'a> CrateResolver<'a> {
             fn_stmts,
         ));
 
-        let hir_node = HirNode::new(HirNodeKind::Class(hir_class), span, id);
-        Some(hir_node)
+        self.insert_node(HirNode::new(HirNodeKind::Class(hir_class), span, id));
+        Some(id)
     }
 
     fn maybe_resolve_generics(
@@ -578,35 +547,33 @@ impl<'a> CrateResolver<'a> {
         for generic in generics {
             hir_generics.push(self.resolve_ty(generic)?);
         }
-        Some(Generics::from(hir_generics))
+        Some(self.alloc_slice(&*hir_generics))
     }
 
-    fn resolve_params(&mut self, params: &AstParams) -> Option<Params> {
-        let mut hir_params = StrMap::default();
+    fn resolve_params(&mut self, params: &AstParams) -> Option<Params<'a>> {
+        let mut hir_params = Vec::<&'a Param<'a>>::with_capacity(params.len());
         for param in params {
             self.insert_param(param.name.ident, param.id)?;
 
             let ty = self.resolve_ty(&param.ty)?;
 
-            let hir_param = self
-                .allocator
-                .alloc(Param::new(param.name, ty, param.mutability));
-            self.items.push(HirNode::new(
+            let hir_param = self.alloc(Param::new(param.name, ty, param.mutability));
+            hir_params.push(hir_param);
+
+            self.insert_node(HirNode::new(
                 HirNodeKind::Param(hir_param),
                 param.span,
                 param.id,
             ));
-
-            hir_params.insert(param.name.ident, hir_param);
         }
-        Some(Params::from(hir_params))
+        Some(self.alloc_slice(&*hir_params))
     }
 
     fn resolve_generic_params(
         &mut self,
         generic_params: &AstGenericParams,
     ) -> Option<GenericParams> {
-        let mut generics = Vec::with_capacity(generic_params.len());
+        let mut generics = Vec::<&'a GenericParam<'a>>::with_capacity(generic_params.len());
         for param in generic_params {
             self.insert_generic_param(param.name.ident, param.id)?;
 
@@ -620,10 +587,8 @@ impl<'a> CrateResolver<'a> {
                 _ => unreachable!(),
             };
 
-            let generic_param = self
-                .allocator
-                .alloc(GenericParam::new(param.name, trait_bound));
-            let generic_ty = self.allocator.alloc(Ty::GenericParam(generic_param));
+            let generic_param = self.alloc(GenericParam::new(param.name, trait_bound));
+            let generic_ty = self.alloc(Ty::GenericParam(generic_param));
             /*
                 We always want to insert the node, even if it clashes with another generic param.
                 Otherwise we can't look it up later when handling errors.
@@ -636,7 +601,7 @@ impl<'a> CrateResolver<'a> {
 
             generics.push(generic_param);
         }
-        Some(self.allocator.alloc_slice_clone(generics))
+        Some(self.alloc_slice(&*generics))
     }
 
     fn insert_field(&mut self, field_name: InternedStr, id: LocalDefId) -> Option<()> {
@@ -781,7 +746,7 @@ impl<'a> CrateResolver<'a> {
         enum_stmt: &AstEnumStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<&'a EnumStmt<'a>> {
+    ) -> Option<LocalDefId> {
         self.scopes.push(Scope::Enum {
             id: id.to_def_id(self.krate.crate_id),
             members: Default::default(),
@@ -802,14 +767,14 @@ impl<'a> CrateResolver<'a> {
             member_fns,
         ));
         self.insert_node(HirNode::new(HirNodeKind::Enum(hir_enum), span, id));
-        Some(hir_enum)
+        Some(id)
     }
 
     fn resolve_enum_members(
         &mut self,
         enum_stmt_members: &Vec<AstEnumMember>,
     ) -> Option<EnumMembers> {
-        let mut enum_members = StrMap::default();
+        let mut enum_members = Vec::<&'a EnumMember>::with_capacity(enum_stmt_members.len());
         for member in enum_stmt_members {
             self.insert_enum_member(member.name, member.id)?;
 
@@ -821,20 +786,18 @@ impl<'a> CrateResolver<'a> {
             let fields = self.resolve_fields(&member.fields)?;
             let self_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
 
-            let node = self.insert_node(
+            let enum_member = self.alloc(EnumMember::new(member.name, fields, self_fns));
+            self.insert_node(HirNode::new(
+                HirNodeKind::EnumMember(enum_member),
+                member.span,
                 member.id,
-                HirNode::new(
-                    HirNodeKind::EnumMember(EnumMember::new(member.name, fields, self_fns)),
-                    member.span,
-                    member.id,
-                ),
-            );
+            ));
 
-            enum_members.insert(member.name, node);
+            enum_members.push(enum_member);
 
             self.scopes.pop();
         }
-        Some(enum_members.into())
+        Some(self.alloc_slice(&*enum_members))
     }
 
     fn resolve_trait_stmt(
@@ -842,7 +805,7 @@ impl<'a> CrateResolver<'a> {
         trait_stmt: &AstTraitStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<&'a TraitStmt<'a>> {
+    ) -> Option<LocalDefId> {
         self.scopes.push(Scope::Trait {
             id: id.to_def_id(self.krate.crate_id),
             self_fns: Default::default(),
@@ -854,12 +817,10 @@ impl<'a> CrateResolver<'a> {
 
         self.scopes.pop();
 
-        let hir_trait =
-            self.allocator
-                .alloc(TraitStmt::new(trait_stmt.name, generic_params, member_fns));
-        let node = HirNode::new(HirNodeKind::Trait(hir_trait), span, id);
-        self.items.push(node);
-        Some(hir_trait)
+        let hir_trait = self.alloc(TraitStmt::new(trait_stmt.name, generic_params, member_fns));
+        self.insert_node(HirNode::new(HirNodeKind::Trait(hir_trait), span, id));
+
+        Some(id)
     }
 
     fn resolve_trait_impl_stmt(
@@ -867,7 +828,7 @@ impl<'a> CrateResolver<'a> {
         trait_stmt: &AstTraitImplStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<&'a TraitImplStmt<'a>> {
+    ) -> Option<LocalDefId> {
         let target_ty = self.resolve_qualified_ident(&trait_stmt.target_ty)?;
         let trait_to_impl = self.resolve_path_ty(&trait_stmt.trait_to_impl)?;
 
@@ -877,15 +838,13 @@ impl<'a> CrateResolver<'a> {
         });
 
         let self_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
-        let trait_impl_stmt =
-            self.allocator
-                .alloc(TraitImplStmt::new(trait_to_impl, target_ty, self_fns));
-        self.items.push(HirNode::new(
+        let trait_impl_stmt = self.alloc(TraitImplStmt::new(trait_to_impl, target_ty, self_fns));
+        self.insert_node(HirNode::new(
             HirNodeKind::TraitImpl(trait_impl_stmt),
             span,
             id,
         ));
-        Some(trait_impl_stmt)
+        Some(id)
     }
 
     fn resolve_fn_stmt(
@@ -893,7 +852,7 @@ impl<'a> CrateResolver<'a> {
         fn_stmt: &AstFnStmt,
         span: Span,
         id: LocalDefId,
-    ) -> Option<HirNode<'a>> {
+    ) -> Option<LocalDefId> {
         self.scopes.push(Scope::Fn {
             params: Default::default(),
             generics: Default::default(),
@@ -905,12 +864,9 @@ impl<'a> CrateResolver<'a> {
 
         self.scopes.pop();
 
-        let name = resolved_sig.name.ident;
-        Some(HirNode::new(
-            HirNodeKind::Fn(FnStmt::new(resolved_sig, resolved_body)),
-            span,
-            id,
-        ))
+        let fn_stmt = self.alloc(FnStmt::new(resolved_sig, resolved_body));
+        self.insert_node(HirNode::new(HirNodeKind::Fn(fn_stmt), span, id));
+        Some(id)
     }
 
     fn resolve_self_fn_stmt(&mut self, fn_stmt: &AstFnSelfStmt) -> Option<&'a FnStmt<'a>> {
@@ -932,16 +888,9 @@ impl<'a> CrateResolver<'a> {
 
         self.scopes.pop();
 
-        let name = resolved_sig.name.ident;
-        self.insert_node(
-            *id,
-            HirNode::new(
-                HirNodeKind::Fn(FnStmt::new(resolved_sig, resolved_body)),
-                *span,
-                *id,
-            ),
-        );
-        Some((name, *id))
+        let fn_stmt = self.alloc(FnStmt::new(resolved_sig, resolved_body));
+        self.insert_node(HirNode::new(HirNodeKind::Fn(fn_stmt), *span, *id));
+        Some(fn_stmt)
     }
 
     fn resolve_self_fn_stmts(&mut self, stmts: &Vec<FnSelfStmt>) -> Option<FnStmts> {
@@ -1085,15 +1034,15 @@ impl<'a> CrateResolver<'a> {
             local_var.span,
             local_var.id,
         ));
-        Some(hir_local_var)
+        hir_local_var
     }
 
     /// This method can resolve qualified idents as well.
     fn resolve_path(&mut self, path_expr: &AstPathExpr) -> Option<PathExpr> {
-        let mut segments = Vec::with_capacity(path_expr.segments.len());
+        let mut segments = Vec::<&'a Segment<'a>>::with_capacity(path_expr.segments.len());
         match path_expr.ident_type {
             IdentType::Crate => {
-                segments.push(Segment::new(Res::Crate(self.krate.crate_id), None));
+                segments.push(self.alloc(Segment::new(Res::Crate(self.krate.crate_id), None)));
                 let mut path = VecDeque::from_iter(&path_expr.segments);
                 while !path.is_empty() {
                     let prev_seg = segments.last().unwrap(); // Should be safe
@@ -1126,10 +1075,10 @@ impl<'a> CrateResolver<'a> {
                 }
             }
         }
-        Some(PathExpr::new(segments))
+        Some(PathExpr::new(self.alloc_slice(&*segments)))
     }
 
-    fn find_primary_segment(&mut self, segment: &AstSegment) -> Option<Segment> {
+    fn find_primary_segment(&mut self, segment: &AstSegment) -> Option<&'a Segment<'a>> {
         let module_ns = &self.module.unwrap().namespace;
         let ident = segment.ident.ident;
         let generics = self.maybe_resolve_generics(&segment.generics).ok()?;
@@ -1158,7 +1107,7 @@ impl<'a> CrateResolver<'a> {
                     .map(|krate| krate.crate_id)
                     .map(Res::Crate)
             })
-            .map(|res| Segment::new(res, generics.clone()))
+            .map(|res| &*self.alloc(Segment::new(res, generics.clone())))
             .or_else(|| {
                 // TODO: Emit var not found error!
                 // VarNotFound(ident).into()
@@ -1178,7 +1127,11 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn find_secondary_segment(&mut self, previous: &Res, segment: &AstSegment) -> Option<Segment> {
+    fn find_secondary_segment(
+        &mut self,
+        previous: &Res,
+        segment: &AstSegment,
+    ) -> Option<&'a Segment<'a>> {
         let module_ns = &self.module.unwrap().namespace;
         let ident = segment.ident.ident;
         // TODO: Finish generics error handling
@@ -1189,11 +1142,11 @@ impl<'a> CrateResolver<'a> {
                 let krate = &self.crate_lookup[*krate_id];
                 krate
                     .module_trie()
-                    .get(&ModulePath::from_iter([ident]))
+                    .get(&AstModulePath::from_iter([ident]))
                     .copied()
                     .map(Res::Module)
                     .unwrap_or_else(|| {
-                        Res::ModuleSegment(*krate_id, ModulePath::from_iter([ident]))
+                        Res::ModuleSegment(*krate_id, ModulePath::new(self.alloc_slice(&[ident])))
                     })
             }
             Res::ModuleSegment(krate_id, path) => {
@@ -1237,16 +1190,19 @@ impl<'a> CrateResolver<'a> {
                     // FnNotFound(ident)
                     None
                 })?,
-            Res::ValueDef(ValueDef::Class(class_def)) => class_def
-                .fns
-                .get(&ident)
-                .copied()
-                .map(|fn_def| Res::Fn(MaybeFnDef::Some(fn_def)))
-                .or_else(|| {
-                    // TODO: Emit compiler error
-                    // FnNotFound(ident)
-                    None
-                })?,
+            Res::ValueDef(ValueDef::Class(class_def)) => {
+                let class_def = self.crate_lookup[*class_def];
+                class_def
+                    .fns
+                    .get(&ident)
+                    .copied()
+                    .map(|fn_def| Res::Fn(MaybeFnDef::Some(fn_def)))
+                    .or_else(|| {
+                        // TODO: Emit compiler error
+                        // FnNotFound(ident)
+                        None
+                    })?
+            }
             Res::ValueDef(ValueDef::EnumMember(member_def)) => member_def
                 .fns
                 .get(&ident)
@@ -1282,6 +1238,12 @@ impl<'a> CrateResolver<'a> {
                 // (VarNotFound(ident).into());
                 return None;
             }
+            Res::ValueDef(ValueDef::GlobalVar(_)) => {}
+            Res::ValueDef(ValueDef::Class(_)) => {}
+            Res::ValueDef(ValueDef::Enum(_)) => {}
+            Res::ValueDef(ValueDef::EnumMember(_)) => {}
+            Res::ValueDef(ValueDef::Trait(_)) => {}
+            Res::ValueDef(ValueDef::Fn(_)) => {}
         };
         Some(Segment::new(res, generics))
     }
@@ -1315,7 +1277,7 @@ impl<'a> CrateResolver<'a> {
     fn resolve_destructure_expr(
         &mut self,
         destructure_expr: &AstDestructureExpr,
-    ) -> Option<DestructureExpr<'a>> {
+    ) -> Option<&'a DestructureExpr<'a>> {
         let id = destructure_expr.id;
         let span = destructure_expr.span;
         let expr = match &destructure_expr.kind {
@@ -1335,8 +1297,13 @@ impl<'a> CrateResolver<'a> {
             DestructureExprKind::String(string) => DestructureExpr::String(*string),
             DestructureExprKind::None => DestructureExpr::None,
         };
-        self.insert_node(HirNode::new(HirNodeKind::DestructureExpr(expr), span, id));
-        Some(expr)
+        let destructure_expr = self.alloc(expr);
+        self.insert_node(HirNode::new(
+            HirNodeKind::DestructureExpr(destructure_expr),
+            span,
+            id,
+        ));
+        Some(destructure_expr)
     }
 
     fn maybe_resolve_ty(&mut self, ty: &Option<AstTy>) -> Option<Option<&'a Ty<'a>>> {
@@ -1351,16 +1318,18 @@ impl<'a> CrateResolver<'a> {
         let span = ty.span;
         let id = ty.id;
         let hir_ty = match &ty.kind {
-            TyKind::Array { ty } => Ty::Array(Array::new(self.resolve_ty(ty)?)),
+            TyKind::Array { ty } => Ty::Array(self.resolve_ty(ty)?),
             TyKind::Path { path } => Ty::Path(self.resolve_path_ty(path)?),
             TyKind::TraitBound { trait_bound } => {
-                let mut paths = Vec::with_capacity(trait_bound.len());
+                let mut paths = Vec::<&'a PathTy<'a>>::with_capacity(trait_bound.len());
                 for path in trait_bound {
                     let def = self.resolve_qualified_ident(&path.ident)?;
                     let generics = self.resolve_generics(&path.generics)?;
-                    paths.push(PathTy::new(def, generics));
+                    let path_ty = self.alloc(PathTy::new(def, generics));
+                    paths.push(path_ty);
                 }
-                Ty::TraitBound(TraitBound::from(paths))
+                let paths = self.alloc_slice(&*paths);
+                Ty::TraitBound(paths)
             }
             TyKind::Closure { params, ret_ty } => {
                 let params = params
@@ -1368,7 +1337,8 @@ impl<'a> CrateResolver<'a> {
                     .map(|param| self.resolve_ty(param))
                     .collect::<Option<Vec<_>>>()?;
                 let ret_ty = self.resolve_ty(ret_ty)?;
-                Ty::Closure(Closure::new(AnonParams::from(params), ret_ty))
+                let params = self.allocator.alloc_slice_copy(&*params);
+                Ty::Closure(Closure::new(params, ret_ty))
             }
             TyKind::QSelf => {
                 let item_def = self
@@ -1385,7 +1355,8 @@ impl<'a> CrateResolver<'a> {
                     .copied()
                     .unwrap();
 
-                Ty::Path(PathTy::new(item_def, Generics::empty()))
+                let path_ty = PathTy::new(item_def, self.alloc_slice(&[]));
+                Ty::Path(self.alloc(path_ty))
             }
             TyKind::U8 => Ty::Primitive(Primitive::U8),
             TyKind::U16 => Ty::Primitive(Primitive::U16),
@@ -1402,13 +1373,15 @@ impl<'a> CrateResolver<'a> {
             TyKind::None => Ty::Primitive(Primitive::None),
         };
 
-        Some(self.insert_node(id, HirNode::new(HirNodeKind::Ty(hir_ty), span, id)))
+        let hir_ty = self.allocator.alloc(hir_ty);
+        self.insert_node(HirNode::new(HirNodeKind::Ty(hir_ty), span, id));
+        Some(hir_ty)
     }
 
-    fn resolve_path_ty(&mut self, path_ty: &AstPathTy) -> Option<PathTy> {
+    fn resolve_path_ty(&mut self, path_ty: &AstPathTy) -> Option<&'a PathTy<'a>> {
         let def = self.resolve_qualified_ident(&path_ty.ident)?;
         let generics = self.resolve_generics(&path_ty.generics)?;
-        Some(PathTy::new(def, generics))
+        Some(self.alloc(PathTy::new(def, generics)))
     }
 
     fn resolve_trait_bound(
@@ -1417,19 +1390,18 @@ impl<'a> CrateResolver<'a> {
         span: Span,
         id: LocalDefId,
     ) -> Option<TraitBound<'a>> {
-        let mut hir_bound = Vec::with_capacity(trait_bound.len());
+        let mut hir_bound = Vec::<&'a PathTy<'a>>::with_capacity(trait_bound.len());
         for ty in trait_bound {
             let resolved_ty = self.resolve_path_ty(ty)?;
             hir_bound.push(resolved_ty);
         }
-
-        Some(self.insert_node(
-            id,
-            HirNode::new(HirNodeKind::Ty(Ty::TraitBound(hir_bound.into())), span, id),
-        ))
+        let hir_bound: TraitBound<'a> = self.alloc_slice(&*hir_bound);
+        let hir_ty = self.alloc(Ty::TraitBound(hir_bound));
+        self.insert_node(HirNode::new(HirNodeKind::Ty(hir_ty), span, id));
+        Some(hir_bound)
     }
 
-    fn resolve_stmt(&mut self, stmt: &AstStmt) -> Option<&'a HirNode<'a>> {
+    fn resolve_stmt(&mut self, stmt: &AstStmt) -> Option<&'a Stmt<'a>> {
         let span = stmt.span;
         let id = stmt.id;
         let hir_stmt = match &stmt.kind {
@@ -1438,12 +1410,14 @@ impl<'a> CrateResolver<'a> {
                 let resolved_ty = self.maybe_resolve_ty(&let_stmt.ty)?;
                 let resolved_initializer = self.maybe_resolve_expr(&let_stmt.initializer).ok()?;
 
-                Stmt::Let(LetStmt::new(
+                let let_stmt = LetStmt::new(
                     resolved_var,
                     let_stmt.mutability,
                     resolved_ty,
                     resolved_initializer,
-                ))
+                );
+
+                Stmt::Let(self.alloc(let_stmt))
             }
             AstStmtKind::For(for_stmt) => {
                 self.scopes.push(Scope::Block {
@@ -1453,7 +1427,9 @@ impl<'a> CrateResolver<'a> {
 
                 let range = self.resolve_expr(&for_stmt.range)?;
                 let body = self.resolve_block(&for_stmt.body)?;
-                let stmt = Stmt::For(ForStmt::new(for_stmt.ident, range, body));
+
+                let for_stmt = ForStmt::new(for_stmt.ident, range, body);
+                let stmt = Stmt::For(self.alloc(for_stmt));
 
                 self.scopes.pop();
                 stmt
@@ -1471,11 +1447,15 @@ impl<'a> CrateResolver<'a> {
                 let if_false = self.maybe_resolve_block(&if_stmt.if_false).ok()?;
                 self.scopes.pop();
 
-                Stmt::If(IfStmt::new(condition, if_true, if_false))
+                let if_stmt = IfStmt::new(condition, if_true, if_false);
+
+                Stmt::If(self.alloc(if_stmt))
             }
             AstStmtKind::Return(return_stmt) => {
                 let maybe_expr = self.maybe_resolve_expr(&return_stmt.value).ok()?;
-                Stmt::Return(ReturnStmt::new(maybe_expr))
+                let return_stmt = ReturnStmt::new(maybe_expr);
+
+                Stmt::Return(self.alloc(return_stmt))
             }
             AstStmtKind::While(while_stmt) => {
                 let condition = self.resolve_expr(&while_stmt.condition)?;
@@ -1486,7 +1466,9 @@ impl<'a> CrateResolver<'a> {
                 let block = self.resolve_block(&while_stmt.block_stmt)?;
                 self.scopes.pop();
 
-                Stmt::While(WhileStmt::new(condition, block))
+                let while_stmt = WhileStmt::new(condition, block);
+
+                Stmt::While(self.alloc(while_stmt))
             }
             AstStmtKind::Block(block) => {
                 self.scopes.push(Scope::Block {
@@ -1498,21 +1480,26 @@ impl<'a> CrateResolver<'a> {
             }
             AstStmtKind::Expression(expression) => {
                 let expr = self.resolve_expr(&expression.expr)?;
+                let expression = Expression::new(expr, expression.implicit_return);
 
-                Stmt::Expression(Expression::new(expr, expression.implicit_return))
+                Stmt::Expression(self.alloc(expression))
             }
         };
 
-        Some(self.insert_node(
+        let hir_stmt = self.alloc(hir_stmt);
+        self.insert_node(HirNode::new(
+            HirNodeKind::Stmt(hir_stmt),
+            stmt.span,
             stmt.id,
-            HirNode::new(HirNodeKind::Stmt(hir_stmt), stmt.span, stmt.id),
-        ))
+        ));
+
+        Some(hir_stmt)
     }
 
     fn maybe_resolve_block(
         &mut self,
         block: &Option<AstBlock>,
-    ) -> Result<Option<&'a HirNode<'a>>, ()> {
+    ) -> Result<Option<&'a Block<'a>>, ()> {
         match block {
             None => Ok(None),
             Some(block) => match self.resolve_block(block) {
@@ -1522,45 +1509,45 @@ impl<'a> CrateResolver<'a> {
         }
     }
 
-    fn resolve_block(&mut self, block: &AstBlock) -> Option<&'a HirNode<'a>> {
+    fn resolve_block(&mut self, block: &AstBlock) -> Option<&'a Block<'a>> {
         let mut stmts = Vec::with_capacity(block.stmts.len());
         for stmt in &block.stmts {
             stmts.push(self.resolve_stmt(stmt)?);
         }
+        let stmts = self.alloc_slice(&*stmts);
+        let hir_block = self.alloc(Block::new(stmts));
 
-        Some(self.insert_node(
+        self.insert_node(HirNode::new(
+            HirNodeKind::Block(hir_block),
+            block.span,
             block.id,
-            HirNode::new(
-                HirNodeKind::Block(Block::new(stmts.into())),
-                block.span,
-                block.id,
-            ),
-        ))
+        ));
+
+        Some(hir_block)
     }
 
     fn resolve_match_arms(&mut self, arms: &[AstMatchArm]) -> Option<MatchArms<'a>> {
-        let mut hir_arms = Vec::<MatchArm<'a>>::with_capacity(arms.len());
+        let mut hir_arms = Vec::<&'a MatchArm<'a>>::with_capacity(arms.len());
         for arm in arms {
             hir_arms.push(self.resolve_match_arm(arm)?);
         }
-        Some(self.allocator.alloc_slice_copy(&*hir_arms))
+        Some(self.alloc_slice(&*hir_arms))
     }
 
-    fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Option<MatchArm<'a>> {
+    fn resolve_match_arm(&mut self, arm: &AstMatchArm) -> Option<&'a MatchArm<'a>> {
         self.scopes.push(Scope::MatchArm {
             vars: Default::default(),
         });
 
         let pattern = self.resolve_pattern(&arm.pattern)?;
-
         let body = self.resolve_stmt(&arm.body)?;
 
         self.scopes.pop();
 
-        Some(MatchArm::new(pattern, body))
+        Some(self.alloc(MatchArm::new(pattern, body)))
     }
 
-    fn resolve_pattern(&mut self, pattern: &AstPattern) -> Option<Pattern> {
+    fn resolve_pattern(&mut self, pattern: &AstPattern) -> Option<&'a Pattern> {
         let hir_pattern = match pattern {
             AstPattern::Wildcard => Pattern::Wildcard,
             AstPattern::Or(or_pattern) => {
@@ -1569,6 +1556,7 @@ impl<'a> CrateResolver<'a> {
                     .iter()
                     .map(|patt| self.resolve_pattern(patt))
                     .collect::<Option<Vec<_>>>()?;
+                let patterns = self.alloc_slice(&*patterns);
                 Pattern::Or(OrPattern::new(patterns))
             }
             AstPattern::Ty(ty_patt) => {
@@ -1592,7 +1580,7 @@ impl<'a> CrateResolver<'a> {
             AstPattern::None => Pattern::None,
         };
 
-        Some(hir_pattern)
+        Some(self.alloc(hir_pattern))
     }
 
     fn resolve_destructure_pattern(
@@ -1605,6 +1593,7 @@ impl<'a> CrateResolver<'a> {
             .iter()
             .map(|expr| self.resolve_destructure_expr(expr))
             .collect::<Option<Vec<_>>>()?;
+        let exprs = self.alloc_slice(&*exprs);
         Some(DestructurePattern::new(resolved_ty, exprs))
     }
 
@@ -1674,14 +1663,25 @@ impl<'a> CrateResolver<'a> {
 
     fn resolve_closure_params(&mut self, params: &[AstClosureParam]) -> Option<ClosureParams> {
         // TODO: Add vars to scope
-        let params: StrMap<ClosureParam> = params
+        let params = params
             .iter()
-            .map(|param| (param.ident.ident, ClosureParam::new(param.ident)))
+            .map(|param| ClosureParam::new(param.ident))
             .collect();
-        Some(ClosureParams::from(params))
+        Some(params)
     }
 
     fn insert_node(&mut self, node: HirNode<'a>) {
         assert!(self.nodes.insert(node.id, node).is_none());
+    }
+
+    fn alloc<T>(&self, val: T) -> &mut T {
+        self.allocator.alloc(val)
+    }
+
+    fn alloc_slice<T>(&self, slice: &[T]) -> &mut [T]
+    where
+        T: Copy,
+    {
+        self.allocator.alloc_slice_copy(slice)
     }
 }

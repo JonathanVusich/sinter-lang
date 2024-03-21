@@ -5,13 +5,14 @@ use std::fmt::Formatter;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut, Index};
 
-use ast::{AstPass, IdentType, Item, ItemKind, Module, ModulePath, QualifiedIdent, ValueDef};
-use id::{CrateId, ModuleId};
-use interner::InternedStr;
 use radix_trie::Trie;
 use serde::de::{SeqAccess, Visitor};
 use serde::ser::{SerializeSeq, SerializeStruct};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+use ast::{AstPass, IdentType, Item, ItemKind, Module, ModulePath, QualifiedIdent, ValueDef};
+use id::{CrateId, DefId, ModuleId};
+use interner::InternedStr;
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct ModuleMap<T> {
@@ -262,7 +263,7 @@ impl Crate {
                     .and_then(|id| {
                         // Search for a value in the given module namespace.
                         let value = module_path.back()?;
-                        let module = &self.modules[id.module_id() as usize];
+                        let module = &self.modules[id.module_id()];
                         module
                             .namespace
                             .find_value(value)
@@ -278,7 +279,12 @@ impl Crate {
                                         ValueDef::Enum(enum_def) => Some(enum_def),
                                         _ => None,
                                     })
-                                    .and_then(|enum_def| enum_def.members.get(&discriminant))
+                                    .and_then(|enum_def| {
+                                        enum_def
+                                            .members
+                                            .iter()
+                                            .find(|member_def| member_def.ident == discriminant)
+                                    })
                                     .map(|member_def| ValueDef::EnumMember(member_def.clone()))
                                     .map(|val_def| CrateDef::Value(discriminant, val_def));
                                 val_def

@@ -240,7 +240,11 @@ impl ModuleNS {
             [_module, ident] => self.values.get(&ident.ident).map(ValueDef::id),
             [_module, enm, member] => {
                 if let Some(ValueDef::Enum(enum_def)) = self.values.get(&enm.ident) {
-                    return enum_def.members.get(&member.ident).map(|def| def.id);
+                    return enum_def
+                        .members
+                        .iter()
+                        .find(|member_def| member_def.ident == member.ident)
+                        .map(|def| def.id);
                 }
                 None
             }
@@ -252,7 +256,11 @@ impl ModuleNS {
             [ident] => self.values.get(&ident.ident).map(ValueDef::id),
             [enm, member] => {
                 if let Some(ValueDef::Enum(enum_def)) = self.values.get(&enm.ident) {
-                    return enum_def.members.get(&member.ident).map(|def| def.id);
+                    return enum_def
+                        .members
+                        .iter()
+                        .find(|member_def| member_def.ident == member.ident)
+                        .map(|def| def.id);
                 }
                 None
             }
@@ -306,11 +314,11 @@ pub struct TraitFnDef {
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitDef {
     pub id: DefId,
-    pub fns: IStrMap<FnDef>,
+    pub fns: Vec<FnDef>,
 }
 
 impl TraitDef {
-    pub fn new(id: DefId, fns: IStrMap<FnDef>) -> Self {
+    pub fn new(id: DefId, fns: Vec<FnDef>) -> Self {
         Self { id, fns }
     }
 }
@@ -329,17 +337,13 @@ impl GlobalVarDef {
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct ClassDef {
     pub id: DefId,
-    pub fields: IStrMap<FieldDef>,
-    pub fns: IStrMap<FnDef>,
+    pub fields: Vec<FieldDef>,
+    pub fns: Vec<FnDef>,
 }
 
 impl ClassDef {
-    pub fn new(id: DefId, fields: StrMap<FieldDef>, fns: StrMap<FnDef>) -> Self {
-        Self {
-            id,
-            fields: Arc::new(fields),
-            fns: Arc::new(fns),
-        }
+    pub fn new(id: DefId, fields: Vec<FieldDef>, fns: Vec<FnDef>) -> Self {
+        Self { id, fields, fns }
     }
 }
 
@@ -347,12 +351,12 @@ impl ClassDef {
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct EnumDef {
     pub id: DefId,
-    pub members: IStrMap<EnumMemberDef>,
-    pub fns: IStrMap<FnDef>,
+    pub members: Vec<EnumMemberDef>,
+    pub fns: Vec<DefId>,
 }
 
 impl EnumDef {
-    pub fn new(id: DefId, members: IStrMap<EnumMemberDef>, fns: IStrMap<FnDef>) -> Self {
+    pub fn new(id: DefId, members: Vec<EnumMemberDef>, fns: Vec<DefId>) -> Self {
         Self { id, members, fns }
     }
 }
@@ -360,34 +364,39 @@ impl EnumDef {
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct EnumMemberDef {
     pub id: DefId,
-    pub fns: IStrMap<FnDef>,
+    pub ident: InternedStr,
+    // pub fns: Vec<DefId>,
 }
 
 impl EnumMemberDef {
-    pub fn new(id: DefId, fns: IStrMap<FnDef>) -> Self {
-        Self { id, fns }
+    pub fn new(id: DefId, ident: InternedStr) -> Self {
+        Self {
+            id,
+            ident,
+            // fns
+        }
     }
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub enum ValueDef {
-    GlobalVar(GlobalVarDef),
-    Class(ClassDef),
-    Enum(),
+    GlobalVar(DefId),
+    Class(DefId),
+    Enum(EnumDef),
     EnumMember(EnumMemberDef),
-    Trait(TraitDef),
-    Fn(FnDef),
+    Trait(DefId),
+    Fn(DefId),
 }
 
 impl ValueDef {
     pub fn id(&self) -> DefId {
         match self {
-            ValueDef::GlobalVar(let_stmt) => let_stmt.id,
-            ValueDef::Class(class_stmt) => class_stmt.id,
+            ValueDef::GlobalVar(let_stmt) => *let_stmt,
+            ValueDef::Class(class_stmt) => *class_stmt,
             ValueDef::Enum(enum_stmt) => enum_stmt.id,
             ValueDef::EnumMember(enum_member) => enum_member.id,
-            ValueDef::Trait(trait_stmt) => trait_stmt.id,
-            ValueDef::Fn(fn_stmt) => fn_stmt.id,
+            ValueDef::Trait(trait_stmt) => *trait_stmt,
+            ValueDef::Fn(fn_stmt) => *fn_stmt,
         }
     }
 }
