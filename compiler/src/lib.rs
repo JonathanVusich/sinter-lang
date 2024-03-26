@@ -1,11 +1,11 @@
 #![allow(unused)]
 
-use bumpalo::Bump;
 use std::collections::{HashSet, VecDeque};
 use std::ffi::{OsStr, OsString};
 use std::fmt::{Debug, Display};
 use std::path::{Path, PathBuf, StripPrefixError};
 
+use bumpalo::Bump;
 use itertools::Itertools;
 use serde::Deserializer;
 use walkdir::{DirEntry, WalkDir};
@@ -25,15 +25,15 @@ use typed_hir::TypedHirMap;
 use types::StrMap;
 use validator::validate;
 
-use crate::arenas::Arenas;
-
 mod arenas;
 
 #[derive(Default)]
 pub struct Compiler<'a> {
     string_interner: StringInterner,
     diagnostics: Diagnostics,
-    allocator: Bump,
+    // ast_allocator: Bump,
+    hir_allocator: Bump,
+    thir_allocator: Bump,
     source_map: SourceMap,
     id_generator: IdGenerator,
 }
@@ -245,21 +245,30 @@ impl<'a> Compiler<'a> {
         resolve(
             &self.string_interner,
             &mut self.diagnostics,
-            &mut self.allocator,
+            &mut self.hir_allocator,
             &mut crates,
         )
         .ok_or(self.diagnostics.clone())
     }
 
     pub fn infer_types(&mut self, hir_map: HirMap) -> Result<TypedHirMap, Diagnostics> {
+        // TODO: We need to record all of the trait impls for types and store them to be able to
+        // test trait bounds at a later date.
+
         let mut typed_hir = TypedHirMap::default();
+
         for krate in hir_map.krates() {
-            let crate_inference =
-                CrateInference::new(&mut self.diagnostics, &mut self.allocator, krate, &hir_map);
-            if let Some(typed_crate) = crate_inference.infer_tys() {
+            let crate_inference = CrateInference::new(
+                &mut self.diagnostics,
+                &mut self.thir_allocator,
+                krate,
+                &hir_map,
+            );
+            if let Some(typed_crate) = crate_inference.type_crate() {
                 typed_hir.insert(typed_crate);
             }
         }
+        self.hir_allocator.reset();
         self.check_errors(typed_hir)
     }
 

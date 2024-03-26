@@ -286,22 +286,24 @@ pub enum MaybeFnDef {
 #[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct FnDef {
     pub id: DefId,
+    pub ident: InternedStr,
 }
 
 impl FnDef {
-    pub fn new(id: DefId) -> Self {
-        Self { id }
+    pub fn new(id: DefId, ident: InternedStr) -> Self {
+        Self { id, ident }
     }
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct FieldDef {
     pub id: DefId,
+    pub ident: InternedStr,
 }
 
 impl FieldDef {
-    pub fn new(id: DefId) -> Self {
-        Self { id }
+    pub fn new(id: DefId, ident: InternedStr) -> Self {
+        Self { id, ident }
     }
 }
 
@@ -352,11 +354,11 @@ impl ClassDef {
 pub struct EnumDef {
     pub id: DefId,
     pub members: Vec<EnumMemberDef>,
-    pub fns: Vec<DefId>,
+    pub fns: Vec<FnDef>,
 }
 
 impl EnumDef {
-    pub fn new(id: DefId, members: Vec<EnumMemberDef>, fns: Vec<DefId>) -> Self {
+    pub fn new(id: DefId, members: Vec<EnumMemberDef>, fns: Vec<FnDef>) -> Self {
         Self { id, members, fns }
     }
 }
@@ -365,26 +367,22 @@ impl EnumDef {
 pub struct EnumMemberDef {
     pub id: DefId,
     pub ident: InternedStr,
-    // pub fns: Vec<DefId>,
+    pub fns: Vec<FnDef>,
 }
 
 impl EnumMemberDef {
-    pub fn new(id: DefId, ident: InternedStr) -> Self {
-        Self {
-            id,
-            ident,
-            // fns
-        }
+    pub fn new(id: DefId, ident: InternedStr, fns: Vec<FnDef>) -> Self {
+        Self { id, ident, fns }
     }
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub enum ValueDef {
     GlobalVar(DefId),
-    Class(DefId),
+    Class(ClassDef),
     Enum(EnumDef),
     EnumMember(EnumMemberDef),
-    Trait(DefId),
+    Trait(TraitDef),
     Fn(DefId),
 }
 
@@ -392,10 +390,10 @@ impl ValueDef {
     pub fn id(&self) -> DefId {
         match self {
             ValueDef::GlobalVar(let_stmt) => *let_stmt,
-            ValueDef::Class(class_stmt) => *class_stmt,
+            ValueDef::Class(class_stmt) => class_stmt.id,
             ValueDef::Enum(enum_stmt) => enum_stmt.id,
             ValueDef::EnumMember(enum_member) => enum_member.id,
-            ValueDef::Trait(trait_stmt) => *trait_stmt,
+            ValueDef::Trait(trait_stmt) => trait_stmt.id,
             ValueDef::Fn(fn_stmt) => *fn_stmt,
         }
     }
@@ -658,15 +656,15 @@ impl FnSelfStmt {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ForStmt {
-    pub ident: Ident,
+    pub local_var: LocalVar,
     pub range: Box<Expr>,
     pub body: Block,
 }
 
 impl ForStmt {
-    pub fn new(ident: Ident, range: Expr, body: Block) -> Self {
+    pub fn new(ident: LocalVar, range: Expr, body: Block) -> Self {
         Self {
-            ident,
+            local_var: ident,
             range: Box::new(range),
             body,
         }
@@ -756,7 +754,7 @@ impl FnSig {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Param {
-    pub name: Ident,
+    pub local_var: LocalVar,
     pub ty: Ty,
     pub mutability: Mutability,
     pub span: Span,
@@ -764,9 +762,15 @@ pub struct Param {
 }
 
 impl Param {
-    pub fn new(ident: Ident, ty: Ty, mutability: Mutability, span: Span, id: LocalDefId) -> Self {
+    pub fn new(
+        local_var: LocalVar,
+        ty: Ty,
+        mutability: Mutability,
+        span: Span,
+        id: LocalDefId,
+    ) -> Self {
         Self {
-            name: ident,
+            local_var,
             ty,
             mutability,
             span,
@@ -1161,7 +1165,7 @@ impl DestructureExpr {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum DestructureExprKind {
     Pattern(DestructurePattern),
-    Identifier(InternedStr),
+    Identifier(LocalVar),
     True,
     False,
     Float(f64),

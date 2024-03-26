@@ -5,7 +5,7 @@ use std::fmt::{Debug, Formatter};
 
 use serde::Serialize;
 
-use ast::{ClassType, Ident, InfixOp, Mutability, UnaryOp, ValueDef};
+use ast::{ClassType, Ident, InfixOp, MaybeFnDef, ModulePath, Mutability, UnaryOp, ValueDef};
 use id::{CrateId, DefId, LocalDefId, ModuleId};
 use interner::InternedStr;
 use span::Span;
@@ -212,15 +212,15 @@ impl<'a> FnSig<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Param<'a> {
-    pub ident: Ident,
+    pub local_var: LocalVar,
     pub ty: &'a Ty<'a>,
     pub mutability: Mutability,
 }
 
 impl<'a> Param<'a> {
-    pub fn new(ident: Ident, ty: &'a Ty<'a>, mutability: Mutability) -> Self {
+    pub fn new(ident: LocalVar, ty: &'a Ty<'a>, mutability: Mutability) -> Self {
         Self {
-            ident,
+            local_var: ident,
             ty,
             mutability,
         }
@@ -279,33 +279,6 @@ pub enum Ty<'a> {
     TraitBound(TraitBound<'a>),
     Closure(Closure<'a>),
     Primitive(Primitive),
-}
-
-impl<'a> Ty<'a> {
-    fn contains_ty(&self, other: &Ty) -> bool {
-        todo!()
-        // match self {
-        //     Ty::Array { .. } => {}
-        //     Ty::Path { .. } => {}
-        //     Ty::TraitBound { .. } => {}
-        //     Ty::Closure { .. } => {}
-        //     Ty::Infer => {}
-        //     Ty::QSelf => {}
-        //     Ty::U8 => {}
-        //     Ty::U16 => {}
-        //     Ty::U32 => {}
-        //     Ty::U64 => {}
-        //     Ty::I8 => {}
-        //     Ty::I16 => {}
-        //     Ty::I32 => {}
-        //     Ty::I64 => {}
-        //     Ty::F32 => {}
-        //     Ty::F64 => {}
-        //     Ty::Str => {}
-        //     Ty::Boolean => {}
-        //     Ty::None => {}
-        // }
-    }
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
@@ -378,7 +351,7 @@ pub enum Expr<'a> {
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub enum DestructureExpr<'a> {
     Pattern(DestructurePattern<'a>),
-    Identifier(InternedStr),
+    Identifier(LocalVar),
     None,
     True,
     False,
@@ -509,15 +482,14 @@ impl<'a> TyPattern<'a> {
 }
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize)]
-#[repr(transparent)]
-#[serde(transparent)]
 pub struct LocalVar {
     pub ident: InternedStr,
+    pub id: LocalDefId,
 }
 
 impl LocalVar {
-    pub fn new(ident: InternedStr) -> Self {
-        Self { ident }
+    pub fn new(ident: InternedStr, id: LocalDefId) -> Self {
+        Self { ident, id }
     }
 }
 
@@ -612,32 +584,21 @@ impl<'a> PathExpr<'a> {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub enum Res<'a> {
+pub enum Res {
     Crate(CrateId),
-    ModuleSegment(CrateId, ModulePath<'a>),
+    ModuleSegment(CrateId, ModulePath),
     Module(ModuleId),
     ValueDef(ValueDef),
-    Fn(Option<DefId>),
+    Fn(MaybeFnDef),
     // These have to be late resolved after type information is deduced?
-    Local(LocalDef<'a>),
+    Local(LocalDef),
     Primitive(Primitive),
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct ModulePath<'a> {
-    path: &'a [InternedStr],
-}
-
-impl<'a> ModulePath<'a> {
-    pub fn new(path: &'a [InternedStr]) -> Self {
-        Self { path }
-    }
-}
-
 #[derive(PartialEq, Debug, Clone, Copy, Serialize)]
-pub enum LocalDef<'a> {
-    Var(&'a HirNode<'a>),
-    Generic(&'a HirNode<'a>),
+pub enum LocalDef {
+    Var(LocalVar),
+    Generic(LocalDefId),
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
@@ -652,12 +613,12 @@ pub enum DefTy {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Segment<'a> {
-    pub res: &'a Res<'a>,
+    pub res: &'a Res,
     pub generics: Option<Generics<'a>>,
 }
 
 impl<'a> Segment<'a> {
-    pub fn new(res: &'a Res<'a>, generics: Option<Generics<'a>>) -> Self {
+    pub fn new(res: &'a Res, generics: Option<Generics<'a>>) -> Self {
         Self { res, generics }
     }
 }
@@ -723,13 +684,13 @@ impl<'a> WhileStmt<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct ForStmt<'a> {
-    pub ident: Ident,
+    pub ident: LocalVar,
     pub range: &'a Expr<'a>,
     pub body: &'a Block<'a>,
 }
 
 impl<'a> ForStmt<'a> {
-    pub fn new(ident: Ident, range: &'a Expr<'a>, body: &'a Block<'a>) -> Self {
+    pub fn new(ident: LocalVar, range: &'a Expr<'a>, body: &'a Block<'a>) -> Self {
         Self { ident, range, body }
     }
 }
@@ -755,7 +716,7 @@ impl<'a> IfStmt<'a> {
     }
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct ClosureParam {

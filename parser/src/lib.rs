@@ -686,7 +686,7 @@ impl<'ctxt> Parser<'ctxt> {
 
     fn param(&mut self) -> Option<Param> {
         self.track_span();
-        let (mutability, ident, ty) = self.mut_ident_ty()?;
+        let (mutability, ident, ty) = self.mut_var_ty()?;
         Some(Param::new(
             ident,
             ty,
@@ -696,7 +696,7 @@ impl<'ctxt> Parser<'ctxt> {
         ))
     }
 
-    fn mut_ident_ty(&mut self) -> Option<(Mutability, Ident, Ty)> {
+    fn mut_var_ty(&mut self) -> Option<(Mutability, LocalVar, Ty)> {
         let mutability = self.mutability();
         let ident;
         let ty;
@@ -706,10 +706,10 @@ impl<'ctxt> Parser<'ctxt> {
         }) = self.current_token()
         {
             self.advance();
-            ident = Ident::new(self.intern_str("self"), span);
+            ident = LocalVar::new(self.intern_str("self"), span, self.get_id());
             ty = Ty::new(TyKind::QSelf, span, self.get_id());
         } else {
-            ident = self.identifier()?;
+            ident = self.local_var()?;
             self.expect(TokenType::Colon)?;
             ty = self.parse_ty()?;
         }
@@ -727,7 +727,7 @@ impl<'ctxt> Parser<'ctxt> {
                 span,
             }) => {
                 self.advance();
-                let ident = Ident::new(self.intern_str("self"), span);
+                let ident = LocalVar::new(self.intern_str("self"), span, self.get_id());
                 let ty = Ty::new(TyKind::QSelf, span, self.get_id());
 
                 Some(Param::new(
@@ -993,13 +993,13 @@ impl<'ctxt> Parser<'ctxt> {
     fn parse_for_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
         self.expect(TokenType::For)?;
-        let identifier = self.identifier()?;
+        let local_var = self.local_var()?;
         self.expect(TokenType::In)?;
 
         let range_expr = self.expr()?;
         let body = self.block_stmt()?;
         Some(Stmt::new(
-            StmtKind::For(ForStmt::new(identifier, range_expr, body)),
+            StmtKind::For(ForStmt::new(local_var, range_expr, body)),
             self.get_span(),
             self.get_id(),
         ))
@@ -1463,9 +1463,9 @@ impl<'ctxt> Parser<'ctxt> {
                 // If the next token is a comma, we know that this is an identifier not a path.
                 match self.next_type(1) {
                     Some(TokenType::Comma) | Some(TokenType::RightParentheses) => {
-                        self.advance();
+                        let local_var = self.local_var()?;
                         Some(DestructureExpr::new(
-                            DestructureExprKind::Identifier(ident),
+                            DestructureExprKind::Identifier(local_var),
                             self.get_span(),
                             self.get_id(),
                         ))

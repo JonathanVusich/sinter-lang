@@ -134,7 +134,7 @@ impl<'a> Validator<'a> {
     fn validate_params(&mut self, params: &Params) {
         self.report_name_clashes(
             params.as_slice(),
-            |param| param.name.ident,
+            |param| param.local_var.ident,
             |param| param.span,
             "parameters",
         );
