@@ -11,6 +11,55 @@ use interner::InternedStr;
 use span::Span;
 use types::{LDefMap, StrSet};
 
+pub enum Node<'a> {
+    Item(&'a Item<'a>),
+
+    Member(&'a MemberDef<'a>),
+    Fn(&'a FnDef<'a>),
+
+    Ty(&'a Ty<'a>),
+
+    Expr(&'a Expr<'a>),
+    DestructureExpr(&'a DestructureExpr<'a>),
+    Stmt(&'a Stmt<'a>),
+    Block(&'a Block<'a>),
+
+    Param(&'a Param<'a>),
+    Field(&'a Field<'a>),
+    LocalVar(LocalVar),
+    Pattern(&'a Pattern<'a>),
+    MatchArm(&'a MatchArm<'a>),
+}
+
+pub struct Item<'a> {
+    pub kind: ItemKind<'a>,
+    pub owner: Owner,
+    // Represents the module that this item resides in.
+    pub span: Span,
+}
+
+pub enum ItemKind<'a> {
+    Constant(&'a Constant<'a>),
+    Class(&'a ClassDef<'a>),
+    Enum(&'a EnumDef<'a>),
+    Fn(&'a FnDef<'a>),
+    Trait(&'a TraitDef<'a>),
+    TraitImpl(&'a TraitImplDef<'a>),
+}
+
+pub struct ExprV2<'a> {
+    pub kind: ExprKindV2<'a>,
+    pub owner: LocalDefId,
+    pub id: LocalDefId,
+}
+
+pub enum ExprKindV2<'a> {}
+
+pub enum Owner {
+    Crate(CrateId),
+    Node(LocalDefId),
+}
+
 /// HirNode stores a reference to the underlying node data along with other useful debugging info.
 #[derive(PartialEq, Copy, Clone, Serialize)]
 pub struct HirNode<'a> {
@@ -33,14 +82,14 @@ impl<'a> HirNode<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub enum HirNodeKind<'a> {
-    GlobalLet(&'a GlobalLetStmt<'a>),
-    Class(&'a ClassStmt<'a>),
-    Enum(&'a EnumStmt<'a>),
-    Trait(&'a TraitStmt<'a>),
-    TraitImpl(&'a TraitImplStmt<'a>),
-    Fn(&'a FnStmt<'a>),
+    GlobalLet(&'a Constant<'a>),
+    Class(&'a ClassDef<'a>),
+    Enum(&'a EnumDef<'a>),
+    Trait(&'a TraitDef<'a>),
+    TraitImpl(&'a TraitImplDef<'a>),
+    Fn(&'a FnDef<'a>),
 
-    EnumMember(&'a EnumMember<'a>),
+    EnumMember(&'a MemberDef<'a>),
 
     Expr(&'a Expr<'a>),
     Ty(&'a Ty<'a>),
@@ -56,38 +105,47 @@ pub enum HirNodeKind<'a> {
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct GlobalLetStmt<'a> {
+pub struct Constant<'a> {
     pub local_var: LocalVar,
     pub ty: &'a Ty<'a>,
     pub initializer: &'a Expr<'a>,
+    pub owner: ModuleId,
 }
 
-impl<'a> GlobalLetStmt<'a> {
-    pub fn new(local_var: LocalVar, ty: &'a Ty<'a>, initializer: &'a Expr<'a>) -> Self {
+impl<'a> Constant<'a> {
+    pub fn new(
+        local_var: LocalVar,
+        ty: &'a Ty<'a>,
+        initializer: &'a Expr<'a>,
+        owner: ModuleId,
+    ) -> Self {
         Self {
             local_var,
             ty,
             initializer,
+            owner,
         }
     }
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct ClassStmt<'a> {
+pub struct ClassDef<'a> {
     pub name: Ident,
     pub class_type: ClassType,
     pub generic_params: GenericParams<'a>,
     pub fields: Fields<'a>,
     pub fn_stmts: FnStmts<'a>,
+    pub owner: CrateId,
 }
 
-impl<'a> ClassStmt<'a> {
+impl<'a> ClassDef<'a> {
     pub fn new(
         name: Ident,
         class_type: ClassType,
         generic_params: GenericParams<'a>,
         fields: Fields<'a>,
         fn_stmts: FnStmts<'a>,
+        owner: CrateId,
     ) -> Self {
         Self {
             name,
@@ -95,94 +153,120 @@ impl<'a> ClassStmt<'a> {
             generic_params,
             fields,
             fn_stmts,
+            owner,
         }
     }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct EnumStmt<'a> {
+pub struct EnumDef<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
-    pub members: EnumMembers<'a>,
+    pub members: MemberDefs<'a>,
     pub member_fns: FnStmts<'a>,
+    pub owner: CrateId,
 }
 
-impl<'a> EnumStmt<'a> {
+impl<'a> EnumDef<'a> {
     pub fn new(
         name: Ident,
         generic_params: GenericParams<'a>,
-        members: EnumMembers<'a>,
+        members: MemberDefs<'a>,
         member_fns: FnStmts<'a>,
+        owner: CrateId,
     ) -> Self {
         Self {
             name,
             generic_params,
             members,
             member_fns,
+            owner,
         }
     }
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct EnumMember<'a> {
+pub struct MemberDef<'a> {
     pub name: InternedStr,
     pub fields: Fields<'a>,
     pub member_fns: FnStmts<'a>,
+    pub owner: LocalDefId,
 }
 
-impl<'a> EnumMember<'a> {
-    pub fn new(name: InternedStr, fields: Fields<'a>, member_fns: FnStmts<'a>) -> Self {
+impl<'a> MemberDef<'a> {
+    pub fn new(
+        name: InternedStr,
+        fields: Fields<'a>,
+        member_fns: FnStmts<'a>,
+        owner: LocalDefId,
+    ) -> Self {
         Self {
             name,
             fields,
             member_fns,
+            owner,
         }
     }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct TraitStmt<'a> {
+pub struct TraitDef<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
     pub member_fns: FnStmts<'a>,
+    pub owner: CrateId,
 }
 
-impl<'a> TraitStmt<'a> {
-    pub fn new(name: Ident, generic_params: GenericParams<'a>, member_fns: FnStmts<'a>) -> Self {
+impl<'a> TraitDef<'a> {
+    pub fn new(
+        name: Ident,
+        generic_params: GenericParams<'a>,
+        member_fns: FnStmts<'a>,
+        owner: CrateId,
+    ) -> Self {
         Self {
             name,
             generic_params,
             member_fns,
+            owner,
         }
     }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct TraitImplStmt<'a> {
+pub struct TraitImplDef<'a> {
     pub trait_to_impl: &'a PathTy<'a>,
     pub target_ty: DefId,
     pub member_fns: FnStmts<'a>,
+    pub owner: CrateId,
 }
 
-impl<'a> TraitImplStmt<'a> {
-    pub fn new(trait_to_impl: &'a PathTy<'a>, target_ty: DefId, member_fns: FnStmts<'a>) -> Self {
+impl<'a> TraitImplDef<'a> {
+    pub fn new(
+        trait_to_impl: &'a PathTy<'a>,
+        target_ty: DefId,
+        member_fns: FnStmts<'a>,
+        owner: CrateId,
+    ) -> Self {
         Self {
             trait_to_impl,
             target_ty,
             member_fns,
+            owner,
         }
     }
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct FnStmt<'a> {
+pub struct FnDef<'a> {
     pub sig: FnSig<'a>,
     pub body: Option<&'a Block<'a>>,
+    pub owner: Owner,
 }
 
-impl<'a> FnStmt<'a> {
-    pub fn new(sig: FnSig<'a>, body: Option<&'a Block<'a>>) -> Self {
-        Self { sig, body }
+impl<'a> FnDef<'a> {
+    pub fn new(sig: FnSig<'a>, body: Option<&'a Block<'a>>, owner: Owner) -> Self {
+        Self { sig, body, owner }
     }
 }
 
@@ -319,8 +403,8 @@ pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
 pub type Fields<'a> = &'a [&'a Field<'a>];
 pub type ClosureParams<'a> = &'a [ClosureParam];
 pub type Params<'a> = &'a [&'a Param<'a>];
-pub type FnStmts<'a> = &'a [&'a FnStmt<'a>];
-pub type EnumMembers<'a> = &'a [&'a EnumMember<'a>];
+pub type FnStmts<'a> = &'a [&'a FnDef<'a>];
+pub type MemberDefs<'a> = &'a [&'a MemberDef<'a>];
 pub type MatchArms<'a> = &'a [&'a MatchArm<'a>];
 pub type Segments<'a> = &'a [&'a Segment<'a>];
 pub type Patterns<'a> = &'a [&'a Pattern<'a>];

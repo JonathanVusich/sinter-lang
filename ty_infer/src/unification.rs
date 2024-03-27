@@ -80,16 +80,3 @@ impl<'a> UnificationTable<'a> {
         key
     }
 }
-
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
-#[repr(transparent)]
-#[serde(transparent)]
-pub struct TyVar {
-    id: u32,
-}
-
-impl TyVar {
-    pub(crate) fn new(id: u32) -> Self {
-        Self { id }
-    }
-}

@@ -29,13 +29,13 @@ use ast::{
 };
 use diagnostics::{Diagnostic, Diagnostics};
 use hir::{
-    AnonParams, Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassStmt, Closure, ClosureExpr,
-    ClosureParam, ClosureParams, DestructureExpr, DestructurePattern, EnumMember, EnumMembers,
-    EnumStmt, Expr, Expression, Field, FieldExpr, Fields, FnSig, FnStmt, FnStmts, ForStmt,
-    GenericParam, GenericParams, Generics, GlobalLetStmt, HirCrate, HirMap, HirNode, HirNodeKind,
-    IfStmt, IndexExpr, InfixExpr, LetStmt, LocalDef, LocalVar, MatchArm, MatchArms, MatchExpr,
-    OrPattern, Param, Params, PathExpr, PathTy, Pattern, Primitive, Res, ReturnStmt, Segment, Stmt,
-    TraitBound, TraitImplStmt, TraitStmt, Ty, TyPattern, UnaryExpr, WhileStmt,
+    AnonParams, Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassDef, Closure, ClosureExpr,
+    ClosureParam, ClosureParams, Constant, DestructureExpr, DestructurePattern, EnumDef, Expr,
+    Expression, Field, FieldExpr, Fields, FnDef, FnSig, FnStmts, ForStmt, GenericParam,
+    GenericParams, Generics, HirCrate, HirMap, HirNode, HirNodeKind, IfStmt, IndexExpr, InfixExpr,
+    LetStmt, LocalDef, LocalVar, MatchArm, MatchArms, MatchExpr, MemberDef, MemberDefs, OrPattern,
+    Param, Params, PathExpr, PathTy, Pattern, Primitive, Res, ReturnStmt, Segment, Stmt,
+    TraitBound, TraitDef, TraitImplDef, Ty, TyPattern, UnaryExpr, WhileStmt,
 };
 use id::{CrateId, DefId, LocalDefId, ModuleId};
 use interner::{InternedStr, StringInterner};
@@ -491,9 +491,7 @@ impl<'hir> CrateResolver<'hir> {
         let ty = self.resolve_ty(&let_stmt.ty)?;
         let expr = self.resolve_expr(&let_stmt.initializer)?;
 
-        let global_let_stmt = self
-            .allocator
-            .alloc(GlobalLetStmt::new(local_var, ty, expr));
+        let global_let_stmt = self.allocator.alloc(Constant::new(local_var, ty, expr));
 
         // We don't need to insert constants into a local scope since it is already part of the module ns.
         self.insert_node(HirNode::new(
@@ -522,7 +520,7 @@ impl<'hir> CrateResolver<'hir> {
         let fields = self.resolve_fields(&class_stmt.fields)?;
         let fn_stmts = self.resolve_self_fn_stmts(&class_stmt.self_fns)?;
 
-        let hir_class = self.alloc(ClassStmt::new(
+        let hir_class = self.alloc(ClassDef::new(
             class_stmt.name,
             class_stmt.class_type,
             generic_params,
@@ -765,7 +763,7 @@ impl<'hir> CrateResolver<'hir> {
 
         self.scopes.pop();
 
-        let hir_enum = self.allocator.alloc(EnumStmt::new(
+        let hir_enum = self.allocator.alloc(EnumDef::new(
             enum_stmt.name,
             generic_params,
             enum_members,
@@ -778,8 +776,8 @@ impl<'hir> CrateResolver<'hir> {
     fn resolve_enum_members(
         &mut self,
         enum_stmt_members: &Vec<AstEnumMember>,
-    ) -> Option<EnumMembers<'hir>> {
-        let mut enum_members = Vec::<&'hir EnumMember>::with_capacity(enum_stmt_members.len());
+    ) -> Option<MemberDefs<'hir>> {
+        let mut enum_members = Vec::<&'hir MemberDef>::with_capacity(enum_stmt_members.len());
         for member in enum_stmt_members {
             self.insert_enum_member(member.name, member.id)?;
 
@@ -791,7 +789,7 @@ impl<'hir> CrateResolver<'hir> {
             let fields = self.resolve_fields(&member.fields)?;
             let self_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
 
-            let enum_member = self.alloc(EnumMember::new(member.name, fields, self_fns));
+            let enum_member = self.alloc(MemberDef::new(member.name, fields, self_fns));
             self.insert_node(HirNode::new(
                 HirNodeKind::EnumMember(enum_member),
                 member.span,
@@ -822,7 +820,7 @@ impl<'hir> CrateResolver<'hir> {
 
         self.scopes.pop();
 
-        let hir_trait = self.alloc(TraitStmt::new(trait_stmt.name, generic_params, member_fns));
+        let hir_trait = self.alloc(TraitDef::new(trait_stmt.name, generic_params, member_fns));
         self.insert_node(HirNode::new(HirNodeKind::Trait(hir_trait), span, id));
 
         Some(id)
@@ -843,7 +841,7 @@ impl<'hir> CrateResolver<'hir> {
         });
 
         let self_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
-        let trait_impl_stmt = self.alloc(TraitImplStmt::new(trait_to_impl, target_ty, self_fns));
+        let trait_impl_stmt = self.alloc(TraitImplDef::new(trait_to_impl, target_ty, self_fns));
         self.insert_node(HirNode::new(
             HirNodeKind::TraitImpl(trait_impl_stmt),
             span,
@@ -869,12 +867,12 @@ impl<'hir> CrateResolver<'hir> {
 
         self.scopes.pop();
 
-        let fn_stmt = self.alloc(FnStmt::new(resolved_sig, resolved_body));
+        let fn_stmt = self.alloc(FnDef::new(resolved_sig, resolved_body));
         self.insert_node(HirNode::new(HirNodeKind::Fn(fn_stmt), span, id));
         Some(id)
     }
 
-    fn resolve_self_fn_stmt(&mut self, fn_stmt: &AstFnSelfStmt) -> Option<&'hir FnStmt<'hir>> {
+    fn resolve_self_fn_stmt(&mut self, fn_stmt: &AstFnSelfStmt) -> Option<&'hir FnDef<'hir>> {
         let AstFnSelfStmt {
             sig,
             body,
@@ -893,7 +891,7 @@ impl<'hir> CrateResolver<'hir> {
 
         self.scopes.pop();
 
-        let fn_stmt = self.alloc(FnStmt::new(resolved_sig, resolved_body));
+        let fn_stmt = self.alloc(FnDef::new(resolved_sig, resolved_body));
         self.insert_node(HirNode::new(HirNodeKind::Fn(fn_stmt), *span, *id));
         Some(fn_stmt)
     }
@@ -904,7 +902,7 @@ impl<'hir> CrateResolver<'hir> {
         }
 
         // This is safe because we have already checked to ensure that there are no name collisions.
-        let mut fn_stmts = Vec::<&'hir FnStmt<'hir>>::with_capacity(stmts.len());
+        let mut fn_stmts = Vec::<&'hir FnDef<'hir>>::with_capacity(stmts.len());
         for fn_stmt in stmts {
             let fn_stmt = self.resolve_self_fn_stmt(fn_stmt)?;
             fn_stmts.push(fn_stmt);

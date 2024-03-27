@@ -276,7 +276,6 @@ pub enum Primitive {
 pub enum Ty<'a> {
     Array(&'a Ty<'a>),
     Adt(&'a Adt<'a>),
-    GenericParam(&'a GenericParam<'a>),
     TraitBound(TraitBound<'a>),
     Closure(Closure<'a>),
     Primitive(Primitive),
@@ -301,9 +300,6 @@ impl<'a> Ty<'a> {
             Ty::TraitBound(trait_bound) => {
                 // Need to figure out how to represent and record trait impls (including generics)
                 // for each ADT.
-                todo!()
-            }
-            Ty::GenericParam(param) => {
                 todo!()
             }
             Ty::Closure(lhs) => match rhs {
@@ -370,17 +366,17 @@ impl TyVar {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Adt<'a> {
-    id: DefId,
-    name: Ident,
-    variants: Variants<'a>,
+    pub id: DefId,
+    pub name: Ident,
+    pub variants: Variants<'a>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Variant<'a> {
-    id: DefId,
-    name: Ident,
-    fields: Fields<'a>,
-    fns: FnStmts<'a>,
+    pub id: DefId,
+    pub name: Ident,
+    pub fields: Fields<'a>,
+    pub fns: FnStmts<'a>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
@@ -430,8 +426,14 @@ pub type Variants<'a> = &'a [&'a Variant<'a>];
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Expr<'a> {
-    kind: ExprKind<'a>,
-    ty: &'a Ty<'a>,
+    pub kind: ExprKind<'a>,
+    pub ty: &'a Ty<'a>,
+}
+
+impl<'a> Expr<'a> {
+    pub fn new(kind: ExprKind<'a>, ty: &'a Ty<'a>) -> Self {
+        Self { kind, ty }
+    }
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
@@ -440,13 +442,6 @@ pub enum ExprKind<'a> {
     Call(CallExpr<'a>),
     Infix(InfixExpr<'a>),
     Unary(UnaryExpr<'a>),
-    None,
-    True,
-    False,
-    Int(i64),
-    UInt(u64),
-    Float(f64),
-    String(InternedStr),
     Match(MatchExpr<'a>),
     Closure(ClosureExpr<'a>),
     Assign(AssignExpr<'a>),
@@ -455,6 +450,13 @@ pub enum ExprKind<'a> {
     Path(PathExpr<'a>),
     Break,
     Continue,
+    None,
+    True,
+    False,
+    Int(i64),
+    UInt(u64),
+    Float(f64),
+    String(InternedStr),
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
