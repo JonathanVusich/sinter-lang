@@ -118,9 +118,9 @@ pub enum DestructureExprKind<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Stmt<'a> {
-    kind: StmtKind<'a>,
-    span: Span,
-    id: LocalDefId,
+    pub kind: StmtKind<'a>,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]

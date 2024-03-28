@@ -11,13 +11,13 @@ use serde::{Deserialize, Serialize};
 use arena::Arena;
 use ast::{ClassDef, FnDef, GlobalVarDef, InfixOp, TraitStmt, UnaryOp, ValueDef};
 use diagnostics::{Diagnostic, Diagnostics};
-use hir::{HirCrate, HirMap, HirNodeKind};
+use hir::{HirCrate, HirMap};
 use id::{DefId, LocalDefId};
 use macros::named_slice;
 use typed_hir::{ArrayExpr, ClassStmt, Closure, EnumStmt, Expr, ExprKind, FnStmt, GlobalLetStmt, LocalVar, Node, NodeKind, Primitive, TraitImplStmt, Ty, TypedCrate};
 use types::{DefMap, LDefMap};
 
-use crate::unification::{TyVar, UnificationTable};
+use crate::unification::{UnificationTable};
 
 mod trait_solver;
 mod unification;
@@ -72,14 +72,14 @@ impl<'hir> CrateInference<'hir> {
         for item in self.krate.items.iter() {
             // Unwrap is safe here since all items should have corresponding nodes.
             let node = self.krate.nodes.get(item).unwrap();
-            let typed_kind = match node.kind {
+            let typed_kind = match node {
                 // Since global lets are the only top level items that have a type (other than fns), we infer on them directly.
-                HirNodeKind::GlobalLet(global_let_stmt) => self.infer_global_let_stmt(global_let_stmt),
-                HirNodeKind::Class(class_stmt) => self.infer_class_stmt(class_stmt),
-                HirNodeKind::Enum(enum_stmt) => self.infer_enum_stmt(enum_stmt),
-                HirNodeKind::Trait(trait_stmt) => self.infer_trait_stmt(trait_stmt),
-                HirNodeKind::TraitImpl(trait_impl_stmt) => self.infer_trait_impl_stmt(trait_impl_stmt),
-                HirNodeKind::Fn(fn_stmt) => self.infer_fn_stmt(fn_stmt),
+                Node::GlobalLet(global_let_stmt) => self.infer_global_let_stmt(global_let_stmt),
+                NodeKind::Class(class_stmt) => self.infer_class_stmt(class_stmt),
+                NodeKind::Enum(enum_stmt) => self.infer_enum_stmt(enum_stmt),
+                NodeKind::Trait(trait_stmt) => self.infer_trait_stmt(trait_stmt),
+                NodeKind::TraitImpl(trait_impl_stmt) => self.infer_trait_impl_stmt(trait_impl_stmt),
+                NodeKind::Fn(fn_stmt) => self.infer_fn_stmt(fn_stmt),
                 _ => unreachable!(),
             };
 
@@ -296,7 +296,7 @@ impl<'hir> CrateInference<'hir> {
 
     fn infer(&mut self, node: &LocalDefId) -> (Constraints, &'hir Ty<'hir>) {
         let (constraints, ty) = match self.krate.node(node) {
-            HirNodeKind::GlobalLet(global_let) => {
+            NodeKind::GlobalLet(global_let) => {
                 let ty = self.translate_ty(global_let.ty.to_def_id(self.krate.id));
                 self.ty_map.insert(&global_let.ty, ty.clone());
                 self.ty_map.insert(&global_let.local_var, ty.clone());
@@ -304,7 +304,7 @@ impl<'hir> CrateInference<'hir> {
                 let constraints = self.check(&global_let.initializer, ty);
                 (constraints, Type::None)
             }
-            HirNodeKind::Block(block) => {
+            NodeKind::Block(block) => {
                 // Create a new scope to track constraints on the return type.
                 let ret_ty = self.fresh_ty();
                 self.ret_tys.push(ret_ty.clone());
@@ -316,7 +316,7 @@ impl<'hir> CrateInference<'hir> {
                 self.ret_tys.pop();
                 (constraints, ret_ty)
             }
-            HirNodeKind::Stmt(stmt) => {
+            NodeKind::Stmt(stmt) => {
                 match stmt {
                     Stmt::Let(let_stmt) => {
                         // Create fresh type var for the var type. This will be either inferred or
@@ -366,7 +366,7 @@ impl<'hir> CrateInference<'hir> {
                     _ => (Constraints::default(), self.fresh_ty(node)),
                 }
             }
-            HirNodeKind::Expr(expr) => match expr {
+            NodeKind::Expr(expr) => match expr {
                 Expr::Array(array) => match array {
                     ArrayExpr::Sized { initializer, size } => {
                         let size_c = self.check(size, Type::U64); // Should always be zero?
@@ -575,13 +575,13 @@ impl<'hir> CrateInference<'hir> {
     fn check(&mut self, node_id: &LocalDefId, ty: TyKind) -> Constraints {
         let node = self.krate.node(node_id);
         let constraints = match (node, &ty) {
-            (HirNodeKind::Expr(Expr::Float(_)), TyKind::F32 | TyKind::F64) => {
+            (NodeKind::Expr(Expr::Float(_)), TyKind::F32 | TyKind::F64) => {
                 Constraints::default()
             }
-            (HirNodeKind::Expr(Expr::Int(_)), TyKind::I64) => Constraints::default(),
-            (HirNodeKind::Expr(Expr::String(_)), TyKind::Str) => Constraints::default(),
-            (HirNodeKind::Expr(Expr::True), TyKind::Boolean) => Constraints::default(),
-            (HirNodeKind::Expr(Expr::False), TyKind::Boolean) => Constraints::default(),
+            (NodeKind::Expr(Expr::Int(_)), TyKind::I64) => Constraints::default(),
+            (NodeKind::Expr(Expr::String(_)), TyKind::Str) => Constraints::default(),
+            (NodeKind::Expr(Expr::True), TyKind::Boolean) => Constraints::default(),
+            (NodeKind::Expr(Expr::False), TyKind::Boolean) => Constraints::default(),
             (node, ty) => {
                 let (mut constraints, inferred_ty) = self.infer(node_id);
                 constraints.push(Constraint::Assignable(ty.clone(), inferred_ty));
@@ -753,21 +753,21 @@ impl<'hir> CrateInference<'hir> {
     fn substitute(&mut self, node_id: &LocalDefId) {
         let node = self.krate.node(node_id);
         match node {
-            HirNodeKind::GlobalLet(let_stmt) => {
+            NodeKind::GlobalLet(let_stmt) => {
                 // Don't need to check the associated ty
                 self.substitute(&let_stmt.initializer);
             }
-            HirNodeKind::Fn(fn_stmt) => {
+            NodeKind::Fn(fn_stmt) => {
                 if let Some(body) = &fn_stmt.body {
                     self.substitute(body);
                 }
             }
-            HirNodeKind::EnumMember(enum_member) => {
+            NodeKind::EnumMember(enum_member) => {
                 for member_fn in enum_member.member_fns.values() {
                     self.substitute(member_fn);
                 }
             }
-            HirNodeKind::Expr(expr) => {
+            NodeKind::Expr(expr) => {
                 // TODO: Finish implementing this tree walk.
                 match expr {
                     Expr::Array(ArrayExpr::Sized { initializer, size }) => {
@@ -821,9 +821,9 @@ impl<'hir> CrateInference<'hir> {
                     }
                 }
             }
-            HirNodeKind::Ty(_) => {}
-            HirNodeKind::DestructureExpr(_) => {}
-            HirNodeKind::Stmt(stmt) => match stmt {
+            NodeKind::Ty(_) => {}
+            NodeKind::DestructureExpr(_) => {}
+            NodeKind::Stmt(stmt) => match stmt {
                 Stmt::Let(let_stmt) => {
                     let_stmt
                         .initializer
@@ -856,22 +856,22 @@ impl<'hir> CrateInference<'hir> {
                 Stmt::Block(block) => self.substitute(block),
                 Stmt::Expression(expr) => self.substitute(&expr.expr),
             },
-            HirNodeKind::Block(block) => {
+            NodeKind::Block(block) => {
                 block
                     .stmts
                     .into_iter()
                     .for_each(|stmt| self.substitute(stmt));
             }
-            HirNodeKind::Param(_) => {}
-            HirNodeKind::Field(_) => {}
-            HirNodeKind::LocalVar(_) => {}
-            HirNodeKind::Pattern(_) => {}
-            HirNodeKind::MatchArm(_) => {}
+            NodeKind::Param(_) => {}
+            NodeKind::Field(_) => {}
+            NodeKind::LocalVar(_) => {}
+            NodeKind::Pattern(_) => {}
+            NodeKind::MatchArm(_) => {}
             // These can safely be ignored since they should not be traversed.
-            HirNodeKind::Class(_) => {}
-            HirNodeKind::Enum(_) => {}
-            HirNodeKind::Trait(_) => {}
-            HirNodeKind::TraitImpl(_) => {}
+            NodeKind::Class(_) => {}
+            NodeKind::Enum(_) => {}
+            NodeKind::Trait(_) => {}
+            NodeKind::TraitImpl(_) => {}
         }
 
         let ty = self.ty_map.get(node_id).unwrap().clone();
