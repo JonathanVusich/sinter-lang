@@ -260,11 +260,12 @@ impl<'a> Compiler<'a> {
         for krate in hir_map.krates() {
             let crate_inference = CrateInference::new(
                 &mut self.diagnostics,
+                &mut self.hir_allocator,
                 &mut self.thir_allocator,
                 krate,
                 &hir_map,
             );
-            if let Some(typed_crate) = crate_inference.type_crate() {
+            if let Some(typed_crate) = crate_inference.infer_bodies() {
                 typed_hir.insert(typed_crate);
             }
         }

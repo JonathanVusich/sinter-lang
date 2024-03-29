@@ -1,5 +1,6 @@
 use crate::Ty;
 use serde::{Deserialize, Serialize};
+use typed_hir::TyVar;
 
 #[derive(Default, Debug)]
 pub(crate) struct UnificationTable<'a> {

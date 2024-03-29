@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 ast = { path = "../ast" }
+hir = { path = "../hir" }
 id = { path = "../id" }
 interner = { path = "../interner" }
 macros = { path = "../macros" }

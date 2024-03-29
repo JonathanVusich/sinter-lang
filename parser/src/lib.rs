@@ -235,7 +235,7 @@ impl<'ctxt> Parser<'ctxt> {
     fn fn_self_stmt(&mut self) -> Option<FnSelfStmt> {
         self.track_span();
         let signature = self.fn_signature(false)?;
-        let stmt = self.block_stmt()?;
+        let stmt = self.block()?;
 
         Some(FnSelfStmt::new(
             signature,
@@ -247,7 +247,7 @@ impl<'ctxt> Parser<'ctxt> {
 
     fn fn_stmt(&mut self) -> Option<FnStmt> {
         let signature = self.fn_signature(false)?;
-        let stmt = self.block_stmt()?;
+        let stmt = self.block()?;
 
         Some(FnStmt::new(signature, Some(stmt)))
     }
@@ -266,7 +266,7 @@ impl<'ctxt> Parser<'ctxt> {
                 ))
             }
             Some(TokenType::LeftBrace) => {
-                let stmt = self.block_stmt()?;
+                let stmt = self.block()?;
                 Some(FnSelfStmt::new(
                     signature,
                     Some(stmt),
@@ -761,7 +761,7 @@ impl<'ctxt> Parser<'ctxt> {
         Some(FnSig::new(identifier, generics, params, ty))
     }
 
-    fn block_stmt(&mut self) -> Option<Block> {
+    fn block(&mut self) -> Option<Block> {
         self.track_span();
         let stmts = self.parse_multiple_with_scope(
             |parser| parser.parse_inner_stmt(),
@@ -774,7 +774,7 @@ impl<'ctxt> Parser<'ctxt> {
     fn parse_block_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
         Some(Stmt::new(
-            StmtKind::Block(self.block_stmt()?),
+            StmtKind::Block(self.block()?),
             self.get_span(),
             self.get_id(),
         ))
@@ -959,10 +959,10 @@ impl<'ctxt> Parser<'ctxt> {
         self.track_span();
         self.expect(TokenType::If)?;
         let condition = self.expr()?;
-        let block_stmt = self.block_stmt()?;
+        let block_stmt = self.block()?;
         let optional_stmt = if self.matches(TokenType::Else) {
             self.advance();
-            Some(self.block_stmt()?)
+            Some(self.block()?)
         } else {
             None
         };
@@ -985,7 +985,7 @@ impl<'ctxt> Parser<'ctxt> {
     fn while_stmt(&mut self) -> Option<WhileStmt> {
         self.expect(TokenType::While)?;
         let condition = self.expr()?;
-        let block_stmt = self.block_stmt()?;
+        let block_stmt = self.block()?;
 
         Some(WhileStmt::new(condition, block_stmt))
     }
@@ -997,7 +997,7 @@ impl<'ctxt> Parser<'ctxt> {
         self.expect(TokenType::In)?;
 
         let range_expr = self.expr()?;
-        let body = self.block_stmt()?;
+        let body = self.block()?;
         Some(Stmt::new(
             StmtKind::For(ForStmt::new(local_var, range_expr, body)),
             self.get_span(),
@@ -1186,6 +1186,12 @@ impl<'ctxt> Parser<'ctxt> {
                     }
                 }
 
+                TokenType::LeftBrace => {
+                    self.advance();
+                    let block = self.block()?;
+                    ExprKind::Block(block)
+                }
+
                 // Handle match expression
                 TokenType::Match => {
                     self.advance();
@@ -1206,6 +1212,7 @@ impl<'ctxt> Parser<'ctxt> {
                         vec![
                             TokenType::LeftBracket,
                             TokenType::LeftParentheses,
+                            TokenType::LeftBrace,
                             TokenType::Match,
                             TokenType::None,
                             TokenType::SelfCapitalized,

@@ -475,13 +475,13 @@ impl<'hir> CrateResolver<'hir> {
         let ty = self.resolve_ty(&let_stmt.ty)?;
         let expr = self.resolve_expr(&let_stmt.initializer)?;
 
-        let global_let_stmt = self.allocator.alloc(Constant {
+        let constant = self.allocator.alloc(Constant {
             local_var,
             ty,
             initializer,
         });
         let item = self.alloc(Item {
-            kind: ItemKind::Constant(global_let_stmt),
+            kind: ItemKind::Constant(constant),
             span,
             id,
         });
@@ -1029,6 +1029,7 @@ impl<'hir> CrateResolver<'hir> {
                 let arms = self.resolve_match_arms(&match_expr.arms)?;
                 ExprKind::Match(MatchExpr::new(source, arms))
             }
+
             ast::ExprKind::Closure(closure) => {
                 let params = self.resolve_closure_params(&closure.params)?;
                 let stmt = self.resolve_stmt(&closure.stmt)?;
@@ -1053,6 +1054,15 @@ impl<'hir> CrateResolver<'hir> {
                 let path = self.resolve_path(path)?;
                 ExprKind::Path(path)
             }
+            ast::ExprKind::Block(block) => {
+                self.scopes.push(Scope::Block {
+                    vars: StrMap::default(),
+                });
+                let block = self.resolve_block(block)?;
+                self.scopes.pop();
+                ExprKind::Block(*block)
+            }
+
             ast::ExprKind::Parentheses(parentheses) => {
                 // Special logic for stripping parentheses (since they are just for pretty printing)
                 let resolved_expr = self.resolve_expr(&parentheses.expr)?;
@@ -1555,14 +1565,6 @@ impl<'hir> CrateResolver<'hir> {
                 let while_stmt = WhileStmt::new(condition, block);
 
                 Stmt::While(self.alloc(while_stmt))
-            }
-            ast::StmtKind::Block(block) => {
-                self.scopes.push(Scope::Block {
-                    vars: Default::default(),
-                });
-                let block = self.resolve_block(block)?;
-                self.scopes.pop();
-                Stmt::Block(block)
             }
             ast::StmtKind::Expression(expression) => {
                 let expr = self.resolve_expr(&expression.expr)?;

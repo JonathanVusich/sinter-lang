@@ -1,15 +1,20 @@
 ### Notes on grammar decisions
-1. Enums and classes include methods in the body of each type to avoid having to reconcile multiple impl blocks for the same class. It also makes generic parameters easier to keep track of since the declared generic params are the ones that are global to class or enum methods.
-2. Class fields are delimited by semicolons. This makes parsing function bodies easier and avoids forced ordering for parsing to succeed.
-3. 
+
+1. Enums and classes include methods in the body of each type to avoid having to reconcile multiple impl blocks for the
+   same class. It also makes generic parameters easier to keep track of since the declared generic params are the ones
+   that are global to class or enum methods.
+2. Class fields are delimited by semicolons. This makes parsing function bodies easier and avoids forced ordering for
+   parsing to succeed.
+3.
 
 ### Statement Types
 
 `outerStmt => useStmt | classStmt | fnStmt | constLetStmt | enumStmt | traitStmt | traitImplStmt`
 
-`stmt => letStmt | forStmt | whileStmt | blockStmt | returnStmt | ifStmt | expression`
+`stmt => letStmt | forStmt | whileStmt | returnStmt | ifStmt | expression`
 
 _________________________________
+
 ### Outer Statement Definitions
 
 `useStmt => "use" qualifiedIdent ";"`
@@ -25,29 +30,31 @@ _________________________________
 `traitStmt => "trait" ident genericParams? ( traitBody | ";" )`
 
 `traitImplStmt => "impl" pathType "for" ty ( objectFns | ";" )`
-
-`blockStmt => "{" stmt* "}"`
-
 _________________________________
+
 ### Statement Definitions
+
 `letStmt => "let" "mut"? ident ( ":" ty )? ( "=" expression )? ";"`
 
-`forStmt => "for" ident "in" expression blockStmt`
+`forStmt => "for" ident "in" expression block`
 
-`ifStmt => "if" expression blockStmt ( "else if" expression blockStmt )* ( "else" blockStmt )?`
+`ifStmt => "if" expression block ( "else if" expression block )* ( "else" block )?`
 
 `returnStmt => "return" expression?`
 
-`whileStmt => "while" expression blockStmt`
+`whileStmt => "while" expression block`
 
 `matchStmt => "match" expression matchBlock`
 
 _________________________________
+
 ### Expression Definitions
 
 `expression => closure | assignment`
 
-`closure => "(" ( ident ( , ident )* )? ")" "=>" ( blockStmt | expression )`
+`closure => "(" ( ident ( , ident )* )? ")" "=>" expression`
+
+`block => "{" stmt* "}"`
 
 `assignment => logicalOr ( ( "=" ) logicalOr )*`
 
@@ -79,35 +86,40 @@ _________________________________
 
 `index => "[" expression "]"`
 
-`primary => literal | "self" | path | "(" expression ")"`;
+`primary => literal | "self" | path | "(" expression ")" | block`;
 
 _________________________________
+
 ### Enum Definitions
 
 `enumMember => ident params? ("{" fnSelfStmt* "}")?`
 
 _________________________________
+
 ### Trait Definitions
 
 `=> "{" fnTraitStmt* "}"`
 
 _________________________________
+
 ### Function Definitions
+
 `fnHead => "fn" ident genericParams?`
 
-`fnTail => ( "=>" ty )? blockStmt`
+`fnTail => ( "=>" ty )? block`
 
 `fnTailNoImpl => ( "=>" ty )? ";"`
 
-`fnTraitStmts => "{" fnTraitStmt* "}"` 
+`fnTraitStmts => "{" fnTraitStmt* "}"`
 
 `fnTraitStmt => fnSelfStmt | fnSelfNoImplStmt`
 
-`fnSelfStmt => fnHead selfParams fnTail` 
+`fnSelfStmt => fnHead selfParams fnTail`
 
 `fnSelfNoImplStmt => fnHead selfParams fnTailNoImpl";"`
 
 _________________________________
+
 ### Generic Definitions
 
 `generics => "<" ty ( , ty )* ">"`
@@ -117,6 +129,7 @@ _________________________________
 `genericParam => ident ( ":" traitBoundType )`
 
 _________________________________
+
 ### Parameter Definitions
 
 `params => "(" param (, param)* ")"`
@@ -130,6 +143,7 @@ _________________________________
 `field => ident ":" ty`
 
 _________________________________
+
 ### Argument Definitions
 
 `args => arg ( , arg )*`
@@ -137,11 +151,12 @@ _________________________________
 `arg => expression`
 
 _________________________________
+
 ### Match Definitions
 
 `matchBlock => "{" matchArm ( , matchArm )* ,? "}"`
 
-`matchArm => orPattern "=>" ( blockStmt | expression )`
+`matchArm => orPattern "=>" expression`
 
 `orPattern => pattern ( "|" pattern )*`
 
@@ -156,6 +171,7 @@ _________________________________
 `destructureExpr => literal | wildcard | identifier | destructurePattern`
 
 _________________________________
+
 ### Type Definitions
 
 `literal => boolean | "None" | number | string`
@@ -164,8 +180,8 @@ _________________________________
 
 `ty => basicType | arrayType | traitBoundType | closureType`
 
-`basicType => "bool" | "None" | "u8" | "u16" | "u64" | 
-              "i8" | "i16" | "i32" | i64" | "f32" | "f64"`
+`basicType => "bool" | "None" | "u8" | "u16" | "u64" |
+"i8" | "i16" | "i32" | i64" | "f32" | "f64"`
 
 `arrayType => "[" ty "]"`
 
@@ -177,6 +193,7 @@ _________________________________
 
 
 _________________________________
+
 ### General Definitions
 
 `path => ident ( "::" ident )* ( "::" generics "::" ident )`

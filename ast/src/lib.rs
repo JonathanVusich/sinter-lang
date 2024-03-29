@@ -71,6 +71,7 @@ pub enum ExprKind {
     UInt(u64),
     String(InternedStr),
     Match(MatchExpr),
+    Block(Block),
     Closure(ClosureExpr),
     Assign(AssignExpr),
     Field(FieldExpr),
@@ -1330,7 +1331,6 @@ pub enum StmtKind {
     If(IfStmt),
     Return(ReturnStmt),
     While(WhileStmt),
-    Block(Block),
     Expression(Expression),
 }
 

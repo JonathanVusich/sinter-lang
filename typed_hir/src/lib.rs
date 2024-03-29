@@ -1,21 +1,29 @@
 #![allow(unused)]
 
-use std::collections::BTreeMap;
-use std::fmt::{Debug, Formatter};
+use std::collections::HashMap;
+use std::fmt::Debug;
 
 use serde::Serialize;
 
-use ast::{ClassType, Ident, InfixOp, MaybeFnDef, ModulePath, Mutability, UnaryOp, ValueDef};
-use id::{CrateId, DefId, LocalDefId, ModuleId};
+use ast::{Ident, InfixOp, Mutability, UnaryOp};
+use hir::{ClassDef, EnumDef, FnDef, MemberDef, TraitDef};
+use id::{DefId, LocalDefId};
 use interner::InternedStr;
-use span::Span;
-use types::{LDefMap, StrSet};
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ExprId(LocalDefId);
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct BlockId(LocalDefId);
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct StmtId(LocalDefId);
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ArmId(LocalDefId);
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct PatternId(LocalDefId);
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct Expr<'a> {
@@ -38,40 +46,34 @@ pub enum ExprKind<'a> {
     String(InternedStr),
     Match(MatchExpr),
     Closure(ClosureExpr),
-    Assign(AssignExpr<'a>),
-    Field(FieldExpr<'a>),
-    Index(IndexExpr<'a>),
+    Assign(AssignExpr),
+    Field(FieldExpr),
+    Index(IndexExpr),
     Path(PathExpr<'a>),
     Break,
     Continue,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct Ty<'a> {
-    pub kind: TyKind<'a>,
-    pub span: Span,
-    pub id: LocalDefId,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub enum TyKind<'a> {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum Ty<'a> {
     Array(&'a Ty<'a>),
-    Path(&'a PathTy<'a>),
+    Class(&'a ClassDef<'a>, Generics<'a>),
+    Enum(&'a EnumDef<'a>, Generics<'a>),
+    EnumMember(&'a MemberDef<'a>, Generics<'a>),
+    TraitBound(TraitBound<'a>, Generics<'a>),
     GenericParam(&'a GenericParam<'a>),
-    TraitBound(TraitBound<'a>),
-    Closure(Closure<'a>),
-    Primitive(Primitive),
+    Fn(Fn<'a>),
+    Infer(TyVar),
+    Float(FloatTy),
+    Int(IntTy),
+    Uint(UintTy),
+    Str,
+    Boolean,
+    None,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct DestructureExpr<'a> {
-    kind: DestructureExprKind<'a>,
-    span: Span,
-    id: LocalDefId,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub enum DestructureExprKind<'a> {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum DestructureExpr<'a> {
     Pattern(DestructurePattern<'a>),
     Identifier(LocalVar),
     None,
@@ -83,34 +85,30 @@ pub enum DestructureExprKind<'a> {
     String(InternedStr),
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct Stmt<'a> {
-    pub kind: StmtKind<'a>,
-    pub span: Span,
-    pub id: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum Stmt {
+    Let(LetStmt),
+    For(ForStmt),
+    If(IfStmt),
+    Return(ReturnStmt),
+    While(WhileStmt),
+    Block(Block),
+    Expression(Expression),
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub enum StmtKind<'a> {
-    Let(&'a LetStmt<'a>),
-    For(&'a ForStmt<'a>),
-    If(&'a IfStmt<'a>),
-    Return(&'a ReturnStmt<'a>),
-    While(&'a WhileStmt<'a>),
-    Block(&'a Block<'a>),
-    Expression(&'a Expression<'a>),
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum StmtKind {}
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Pattern<'a> {
+    kind: PatternKind<'a>,
+    ty: &'a Ty<'a>,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct Pattern {
-    kind: PatternKind,
-    ty: Ty,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub enum PatternKind {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum PatternKind<'a> {
     Wildcard,
-    Or(OrPattern),
+    Or(OrPattern<'a>),
     None,
     True,
     False,
@@ -118,48 +116,15 @@ pub enum PatternKind {
     UInt(u64),
     Float(f64),
     String(InternedStr),
-    Ty(TyPattern),
-    Destructure(DestructurePattern),
+    Ty(TyPattern<'a>),
+    Destructure(DestructurePattern<'a>),
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct Constant<'a> {
     pub local_var: LocalVar,
     pub ty: &'a Ty<'a>,
     pub initializer: ExprId,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct ClassDef<'a> {
-    pub name: Ident,
-    pub class_type: ClassType,
-    pub generic_params: GenericParams<'a>,
-    pub fields: Fields<'a>,
-    pub fn_stmts: FnStmts<'a>,
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct EnumDef<'a> {
-    pub name: Ident,
-    pub generic_params: GenericParams<'a>,
-    pub members: MemberDefs<'a>,
-    pub member_fns: FnStmts<'a>,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct MemberDef<'a> {
-    pub name: InternedStr,
-    pub fields: Fields<'a>,
-    pub member_fns: FnStmts<'a>,
-    pub span: Span,
-    pub id: LocalDefId,
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct TraitDef<'a> {
-    pub name: Ident,
-    pub generic_params: GenericParams<'a>,
-    pub member_fns: FnStmts<'a>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -169,15 +134,7 @@ pub struct TraitImplDef<'a> {
     pub member_fns: FnStmts<'a>,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct FnDef<'a> {
-    pub sig: FnSig<'a>,
-    pub body: Option<&'a Block<'a>>,
-    pub span: Span,
-    pub id: LocalDefId,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct FnSig<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
@@ -185,58 +142,64 @@ pub struct FnSig<'a> {
     pub return_type: Option<&'a Ty<'a>>,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct Param<'a> {
     pub local_var: LocalVar,
     pub ty: &'a Ty<'a>,
     pub mutability: Mutability,
-    pub span: Span,
-    pub id: LocalDefId,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct Block<'a> {
-    pub stmts: Stmts<'a>,
-    pub span: Span,
-    pub id: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Block {
+    pub stmts: Stmts,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct Expression<'a> {
-    pub expr: &'a Expr<'a>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Expression {
+    pub expr: ExprId,
     pub implicit_return: bool,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub enum Primitive {
-    U8,
-    U16,
-    U32,
-    U64,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct TyVar {
+    pub(crate) id: u32,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum FloatTy {
+    F32,
+    F64,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum IntTy {
     I8,
     I16,
     I32,
     I64,
-    F32,
-    F64,
-    Str,
-    Boolean,
-    None,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum UintTy {
+    U8,
+    U16,
+    U32,
+    U64,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct PathTy<'a> {
     pub definition: DefId,
     pub generics: Generics<'a>,
 }
 
-pub type TraitBound<'a> = &'a [&'a PathTy<'a>];
+pub type TraitBound<'a> = Box<[&'a TraitDef<'a>]>;
 pub type Generics<'a> = &'a [&'a Ty<'a>];
 pub type Args = Box<[ExprId]>;
-pub type Stmts<'a> = &'a [&'a Stmt<'a>];
+pub type Stmts = Box<[StmtId]>;
 pub type AnonParams<'a> = &'a [&'a Ty<'a>];
 pub type Initializers = Box<[ExprId]>;
-pub type Exprs<'a> = &'a [&'a Expr<'a>];
+pub type Exprs = Box<[ExprId]>;
 pub type DestructureExprs<'a> = &'a [&'a DestructureExpr<'a>];
 pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
 pub type Fields<'a> = &'a [&'a Field<'a>];
@@ -244,11 +207,10 @@ pub type ClosureParams = Box<[ClosureParam]>;
 pub type Params<'a> = &'a [&'a Param<'a>];
 pub type FnStmts<'a> = &'a [&'a FnDef<'a>];
 pub type MemberDefs<'a> = &'a [&'a MemberDef<'a>];
-pub type MatchArms<'a> = Vec<MatchArm>;
-pub type Segments<'a> = &'a [&'a Segment<'a>];
-pub type Patterns = Box<[Pattern]>;
+pub type MatchArms = Box<[ArmId]>;
+pub type Patterns<'a> = Box<[Pattern<'a>]>;
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum Literal {
     None,
     True,
@@ -264,19 +226,19 @@ pub enum ArrayExpr {
     Unsized { initializers: Initializers },
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct CallExpr {
     pub target: ExprId,
     pub args: Args,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct UnaryExpr {
     pub operator: UnaryOp,
     pub expr: ExprId,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct InfixExpr {
     pub operator: InfixOp,
     pub lhs: ExprId,
@@ -286,95 +248,90 @@ pub struct InfixExpr {
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct MatchExpr {
     pub source: ExprId,
-    pub arms: Box<[ArmId]>,
+    pub arms: MatchArms,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct MatchArm {
-    pub pattern: Pattern,
-    pub body: &'a Stmt<'a>,
-    pub span: Span,
-    pub id: LocalDefId,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct MatchArm<'a> {
+    pub pattern: Pattern<'a>,
+    pub body: StmtId,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct OrPattern<'a> {
     patterns: Patterns<'a>,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct TyPattern<'a> {
-    pub ty: &'a PathTy<'a>,
+    pub ty: &'a PathExpr<'a>,
     pub ident: Option<LocalVar>,
 }
 
-#[derive(Copy, Clone, PartialEq, Debug, Serialize)]
+#[derive(Clone, PartialEq, Debug, Serialize)]
 pub struct LocalVar {
     pub ident: InternedStr,
-    pub span: Span,
-    pub id: LocalDefId,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct DestructurePattern<'a> {
-    pub ty: &'a PathTy<'a>,
+    pub ty: &'a PathExpr<'a>,
     pub exprs: DestructureExprs<'a>,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct Closure<'a> {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct Fn<'a> {
     pub params: AnonParams<'a>,
     pub ret_ty: &'a Ty<'a>,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ClosureExpr {
     pub params: ClosureParams,
-    pub stmt: Stmt,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct AssignExpr<'a> {
-    pub lhs: &'a Expr<'a>,
-    pub rhs: &'a Expr<'a>,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct FieldExpr<'a> {
-    pub lhs: &'a Expr<'a>,
-    pub ident: Ident,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct IndexExpr<'a> {
-    pub expr: &'a Expr<'a>,
-    pub key: &'a Expr<'a>,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct PathExpr<'a> {
-    pub segments: Segments<'a>,
+    pub stmt: StmtId,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub enum Res {
-    Crate(CrateId),
-    ModuleSegment(CrateId, ModulePath),
-    Module(ModuleId),
-    ValueDef(ValueDef),
-    Fn(MaybeFnDef),
-    // These have to be late resolved after type information is deduced?
-    Local(LocalDef),
-    Primitive(Primitive),
+pub struct AssignExpr {
+    pub lhs: ExprId,
+    pub rhs: ExprId,
 }
 
-#[derive(PartialEq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct FieldExpr {
+    pub lhs: ExprId,
+    pub ident: Ident,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct IndexExpr {
+    pub expr: ExprId,
+    pub key: ExprId,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub enum PathExpr<'a> {
+    Class(&'a ClassDef<'a>, Generics<'a>),
+    Enum(&'a EnumDef<'a>, Generics<'a>),
+    Trait(&'a TraitDef<'a>, Generics<'a>),
+    Fn(&'a FnDef<'a>, Generics<'a>),
+    Var(LocalVar),
+    Generic(GenericParam<'a>),
+    Float(FloatTy),
+    Int(IntTy),
+    Uint(UintTy),
+    Str,
+    Boolean,
+    None,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum LocalDef {
     Var(LocalVar),
     Generic(LocalDefId),
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy, Serialize)]
+#[derive(PartialEq, Eq, Debug, Clone, Serialize)]
 pub enum DefTy {
     GlobalLet,
     Class,
@@ -384,102 +341,69 @@ pub enum DefTy {
     Fn,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct Segment<'a> {
-    pub res: &'a Res,
-    pub generics: Option<Generics<'a>>,
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct Field<'a> {
     pub ident: Ident,
     pub ty: &'a Ty<'a>,
-    pub span: Span,
-    pub id: LocalDefId,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct LetStmt<'a> {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct LetStmt {
     pub local_var: LocalVar,
     pub mutability: Mutability,
-    pub ty: Option<&'a Ty<'a>>,
-    pub initializer: Option<&'a Expr<'a>>,
+    // Don't need to record a Ty here because the expression will be typed.
+    pub initializer: Option<ExprId>,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct ReturnStmt<'a> {
-    pub value: Option<&'a Expr<'a>>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct ReturnStmt {
+    pub value: Option<ExprId>,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct WhileStmt<'a> {
-    pub condition: &'a Expr<'a>,
-    pub block: &'a Block<'a>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct WhileStmt {
+    pub condition: ExprId,
+    pub block: BlockId,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct ForStmt<'a> {
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct ForStmt {
     pub ident: LocalVar,
-    pub range: &'a Expr<'a>,
-    pub body: &'a Block<'a>,
+    pub range: ExprId,
+    pub body: BlockId,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct IfStmt<'a> {
-    pub condition: &'a Expr<'a>,
-    pub if_true: &'a Block<'a>,
-    pub if_false: Option<&'a Block<'a>>,
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct IfStmt {
+    pub condition: ExprId,
+    pub if_true: BlockId,
+    pub if_false: Option<BlockId>,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct ClosureParam {
     ident: Ident,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct GenericParam<'a> {
     pub ident: Ident,
-    pub trait_bound: Option<TraitBound<'a>>,
+    pub trait_bound: TraitBound<'a>, // Can be empty to indicate no trait bounds.
 }
 
-#[derive(PartialEq, Debug, Default, Clone, Serialize)]
-pub struct THirMap<'a> {
-    exprs: Vec<&'a Expr<'a>>,
-    crates: Vec<HirCrate<'a>>,
-    names_to_indices: StrSet,
+pub struct ThirBodies<'hir> {
+    pub exprs: HashMap<LocalDefId, Thir<'hir>>,
 }
 
-impl<'a> THirMap<'a> {
-    pub fn insert(&mut self, krate: HirCrate<'a>) {
-        self.names_to_indices.insert(krate.name);
-        self.crates.push(krate);
-    }
+pub struct Thir<'hir> {
+    generic_tys: Vec<&'hir Ty<'hir>>,
+    ret_ty: &'hir Ty<'hir>,
 
-    pub fn krate_by_name(&self, name: &InternedStr) -> &HirCrate {
-        let index = self.names_to_indices.get_index_of(name).unwrap();
-        &self.crates[index]
-    }
-    pub fn krate(&self, def_id: &DefId) -> &HirCrate {
-        &self.crates[def_id.crate_id().as_usize()]
-    }
-    pub fn krates(&self) -> impl Iterator<Item = &HirCrate> {
-        self.crates.iter()
-    }
-
-    pub fn into_krates(self) -> impl Iterator<Item = HirCrate<'a>> + Debug {
-        self.crates.into_iter()
-    }
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct HirCrate<'a> {
-    pub name: InternedStr,
-    pub id: CrateId,
-    pub items: Vec<LocalDefId>,
-    #[cfg(not(test))]
-    pub nodes: LDefMap<Node<'a>>,
-    #[cfg(test)]
-    pub nodes: BTreeMap<LocalDefId, Node<'a>>,
+    // Contents of the block which will be useful for looking things up later.
+    blocks: Vec<Block>,
+    arms: Vec<MatchArm<'hir>>,
+    stmts: Vec<Stmt>,
+    exprs: Vec<Expr<'hir>>,
 }

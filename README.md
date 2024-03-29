@@ -8,14 +8,16 @@ quickly, scalably, and correctly.
 
 ## Basic syntax
 
-### Use statements 
+### Use statements
 
 ```ignorelang
 use std::vector::Vector;
 ```
-Imports must be declared at the top of each source file. 
+
+Imports must be declared at the top of each source file.
 
 ### Program entry point
+
 The entry point for a Sinter application is the main function.
 
 ```ignorelang
@@ -24,8 +26,9 @@ fn main() {
 }
 ```
 
-A main argument that takes in a string array is also valid. 
+A main argument that takes in a string array is also valid.
 The parameters given to the Sinter VM at startup are passed to this method.
+
 ```ignorelang
 fn main(arguments: [str]) {
     print(arguments.to_string());
@@ -37,15 +40,19 @@ fn main(arguments: [str]) {
 Sinter provides a number of built-in types in order to simplify application development.
 
 #### Unsigned integer types
+
 `u8`, `u16`, `u32`, `u64`
 
 #### Signed integer types
+
 `i8`, `i16`, `i32`, `i64`
 
 #### Floating point types
+
 `f32`, `f64`
 
 #### Object types
+
 The `str` type is an internal class that contains an immutable array of bytes that represent a UTF-8 encoded string.
 This type can be created through a literal.
 
@@ -69,6 +76,7 @@ let node_array = [Node(), Node()];
 ```
 
 ### Functions
+
 An example function that returns the sum of two integers.
 
 ```ignorelang
@@ -78,6 +86,7 @@ fn sum(a: i64, b: i64) => i64 {
 ```
 
 ### Variables
+
 Local and global variables can be assigned using the keyword `let`.
 
 ```ignorelang
@@ -98,7 +107,7 @@ Variables can be defined within a struct or function definition.
 
 ### Functions
 
-To define a  function, use the `fn` keyword.
+To define a function, use the `fn` keyword.
 
 ```ignorelang
 fn add(a: i64, b: i64) => i64 {
@@ -106,7 +115,7 @@ fn add(a: i64, b: i64) => i64 {
 } 
 ```
 
-Functions that do not return a value can omit the return value in the 
+Functions that do not return a value can omit the return value in the
 function signature.
 
 ```ignorelang
@@ -115,7 +124,7 @@ fn print(text: str) {
 }
 ```
 
-Functions may return errors by using the builtin `Result` type. 
+Functions may return errors by using the builtin `Result` type.
 
 ```ignorelang
 fn write<T: Serializable>(value: T) => Result<None> {
@@ -168,12 +177,13 @@ fn log_trait_message(message: Loggable + Serializable) {
 ```
 
 Classes can also declare generic types as members. Using a generic type allows the compiler to generate  
-class definitions for each concrete type. This improves performance significantly at the expense of compile time overhead
-and binary size. 
+class definitions for each concrete type. This improves performance significantly at the expense of compile time
+overhead
+and binary size.
 
 Using a trait reference only generates a single class definition, but has performance limitations. Reference classes
-already contain extra information for introspection, but inline classes and primitives have to be wrapped in a fat 
-pointer in order for the runtime to inspect the objects at runtime. This uses more processor cycles and memory, 
+already contain extra information for introspection, but inline classes and primitives have to be wrapped in a fat
+pointer in order for the runtime to inspect the objects at runtime. This uses more processor cycles and memory,
 but can be a valuable tool in cold paths where there are many different types being passed.
 
 ```ignorelang
@@ -189,9 +199,9 @@ ref class List<T> {
     }
 }
 
-let list_of_ints = List::<i64>::new();
-let list_of_lists = List::<List<f64>>::new();
-let trait_bounds = List::<Loggable + Serializable>::new();
+let list_of_ints = List::<i64>::new(16);
+let list_of_lists = List::<List<f64>>::new(16);
+let trait_bounds = List::<Loggable + Serializable>::new(16);
 ```
 
 ### Defining classes and instances
@@ -212,12 +222,14 @@ class Rectangle {
 ```
 
 Classes can be constructed by calling the qualified path with values for each class field.
+
 ```ignorelang
 let rectangle = Rectangle(10, 20);
 ```
 
 Classes can contain instance and static method declarations. Instance methods are marked by providing a `self`
 argument in the declaration.
+
 ```ignorelang
 class Rectangle {
     width: f64,
@@ -234,7 +246,9 @@ class Rectangle {
 ```
 
 Instance fields can only be mutated from instance methods that take `mut self` instead of `self`.
+
 #### Incorrect:
+
 ```ignorelang
 class Counter { 
     num: i64,
@@ -245,7 +259,9 @@ class Counter {
     }
 }
 ```
+
 #### Correct:
+
 ```ignorelang
 class Counter { 
     num: i64,
@@ -259,14 +275,18 @@ class Counter {
 
 Likewise, classes cannot be mutated if the mutator does not have a mutable reference to the instance.
 This is done in order to ensure strong immutability by default.
+
 #### Incorrect:
+
 ```ignorelang
 let counter = Counter(0);
 
 counter.increment();
        ^^^^^^^^^^^^  Error: Attempted to call a mutable method on an immutable variable.
 ```
+
 #### Correct:
+
 ```ignorelang
 let mut counter = Counter(0);
 
@@ -291,6 +311,7 @@ enum Planet {
 ```
 
 Enums can also contain a payload and functions that are specific to each member:
+
 ```ignorelang
 enum Message {
     Text(message: str),
@@ -303,6 +324,7 @@ enum Message {
 ```
 
 Enums can also contain functions that are not specific to each member:
+
 ```ignorelang
 enum Planet {
     Mercury,
@@ -326,7 +348,7 @@ They can only contain function declarations or function implementation.
 
 ```ignorelang
 trait StringIterator {
-    fn next(self) => str | None;
+    fn next(self) => Option<str>;
 }
 ```
 
@@ -334,7 +356,7 @@ Traits can also use generic parameters in order to improve usability.
 
 ```ignorelang
 trait Iterator<T> {
-    fn next(self) => T | None;
+    fn next(self) => Option<T>;
 }
 
 ref class MutableList<T> {
@@ -343,13 +365,14 @@ ref class MutableList<T> {
     fn extend<I: Iterator<T>>(mut self, iterator: I) {
         while true {
             match iterator.next() {
-                T item => self.add(item),
+                Some(item) => self.add(item),
                 None => break;
             }
         }
     }
 }
 ```
+
 ### Pattern matching
 
 Sinter provides a `match` expression which is very useful for dispatching complicated control flow.
@@ -365,7 +388,7 @@ match number {
 ### Generic types
 
 Functions and class can use generic type definitions in order to allow usability with
-many concrete types. 
+many concrete types.
 
 ```ignorelang
 fn maybe<T>(instance: T) => Option<T> {
@@ -405,7 +428,6 @@ Trait bounds can also be used to directly describe mixed types. This will incur 
 penalty for non-reference types since they will need to be wrapped in a reference pointer in order
 to be mixed with other types.
 
-
 ```ignorelang
 trait Node {
     fn bounds(self) => Bounds;
@@ -421,10 +443,11 @@ fn draw_frame(nodes: List<Node>) {
 ### Concurrency
 
 Sinter helps users to write correct concurrent programs by preventing concurrent
-references to types that do not implement the `std::Sync` trait. 
+references to types that do not implement the `std::Sync` trait.
 
-It is entirely possible to misuse the `std::Sync` trait and create deadlocks or other concurrency bugs. 
-This trait is a special empty trait that allows the compiler to check thread boundary access at compile time, and to prevent **accidental**
+It is entirely possible to misuse the `std::Sync` trait and create deadlocks or other concurrency bugs.
+This trait is a special empty trait that allows the compiler to check thread boundary access at compile time, and to
+prevent **accidental**
 concurrent usage of types that do not implement `std::Sync`.
 
 The primitive types in Sinter all implement `std::Sync` since they are immutable.
@@ -440,6 +463,7 @@ impl Sync for ConcurrentMap<K, V>;
 ```
 
 ### Comments
+
 Like most languages, Sinter supports single-line (or end-of-line) and multi-line (block) comments.
 
 ```ignorelang
