@@ -75,6 +75,7 @@ pub enum ExprKind<'a> {
     Field(FieldExpr<'a>),
     Index(IndexExpr<'a>),
     Path(PathExpr<'a>),
+    Block(Block<'a>),
     Break,
     Continue,
 }
