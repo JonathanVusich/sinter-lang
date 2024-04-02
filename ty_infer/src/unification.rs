@@ -1,4 +1,4 @@
-use crate::Ty;
+use crate::TyKind;
 use serde::{Deserialize, Serialize};
 use typed_hir::TyVar;
 
@@ -10,7 +10,7 @@ pub(crate) struct UnificationTable<'a> {
 #[derive(Debug)]
 struct Entry<'a> {
     parent: TyVar,
-    value: Option<Ty<'a>>,
+    value: Option<TyKind<'a>>,
 }
 
 impl<'a> Entry<'a> {
@@ -30,10 +30,10 @@ impl<'a> UnificationTable<'a> {
         lhs == rhs
     }
 
-    pub(crate) fn unify_var_ty<'b, F: Fn(&Ty<'b>, &Ty<'b>) -> bool>(
+    pub(crate) fn unify_var_ty<'b, F: Fn(&TyKind<'b>, &TyKind<'b>) -> bool>(
         &mut self,
         var: TyVar,
-        ty: Ty<'b>,
+        ty: TyKind<'b>,
         assignable_check: F,
     ) -> bool {
         let root = self.get_root_key(var);
@@ -47,7 +47,7 @@ impl<'a> UnificationTable<'a> {
         }
     }
 
-    pub(crate) fn probe(&mut self, key: TyVar) -> Option<Ty<'a>> {
+    pub(crate) fn probe(&mut self, key: TyVar) -> Option<TyKind<'a>> {
         let root_key = self.get_root_key(key);
         self.entry(root_key).value.clone()
     }

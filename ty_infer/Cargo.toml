@@ -12,6 +12,7 @@ ast = { path = "../ast" }
 bumpalo = "3.15.4"
 diagnostics = { path = "../diagnostics" }
 id = { path = "../id" }
+interner = { path = "../interner" }
 macros = { path = "../macros" }
 krate = { path = "../krate" }
 hir = { path = "../hir" }

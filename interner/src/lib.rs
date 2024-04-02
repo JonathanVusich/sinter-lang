@@ -1,5 +1,9 @@
+#![feature(hash_set_entry)]
+
 use lasso::{Rodeo, Spur};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
+use std::hash::Hash;
 
 #[repr(transparent)]
 #[derive(
@@ -44,5 +48,18 @@ impl StringInterner {
     }
     pub fn resolve(&self, str: InternedStr) -> &str {
         self.interner.resolve(&str.into())
+    }
+}
+
+pub struct Interner<T> {
+    interned_tys: HashSet<T>,
+}
+
+impl<T> Interner<T>
+where
+    T: Eq + Hash,
+{
+    pub fn intern(&mut self, val: T) -> &T {
+        self.interned_tys.get_or_insert(val)
     }
 }

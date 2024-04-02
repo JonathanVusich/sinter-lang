@@ -14,14 +14,14 @@ use ast::ModulePath;
 use diagnostics::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
 use hir::HirMap;
 use id::IdGenerator;
-use interner::{InternedStr, StringInterner};
+use interner::{InternedStr, Interner, StringInterner};
 use krate::Crate;
 use parser::parse;
 use resolver::resolve;
 use source::{SourceCode, SourceMap};
 use tokenizer::{tokenize, tokenize_file, TokenizedSource};
 use ty_infer::CrateInference;
-use typed_hir::TypedHirMap;
+use typed_hir::{TyKind, TypedHirMap};
 use types::StrMap;
 use validator::validate;
 
@@ -30,6 +30,7 @@ mod arenas;
 #[derive(Default)]
 pub struct Compiler<'a> {
     string_interner: StringInterner,
+    ty_interner: Interner<TyKind<'a>>,
     diagnostics: Diagnostics,
     // ast_allocator: Bump,
     hir_allocator: Bump,
@@ -260,6 +261,7 @@ impl<'a> Compiler<'a> {
         for krate in hir_map.krates() {
             let crate_inference = CrateInference::new(
                 &mut self.diagnostics,
+                &mut self.ty_interner,
                 &mut self.hir_allocator,
                 &mut self.thir_allocator,
                 krate,
