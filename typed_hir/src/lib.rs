@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::ops::Deref;
+use std::ops::{Add, Deref};
 
 use serde::Serialize;
 
@@ -146,7 +146,7 @@ pub enum TyKind<'a> {
     Enum(&'a EnumDef<'a>, Generics<'a>),
     EnumMember(&'a MemberDef<'a>, Generics<'a>),
     TraitBound(TraitBound<'a>, Generics<'a>),
-    GenericParam(&'a GenericParam<'a>),
+    GenericParam(GenericParam<'a>),
     Fn(Fn<'a>),
     Infer(TyVar),
     Float(FloatTy),
@@ -156,6 +156,8 @@ pub enum TyKind<'a> {
     Boolean,
     None,
 }
+
+pub fn do_somethign<T: Add<usize>>() -> () {}
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct ClassDef<'a> {
@@ -186,6 +188,12 @@ pub struct TraitDef<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
     pub member_fns: FnDefs<'a>,
+}
+
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
+pub struct Bound<'a> {
+    trait_def: TraitDef<'a>,
+    generics: Generics<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
@@ -292,7 +300,7 @@ pub struct PathTy<'a> {
     pub generics: Generics<'a>,
 }
 
-pub type TraitBound<'a> = &'a [&'a TraitDef<'a>];
+pub type TraitBound<'a> = &'a [&'a Bound<'a>];
 pub type Generics<'a> = &'a [Ty<'a>];
 pub type GenericParams<'a> = &'a [GenericParam<'a>];
 pub type Params<'a> = &'a [Ty<'a>];
@@ -469,17 +477,17 @@ pub struct IfStmt {
     pub if_false: Option<BlockId>,
 }
 
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
+pub struct GenericParam<'a> {
+    pub ident: Ident,
+    pub trait_bound: Option<TraitBound<'a>>,
+}
+
 #[derive(PartialEq, Debug, Clone, Serialize)]
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct ClosureParam {
     ident: Ident,
-}
-
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
-pub struct GenericParam<'a> {
-    pub ident: Ident,
-    pub trait_bound: TraitBound<'a>, // Can be empty to indicate no trait bounds.
 }
 
 #[derive(Default)]

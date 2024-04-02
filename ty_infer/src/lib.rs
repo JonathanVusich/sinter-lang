@@ -9,13 +9,13 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use arena::Arena;
-use ast::{ClassDef, FnDef, GlobalVarDef, InfixOp, TraitStmt, UnaryOp, ValueDef};
+use ast::{FnDef, GlobalVarDef, InfixOp, TraitStmt, UnaryOp, ValueDef};
 use diagnostics::{Diagnostic, Diagnostics};
-use hir::{HirCrate, HirMap, ItemKind, Node};
+use hir::{HirCrate, HirMap, Item, ItemKind, Node, Primitive};
 use id::{DefId, LocalDefId};
 use interner::Interner;
 use macros::named_slice;
-use typed_hir::{Block, Expr, LocalVar, MatchArm, Stmt, TyKind, ThirBodies, Thir, Ty};
+use typed_hir::{Block, Expr, LocalVar, MatchArm, Stmt, TyKind, ThirBodies, Thir, Ty, ClassDef, GenericParams, GenericParam, TraitBound, UintTy, IntTy, FloatTy};
 use types::{DefMap, LDefMap};
 
 use crate::unification::{UnificationTable};
@@ -871,14 +871,57 @@ impl<'hir, 'thir> CrateInference<'hir, 'thir> {
                 TyKind::Array(self.translate_ty(array_ty))
             }
             hir::TyKind::Path(path) => {
-                todo!()
+                self.resolve_path_ty(path)
             }
-            hir::TyKind::GenericParam(_) => {}
-            hir::TyKind::TraitBound(_) => {}
-            hir::TyKind::Closure(_) => {}
-            hir::TyKind::Primitive(_) => {}
+            hir::TyKind::GenericParam(hir::GenericParam { ident, trait_bound }) => {
+                let trait_bound = self.maybe_resolve_trait_bound(trait_bound);
+                let generic_param = GenericParam {
+                    ident: *ident,
+                    trait_bound,
+                };
+                TyKind::GenericParam(generic_param)
+            }
+            hir::TyKind::TraitBound(trait_bound) => self.resolve_trait_bound(trait_bound),
+            hir::TyKind::Closure(closure) => {
+                let params = self.alloc_slice(closure.params.iter()
+                    .map(|param| self.translate_ty(param)));
+                let ret_ty = self.translate_ty(closure.ret_ty);
+                TyKind::Fn(Fn { params, ret_ty })
+            }
+            hir::TyKind::Primitive(primitive) => {
+                match primitive {
+                    Primitive::U8 => TyKind::Uint(UintTy::U8),
+                    Primitive::U16 => TyKind::Uint(UintTy::U16),
+                    Primitive::U32 => TyKind::Uint(UintTy::U32),
+                    Primitive::U64 => TyKind::Uint(UintTy::U64),
+                    Primitive::I8 => TyKind::Int(IntTy::I8), 
+                    Primitive::I16 => TyKind::Int(IntTy::I16),
+                    Primitive::I32 => TyKind::Int(IntTy::I32),
+                    Primitive::I64 => TyKind::Int(IntTy::I64), 
+                    Primitive::F32 => TyKind::Float(FloatTy::F32), 
+                    Primitive::F64 => TyKind::Float(FloatTy::F64),
+                    Primitive::Str => TyKind::Str,
+                    Primitive::Boolean => TyKind::Boolean,
+                    Primitive::None => TyKind::None,
+                }
+            }
         };
         self.intern_ty(ty_kind)
+    }
+    
+    fn resolve_path_ty(&mut self, path: &hir::PathTy) -> TyKind<'hir> {
+        todo!()
+    }
+    
+    fn maybe_resolve_trait_bound(&mut self, trait_bound: &Option<hir::TraitBound>) -> Option<TraitBound<'hir>> {
+        if let Some(trait_bound) = trait_bound {
+            Some(self.resolve_trait_bound(trait_bound))
+        }
+        None
+    }
+    
+    fn resolve_trait_bound(&mut self, trait_bound: hir::TraitBound) -> TraitBound<'hir> {
+        todo!()
     }
     
     fn intern_ty(&mut self, ty_kind: TyKind) -> Ty<'hir> {
@@ -972,26 +1015,6 @@ impl Class {
     pub fn fn_sig(&self) -> FnSig {
         FnSig::new(self.fields.clone(), Type::Class(self.clone()))
     }
-}
-
-#[derive(Clone, PartialEq, Debug, Serialize)]
-pub struct GenericParam<'hir> {
-    pub(crate) ty_var: TyVar,
-    pub(crate) trait_bound: Option<TraitBound<'hir>>,
-}
-
-impl<'hir> GenericParam<'hir> {
-    pub fn new(ty_var: TyVar, trait_bound: Option<TraitBound<'hir>>) -> Self {
-        Self {
-            ty_var,
-            trait_bound,
-        }
-    }
-}
-
-#[derive(Clone, PartialEq, Debug, Serialize)]
-pub struct TraitBound<'hir> {
-    bounds: &'hir [&'hir TyKind<'hir>],
 }
 
 impl<'hir> TraitBound<'hir> {
