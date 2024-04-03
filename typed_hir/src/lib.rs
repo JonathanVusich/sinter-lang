@@ -106,6 +106,7 @@ pub enum ExprKind<'a> {
     Assign(AssignExpr),
     Field(FieldExpr),
     Index(IndexExpr),
+    Block(Block<'a>),
     Path(PathExpr<'a>),
     Break,
     Continue,
@@ -156,8 +157,6 @@ pub enum TyKind<'a> {
     Boolean,
     None,
 }
-
-pub fn do_somethign<T: Add<usize>>() -> () {}
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct ClassDef<'a> {
@@ -218,13 +217,13 @@ pub enum DestructureExpr {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub enum Stmt {
+pub enum Stmt<'hir> {
     Let(LetStmt),
     For(ForStmt),
     If(IfStmt),
     Return(ReturnStmt),
     While(WhileStmt),
-    Block(Block),
+    Block(Block<'hir>),
     Expression(Expression),
 }
 
@@ -257,8 +256,9 @@ pub struct Constant<'a> {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct Block {
+pub struct Block<'hir> {
     pub stmts: Stmts,
+    pub ret_ty: Ty<'hir>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -490,19 +490,14 @@ pub struct ClosureParam {
     ident: Ident,
 }
 
-#[derive(Default)]
-pub struct ThirBodies<'hir> {
-    pub exprs: HashMap<LocalDefId, Thir<'hir>>,
-}
-
 pub struct Thir<'hir> {
     pub generic_tys: Vec<Ty<'hir>>,
     pub ret_ty: Ty<'hir>,
 
     // Contents of the block which will be useful for looking things up later.
-    pub blocks: Vec<Block>,
+    pub blocks: Vec<Block<'hir>>,
     pub arms: Vec<MatchArm<'hir>>,
-    pub stmts: Vec<Stmt>,
+    pub stmts: Vec<Stmt<'hir>>,
     pub exprs: Vec<Expr<'hir>>,
     pub destructure_exprs: Vec<DestructureExpr>,
 }

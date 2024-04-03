@@ -170,7 +170,7 @@ pub struct ClassDef<'a> {
     pub class_type: ClassType,
     pub generic_params: GenericParams<'a>,
     pub fields: Fields<'a>,
-    pub fn_stmts: FnStmts<'a>,
+    pub fn_defs: FnStmts<'a>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -178,14 +178,14 @@ pub struct EnumDef<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
     pub members: MemberDefs<'a>,
-    pub member_fns: FnStmts<'a>,
+    pub fn_defs: FnStmts<'a>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct MemberDef<'a> {
     pub name: InternedStr,
     pub fields: Fields<'a>,
-    pub member_fns: FnStmts<'a>,
+    pub fn_defs: FnStmts<'a>,
     pub span: Span,
     pub id: LocalDefId,
 }
@@ -194,14 +194,14 @@ pub struct MemberDef<'a> {
 pub struct TraitDef<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
-    pub member_fns: FnStmts<'a>,
+    pub fn_defs: FnStmts<'a>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct TraitImplDef<'a> {
     pub trait_to_impl: &'a PathTy<'a>,
     pub target_ty: DefId,
-    pub member_fns: FnStmts<'a>,
+    pub fn_defs: FnStmts<'a>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]

@@ -772,7 +772,7 @@ impl<'hir> CrateResolver<'hir> {
             name: enum_stmt.name,
             generic_params,
             members,
-            member_fns,
+            fn_defs: member_fns,
         });
 
         let item = self.alloc(Item {
@@ -804,7 +804,7 @@ impl<'hir> CrateResolver<'hir> {
             let member_def = self.alloc(MemberDef {
                 name: member.name,
                 fields,
-                member_fns,
+                fn_defs: member_fns,
                 span: member.span,
                 id: member.id,
             });
@@ -838,7 +838,7 @@ impl<'hir> CrateResolver<'hir> {
         let hir_trait = self.alloc(TraitDef {
             name: trait_stmt.name,
             generic_params,
-            member_fns,
+            fn_defs: member_fns,
         });
 
         let item = self.alloc(Item {
@@ -870,7 +870,7 @@ impl<'hir> CrateResolver<'hir> {
         let trait_impl_stmt = self.alloc(TraitImplDef {
             trait_to_impl,
             target_ty,
-            member_fns,
+            fn_defs: member_fns,
         });
         let item = self.alloc(Item {
             kind: ItemKind::TraitImpl(trait_impl_stmt),
