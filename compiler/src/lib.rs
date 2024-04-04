@@ -1,6 +1,7 @@
 #![allow(unused)]
 
-use std::collections::{HashSet, VecDeque};
+use std::collections::hash_map::Entry;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::ffi::{OsStr, OsString};
 use std::fmt::{Debug, Display};
 use std::path::{Path, PathBuf, StripPrefixError};
@@ -10,29 +11,31 @@ use itertools::Itertools;
 use serde::Deserializer;
 use walkdir::{DirEntry, WalkDir};
 
-use ast::ModulePath;
+use ast::{EnumMemberDef, ModulePath};
 use diagnostics::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
 use hir::HirMap;
-use id::IdGenerator;
+use id::{DefId, IdGenerator};
 use interner::{InternedStr, Interner, StringInterner};
 use krate::Crate;
 use parser::parse;
 use resolver::resolve;
 use source::{SourceCode, SourceMap};
 use tokenizer::{tokenize, tokenize_file, TokenizedSource};
-use ty_infer::CrateInference;
-use typed_hir::{TyKind, TypedHirMap};
-use types::StrMap;
+use ty_infer::{infer_types, CrateInference};
+use typed_hir::{ClassDef, EnumDef, MemberDef, ThirMap, TraitDef, TyKind};
+use types::{DefMap, StrMap};
 use validator::validate;
 
 mod arenas;
 
 #[derive(Default)]
 pub struct Compiler<'a> {
+    diagnostics: Diagnostics,
+
     string_interner: StringInterner,
     ty_interner: Interner<TyKind<'a>>,
-    diagnostics: Diagnostics,
-    // ast_allocator: Bump,
+    ty_cache: TyDefCache<'a>,
+
     hir_allocator: Bump,
     thir_allocator: Bump,
     source_map: SourceMap,
@@ -252,27 +255,14 @@ impl<'a> Compiler<'a> {
         .ok_or(self.diagnostics.clone())
     }
 
-    pub fn infer_types(&mut self, hir_map: HirMap) -> Result<TypedHirMap, Diagnostics> {
-        // TODO: We need to record all of the trait impls for types and store them to be able to
-        // test trait bounds at a later date.
-
-        let mut typed_hir = TypedHirMap::default();
-
-        for krate in hir_map.krates() {
-            let crate_inference = CrateInference::new(
-                &mut self.diagnostics,
-                &mut self.ty_interner,
-                &mut self.hir_allocator,
-                &mut self.thir_allocator,
-                krate,
-                &hir_map,
-            );
-            if let Some(typed_crate) = crate_inference.infer_bodies() {
-                typed_hir.insert(typed_crate);
-            }
-        }
-        self.hir_allocator.reset();
-        self.check_errors(typed_hir)
+    pub fn infer_types(&mut self, hir_map: HirMap) -> Result<ThirMap<'a>, Diagnostics> {
+        infer_types(
+            &mut self.diagnostics,
+            &mut self.hir_allocator,
+            &mut self.thir_allocator,
+            &hir_map,
+        )
+        .ok_or(self.diagnostics.clone())
     }
 
     fn check_errors<T>(&mut self, val: T) -> Result<T, Diagnostics> {

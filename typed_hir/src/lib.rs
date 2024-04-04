@@ -7,80 +7,27 @@ use std::ops::{Add, Deref};
 use serde::Serialize;
 
 use ast::{ClassType, Ident, InfixOp, Mutability, UnaryOp};
-use id::{DefId, LocalDefId};
+use id::{CrateId, DefId, LocalDefId};
 use interner::InternedStr;
+use types::LDefMap;
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ExprId(u32);
 
-impl Foldable for ExprId {
-    fn fold<F>(self, folder: &mut F) -> Self
-    where
-        F: Folder,
-    {
-        folder.fold_expr(self)
-    }
-}
-
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct DestructureExprId(u32);
-
-impl Foldable for DestructureExprId {
-    fn fold<F>(self, folder: &mut F) -> Self
-    where
-        F: Folder,
-    {
-        folder.fold_destructure_expr(self)
-    }
-}
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct BlockId(u32);
 
-impl Foldable for BlockId {
-    fn fold<F>(self, folder: &mut F) -> Self
-    where
-        F: Folder,
-    {
-        folder.fold_block(self)
-    }
-}
-
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct StmtId(u32);
-
-impl Foldable for StmtId {
-    fn fold<F>(self, folder: &mut F) -> Self
-    where
-        F: Folder,
-    {
-        folder.fold_stmt(self)
-    }
-}
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ArmId(u32);
 
-impl Foldable for ArmId {
-    fn fold<F>(self, folder: &mut F) -> Self
-    where
-        F: Folder,
-    {
-        folder.fold_arm(self)
-    }
-}
-
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct PatternId(u32);
-
-impl Foldable for PatternId {
-    fn fold<F>(self, folder: &mut F) -> Self
-    where
-        F: Folder,
-    {
-        folder.fold_pattern(self)
-    }
-}
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct Expr<'a> {
@@ -110,21 +57,6 @@ pub enum ExprKind<'a> {
     Path(PathExpr<'a>),
     Break,
     Continue,
-}
-
-pub trait Foldable: Sized {
-    fn fold<F>(self, folder: &mut F) -> Self
-    where
-        F: Folder;
-}
-
-pub trait Folder {
-    fn fold_block(&mut self, block: BlockId) -> BlockId;
-    fn fold_expr(&mut self, expr: ExprId) -> ExprId;
-    fn fold_destructure_expr(&mut self, destructure_expr: DestructureExprId) -> DestructureExprId;
-    fn fold_stmt(&mut self, stmt: StmtId) -> StmtId;
-    fn fold_pattern(&mut self, stmt: PatternId) -> PatternId;
-    fn fold_arm(&mut self, arm: ArmId) -> ArmId;
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
@@ -190,7 +122,7 @@ pub struct TraitDef<'a> {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
-pub struct Bound<'a> {
+pub struct Trait<'a> {
     trait_def: TraitDef<'a>,
     generics: Generics<'a>,
 }
@@ -294,13 +226,7 @@ pub enum UintTy {
     U64,
 }
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct PathTy<'a> {
-    pub definition: DefId,
-    pub generics: Generics<'a>,
-}
-
-pub type TraitBound<'a> = &'a [&'a Bound<'a>];
+pub type TraitBound<'a> = &'a [&'a Trait<'a>];
 pub type Generics<'a> = &'a [Ty<'a>];
 pub type GenericParams<'a> = &'a [GenericParam<'a>];
 pub type Params<'a> = &'a [Ty<'a>];
@@ -500,4 +426,28 @@ pub struct Thir<'hir> {
     pub stmts: Vec<Stmt<'hir>>,
     pub exprs: Vec<Expr<'hir>>,
     pub destructure_exprs: Vec<DestructureExpr>,
+}
+
+impl<'hir> Thir<'hir> {
+    pub fn new(generic_tys: Vec<Ty<'hir>>, ret_ty: Ty<'hir>) -> Self {
+        Self {
+            generic_tys,
+            ret_ty,
+            blocks: vec![],
+            arms: vec![],
+            stmts: vec![],
+            exprs: vec![],
+            destructure_exprs: vec![],
+        }
+    }
+}
+
+pub struct ThirMap<'hir> {
+    pub crates: Vec<ThirCrate<'hir>>,
+}
+
+pub struct ThirCrate<'hir> {
+    pub name: InternedStr,
+    pub id: CrateId,
+    pub bodies: LDefMap<Thir<'hir>>,
 }

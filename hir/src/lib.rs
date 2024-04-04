@@ -217,7 +217,7 @@ pub struct FnSig<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
     pub params: Params<'a>,
-    pub return_type: Option<&'a Ty<'a>>,
+    pub ret_ty: Option<&'a Ty<'a>>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
