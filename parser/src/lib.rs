@@ -774,7 +774,14 @@ impl<'ctxt> Parser<'ctxt> {
     fn parse_block_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
         Some(Stmt::new(
-            StmtKind::Block(self.block()?),
+            StmtKind::Expression(Expression::new(
+                Expr::new(
+                    ExprKind::Block(self.block()?),
+                    self.get_span(),
+                    self.get_id(),
+                ),
+                true,
+            )),
             self.get_span(),
             self.get_id(),
         ))

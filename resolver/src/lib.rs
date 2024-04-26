@@ -317,12 +317,12 @@ fn generate_mod_values(module: &ast::Module, krate_id: CrateId) -> ast::ModuleNS
                     .self_fns
                     .iter()
                     .map(|self_fn| {
-                        FnDef::new(self_fn.id.to_def_id(krate_id), self_fn.sig.name.ident)
+                        ast::FnDef::new(self_fn.id.to_def_id(krate_id), self_fn.sig.name.ident)
                     })
                     .collect();
                 values.insert(
                     class_stmt.name.ident,
-                    ast::ValueDef::Class(ClassDef::new(def_id, fields, fns)),
+                    ast::ValueDef::Class(ast::ClassDef::new(def_id, fields, fns)),
                 );
             }
             ast::ItemKind::Enum(enum_stmt) => {
@@ -334,7 +334,10 @@ fn generate_mod_values(module: &ast::Module, krate_id: CrateId) -> ast::ModuleNS
                             .self_fns
                             .iter()
                             .map(|self_fn| {
-                                FnDef::new(self_fn.id.to_def_id(krate_id), self_fn.sig.name.ident)
+                                ast::FnDef::new(
+                                    self_fn.id.to_def_id(krate_id),
+                                    self_fn.sig.name.ident,
+                                )
                             })
                             .collect();
                         ast::EnumMemberDef::new(member.id.to_def_id(krate_id), member.name, fns)
@@ -344,12 +347,12 @@ fn generate_mod_values(module: &ast::Module, krate_id: CrateId) -> ast::ModuleNS
                     .self_fns
                     .iter()
                     .map(|self_fn| {
-                        FnDef::new(self_fn.id.to_def_id(krate_id), self_fn.sig.name.ident)
+                        ast::FnDef::new(self_fn.id.to_def_id(krate_id), self_fn.sig.name.ident)
                     })
                     .collect();
                 values.insert(
                     enum_stmt.name.ident,
-                    ast::ValueDef::Enum(EnumDef::new(def_id, members, fns)),
+                    ast::ValueDef::Enum(ast::EnumDef::new(def_id, members, fns)),
                 );
             }
             ast::ItemKind::Trait(trait_stmt) => {
@@ -357,12 +360,12 @@ fn generate_mod_values(module: &ast::Module, krate_id: CrateId) -> ast::ModuleNS
                     .self_fns
                     .iter()
                     .map(|self_fn| {
-                        FnDef::new(self_fn.id.to_def_id(krate_id), self_fn.sig.name.ident)
+                        ast::FnDef::new(self_fn.id.to_def_id(krate_id), self_fn.sig.name.ident)
                     })
                     .collect();
                 values.insert(
                     trait_stmt.name.ident,
-                    ast::ValueDef::Trait(TraitDef::new(def_id, fns)),
+                    ast::ValueDef::Trait(ast::TraitDef::new(def_id, fns)),
                 );
             }
             ast::ItemKind::Fn(fn_stmt) => {
@@ -423,12 +426,12 @@ impl<'hir> CrateResolver<'hir> {
             self.scopes.clear();
         }
 
-        Some(HirCrate::new(
-            self.krate.name,
-            self.krate.crate_id,
-            self.items,
-            self.nodes,
-        ))
+        Some(HirCrate {
+            name: self.krate.name,
+            id: self.krate.crate_id,
+            items: self.items,
+            nodes: self.nodes,
+        })
     }
 
     fn resolve_module(&mut self, module: &'hir ast::Module) {
@@ -478,7 +481,7 @@ impl<'hir> CrateResolver<'hir> {
         let constant = self.allocator.alloc(Constant {
             local_var,
             ty,
-            initializer,
+            initializer: expr,
         });
         let item = self.alloc(Item {
             kind: ItemKind::Constant(constant),
@@ -507,24 +510,24 @@ impl<'hir> CrateResolver<'hir> {
         // We have to resolve generics params, fields, and fns in that order.
         let generic_params = self.resolve_generic_params(&class_stmt.generic_params)?;
         let fields = self.resolve_fields(&class_stmt.fields)?;
-        let fn_stmts = self.resolve_self_fn_stmts(&class_stmt.self_fns)?;
+        let fn_defs = self.resolve_self_fn_stmts(&class_stmt.self_fns)?;
 
-        let hir_class = self.alloc(ClassDef::new(
-            class_stmt.name,
-            class_stmt.class_type,
+        let hir_class = self.alloc(ClassDef {
+            name: class_stmt.name,
+            class_type: class_stmt.class_type,
             generic_params,
             fields,
-            fn_stmts,
-        ));
+            fn_defs,
+        });
 
-        let item = Item {
+        let item = self.alloc(Item {
             kind: ItemKind::Class(hir_class),
             span,
             id,
-        };
+        });
 
-        self.insert_node(id, Node::Item(hir_class));
-        Some(hir_class)
+        self.insert_node(id, Node::Item(item));
+        Some(item)
     }
 
     fn maybe_resolve_generics(
@@ -591,7 +594,10 @@ impl<'hir> CrateResolver<'hir> {
             let span = param.span;
             let id = param.id;
 
-            let generic_param = self.alloc(GenericParam::new(param.name, trait_bound));
+            let generic_param = self.alloc(GenericParam {
+                ident: param.name,
+                trait_bound,
+            });
             let generic_ty = self.alloc(Ty {
                 kind: TyKind::GenericParam(generic_param),
                 span,
@@ -961,9 +967,14 @@ impl<'hir> CrateResolver<'hir> {
         let generic_params = self.resolve_generic_params(&fn_sig.generic_params)?;
         let params = self.resolve_params(&fn_sig.params)?;
 
-        let return_ty = self.maybe_resolve_ty(&fn_sig.return_type)?;
+        let ret_ty = self.maybe_resolve_ty(&fn_sig.return_type)?;
 
-        Some(FnSig::new(fn_sig.name, generic_params, params, return_ty))
+        Some(FnSig {
+            name: fn_sig.name,
+            generic_params,
+            params,
+            ret_ty,
+        })
     }
 
     fn maybe_resolve_expr(
@@ -1004,18 +1015,25 @@ impl<'hir> CrateResolver<'hir> {
                 let args = self.resolve_args(&call.args)?;
                 let target = self.resolve_expr(&call.target)?;
 
-                ExprKind::Call(CallExpr::new(target, args))
+                ExprKind::Call(CallExpr { target, args })
             }
             ast::ExprKind::Infix(infix) => {
                 let lhs = self.resolve_expr(&infix.lhs)?;
                 let rhs = self.resolve_expr(&infix.rhs)?;
 
-                ExprKind::Infix(InfixExpr::new(infix.operator, lhs, rhs))
+                ExprKind::Infix(InfixExpr {
+                    operator: infix.operator,
+                    lhs,
+                    rhs,
+                })
             }
             ast::ExprKind::Unary(unary) => {
                 let expr = self.resolve_expr(&unary.expr)?;
 
-                ExprKind::Unary(UnaryExpr::new(unary.operator, expr))
+                ExprKind::Unary(UnaryExpr {
+                    operator: unary.operator,
+                    expr,
+                })
             }
             ast::ExprKind::String(string) => ExprKind::String(*string),
             ast::ExprKind::Int(int) => ExprKind::Int(*int),
@@ -1027,22 +1045,25 @@ impl<'hir> CrateResolver<'hir> {
             ast::ExprKind::Match(match_expr) => {
                 let source = self.resolve_expr(&match_expr.source)?;
                 let arms = self.resolve_match_arms(&match_expr.arms)?;
-                ExprKind::Match(MatchExpr::new(source, arms))
+                ExprKind::Match(MatchExpr { source, arms })
             }
 
             ast::ExprKind::Closure(closure) => {
                 let params = self.resolve_closure_params(&closure.params)?;
                 let stmt = self.resolve_stmt(&closure.stmt)?;
-                ExprKind::Closure(ClosureExpr::new(params, stmt))
+                ExprKind::Closure(ClosureExpr { params, stmt })
             }
             ast::ExprKind::Assign(assign) => {
                 let lhs = self.resolve_expr(&assign.lhs)?;
                 let rhs = self.resolve_expr(&assign.rhs)?;
-                ExprKind::Assign(AssignExpr::new(lhs, rhs))
+                ExprKind::Assign(AssignExpr { lhs, rhs })
             }
             ast::ExprKind::Field(field) => {
                 let lhs = self.resolve_expr(&field.lhs)?;
-                ExprKind::Field(FieldExpr::new(lhs, field.ident))
+                ExprKind::Field(FieldExpr {
+                    lhs,
+                    ident: field.ident,
+                })
             }
             ast::ExprKind::Index(index) => {
                 let expr = self.resolve_expr(&index.expr)?;
@@ -1089,7 +1110,11 @@ impl<'hir> CrateResolver<'hir> {
     }
 
     fn resolve_local_var(&mut self, local_var: &ast::LocalVar) -> LocalVar {
-        let hir_local_var = LocalVar::new(local_var.ident, local_var.id);
+        let hir_local_var = LocalVar {
+            ident: local_var.ident,
+            span: local_var.span,
+            id: local_var.id,
+        };
 
         self.insert_var(hir_local_var);
 
@@ -1145,7 +1170,9 @@ impl<'hir> CrateResolver<'hir> {
                 }
             }
         }
-        Some(PathExpr::new(self.alloc_slice(&*segments)))
+        Some(PathExpr {
+            segments: self.alloc_slice(&*segments),
+        })
     }
 
     fn find_primary_segment(&mut self, segment: &ast::Segment) -> Option<&'hir Segment<'hir>> {

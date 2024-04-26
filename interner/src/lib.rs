@@ -51,6 +51,7 @@ impl StringInterner {
     }
 }
 
+#[derive(Default)]
 pub struct Interner<T> {
     interned_tys: HashSet<T>,
 }

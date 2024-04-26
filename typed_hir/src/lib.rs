@@ -77,10 +77,10 @@ pub enum TyKind<'a> {
     Array(Ty<'a>),
     Class(&'a ClassDef<'a>, Generics<'a>),
     Enum(&'a EnumDef<'a>, Generics<'a>),
-    EnumMember(&'a MemberDef<'a>, Generics<'a>),
-    TraitBound(TraitBound<'a>, Generics<'a>),
+    Member(&'a MemberDef<'a>, Generics<'a>),
+    TraitBound(TraitBound<'a>),
     GenericParam(GenericParam<'a>),
-    Fn(Fn<'a>),
+    Fn(&'a FnDef<'a>, Generics<'a>),
     Infer(TyVar),
     Float(FloatTy),
     Int(IntTy),
@@ -123,8 +123,8 @@ pub struct TraitDef<'a> {
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct Trait<'a> {
-    trait_def: TraitDef<'a>,
-    generics: Generics<'a>,
+    pub trait_def: &'a TraitDef<'a>,
+    pub generics: Generics<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
@@ -302,12 +302,6 @@ pub struct DestructurePattern {
     pub exprs: DestructureExprs,
 }
 
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
-pub struct Fn<'a> {
-    pub params: AnonParams<'a>,
-    pub ret_ty: Ty<'a>,
-}
-
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ClosureExpr {
     pub params: ClosureParams,
@@ -403,7 +397,7 @@ pub struct IfStmt {
     pub if_false: Option<BlockId>,
 }
 
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
+#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
 pub struct GenericParam<'a> {
     pub ident: Ident,
     pub trait_bound: Option<TraitBound<'a>>,
@@ -416,8 +410,9 @@ pub struct ClosureParam {
     ident: Ident,
 }
 
+#[derive(Debug)]
 pub struct Thir<'hir> {
-    pub generic_tys: Vec<Ty<'hir>>,
+    pub generic_params: GenericParams<'hir>,
     pub ret_ty: Ty<'hir>,
 
     // Contents of the block which will be useful for looking things up later.
@@ -429,9 +424,9 @@ pub struct Thir<'hir> {
 }
 
 impl<'hir> Thir<'hir> {
-    pub fn new(generic_tys: Vec<Ty<'hir>>, ret_ty: Ty<'hir>) -> Self {
+    pub fn new(generic_params: GenericParams, ret_ty: Ty<'hir>) -> Self {
         Self {
-            generic_tys,
+            generic_params,
             ret_ty,
             blocks: vec![],
             arms: vec![],

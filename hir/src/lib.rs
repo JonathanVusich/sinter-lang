@@ -510,15 +510,30 @@ impl<'a> HirMap<'a> {
     pub fn into_krates(self) -> impl Iterator<Item = HirCrate<'a>> + Debug {
         self.crates.into_iter()
     }
+
+    pub fn expect_item(&'a self, id: DefId) -> &'a Item<'a> {
+        let krate = self.krate(&id);
+
+        match krate.nodes.get(&id.local_id()).unwrap() {
+            Node::Item(item) => item,
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct HirCrate<'a> {
     pub name: InternedStr,
     pub id: CrateId,
-    pub items: Vec<LocalDefId>,
+    pub items: Vec<&'a Item<'a>>,
     #[cfg(not(test))]
     pub nodes: LDefMap<Node<'a>>,
     #[cfg(test)]
     pub nodes: BTreeMap<LocalDefId, Node<'a>>,
+}
+
+impl<'a> HirCrate<'a> {
+    pub fn node(&'a self, id: &LocalDefId) -> &'a Node<'a> {
+        self.nodes.get(id).unwrap()
+    }
 }
