@@ -99,9 +99,9 @@ pub enum TyKind<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct DestructureExpr<'a> {
-    kind: DestructureExprKind<'a>,
-    span: Span,
-    id: LocalDefId,
+    pub kind: DestructureExprKind<'a>,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
@@ -137,9 +137,7 @@ pub enum StmtKind<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Pattern<'a> {
-    kind: PatternKind<'a>,
-    span: Span,
-    id: LocalDefId,
+    pub kind: PatternKind<'a>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
@@ -339,7 +337,7 @@ pub struct MatchArm<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct OrPattern<'a> {
-    patterns: Patterns<'a>,
+    pub patterns: Patterns<'a>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
@@ -475,7 +473,7 @@ pub struct IfStmt<'a> {
 #[repr(transparent)]
 #[serde(transparent)]
 pub struct ClosureParam {
-    ident: Ident,
+    pub ident: Ident,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]

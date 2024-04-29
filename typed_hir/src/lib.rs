@@ -424,7 +424,7 @@ pub struct Thir<'hir> {
 }
 
 impl<'hir> Thir<'hir> {
-    pub fn new(generic_params: GenericParams, ret_ty: Ty<'hir>) -> Self {
+    pub fn new(generic_params: GenericParams<'hir>, ret_ty: Ty<'hir>) -> Self {
         Self {
             generic_params,
             ret_ty,

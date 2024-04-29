@@ -51,9 +51,8 @@ impl StringInterner {
     }
 }
 
-#[derive(Default)]
 pub struct Interner<T> {
-    interned_tys: HashSet<T>,
+    interned: HashSet<T>,
 }
 
 impl<T> Interner<T>
@@ -61,6 +60,14 @@ where
     T: Eq + Hash,
 {
     pub fn intern(&mut self, val: T) -> &T {
-        self.interned_tys.get_or_insert(val)
+        self.interned.get_or_insert(val)
+    }
+}
+
+impl<T> Default for Interner<T> {
+    fn default() -> Self {
+        Self {
+            interned: HashSet::default(),
+        }
     }
 }
