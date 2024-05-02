@@ -17,11 +17,7 @@ use id::{DefId, LocalDefId};
 use interner::{InternedStr, Interner, StringInterner};
 use krate::Crate;
 use macros::named_slice;
-use typed_hir::{
-    ArrayExpr, Block, ClassDef, EnumDef, Expr, ExprId, ExprKind, FloatTy, FnDef, GenericParam,
-    GenericParams, IntTy, LocalVar, MatchArm, MemberDef, Stmt, Thir, ThirCrate, ThirMap, Trait,
-    TraitBound, TraitDef, Ty, TyKind, UintTy,
-};
+use typed_hir::{ArrayExpr, Block, ClassDef, EnumDef, Expr, ExprId, ExprKind, FloatTy, FnDef, GenericParam, GenericParams, Generics, IntTy, LocalVar, MatchArm, MemberDef, Stmt, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, UintTy};
 use types::{DefMap, LDefMap, StrMap};
 
 use crate::unification::UnificationTable;
@@ -365,7 +361,85 @@ impl<'hir> InferCtxt<'hir> {
     }
 
     fn unify_ty_ty(&mut self, lhs: &TyKind, rhs: &TyKind) -> bool {
+        let lhs = self.normalize_ty(lhs);
+        let rhs = self.normalize_ty(rhs);
+        
+        match (lhs, rhs) {
+            (TyKind::Infer(_) | TyKind::GenericParam(_), rhs)
+            => {
+
+            }
+        }
         todo!()
+    }
+
+    fn normalize_ty(&mut self, ty: &TyKind) -> &TyKind {
+        match ty {
+            TyKind::Array(array) => {
+                self.alloc(TyKind::Array(Ty { kind: self.normalize_ty(array.kind) }))
+            }
+            TyKind::Class(class_def, generics) => {
+                let generics = self.normalize_generics(generics);
+                self.alloc(TyKind::Class(class_def, generics))
+            }
+            TyKind::Enum(enum_def, generics) => {
+                let generics = self.normalize_generics(generics);
+                self.alloc(TyKind::Enum(enum_def, generics))
+            }
+            TyKind::Member(member_def, generics) => {
+                let generics = self.normalize_generics(generics);
+                self.alloc(TyKind::Member(member_def, generics))
+            }
+            TyKind::TraitBound(trait_bound) => {
+                self.alloc(TyKind::TraitBound(self.normalize_trait_bound(trait_bound)))
+            }
+            TyKind::GenericParam(GenericParam { ident, trait_bound }) => {
+                let trait_bound = match trait_bound {
+                    Some(trait_bound) => Some(self.normalize_trait_bound(trait_bound)),
+                    None => None
+                };
+                self.alloc(TyKind::GenericParam(GenericParam { ident: *ident, trait_bound }))
+            }
+            TyKind::Fn(fn_def, generics) => {
+                let generics = self.normalize_generics(generics);
+                self.alloc(TyKind::Fn(fn_def, generics))
+            }
+            TyKind::Infer(ty_var) => {
+                match self.unify_table.probe(*ty_var) {
+                    None => ty,
+                    Some(ty_kind) => ty_kind,
+                }
+            }
+            TyKind::Float(_) | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Str | TyKind::Boolean | TyKind::None => ty,
+        }
+    }
+
+    fn normalize_generics(&mut self, generics: Generics) -> Generics {
+        self.alloc_slice(generics.iter()
+            .map(|generic| Ty { kind: self.normalize_ty(generic.kind) }))
+    }
+    
+    fn normalize_trait_bound(&mut self, trait_bound: TraitBound) -> TraitBound {
+        self.alloc_slice(trait_bound.iter()
+            .map(|trait_def| {
+                self.alloc(Trait {
+                    trait_def: trait_def.trait_def,
+                    generics: self.normalize_generics(trait_def.generics),
+                })
+            }))
+    }
+
+    fn alloc<T>(&self, val: T) -> &'hir T {
+        self.hir_allocator.alloc(val)
+    }
+
+    fn alloc_slice<I, T>(&self, slice: I) -> &'hir mut [T]
+        where
+            T: Copy,
+            I: IntoIterator<Item = T>,
+            I::IntoIter: ExactSizeIterator,
+    {
+        self.hir_allocator.alloc_slice_fill_iter(slice)
     }
 
     fn new(

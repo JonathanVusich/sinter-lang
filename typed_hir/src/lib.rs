@@ -199,18 +199,18 @@ pub struct Expression {
     pub implicit_return: bool,
 }
 
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
+#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
 pub struct TyVar {
-    pub(crate) id: u32,
+    pub id: u32,
 }
 
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
+#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
 pub enum FloatTy {
     F32,
     F64,
 }
 
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
+#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
 pub enum IntTy {
     I8,
     I16,
@@ -218,7 +218,7 @@ pub enum IntTy {
     I64,
 }
 
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
+#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
 pub enum UintTy {
     U8,
     U16,
