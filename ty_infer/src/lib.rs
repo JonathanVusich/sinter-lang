@@ -1,24 +1,24 @@
 #![allow(unused)]
 
-use bumpalo::Bump;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display};
-use std::iter::zip;
 
+use bumpalo::Bump;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use arena::Arena;
-use ast::{CallExpr, EnumMemberDef, GlobalVarDef, InfixOp, TraitStmt, UnaryOp, ValueDef};
+use ast::{InfixOp, UnaryOp};
 use diagnostics::{Diagnostic, Diagnostics};
-use hir::{Closure, HirCrate, HirMap, Item, ItemKind, Node, Primitive};
+use hir::{HirCrate, HirMap, ItemKind, Node, Primitive};
 use id::{DefId, LocalDefId};
-use interner::{InternedStr, Interner, StringInterner};
-use krate::Crate;
-use macros::named_slice;
-use typed_hir::{ArrayExpr, Block, ClassDef, EnumDef, Expr, ExprId, ExprKind, FloatTy, FnDef, GenericParam, GenericParams, Generics, IntTy, LocalVar, MatchArm, MemberDef, Stmt, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, UintTy};
-use types::{DefMap, LDefMap, StrMap};
+use interner::{InternedStr, Interner};
+use typed_hir::{
+    ArrayExpr, ClassDef, EnumDef, Expr, ExprId, ExprKind, FloatTy, FnDef, GenericParam,
+    GenericParams, Generics, IntTy, LocalVar, MemberDef, Stmt, Thir, ThirCrate, ThirMap, Trait,
+    TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
+};
+use types::LDefMap;
 
 use crate::unification::UnificationTable;
 
@@ -130,7 +130,7 @@ impl<'hir> InferCtxt<'hir> {
     /// expression should have a return type defined at compile time, and we can
     /// use this to infer and validate an entire expression/blocks' types.
     fn check_expr(mut self, expr: &hir::Expr) -> Thir<'hir> {
-        let (_, ty) = self.check(expr, self.thir.ret_ty);
+        self.check(expr, self.thir.ret_ty);
         self.thir
     }
 
@@ -141,102 +141,79 @@ impl<'hir> InferCtxt<'hir> {
         todo!()
     }
 
-    fn check(&mut self, expr: &hir::Expr, ty: Ty) -> (ExprId, Ty) {
-        let (ty, expr) = match (expr.kind, ty) {
-            (hir::ExprKind::None, Ty { kind: TyKind::None }) => (
+    fn check(&mut self, expr: &hir::Expr, ty: Ty) {
+        let expr = match (expr.kind, ty) {
+            (hir::ExprKind::None, Ty { kind: TyKind::None }) => Expr {
+                kind: ExprKind::None,
                 ty,
-                Expr {
-                    kind: ExprKind::None,
-                    ty,
-                },
-            ),
+            },
             (
                 hir::ExprKind::True,
                 Ty {
                     kind: TyKind::Boolean,
                 },
-            ) => (
+            ) => Expr {
+                kind: ExprKind::True,
                 ty,
-                Expr {
-                    kind: ExprKind::True,
-                    ty,
-                },
-            ),
+            },
             (
                 hir::ExprKind::False,
                 Ty {
                     kind: TyKind::Boolean,
                 },
-            ) => (
+            ) => Expr {
+                kind: ExprKind::False,
                 ty,
-                Expr {
-                    kind: ExprKind::False,
-                    ty,
-                },
-            ),
+            },
             (
                 hir::ExprKind::Int(int),
                 Ty {
                     kind: TyKind::Int(IntTy::I64),
                 },
-            ) => (
+            ) => Expr {
+                kind: ExprKind::Int(int),
                 ty,
-                Expr {
-                    kind: ExprKind::Int(int),
-                    ty,
-                },
-            ),
+            },
             (
                 hir::ExprKind::UInt(uint),
                 Ty {
                     kind: TyKind::Uint(UintTy::U64),
                 },
-            ) => (
+            ) => Expr {
+                kind: ExprKind::UInt(uint),
                 ty,
-                Expr {
-                    kind: ExprKind::UInt(uint),
-                    ty,
-                },
-            ),
+            },
             (
                 hir::ExprKind::Float(float),
                 Ty {
                     kind: TyKind::Float(FloatTy::F64),
                 },
-            ) => (
+            ) => Expr {
+                kind: ExprKind::Float(float),
                 ty,
-                Expr {
-                    kind: ExprKind::Float(float),
-                    ty,
-                },
-            ),
-            (hir::ExprKind::String(string), Ty { kind: TyKind::Str }) => (
+            },
+            (hir::ExprKind::String(string), Ty { kind: TyKind::Str }) => Expr {
+                kind: ExprKind::String(string),
                 ty,
-                Expr {
-                    kind: ExprKind::String(string),
-                    ty,
-                },
-            ),
-            () => (
+            },
+            () => Expr {
+                kind: ExprKind::None,
                 ty,
-                Expr {
-                    kind: ExprKind::None,
-                    ty,
-                },
-            ),
+            },
             _ => {
                 let (mut constraints, expr) = self.infer_expr(expr);
 
                 if self.unify_constraints(constraints) {
-                    self.substitute_expr(expr)
+                    self.substitute_expr(expr);
                 } else {
+                    // TODO: Record type error
                     todo!()
                 }
+                return;
             }
         };
         let expr_id = ExprId(self.thir.exprs.len() as u32);
         self.thir.exprs.push(expr);
-        (expr_id, ty)
     }
 
     fn infer_expr(&mut self, expr: &hir::Expr) -> (Constraints, ExprId) {
@@ -341,92 +318,193 @@ impl<'hir> InferCtxt<'hir> {
         todo!()
     }
 
-    fn substitute_expr(&mut self, expr_id: ExprId) -> (Ty, Expr) {
-        todo!()
+    /// Walk the expression tree and normalize the types
+    /// which should generate a completely typed expression tree.
+    fn substitute_expr(&mut self, expr_id: ExprId) {
+        let expr = &self.thir[expr_id];
+        match &expr.kind {
+            ExprKind::Array(ArrayExpr::Sized { initializer, size }) => {
+                self.substitute_expr(*initializer);
+                self.substitute_expr(*size);
+            }
+            ExprKind::Array(ArrayExpr::Unsized { initializers }) => {
+                initializers
+                    .iter()
+                    .for_each(|initializer| self.substitute_expr(*initializer));
+            }
+            ExprKind::Call(_) => {}
+            ExprKind::Infix(_) => {}
+            ExprKind::Unary(_) => {}
+            ExprKind::None => {}
+            ExprKind::True => {}
+            ExprKind::False => {}
+            ExprKind::Int(_) => {}
+            ExprKind::UInt(_) => {}
+            ExprKind::Float(_) => {}
+            ExprKind::String(_) => {}
+            ExprKind::Match(_) => {}
+            ExprKind::Closure(_) => {}
+            ExprKind::Assign(_) => {}
+            ExprKind::Field(_) => {}
+            ExprKind::Index(_) => {}
+            ExprKind::Block(_) => {}
+            ExprKind::Path(_) => {}
+            ExprKind::Break => {}
+            ExprKind::Continue => {}
+        }
     }
 
     fn unify_constraints(&mut self, constraints: Constraints) -> bool {
         constraints
             .into_iter()
-            .all(|constraint| self.unify(constraint));
-        todo!()
+            .all(|constraint| self.unify(constraint))
     }
 
     fn unify(&mut self, constraint: Constraint) -> bool {
         match constraint {
-            Constraint::Equal(ty, ty) => self.unify_ty_ty(ty, ty),
-            Constraint::Assignable(_, _) => {}
-            Constraint::Array(_) => {}
+            Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs, TyKind::eq),
+            Constraint::Assignable(lhs, rhs) => {
+                todo!()
+            }
+            Constraint::Array(_) => {
+                todo!()
+            }
         }
     }
 
-    fn unify_ty_ty(&mut self, lhs: &TyKind, rhs: &TyKind) -> bool {
-        let lhs = self.normalize_ty(lhs);
-        let rhs = self.normalize_ty(rhs);
-        
+    fn unify_ty_ty(
+        &mut self,
+        lhs: &TyKind,
+        rhs: &TyKind,
+        assignable_check: fn(&TyKind, &TyKind) -> bool,
+    ) -> bool {
+        let lhs = self.normalize_ty(lhs).unwrap_or(lhs);
+        let rhs = self.normalize_ty(rhs).unwrap_or(rhs);
+
         match (lhs, rhs) {
-            (TyKind::Infer(_) | TyKind::GenericParam(_), rhs)
-            => {
-
+            (TyKind::Infer(infer), other) | (other, TyKind::Infer(infer)) => {
+                self.unify_var_ty(*infer, other, assignable_check)
             }
-        }
-        todo!()
-    }
-
-    fn normalize_ty(&mut self, ty: &TyKind) -> &TyKind {
-        match ty {
-            TyKind::Array(array) => {
-                self.alloc(TyKind::Array(Ty { kind: self.normalize_ty(array.kind) }))
-            }
-            TyKind::Class(class_def, generics) => {
-                let generics = self.normalize_generics(generics);
-                self.alloc(TyKind::Class(class_def, generics))
-            }
-            TyKind::Enum(enum_def, generics) => {
-                let generics = self.normalize_generics(generics);
-                self.alloc(TyKind::Enum(enum_def, generics))
-            }
-            TyKind::Member(member_def, generics) => {
-                let generics = self.normalize_generics(generics);
-                self.alloc(TyKind::Member(member_def, generics))
-            }
-            TyKind::TraitBound(trait_bound) => {
-                self.alloc(TyKind::TraitBound(self.normalize_trait_bound(trait_bound)))
-            }
-            TyKind::GenericParam(GenericParam { ident, trait_bound }) => {
-                let trait_bound = match trait_bound {
-                    Some(trait_bound) => Some(self.normalize_trait_bound(trait_bound)),
-                    None => None
-                };
-                self.alloc(TyKind::GenericParam(GenericParam { ident: *ident, trait_bound }))
-            }
-            TyKind::Fn(fn_def, generics) => {
-                let generics = self.normalize_generics(generics);
-                self.alloc(TyKind::Fn(fn_def, generics))
-            }
-            TyKind::Infer(ty_var) => {
-                match self.unify_table.probe(*ty_var) {
-                    None => ty,
-                    Some(ty_kind) => ty_kind,
+            (TyKind::Infer(lhs), TyKind::Infer(rhs)) => self.unify_var_var(*lhs, *rhs),
+            /// Both types are at least partially known, so we unify them.
+            (lhs, rhs) => {
+                if !assignable_check(lhs, rhs) {
+                    return false;
                 }
+                true
             }
-            TyKind::Float(_) | TyKind::Int(_) | TyKind::Uint(_) | TyKind::Str | TyKind::Boolean | TyKind::None => ty,
         }
     }
 
-    fn normalize_generics(&mut self, generics: Generics) -> Generics {
-        self.alloc_slice(generics.iter()
-            .map(|generic| Ty { kind: self.normalize_ty(generic.kind) }))
+    fn unify_var_ty(
+        &mut self,
+        var: TyVar,
+        ty: &TyKind,
+        assignable_check: fn(&TyKind, &TyKind) -> bool,
+    ) -> bool {
+        if !self.unify_table.unify_var_ty(var, ty, assignable_check) {
+            // TODO: Record type error
+            return false;
+        }
+        true
     }
-    
-    fn normalize_trait_bound(&mut self, trait_bound: TraitBound) -> TraitBound {
-        self.alloc_slice(trait_bound.iter()
-            .map(|trait_def| {
-                self.alloc(Trait {
-                    trait_def: trait_def.trait_def,
-                    generics: self.normalize_generics(trait_def.generics),
-                })
-            }))
+
+    fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> bool {
+        if !self.unify_table.unify_var_var(lhs, rhs) {
+            // TODO: Record type error
+            return false;
+        }
+        true
+    }
+
+    /// This method inspects a given type and returns an optional new type
+    /// if there is some aspect of the type that can be updated due to constraint solving.
+    fn normalize_ty(&mut self, ty: &TyKind) -> Option<&TyKind> {
+        match ty {
+            TyKind::Array(array) => self
+                .normalize_ty(array.kind)
+                .map(|inner_ty| self.alloc(TyKind::Array(Ty { kind: inner_ty }))),
+            TyKind::Class(class_def, generics) => self
+                .normalize_generics(generics)
+                .map(|generics| self.alloc(TyKind::Class(class_def, generics))),
+            TyKind::Enum(enum_def, generics) => self
+                .normalize_generics(generics)
+                .map(|generics| self.alloc(TyKind::Enum(enum_def, generics))),
+            TyKind::Member(member_def, generics) => self
+                .normalize_generics(generics)
+                .map(|generics| self.alloc(TyKind::Member(member_def, generics))),
+            TyKind::TraitBound(trait_bound) => self
+                .normalize_trait_bound(trait_bound)
+                .map(|trait_bound| self.alloc(TyKind::TraitBound(trait_bound))),
+            TyKind::GenericParam(GenericParam { ident, trait_bound }) => match trait_bound {
+                Some(trait_bound) => self.normalize_trait_bound(trait_bound).map(|trait_bound| {
+                    self.alloc(TyKind::GenericParam(GenericParam {
+                        ident: *ident,
+                        trait_bound: Some(trait_bound),
+                    }))
+                }),
+                None => None,
+            },
+            TyKind::Fn(fn_def, generics) => self
+                .normalize_generics(generics)
+                .map(|generics| self.alloc(TyKind::Fn(fn_def, generics))),
+            TyKind::Infer(ty_var) => match self.unify_table.probe(*ty_var) {
+                None => None,
+                Some(ty_kind) => self.normalize_ty(ty_kind),
+            },
+            TyKind::Float(_)
+            | TyKind::Int(_)
+            | TyKind::Uint(_)
+            | TyKind::Str
+            | TyKind::Boolean
+            | TyKind::None => None,
+        }
+    }
+
+    fn normalize_generics(&mut self, generics: Generics<'hir>) -> Option<Generics<'hir>> {
+        let mut replaced_generics = Vec::with_capacity(generics.len());
+        let mut any_replaced = false;
+        for generic in generics {
+            match self.normalize_ty(generic.kind) {
+                None => {
+                    replaced_generics.push(*generic);
+                }
+                Some(generic) => {
+                    any_replaced = true;
+                    replaced_generics.push(Ty { kind: generic });
+                }
+            };
+        }
+        if any_replaced {
+            Some(self.alloc_slice(replaced_generics))
+        } else {
+            None
+        }
+    }
+
+    fn normalize_trait_bound(&mut self, trait_bound: TraitBound) -> Option<TraitBound> {
+        let mut replaced_traits = Vec::with_capacity(trait_bound.len());
+        let mut any_replaced = false;
+        for tr in trait_bound {
+            match self.normalize_generics(tr.generics) {
+                None => {
+                    replaced_traits.push(*tr);
+                }
+                Some(generics) => {
+                    any_replaced = true;
+                    let trait_def = tr.trait_def;
+                    replaced_traits.push(self.alloc(Trait {
+                        trait_def,
+                        generics,
+                    }));
+                }
+            };
+        }
+        if any_replaced {
+            Some(self.alloc_slice(replaced_traits))
+        } else {
+            None
+        }
     }
 
     fn alloc<T>(&self, val: T) -> &'hir T {
@@ -434,10 +512,10 @@ impl<'hir> InferCtxt<'hir> {
     }
 
     fn alloc_slice<I, T>(&self, slice: I) -> &'hir mut [T]
-        where
-            T: Copy,
-            I: IntoIterator<Item = T>,
-            I::IntoIter: ExactSizeIterator,
+    where
+        T: Copy,
+        I: IntoIterator<Item = T>,
+        I::IntoIter: ExactSizeIterator,
     {
         self.hir_allocator.alloc_slice_fill_iter(slice)
     }
@@ -568,323 +646,23 @@ impl<'hir, 'thir> CrateInference<'hir, 'thir> {
         todo!()
     }
 
-    fn unify_constraints(&mut self, constraints: Constraints) -> bool {
-        constraints
-            .into_iter()
-            .all(|constraint| self.unify(constraint))
-    }
-
-    fn unify(&mut self, constraint: Constraint) -> bool {
-        match constraint {
-            Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs, Type::eq),
-
-            Constraint::Array(ty) => self.unify_ty_array(ty),
-        }
-    }
-
-    fn unify_fn_sig(&mut self, fn_sig: &FnSig, args: &[Type], ret_ty: Type) -> bool {
-        if args.len() != fn_sig.params.len() {
-            self.diagnostics.push(Diagnostic::BlankError);
-            return false;
-        }
-
-        for x in 0..args.len() {
-            let arg = args[x].clone();
-            let param = fn_sig.params[x].clone();
-
-            if !self.unify_ty_ty(param, arg, Type::assignable) {
-                return false;
-            }
-        }
-
-        self.unify_ty_ty(ret_ty, *fn_sig.ret_ty.clone(), Type::assignable)
-    }
-
-    fn unify_unary_op(&mut self, ty: Type, unary_op: UnaryOp) -> bool {
-        let ty = self.normalize_ty(ty);
-
-        // TODO: Add unary op checking
-        true
-    }
-
-    fn unify_infix_op(&mut self, lhs: Type, rhs: Type, op: InfixOp) -> bool {
-        // TODO: Add infix op checking
-        self.unify_ty_ty(lhs, rhs, Type::assignable)
-    }
-
-    fn unify_ty_array(&mut self, ty: Type) -> bool {
-        let ty = self.normalize_ty(ty);
-
-        match ty {
-            Type::Array(_) => true,
-            _ => {
-                self.diagnostics.push(Diagnostic::BlankError);
-                return false;
-            }
-        }
-    }
-
-    fn unify_ty_ty<F: Fn(&Type, &Type) -> bool>(
-        &mut self,
-        lhs: Type,
-        rhs: Type,
-        assignable_check: F,
-    ) -> bool {
-        let lhs = self.normalize_ty(lhs);
-        let rhs = self.normalize_ty(rhs);
-
-        // Check for type equality
-        match (lhs, rhs) {
-            // If any type is unknown, we have to unify it against the other types.
-            (
-                Type::Infer(lhs) | Type::GenericParam(GenericParam { ty_var: lhs, .. }),
-                Type::Infer(rhs) | Type::GenericParam(GenericParam { ty_var: rhs, .. }),
-            ) => self.unify_var_var(lhs, rhs),
-            (
-                Type::Infer(unknown)
-                | Type::GenericParam(GenericParam {
-                    ty_var: unknown, ..
-                }),
-                ty,
-            )
-            | (
-                ty,
-                Type::Infer(unknown)
-                | Type::GenericParam(GenericParam {
-                    ty_var: unknown, ..
-                }),
-            ) => self.unify_var_ty(unknown, ty, assignable_check),
-            // If both types are known, then we need to check for type compatibility.
-            (lhs, rhs) => {
-                if !assignable_check(&lhs, &rhs) {
-                    self.diagnostics.push(Diagnostic::BlankError);
-                    return false;
-                }
-                true
-            }
-        }
-    }
-
-    fn unify_var_var(&mut self, lhs: TyVar, rhs: TyVar) -> bool {
-        if !self.unify_table.unify_var_var(lhs, rhs) {
-            self.diagnostics.push(Diagnostic::BlankError);
-            return false;
-        }
-        true
-    }
-
-    fn unify_var_ty<F: Fn(&Type, &Type) -> bool>(
-        &mut self,
-        var: TyVar,
-        ty: Type,
-        assignable_check: F,
-    ) -> bool {
-        if !self.unify_table.unify_var_ty(var, ty, assignable_check) {
-            self.diagnostics.push(Diagnostic::BlankError);
-            return false;
-        }
-        true
-    }
-
-    /// This function ensures that this type has been substituted with the most up to date version of itself.
-    fn normalize_ty(&mut self, ty: Type) -> Type {
-        match ty {
-            Type::Array(array) => Type::Array(Array::new(self.normalize_ty(*array.ty))),
-            Type::Fn(closure) => {
-                let normalized_tys = closure
-                    .params
-                    .into_iter()
-                    .map(|ty| self.normalize_ty(ty.clone()))
-                    .collect_vec()
-                    .into();
-                let ret_ty = self.normalize_ty(*closure.ret_ty);
-                Type::Fn(FnSig::new(normalized_tys, ret_ty))
-            }
-            Type::TraitBound(trait_bound) => {
-                let normalized_tys = trait_bound
-                    .bounds
-                    .into_iter()
-                    .map(|ty| self.normalize_ty(ty))
-                    .collect();
-                Type::TraitBound(TraitBound::new(normalized_tys))
-            }
-            Type::GenericParam(generic_param) => {
-                match self.unify_table.probe(generic_param.ty_var) {
-                    Some(ty) => self.normalize_ty(ty),
-                    None => Type::GenericParam(generic_param),
-                }
-            }
-            Type::Infer(ty_var) => {
-                // Probe for the most recent parent of this value and update the path if it is no
-                // no longer correct.
-                match self.unify_table.probe(ty_var) {
-                    Some(ty) => self.normalize_ty(ty),
-                    None => Type::Infer(ty_var),
-                }
-            }
-            _ => ty,
-        }
-    }
-
-    fn substitute(&mut self, node_id: &LocalDefId) {
-        let node = self.krate.node(node_id);
-        match node {
-            NodeKind::GlobalLet(let_stmt) => {
-                // Don't need to check the associated ty
-                self.substitute(&let_stmt.initializer);
-            }
-            NodeKind::Fn(fn_stmt) => {
-                if let Some(body) = &fn_stmt.body {
-                    self.substitute(body);
-                }
-            }
-            NodeKind::EnumMember(enum_member) => {
-                for member_fn in enum_member.member_fns.values() {
-                    self.substitute(member_fn);
-                }
-            }
-            NodeKind::Expr(expr) => {
-                // TODO: Finish implementing this tree walk.
-                match expr {
-                    Expr::Array(ArrayExpr::Sized { initializer, size }) => {
-                        self.substitute(initializer);
-                        self.substitute(size);
-                    }
-                    Expr::Array(ArrayExpr::Unsized { initializers }) => {
-                        initializers
-                            .into_iter()
-                            .for_each(|initializer| self.substitute(initializer));
-                    }
-                    Expr::Call(call) => {
-                        self.substitute(&call.target);
-                        call.args.into_iter().for_each(|arg| self.substitute(arg));
-                    }
-                    Expr::Infix(infix) => {
-                        self.substitute(&infix.lhs);
-                        self.substitute(&infix.rhs);
-                    }
-                    Expr::Unary(unary) => {
-                        self.substitute(&unary.expr);
-                    }
-                    Expr::None
-                    | Expr::True
-                    | Expr::False
-                    | Expr::Int(_)
-                    | Expr::UInt(_)
-                    | Expr::Float(_)
-                    | Expr::String(_)
-                    | Expr::Break
-                    | Expr::Continue => {}
-                    Expr::Match(match_expr) => {
-                        todo!()
-                    }
-                    Expr::Closure(closure) => {
-                        todo!()
-                    }
-                    Expr::Assign(assign) => {
-                        self.substitute(&assign.lhs);
-                        self.substitute(&assign.rhs);
-                    }
-                    Expr::Field(field) => {
-                        self.substitute(&field.lhs);
-                    }
-                    Expr::Index(index) => {
-                        self.substitute(&index.expr);
-                        self.substitute(&index.key);
-                    }
-                    Expr::Path(path) => {
-                        // Not sure what to do here.
-                    }
-                }
-            }
-            NodeKind::Ty(_) => {}
-            NodeKind::DestructureExpr(_) => {}
-            NodeKind::Stmt(stmt) => match stmt {
-                Stmt::Let(let_stmt) => {
-                    let_stmt
-                        .initializer
-                        .as_ref()
-                        .map(|initializer| self.substitute(initializer));
-                    self.substitute(&let_stmt.local_var);
-                }
-                Stmt::For(for_stmt) => {
-                    self.substitute(&for_stmt.body);
-                    self.substitute(&for_stmt.range);
-                }
-                Stmt::If(if_stmt) => {
-                    self.substitute(&if_stmt.condition);
-                    self.substitute(&if_stmt.if_true);
-                    if_stmt
-                        .if_false
-                        .as_ref()
-                        .map(|if_false| self.substitute(if_false));
-                }
-                Stmt::Return(return_stmt) => {
-                    return_stmt
-                        .value
-                        .as_ref()
-                        .map(|value| self.substitute(value));
-                }
-                Stmt::While(while_stmt) => {
-                    self.substitute(&while_stmt.condition);
-                    self.substitute(&while_stmt.block);
-                }
-                Stmt::Block(block) => self.substitute(block),
-                Stmt::Expression(expr) => self.substitute(&expr.expr),
-            },
-            NodeKind::Block(block) => {
-                block
-                    .stmts
-                    .into_iter()
-                    .for_each(|stmt| self.substitute(stmt));
-            }
-            NodeKind::Param(_) => {}
-            NodeKind::Field(_) => {}
-            NodeKind::LocalVar(_) => {}
-            NodeKind::Pattern(_) => {}
-            NodeKind::MatchArm(_) => {}
-            // These can safely be ignored since they should not be traversed.
-            NodeKind::Class(_) => {}
-            NodeKind::Enum(_) => {}
-            NodeKind::Trait(_) => {}
-            NodeKind::TraitImpl(_) => {}
-        }
-
-        let ty = self.ty_map.get(node_id).unwrap().clone();
-        let ty = self.probe_ty(ty);
-        self.ty_map.insert(node_id, ty);
-    }
-
-    fn probe_ty(&mut self, ty: &TyKind) -> &TyKind {
-        // TODO: Intern types
-        match ty {
-            TyKind::Array(array) => self.alloc(TyKind::Array(self.probe_ty(array))),
-            TyKind::TraitBound(trait_bound) => {
-                todo!()
-            }
-            TyKind::Fn(closure) => {
-                let params =
-                    self.alloc_slice(closure.params.into_iter().map(|param| self.probe_ty(param)));
-                let ret_ty = self.probe_ty(closure.ret_ty);
-                self.alloc(TyKind::Fn(Fn::new(params, ret_ty)));
-            }
-            TyKind::Infer(ty_var) => {
-                // Unwrap should be safe during substitution
-                self.unify_table.probe(*ty_var).unwrap()
-            }
-            TyKind::Adt(_) | TyKind::Primitive(_) => ty,
-        }
-    }
-
-    fn fresh_ty(&mut self) -> &TyKind {
-        self.alloc(TyKind::Infer(self.unify_table.fresh_ty()))
-    }
-
-    fn translate_var(&mut self, existing_var: &hir::LocalVar) -> LocalVar {
-        LocalVar::new(existing_var.ident, existing_var.id)
-    }
-
-    fn translate_generic_param(&mut self, generic_param: &hir::GenericParam) -> GenericParam {}
+    // fn unify_fn_sig(&mut self, fn_sig: &FnSig, args: &[Type], ret_ty: Type) -> bool {
+    //     if args.len() != fn_sig.params.len() {
+    //         self.diagnostics.push(Diagnostic::BlankError);
+    //         return false;
+    //     }
+    //
+    //     for x in 0..args.len() {
+    //         let arg = args[x].clone();
+    //         let param = fn_sig.params[x].clone();
+    //
+    //         if !self.unify_ty_ty(param, arg, Type::assignable) {
+    //             return false;
+    //         }
+    //     }
+    //
+    //     self.unify_ty_ty(ret_ty, *fn_sig.ret_ty.clone(), Type::assignable)
+    // }
 
     fn maybe_resolve_ty(&mut self, existing_ty: Option<&hir::Ty>) -> Option<Ty<'hir>> {
         existing_ty.map(|ty| self.resolve_ty(ty))
@@ -942,7 +720,11 @@ impl<'hir, 'thir> CrateInference<'hir, 'thir> {
                 .hir_map
                 .krate(&path.definition)
                 .node(&path.definition.local_id());
-            node
+            match node {
+                Node::Item(ItemKind::Class(class_def)) => DefType::Class(class_def),
+                Node::Item(ItemKind::Fn(fn_def)) => DefType::Fn(fn_def),
+                _ => panic!("Unreachable!"),
+            }
         });
         let generics = path
             .generics
@@ -1038,33 +820,6 @@ impl<'hir> Array<'hir> {
 }
 
 /// Defines a concrete type of a potentially generic Class.
-#[derive(Clone, PartialEq, Debug, Serialize)]
-pub struct Class<'hir> {
-    definition: DefId,
-    fields: Vec<&'hir TyKind<'hir>>,
-    generics: LDefMap<Type>,
-}
-
-impl Class {
-    pub fn new(definition: DefId, fields: Types, generics: LDefMap<Type>) -> Self {
-        Self {
-            definition,
-            fields,
-            generics,
-        }
-    }
-
-    pub fn fn_sig(&self) -> FnSig {
-        FnSig::new(self.fields.clone(), Type::Class(self.clone()))
-    }
-}
-
-impl<'hir> TraitBound<'hir> {
-    pub fn new(bounds: &'hir [&'hir TyKind<'hir>]) -> Self {
-        Self { bounds }
-    }
-}
-
 #[derive(Clone, PartialEq, Debug, Serialize)]
 pub struct FnSig<'hir> {
     params: &'hir [&'hir TyKind<'hir>],

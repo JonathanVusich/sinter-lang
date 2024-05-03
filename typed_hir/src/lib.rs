@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::ops::{Add, Deref};
+use std::ops::{Add, Deref, Index};
 
 use serde::Serialize;
 
@@ -11,8 +11,14 @@ use id::{CrateId, DefId, LocalDefId};
 use interner::InternedStr;
 use types::LDefMap;
 
-#[derive(PartialEq, Debug, Clone, Serialize)]
+#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct ExprId(u32);
+
+impl ExprId {
+    fn index(&self) -> usize {
+        self.0 as usize
+    }
+}
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct DestructureExprId(u32);
@@ -434,6 +440,14 @@ impl<'hir> Thir<'hir> {
             exprs: vec![],
             destructure_exprs: vec![],
         }
+    }
+}
+
+impl<'hir> Index<ExprId> for Thir<'hir> {
+    type Output = Expr<'hir>;
+
+    fn index(&self, expr_id: ExprId) -> &Self::Output {
+        self.exprs.get(expr_id.index()).expect("Invalid expr id!")
     }
 }
 

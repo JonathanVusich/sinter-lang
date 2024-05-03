@@ -15,9 +15,6 @@ use types::{LDefMap, StrSet};
 pub enum Node<'a> {
     Item(&'a Item<'a>),
 
-    Member(&'a MemberDef<'a>),
-    Fn(&'a FnDef<'a>),
-
     Ty(&'a Ty<'a>),
 
     Expr(&'a Expr<'a>),
@@ -44,6 +41,7 @@ pub enum ItemKind<'a> {
     Constant(&'a Constant<'a>),
     Class(&'a ClassDef<'a>),
     Enum(&'a EnumDef<'a>),
+    Member(&'a MemberDef<'a>),
     Fn(&'a FnDef<'a>),
     Trait(&'a TraitDef<'a>),
     TraitImpl(&'a TraitImplDef<'a>),
