@@ -12,12 +12,8 @@ use interner::InternedStr;
 use types::LDefMap;
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct ExprId(u32);
-
-impl ExprId {
-    fn index(&self) -> usize {
-        self.0 as usize
-    }
+pub struct ExprId {
+    pub id: u32,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -87,6 +83,7 @@ pub enum TyKind<'a> {
     TraitBound(TraitBound<'a>),
     GenericParam(GenericParam<'a>),
     Fn(&'a FnDef<'a>, Generics<'a>),
+    Closure(&'a ClosureDef<'a>),
     Infer(TyVar),
     Float(FloatTy),
     Int(IntTy),
@@ -110,21 +107,21 @@ pub struct EnumDef<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
     pub members: MemberDefs<'a>,
-    pub member_fns: FnDefs<'a>,
+    pub fn_defs: FnDefs<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct MemberDef<'a> {
     pub name: InternedStr,
     pub fields: Fields<'a>,
-    pub member_fns: FnDefs<'a>,
+    pub fn_defs: FnDefs<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct TraitDef<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
-    pub member_fns: FnDefs<'a>,
+    pub fn_defs: FnDefs<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
@@ -137,6 +134,12 @@ pub struct Trait<'a> {
 pub struct FnDef<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
+    pub params: Params<'a>,
+    pub return_type: Ty<'a>,
+}
+
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
+pub struct ClosureDef<'a> {
     pub params: Params<'a>,
     pub return_type: Ty<'a>,
 }
@@ -237,8 +240,8 @@ pub type Generics<'a> = &'a [Ty<'a>];
 pub type GenericParams<'a> = &'a [GenericParam<'a>];
 pub type Params<'a> = &'a [Ty<'a>];
 pub type Fields<'a> = &'a [Ty<'a>];
-pub type MemberDefs<'a> = &'a [MemberDef<'a>];
-pub type FnDefs<'a> = &'a [FnDef<'a>];
+pub type MemberDefs<'a> = &'a [&'a MemberDef<'a>];
+pub type FnDefs<'a> = &'a [&'a FnDef<'a>];
 pub type Args = Box<[ExprId]>;
 pub type Stmts = Box<[StmtId]>;
 pub type AnonParams<'a> = &'a [Ty<'a>];
@@ -365,12 +368,6 @@ pub enum DefTy {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct Field<'a> {
-    pub ident: Ident,
-    pub ty: Ty<'a>,
-}
-
-#[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct LetStmt {
     pub local_var: LocalVar,
     pub mutability: Mutability,
@@ -447,7 +444,9 @@ impl<'hir> Index<ExprId> for Thir<'hir> {
     type Output = Expr<'hir>;
 
     fn index(&self, expr_id: ExprId) -> &Self::Output {
-        self.exprs.get(expr_id.index()).expect("Invalid expr id!")
+        self.exprs
+            .get(expr_id.id as usize)
+            .expect("Invalid expr id!")
     }
 }
 

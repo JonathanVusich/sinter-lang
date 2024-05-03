@@ -30,10 +30,10 @@ impl<'a> UnificationTable<'a> {
         lhs == rhs
     }
 
-    pub(crate) fn unify_var_ty<'b, F: Fn(&TyKind<'b>, &TyKind<'b>) -> bool>(
+    pub(crate) fn unify_var_ty<F: Fn(&TyKind<'a>, &TyKind<'a>) -> bool>(
         &mut self,
         var: TyVar,
-        ty: &'a TyKind<'b>,
+        ty: &'a TyKind<'a>,
         assignable_check: F,
     ) -> bool {
         let root = self.get_root_key(var);
@@ -76,7 +76,7 @@ impl<'a> UnificationTable<'a> {
     // Creates a self-referential index ptr into the vec.
     pub(crate) fn fresh_ty(&mut self) -> TyVar {
         let index = self.table.len();
-        let key = TyVar::new(index as u32);
+        let key = TyVar { id: index as u32 };
         self.table.push(Entry::new(key));
         key
     }

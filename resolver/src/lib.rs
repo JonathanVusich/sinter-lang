@@ -12,7 +12,7 @@ use diagnostics::{Diagnostic, Diagnostics};
 use hir::{
     Args, ArrayExpr, AssignExpr, Block, CallExpr, ClassDef, Closure, ClosureExpr, ClosureParam,
     ClosureParams, Constant, DestructureExpr, DestructureExprKind, DestructurePattern, EnumDef,
-    Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnDef, FnSig, FnStmts, ForStmt,
+    Expr, ExprKind, Expression, Field, FieldExpr, Fields, FnDef, FnDefs, FnSig, ForStmt,
     GenericParam, GenericParams, Generics, HirCrate, HirMap, IfStmt, IndexExpr, InfixExpr, Item,
     ItemKind, LetStmt, LocalDef, LocalVar, MatchArm, MatchArms, MatchExpr, MemberDef, MemberDefs,
     Node, OrPattern, Param, Params, PathExpr, PathTy, Pattern, PatternKind, Primitive, Res,
@@ -805,6 +805,8 @@ impl<'hir> CrateResolver<'hir> {
                 self_fns: Default::default(),
             });
 
+            let span = member.span;
+            let id = member.id;
             let fields = self.resolve_fields(&member.fields)?;
             let member_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
 
@@ -816,7 +818,13 @@ impl<'hir> CrateResolver<'hir> {
                 id: member.id,
             });
 
-            self.insert_node(member.id, Node::Member(member_def));
+            let item = self.alloc(Item {
+                kind: ItemKind::Member(member_def),
+                span,
+                id,
+            });
+
+            self.insert_node(member.id, Node::Item(item));
 
             enum_members.push(member_def);
 
@@ -935,6 +943,9 @@ impl<'hir> CrateResolver<'hir> {
             vars: Default::default(),
         });
 
+        let span = fn_stmt.span;
+        let id = fn_stmt.id;
+
         let resolved_sig = self.resolve_fn_sig(sig)?;
         let resolved_body = self.maybe_resolve_block(body).ok()?;
 
@@ -943,14 +954,21 @@ impl<'hir> CrateResolver<'hir> {
         let fn_def = self.alloc(FnDef {
             sig: resolved_sig,
             body: resolved_body,
-            span: *span,
-            id: *id,
+            span,
+            id,
         });
-        self.insert_node(*id, Node::Fn(fn_def));
+
+        let item = self.alloc(Item {
+            kind: ItemKind::Fn(fn_def),
+            span,
+            id,
+        });
+
+        self.insert_node(id, Node::Item(item));
         Some(fn_def)
     }
 
-    fn resolve_self_fn_stmts(&mut self, stmts: &Vec<ast::FnSelfStmt>) -> Option<FnStmts<'hir>> {
+    fn resolve_self_fn_stmts(&mut self, stmts: &Vec<ast::FnSelfStmt>) -> Option<FnDefs<'hir>> {
         for fn_stmt in stmts {
             self.insert_self_fn(fn_stmt.sig.name.ident, fn_stmt.id)?;
         }
