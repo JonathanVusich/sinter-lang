@@ -1,8 +1,10 @@
-#![feature(hash_set_entry)]
+#![feature(hash_raw_entry)]
 
+use bumpalo::Bump;
 use lasso::{Rodeo, Spur};
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::hash::Hash;
 
 #[repr(transparent)]
@@ -52,23 +54,20 @@ impl StringInterner {
 }
 
 #[derive(Debug)]
-pub struct Interner<T> {
-    interned: HashSet<T>,
+pub struct Interner<'a, T> {
+    allocator: &'a Bump,
+    interned: RefCell<HashMap<&'a T, ()>>,
 }
 
-impl<T> Interner<T>
+impl<'a, T> Interner<'a, T>
 where
     T: Eq + Hash,
 {
-    pub fn intern(&mut self, val: T) -> &T {
-        self.interned.get_or_insert(val)
-    }
-}
-
-impl<T> Default for Interner<T> {
-    fn default() -> Self {
-        Self {
-            interned: HashSet::default(),
-        }
+    pub fn intern(&self, val: T) -> &'a T {
+        let mut set = self.interned.borrow_mut();
+        set.raw_entry_mut()
+            .from_key(&val)
+            .or_insert_with(|| (self.allocator.alloc(val), ()))
+            .0
     }
 }

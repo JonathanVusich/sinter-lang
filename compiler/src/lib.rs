@@ -257,6 +257,7 @@ impl<'a> Compiler<'a> {
 
     pub fn infer_types(&mut self, hir_map: HirMap) -> Result<ThirMap<'a>, Diagnostics> {
         infer_types(
+            &mut self.ty_cache,
             &mut self.diagnostics,
             &mut self.hir_allocator,
             &mut self.thir_allocator,

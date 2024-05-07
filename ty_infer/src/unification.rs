@@ -30,10 +30,10 @@ impl<'a> UnificationTable<'a> {
         lhs == rhs
     }
 
-    pub(crate) fn unify_var_ty<F: Fn(&TyKind<'a>, &TyKind<'a>) -> bool>(
+    pub(crate) fn unify_var_ty<F: Fn(&'a TyKind<'a>, &'a TyKind<'a>) -> bool>(
         &mut self,
         var: TyVar,
-        ty: &'a TyKind<'a>,
+        ty: &'a TyKind<'_>,
         assignable_check: F,
     ) -> bool {
         let root = self.get_root_key(var);
@@ -69,7 +69,7 @@ impl<'a> UnificationTable<'a> {
         root
     }
 
-    fn entry(&mut self, key: TyVar) -> &mut Entry {
+    fn entry(&mut self, key: TyVar) -> &mut Entry<'a> {
         &mut self.table[key.id as usize]
     }
 
