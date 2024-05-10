@@ -200,7 +200,7 @@
                     ),
                     id: 12,
                   ),
-                  implicit_return: false,
+                  implicit_return: true,
                 )),
                 span: (
                   start: 83,
@@ -228,12 +228,13 @@
         id: 16,
       ), (
         kind: GlobalLet((
-          name: (
+          local_var: (
             ident: 7,
             span: (
               start: 113,
               end: 125,
             ),
+            id: 17,
           ),
           ty: (
             kind: Path(
@@ -254,7 +255,7 @@
                     start: 132,
                     end: 135,
                   ),
-                  id: 17,
+                  id: 18,
                 )],
               ),
             ),
@@ -262,7 +263,7 @@
               start: 127,
               end: 136,
             ),
-            id: 18,
+            id: 19,
           ),
           initializer: (
             kind: Call((
@@ -283,7 +284,7 @@
                         start: 146,
                         end: 149,
                       ),
-                      id: 19,
+                      id: 20,
                     )]),
                   ), (
                     ident: (
@@ -300,7 +301,7 @@
                   start: 139,
                   end: 155,
                 ),
-                id: 20,
+                id: 21,
               ),
               args: [],
 )),
@@ -308,22 +309,23 @@
               start: 139,
               end: 157,
             ),
-            id: 21,
+            id: 22,
           ),
         )),
         span: (
           start: 109,
           end: 158,
         ),
-        id: 22,
+        id: 23,
       ), (
         kind: GlobalLet((
-          name: (
+          local_var: (
             ident: 9,
             span: (
               start: 163,
               end: 176,
             ),
+            id: 24,
           ),
           ty: (
             kind: Path(
@@ -357,7 +359,7 @@
                           start: 188,
                           end: 191,
                         ),
-                        id: 23,
+                        id: 25,
                       )],
                     ),
                   ),
@@ -365,7 +367,7 @@
                     start: 183,
                     end: 192,
                   ),
-                  id: 24,
+                  id: 26,
                 )],
               ),
             ),
@@ -373,7 +375,7 @@
               start: 178,
               end: 193,
             ),
-            id: 25,
+            id: 27,
           ),
           initializer: (
             kind: Call((
@@ -407,7 +409,7 @@
                               start: 208,
                               end: 211,
                             ),
-                            id: 26,
+                            id: 28,
                           )],
                         ),
                       ),
@@ -415,7 +417,7 @@
                         start: 203,
                         end: 212,
                       ),
-                      id: 27,
+                      id: 29,
                     )]),
                   ), (
                     ident: (
@@ -432,7 +434,7 @@
                   start: 196,
                   end: 218,
                 ),
-                id: 28,
+                id: 30,
               ),
               args: [],
 )),
@@ -440,22 +442,23 @@
               start: 196,
               end: 220,
             ),
-            id: 29,
+            id: 31,
           ),
         )),
         span: (
           start: 159,
           end: 221,
         ),
-        id: 30,
+        id: 32,
       ), (
         kind: GlobalLet((
-          name: (
+          local_var: (
             ident: 11,
             span: (
               start: 226,
               end: 238,
             ),
+            id: 33,
           ),
           ty: (
             kind: Path(
@@ -502,7 +505,7 @@
                     start: 245,
                     end: 268,
                   ),
-                  id: 31,
+                  id: 34,
                 )],
               ),
             ),
@@ -510,7 +513,7 @@
               start: 240,
               end: 269,
             ),
-            id: 32,
+            id: 35,
           ),
           initializer: (
             kind: Call((
@@ -557,7 +560,7 @@
                         start: 279,
                         end: 302,
                       ),
-                      id: 33,
+                      id: 36,
                     )]),
                   ), (
                     ident: (
@@ -574,7 +577,7 @@
                   start: 272,
                   end: 308,
                 ),
-                id: 34,
+                id: 37,
               ),
               args: [],
 )),
@@ -582,14 +585,14 @@
               start: 272,
               end: 310,
             ),
-            id: 35,
+            id: 38,
           ),
         )),
         span: (
           start: 222,
           end: 311,
         ),
-        id: 36,
+        id: 39,
       )],
     )],
   ),

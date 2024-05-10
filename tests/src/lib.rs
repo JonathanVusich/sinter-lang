@@ -167,6 +167,7 @@ mod tests {
                         SnapshotType::Validated,
                     )
                 })
+                .as_mut()
                 .and_then(|parsed_krates| {
                     validate_result(
                         compiler.resolve_crates(parsed_krates),
@@ -175,6 +176,7 @@ mod tests {
                         SnapshotType::Resolved,
                     )
                 })
+                .as_ref()
                 .and_then(|hir_map| {
                     validate_result(
                         compiler.infer_types(hir_map),

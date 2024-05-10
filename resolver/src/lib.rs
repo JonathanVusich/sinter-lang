@@ -28,15 +28,18 @@ use types::{LDefMap, StrMap};
 pub fn resolve<'hir>(
     string_interner: &'hir StringInterner,
     diagnostics: &'hir Diagnostics,
-    arena: &'hir mut Bump,
+    arena: &'hir Bump,
     crates: &'hir mut StrMap<Crate>,
 ) -> Option<HirMap<'hir>> {
-    let resolver = Resolver::new(string_interner, diagnostics, arena, crates);
-    resolver.resolve()
+    let resolver = Resolver::new(string_interner, diagnostics, arena);
+    resolver.resolve(crates)
 }
 
 #[derive(Debug)]
 pub enum Scope {
+    Module {
+        vars: StrMap<LocalVar>,
+    },
     Class {
         id: DefId,
         fields: StrMap<LocalDefId>,
@@ -115,6 +118,7 @@ impl Scope {
 
     pub fn insert_var(&mut self, local_var: LocalVar) {
         let vars = match self {
+            Scope::Module { vars, .. } => vars,
             Scope::Fn { vars, .. } => vars,
             Scope::MatchArm { vars } => vars,
             _ => panic!("Cannot insert var into this scope!"),
@@ -173,7 +177,6 @@ struct Resolver<'hir> {
     string_interner: &'hir StringInterner,
     diagnostics: &'hir Diagnostics,
     allocator: &'hir Bump,
-    krates: &'hir mut StrMap<Crate>,
 }
 
 impl<'hir> Resolver<'hir> {
@@ -181,34 +184,32 @@ impl<'hir> Resolver<'hir> {
         string_interner: &'hir StringInterner,
         diagnostics: &'hir Diagnostics,
         allocator: &'hir Bump,
-        krates: &'hir mut StrMap<Crate>,
     ) -> Self {
         Self {
             string_interner,
             diagnostics,
             allocator,
-            krates,
         }
     }
 
-    fn resolve(mut self) -> Option<HirMap<'hir>> {
+    fn resolve(mut self, crates: &'hir mut StrMap<Crate>) -> Option<HirMap<'hir>> {
         let mut hir_map = HirMap::default();
         // We are building lookup maps for each module so that we can query the types and constants in that module
         // when resolving use stmts later.
-        self.build_crate_ns()?;
+        self.build_crate_ns(crates)?;
 
-        for krate in self.krates.values() {
+        for krate in crates.values() {
             let crate_resolver =
-                CrateResolver::new(self.string_interner, self.allocator, krate, &self.krates);
+                CrateResolver::new(self.string_interner, self.allocator, &krate, crates);
             hir_map.insert(crate_resolver.resolve()?);
         }
 
         Some(hir_map)
     }
 
-    fn build_crate_ns(&mut self) -> Option<()> {
+    fn build_crate_ns(&mut self, crates: &mut StrMap<Crate>) -> Option<()> {
         // Generate the initial module ns
-        for krate in self.krates.values_mut() {
+        for krate in crates.values_mut() {
             let krate_id = krate.crate_id;
             for module in krate.modules_mut() {
                 let module_ns = generate_mod_values(module, krate_id);
@@ -220,14 +221,13 @@ impl<'hir> Resolver<'hir> {
         // Second pass we need to process all use stmts since we now have all of the values
         // populated for each module.
         let mut module_crate_defs = HashMap::<ModuleId, Vec<CrateDef>>::default();
-        for krate in self.krates.values() {
+        for krate in crates.values() {
             for module in krate.modules() {
                 for item in module.items.iter() {
                     if let ast::ItemKind::Use(use_stmt) = &item.kind {
                         let crate_def = match &use_stmt.path.ident_type {
                             ast::IdentType::Crate => krate.find_definition(&use_stmt.path, false),
-                            ast::IdentType::LocalOrUse => self
-                                .krates
+                            ast::IdentType::LocalOrUse => crates
                                 .get(&use_stmt.path.first())
                                 .and_then(|krate| krate.find_definition(&use_stmt.path, true)),
                         };
@@ -259,7 +259,7 @@ impl<'hir> Resolver<'hir> {
             return None;
         }
 
-        for krate in self.krates.values_mut() {
+        for krate in crates.values_mut() {
             for module in krate.modules_mut() {
                 let mut modules = StrMap::default();
                 let mut values = StrMap::default();
@@ -437,7 +437,11 @@ impl<'hir> CrateResolver<'hir> {
 
     fn resolve_module(&mut self, module: &'hir ast::Module) {
         self.module = Some(module);
+        self.scopes.push(Scope::Module {
+            vars: StrMap::default(),
+        });
         module.items.iter().for_each(|item| self.visit_item(item));
+        self.scopes.pop();
     }
 
     fn visit_item(&mut self, item: &ast::Item) {

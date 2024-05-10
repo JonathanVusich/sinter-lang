@@ -4,33 +4,79 @@
     id: (
       id: 0,
     ),
-    items: [38],
-    nodes: {
-      36: (
-        kind: EnumMember((
+    items: [(
+      kind: Enum((
+        name: (
+          ident: 11,
+          span: (
+            start: 287,
+            end: 297,
+          ),
+        ),
+        generic_params: [],
+        members: [(
           name: 12,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 304,
+            end: 318,
+          ),
+          id: 38,
+        ), (
+          name: 14,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 324,
+            end: 338,
+          ),
+          id: 39,
+        )],
+        fn_defs: [],
+)),
+      span: (
+        start: 282,
+        end: 341,
+      ),
+      id: 40,
+    )],
+    nodes: {
+      38: Item((
+        kind: Member((
+          name: 12,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 304,
+            end: 318,
+          ),
+          id: 38,
         )),
         span: (
           start: 304,
           end: 318,
         ),
-        id: 36,
-      ),
-      37: (
-        kind: EnumMember((
+        id: 38,
+      )),
+      39: Item((
+        kind: Member((
           name: 14,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 324,
+            end: 338,
+          ),
+          id: 39,
         )),
         span: (
           start: 324,
           end: 338,
         ),
-        id: 37,
-      ),
-      38: (
+        id: 39,
+      )),
+      40: Item((
         kind: Enum((
           name: (
             ident: 11,
@@ -39,19 +85,34 @@
               end: 297,
             ),
           ),
-          generic_params: {},
-          members: {
-            12: 36,
-            14: 37,
-          },
-          member_fns: {},
-        )),
+          generic_params: [],
+          members: [(
+            name: 12,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 304,
+              end: 318,
+            ),
+            id: 38,
+          ), (
+            name: 14,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 324,
+              end: 338,
+            ),
+            id: 39,
+          )],
+          fn_defs: [],
+)),
         span: (
           start: 282,
           end: 341,
         ),
-        id: 38,
-      ),
+        id: 40,
+      )),
     },
   )],
   names_to_indices: [23],

@@ -98,12 +98,13 @@
         id: 5,
       ), (
         kind: GlobalLet((
-          name: (
+          local_var: (
             ident: 6,
             span: (
               start: 60,
               end: 69,
             ),
+            id: 6,
           ),
           ty: (
             kind: Array(
@@ -113,14 +114,14 @@
                   start: 72,
                   end: 75,
                 ),
-                id: 6,
+                id: 7,
               ),
             ),
             span: (
               start: 71,
               end: 75,
             ),
-            id: 7,
+            id: 8,
           ),
           initializer: (
             kind: Array(Initializer([(
@@ -129,42 +130,43 @@
                 start: 80,
                 end: 81,
               ),
-              id: 8,
+              id: 9,
             ), (
               kind: Int(2),
               span: (
                 start: 83,
                 end: 84,
               ),
-              id: 9,
+              id: 10,
             ), (
               kind: Int(3),
               span: (
                 start: 86,
                 end: 87,
               ),
-              id: 10,
+              id: 11,
             )])),
             span: (
               start: 79,
               end: 88,
             ),
-            id: 11,
+            id: 12,
           ),
         )),
         span: (
           start: 56,
           end: 89,
         ),
-        id: 12,
+        id: 13,
       ), (
         kind: GlobalLet((
-          name: (
+          local_var: (
             ident: 8,
             span: (
               start: 94,
               end: 105,
             ),
+            id: 14,
           ),
           ty: (
             kind: Array(
@@ -188,14 +190,14 @@
                   start: 108,
                   end: 113,
                 ),
-                id: 13,
+                id: 15,
               ),
             ),
             span: (
               start: 107,
               end: 113,
             ),
-            id: 14,
+            id: 16,
           ),
           initializer: (
             kind: Array(Initializer([(
@@ -218,7 +220,7 @@
                     start: 118,
                     end: 123,
                   ),
-                  id: 15,
+                  id: 17,
                 ),
                 args: [(
                   kind: Float(1.0),
@@ -226,21 +228,21 @@
                     start: 124,
                     end: 127,
                   ),
-                  id: 16,
+                  id: 18,
                 ), (
                   kind: Float(2.0),
                   span: (
                     start: 129,
                     end: 132,
                   ),
-                  id: 17,
+                  id: 19,
                 )],
               )),
               span: (
                 start: 118,
                 end: 133,
               ),
-              id: 18,
+              id: 20,
             ), (
               kind: Call((
                 target: (
@@ -261,7 +263,7 @@
                     start: 135,
                     end: 140,
                   ),
-                  id: 19,
+                  id: 21,
                 ),
                 args: [(
                   kind: Float(1.5),
@@ -269,42 +271,43 @@
                     start: 141,
                     end: 144,
                   ),
-                  id: 20,
+                  id: 22,
                 ), (
                   kind: Float(2.5),
                   span: (
                     start: 146,
                     end: 149,
                   ),
-                  id: 21,
+                  id: 23,
                 )],
               )),
               span: (
                 start: 135,
                 end: 150,
               ),
-              id: 22,
+              id: 24,
             )])),
             span: (
               start: 117,
               end: 151,
             ),
-            id: 23,
+            id: 25,
           ),
         )),
         span: (
           start: 90,
           end: 152,
         ),
-        id: 24,
+        id: 26,
       ), (
         kind: GlobalLet((
-          name: (
+          local_var: (
             ident: 9,
             span: (
               start: 157,
               end: 167,
             ),
+            id: 27,
           ),
           ty: (
             kind: Array(
@@ -328,14 +331,14 @@
                   start: 170,
                   end: 174,
                 ),
-                id: 25,
+                id: 28,
               ),
             ),
             span: (
               start: 169,
               end: 174,
             ),
-            id: 26,
+            id: 29,
           ),
           initializer: (
             kind: Array(Initializer([(
@@ -358,7 +361,7 @@
                     start: 179,
                     end: 183,
                   ),
-                  id: 27,
+                  id: 30,
                 ),
                 args: [],
 )),
@@ -366,7 +369,7 @@
                 start: 179,
                 end: 185,
               ),
-              id: 28,
+              id: 31,
             ), (
               kind: Call((
                 target: (
@@ -387,7 +390,7 @@
                     start: 187,
                     end: 191,
                   ),
-                  id: 29,
+                  id: 32,
                 ),
                 args: [],
 )),
@@ -395,20 +398,20 @@
                 start: 187,
                 end: 193,
               ),
-              id: 30,
+              id: 33,
             )])),
             span: (
               start: 178,
               end: 194,
             ),
-            id: 31,
+            id: 34,
           ),
         )),
         span: (
           start: 153,
           end: 195,
         ),
-        id: 32,
+        id: 35,
       )],
     )],
   ),

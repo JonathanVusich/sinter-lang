@@ -6,14 +6,22 @@
     ),
     items: [],
     nodes: {
-      0: (
-        kind: Ty(Primitive(Str)),
+      0: LocalVar((
+        ident: 1,
+        span: (
+          start: 4,
+          end: 18,
+        ),
+        id: 0,
+      )),
+      1: Ty((
+        kind: Primitive(Str),
         span: (
           start: 20,
           end: 23,
         ),
-        id: 0,
-      ),
+        id: 1,
+      )),
     },
   )],
   names_to_indices: [12],

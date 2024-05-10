@@ -4,117 +4,261 @@
     id: (
       id: 0,
     ),
-    items: [9],
-    nodes: {
-      0: (
-        kind: EnumMember((
+    items: [(
+      kind: Enum((
+        name: (
+          ident: 1,
+          span: (
+            start: 5,
+            end: 11,
+          ),
+        ),
+        generic_params: [],
+        members: [(
           name: 2,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 18,
+            end: 25,
+          ),
+          id: 0,
+        ), (
+          name: 3,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 31,
+            end: 36,
+          ),
+          id: 1,
+        ), (
+          name: 4,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 42,
+            end: 47,
+          ),
+          id: 2,
+        ), (
+          name: 5,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 53,
+            end: 57,
+          ),
+          id: 3,
+        ), (
+          name: 6,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 63,
+            end: 70,
+          ),
+          id: 4,
+        ), (
+          name: 7,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 76,
+            end: 82,
+          ),
+          id: 5,
+        ), (
+          name: 8,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 88,
+            end: 94,
+          ),
+          id: 6,
+        ), (
+          name: 9,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 100,
+            end: 107,
+          ),
+          id: 7,
+        ), (
+          name: 10,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 113,
+            end: 118,
+          ),
+          id: 8,
+        )],
+        fn_defs: [],
+)),
+      span: (
+        start: 0,
+        end: 121,
+      ),
+      id: 9,
+    )],
+    nodes: {
+      0: Item((
+        kind: Member((
+          name: 2,
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 18,
+            end: 25,
+          ),
+          id: 0,
         )),
         span: (
           start: 18,
           end: 25,
         ),
         id: 0,
-      ),
-      1: (
-        kind: EnumMember((
+      )),
+      1: Item((
+        kind: Member((
           name: 3,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 31,
+            end: 36,
+          ),
+          id: 1,
         )),
         span: (
           start: 31,
           end: 36,
         ),
         id: 1,
-      ),
-      2: (
-        kind: EnumMember((
+      )),
+      2: Item((
+        kind: Member((
           name: 4,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 42,
+            end: 47,
+          ),
+          id: 2,
         )),
         span: (
           start: 42,
           end: 47,
         ),
         id: 2,
-      ),
-      3: (
-        kind: EnumMember((
+      )),
+      3: Item((
+        kind: Member((
           name: 5,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 53,
+            end: 57,
+          ),
+          id: 3,
         )),
         span: (
           start: 53,
           end: 57,
         ),
         id: 3,
-      ),
-      4: (
-        kind: EnumMember((
+      )),
+      4: Item((
+        kind: Member((
           name: 6,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 63,
+            end: 70,
+          ),
+          id: 4,
         )),
         span: (
           start: 63,
           end: 70,
         ),
         id: 4,
-      ),
-      5: (
-        kind: EnumMember((
+      )),
+      5: Item((
+        kind: Member((
           name: 7,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 76,
+            end: 82,
+          ),
+          id: 5,
         )),
         span: (
           start: 76,
           end: 82,
         ),
         id: 5,
-      ),
-      6: (
-        kind: EnumMember((
+      )),
+      6: Item((
+        kind: Member((
           name: 8,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 88,
+            end: 94,
+          ),
+          id: 6,
         )),
         span: (
           start: 88,
           end: 94,
         ),
         id: 6,
-      ),
-      7: (
-        kind: EnumMember((
+      )),
+      7: Item((
+        kind: Member((
           name: 9,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 100,
+            end: 107,
+          ),
+          id: 7,
         )),
         span: (
           start: 100,
           end: 107,
         ),
         id: 7,
-      ),
-      8: (
-        kind: EnumMember((
+      )),
+      8: Item((
+        kind: Member((
           name: 10,
-          fields: {},
-          member_fns: {},
+          fields: [],
+          fn_defs: [],
+          span: (
+            start: 113,
+            end: 118,
+          ),
+          id: 8,
         )),
         span: (
           start: 113,
           end: 118,
         ),
         id: 8,
-      ),
-      9: (
+      )),
+      9: Item((
         kind: Enum((
           name: (
             ident: 1,
@@ -123,26 +267,97 @@
               end: 11,
             ),
           ),
-          generic_params: {},
-          members: {
-            2: 0,
-            3: 1,
-            4: 2,
-            5: 3,
-            6: 4,
-            7: 5,
-            8: 6,
-            9: 7,
-            10: 8,
-          },
-          member_fns: {},
-        )),
+          generic_params: [],
+          members: [(
+            name: 2,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 18,
+              end: 25,
+            ),
+            id: 0,
+          ), (
+            name: 3,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 31,
+              end: 36,
+            ),
+            id: 1,
+          ), (
+            name: 4,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 42,
+              end: 47,
+            ),
+            id: 2,
+          ), (
+            name: 5,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 53,
+              end: 57,
+            ),
+            id: 3,
+          ), (
+            name: 6,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 63,
+              end: 70,
+            ),
+            id: 4,
+          ), (
+            name: 7,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 76,
+              end: 82,
+            ),
+            id: 5,
+          ), (
+            name: 8,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 88,
+              end: 94,
+            ),
+            id: 6,
+          ), (
+            name: 9,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 100,
+              end: 107,
+            ),
+            id: 7,
+          ), (
+            name: 10,
+            fields: [],
+            fn_defs: [],
+            span: (
+              start: 113,
+              end: 118,
+            ),
+            id: 8,
+          )],
+          fn_defs: [],
+)),
         span: (
           start: 0,
           end: 121,
         ),
         id: 9,
-      ),
+      )),
     },
   )],
   names_to_indices: [12],

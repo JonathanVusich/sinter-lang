@@ -28,12 +28,13 @@
             ),
             generic_params: [],
             params: [(
-              name: (
+              local_var: (
                 ident: 2,
                 span: (
                   start: 7,
                   end: 8,
                 ),
+                id: 0,
               ),
               ty: (
                 kind: I64,
@@ -41,21 +42,22 @@
                   start: 10,
                   end: 13,
                 ),
-                id: 0,
+                id: 1,
               ),
               mutability: Immutable,
               span: (
                 start: 7,
                 end: 13,
               ),
-              id: 1,
+              id: 2,
             ), (
-              name: (
+              local_var: (
                 ident: 4,
                 span: (
                   start: 15,
                   end: 16,
                 ),
+                id: 3,
               ),
               ty: (
                 kind: I64,
@@ -63,14 +65,14 @@
                   start: 18,
                   end: 21,
                 ),
-                id: 2,
+                id: 4,
               ),
               mutability: Immutable,
               span: (
                 start: 15,
                 end: 21,
               ),
-              id: 3,
+              id: 5,
             )],
             return_type: Some((
               kind: I64,
@@ -78,7 +80,7 @@
                 start: 26,
                 end: 29,
               ),
-              id: 4,
+              id: 6,
             )),
           ),
           body: Some((
@@ -105,7 +107,7 @@
                         start: 36,
                         end: 37,
                       ),
-                      id: 5,
+                      id: 7,
                     ),
                     rhs: (
                       kind: Path((
@@ -125,35 +127,35 @@
                         start: 40,
                         end: 41,
                       ),
-                      id: 6,
+                      id: 8,
                     ),
                   )),
                   span: (
                     start: 36,
                     end: 41,
                   ),
-                  id: 7,
+                  id: 9,
                 ),
-                implicit_return: false,
+                implicit_return: true,
               )),
               span: (
                 start: 36,
                 end: 41,
               ),
-              id: 8,
+              id: 10,
             )],
             span: (
               start: 30,
               end: 43,
             ),
-            id: 9,
+            id: 11,
           )),
         )),
         span: (
           start: 0,
           end: 43,
         ),
-        id: 10,
+        id: 12,
       )],
     )],
   ),

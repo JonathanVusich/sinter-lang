@@ -414,7 +414,7 @@ pub struct ClosureParam {
     ident: Ident,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Thir<'hir> {
     generic_params: GenericParams<'hir>,
     ret_ty: Ty<'hir>,
@@ -458,10 +458,12 @@ impl<'hir> Index<ExprId> for Thir<'hir> {
     }
 }
 
+#[derive(Serialize)]
 pub struct ThirMap<'hir> {
     pub crates: Vec<ThirCrate<'hir>>,
 }
 
+#[derive(Serialize)]
 pub struct ThirCrate<'hir> {
     pub name: InternedStr,
     pub id: CrateId,

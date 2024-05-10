@@ -4,18 +4,18 @@
     id: (
       id: 0,
     ),
-    items: [4, 9, 21],
-    nodes: {
-      0: (
-        kind: Ty(Primitive(Str)),
-        span: (
-          start: 28,
-          end: 31,
+    items: [(
+      kind: Class((
+        name: (
+          ident: 1,
+          span: (
+            start: 6,
+            end: 11,
+          ),
         ),
-        id: 0,
-      ),
-      1: (
-        kind: Field((
+        class_type: Inline,
+        generic_params: [],
+        fields: [(
           ident: (
             ident: 2,
             span: (
@@ -23,24 +23,20 @@
               end: 26,
             ),
           ),
-          ty: 0,
-        )),
-        span: (
-          start: 18,
-          end: 31,
-        ),
-        id: 1,
-      ),
-      2: (
-        kind: Ty(Primitive(Str)),
-        span: (
-          start: 46,
-          end: 49,
-        ),
-        id: 2,
-      ),
-      3: (
-        kind: Field((
+          ty: (
+            kind: Primitive(Str),
+            span: (
+              start: 28,
+              end: 31,
+            ),
+            id: 0,
+          ),
+          span: (
+            start: 18,
+            end: 31,
+          ),
+          id: 1,
+        ), (
           ident: (
             ident: 4,
             span: (
@@ -48,15 +44,334 @@
               end: 44,
             ),
           ),
-          ty: 2,
-        )),
+          ty: (
+            kind: Primitive(Str),
+            span: (
+              start: 46,
+              end: 49,
+            ),
+            id: 2,
+          ),
+          span: (
+            start: 37,
+            end: 49,
+          ),
+          id: 3,
+        )],
+        fn_defs: [],
+)),
+      span: (
+        start: 0,
+        end: 52,
+      ),
+      id: 4,
+    ), (
+      kind: Trait((
+        name: (
+          ident: 5,
+          span: (
+            start: 60,
+            end: 67,
+          ),
+        ),
+        generic_params: [],
+        fn_defs: [(
+          sig: (
+            name: (
+              ident: 6,
+              span: (
+                start: 77,
+                end: 86,
+              ),
+            ),
+            generic_params: [],
+            params: [(
+              local_var: (
+                ident: 7,
+                span: (
+                  start: 87,
+                  end: 91,
+                ),
+                id: 5,
+              ),
+              ty: (
+                kind: Path((
+                  definition: (
+                    crate_id: 0,
+                    local_id: 10,
+                  ),
+                  generics: [],
+)),
+                span: (
+                  start: 87,
+                  end: 91,
+                ),
+                id: 6,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 87,
+                end: 91,
+              ),
+              id: 7,
+            )],
+            ret_ty: Some((
+              kind: Primitive(Str),
+              span: (
+                start: 96,
+                end: 99,
+              ),
+              id: 8,
+            )),
+          ),
+          body: None,
+          span: (
+            start: 74,
+            end: 100,
+          ),
+          id: 9,
+        )],
+      )),
+      span: (
+        start: 54,
+        end: 102,
+      ),
+      id: 10,
+    ), (
+      kind: TraitImpl((
+        trait_to_impl: (
+          definition: (
+            crate_id: 0,
+            local_id: 10,
+          ),
+          generics: [],
+),
+        target_ty: (
+          crate_id: 0,
+          local_id: 4,
+        ),
+        fn_defs: [(
+          sig: (
+            name: (
+              ident: 6,
+              span: (
+                start: 136,
+                end: 145,
+              ),
+            ),
+            generic_params: [],
+            params: [(
+              local_var: (
+                ident: 7,
+                span: (
+                  start: 146,
+                  end: 150,
+                ),
+                id: 11,
+              ),
+              ty: (
+                kind: Path((
+                  definition: (
+                    crate_id: 0,
+                    local_id: 4,
+                  ),
+                  generics: [],
+)),
+                span: (
+                  start: 146,
+                  end: 150,
+                ),
+                id: 12,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 146,
+                end: 150,
+              ),
+              id: 13,
+            )],
+            ret_ty: Some((
+              kind: Primitive(Str),
+              span: (
+                start: 155,
+                end: 158,
+              ),
+              id: 14,
+            )),
+          ),
+          body: Some((
+            stmts: [(
+              kind: Return((
+                value: Some((
+                  kind: Infix((
+                    operator: Add,
+                    lhs: (
+                      kind: Field((
+                        lhs: (
+                          kind: Path((
+                            segments: [(
+                              res: Local(Var((
+                                ident: 7,
+                                span: (
+                                  start: 146,
+                                  end: 150,
+                                ),
+                                id: 11,
+                              ))),
+                              generics: None,
+                            )],
+                          )),
+                          span: (
+                            start: 176,
+                            end: 180,
+                          ),
+                          id: 15,
+                        ),
+                        ident: (
+                          ident: 2,
+                          span: (
+                            start: 181,
+                            end: 189,
+                          ),
+                        ),
+                      )),
+                      span: (
+                        start: 176,
+                        end: 189,
+                      ),
+                      id: 16,
+                    ),
+                    rhs: (
+                      kind: Field((
+                        lhs: (
+                          kind: Path((
+                            segments: [(
+                              res: Local(Var((
+                                ident: 7,
+                                span: (
+                                  start: 146,
+                                  end: 150,
+                                ),
+                                id: 11,
+                              ))),
+                              generics: None,
+                            )],
+                          )),
+                          span: (
+                            start: 192,
+                            end: 196,
+                          ),
+                          id: 17,
+                        ),
+                        ident: (
+                          ident: 4,
+                          span: (
+                            start: 197,
+                            end: 204,
+                          ),
+                        ),
+                      )),
+                      span: (
+                        start: 192,
+                        end: 204,
+                      ),
+                      id: 18,
+                    ),
+                  )),
+                  span: (
+                    start: 176,
+                    end: 204,
+                  ),
+                  id: 19,
+                )),
+              )),
+              span: (
+                start: 169,
+                end: 205,
+              ),
+              id: 20,
+            )],
+            span: (
+              start: 159,
+              end: 211,
+            ),
+            id: 21,
+          )),
+          span: (
+            start: 133,
+            end: 211,
+          ),
+          id: 22,
+        )],
+      )),
+      span: (
+        start: 104,
+        end: 213,
+      ),
+      id: 23,
+    )],
+    nodes: {
+      0: Ty((
+        kind: Primitive(Str),
+        span: (
+          start: 28,
+          end: 31,
+        ),
+        id: 0,
+      )),
+      1: Field((
+        ident: (
+          ident: 2,
+          span: (
+            start: 18,
+            end: 26,
+          ),
+        ),
+        ty: (
+          kind: Primitive(Str),
+          span: (
+            start: 28,
+            end: 31,
+          ),
+          id: 0,
+        ),
+        span: (
+          start: 18,
+          end: 31,
+        ),
+        id: 1,
+      )),
+      2: Ty((
+        kind: Primitive(Str),
+        span: (
+          start: 46,
+          end: 49,
+        ),
+        id: 2,
+      )),
+      3: Field((
+        ident: (
+          ident: 4,
+          span: (
+            start: 37,
+            end: 44,
+          ),
+        ),
+        ty: (
+          kind: Primitive(Str),
+          span: (
+            start: 46,
+            end: 49,
+          ),
+          id: 2,
+        ),
         span: (
           start: 37,
           end: 49,
         ),
         id: 3,
-      ),
-      4: (
+      )),
+      4: Item((
         kind: Class((
           name: (
             ident: 1,
@@ -66,60 +381,119 @@
             ),
           ),
           class_type: Inline,
-          generic_params: {},
-          fields: {
-            2: 1,
-            4: 3,
-          },
-          fn_stmts: {},
-        )),
+          generic_params: [],
+          fields: [(
+            ident: (
+              ident: 2,
+              span: (
+                start: 18,
+                end: 26,
+              ),
+            ),
+            ty: (
+              kind: Primitive(Str),
+              span: (
+                start: 28,
+                end: 31,
+              ),
+              id: 0,
+            ),
+            span: (
+              start: 18,
+              end: 31,
+            ),
+            id: 1,
+          ), (
+            ident: (
+              ident: 4,
+              span: (
+                start: 37,
+                end: 44,
+              ),
+            ),
+            ty: (
+              kind: Primitive(Str),
+              span: (
+                start: 46,
+                end: 49,
+              ),
+              id: 2,
+            ),
+            span: (
+              start: 37,
+              end: 49,
+            ),
+            id: 3,
+          )],
+          fn_defs: [],
+)),
         span: (
           start: 0,
           end: 52,
         ),
         id: 4,
-      ),
-      5: (
-        kind: Ty(Path((
-          definition: (
-            crate_id: 0,
-            local_id: 9,
-          ),
-          generics: [],
-))),
+      )),
+      5: LocalVar((
+        ident: 7,
         span: (
           start: 87,
           end: 91,
         ),
         id: 5,
-      ),
-      6: (
-        kind: Param((
-          ident: (
-            ident: 7,
-            span: (
-              start: 87,
-              end: 91,
-            ),
+      )),
+      6: Ty((
+        kind: Path((
+          definition: (
+            crate_id: 0,
+            local_id: 10,
           ),
-          ty: 5,
-          mutability: Immutable,
-        )),
+          generics: [],
+)),
         span: (
           start: 87,
           end: 91,
         ),
         id: 6,
-      ),
-      7: (
-        kind: Ty(Primitive(Str)),
+      )),
+      7: Param((
+        local_var: (
+          ident: 7,
+          span: (
+            start: 87,
+            end: 91,
+          ),
+          id: 5,
+        ),
+        ty: (
+          kind: Path((
+            definition: (
+              crate_id: 0,
+              local_id: 10,
+            ),
+            generics: [],
+)),
+          span: (
+            start: 87,
+            end: 91,
+          ),
+          id: 6,
+        ),
+        mutability: Immutable,
+        span: (
+          start: 87,
+          end: 91,
+        ),
+        id: 7,
+      )),
+      8: Ty((
+        kind: Primitive(Str),
         span: (
           start: 96,
           end: 99,
         ),
-        id: 7,
-      ),
-      8: (
+        id: 8,
+      )),
+      9: Item((
         kind: Fn((
           sig: (
             name: (
@@ -129,21 +503,60 @@
                 end: 86,
               ),
             ),
-            generic_params: {},
-            params: {
-              7: 6,
-            },
-            return_type: Some(7),
+            generic_params: [],
+            params: [(
+              local_var: (
+                ident: 7,
+                span: (
+                  start: 87,
+                  end: 91,
+                ),
+                id: 5,
+              ),
+              ty: (
+                kind: Path((
+                  definition: (
+                    crate_id: 0,
+                    local_id: 10,
+                  ),
+                  generics: [],
+)),
+                span: (
+                  start: 87,
+                  end: 91,
+                ),
+                id: 6,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 87,
+                end: 91,
+              ),
+              id: 7,
+            )],
+            ret_ty: Some((
+              kind: Primitive(Str),
+              span: (
+                start: 96,
+                end: 99,
+              ),
+              id: 8,
+            )),
           ),
           body: None,
+          span: (
+            start: 74,
+            end: 100,
+          ),
+          id: 9,
         )),
         span: (
           start: 74,
           end: 100,
         ),
-        id: 8,
-      ),
-      9: (
+        id: 9,
+      )),
+      10: Item((
         kind: Trait((
           name: (
             ident: 5,
@@ -152,73 +565,172 @@
               end: 67,
             ),
           ),
-          generic_params: {},
-          member_fns: {
-            6: 8,
-          },
+          generic_params: [],
+          fn_defs: [(
+            sig: (
+              name: (
+                ident: 6,
+                span: (
+                  start: 77,
+                  end: 86,
+                ),
+              ),
+              generic_params: [],
+              params: [(
+                local_var: (
+                  ident: 7,
+                  span: (
+                    start: 87,
+                    end: 91,
+                  ),
+                  id: 5,
+                ),
+                ty: (
+                  kind: Path((
+                    definition: (
+                      crate_id: 0,
+                      local_id: 10,
+                    ),
+                    generics: [],
+)),
+                  span: (
+                    start: 87,
+                    end: 91,
+                  ),
+                  id: 6,
+                ),
+                mutability: Immutable,
+                span: (
+                  start: 87,
+                  end: 91,
+                ),
+                id: 7,
+              )],
+              ret_ty: Some((
+                kind: Primitive(Str),
+                span: (
+                  start: 96,
+                  end: 99,
+                ),
+                id: 8,
+              )),
+            ),
+            body: None,
+            span: (
+              start: 74,
+              end: 100,
+            ),
+            id: 9,
+          )],
         )),
         span: (
           start: 54,
           end: 102,
         ),
-        id: 9,
-      ),
-      10: (
-        kind: Ty(Path((
-          definition: (
-            crate_id: 0,
-            local_id: 4,
-          ),
-          generics: [],
-))),
-        span: (
-          start: 146,
-          end: 150,
-        ),
         id: 10,
-      ),
-      11: (
-        kind: Param((
-          ident: (
-            ident: 7,
-            span: (
-              start: 146,
-              end: 150,
-            ),
-          ),
-          ty: 10,
-          mutability: Immutable,
-        )),
+      )),
+      11: LocalVar((
+        ident: 7,
         span: (
           start: 146,
           end: 150,
         ),
         id: 11,
-      ),
-      12: (
-        kind: Ty(Primitive(Str)),
+      )),
+      12: Ty((
+        kind: Path((
+          definition: (
+            crate_id: 0,
+            local_id: 4,
+          ),
+          generics: [],
+)),
+        span: (
+          start: 146,
+          end: 150,
+        ),
+        id: 12,
+      )),
+      13: Param((
+        local_var: (
+          ident: 7,
+          span: (
+            start: 146,
+            end: 150,
+          ),
+          id: 11,
+        ),
+        ty: (
+          kind: Path((
+            definition: (
+              crate_id: 0,
+              local_id: 4,
+            ),
+            generics: [],
+)),
+          span: (
+            start: 146,
+            end: 150,
+          ),
+          id: 12,
+        ),
+        mutability: Immutable,
+        span: (
+          start: 146,
+          end: 150,
+        ),
+        id: 13,
+      )),
+      14: Ty((
+        kind: Primitive(Str),
         span: (
           start: 155,
           end: 158,
         ),
-        id: 12,
-      ),
-      13: (
-        kind: Expr(Path((
+        id: 14,
+      )),
+      15: Expr((
+        kind: Path((
           segments: [(
-            res: Local(Var(11)),
+            res: Local(Var((
+              ident: 7,
+              span: (
+                start: 146,
+                end: 150,
+              ),
+              id: 11,
+            ))),
             generics: None,
           )],
-        ))),
+        )),
         span: (
           start: 176,
           end: 180,
         ),
-        id: 13,
-      ),
-      14: (
-        kind: Expr(Field((
-          lhs: 13,
+        id: 15,
+      )),
+      16: Expr((
+        kind: Field((
+          lhs: (
+            kind: Path((
+              segments: [(
+                res: Local(Var((
+                  ident: 7,
+                  span: (
+                    start: 146,
+                    end: 150,
+                  ),
+                  id: 11,
+                ))),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 176,
+              end: 180,
+            ),
+            id: 15,
+          ),
           ident: (
             ident: 2,
             span: (
@@ -226,29 +738,55 @@
               end: 189,
             ),
           ),
-        ))),
+        )),
         span: (
           start: 176,
           end: 189,
         ),
-        id: 14,
-      ),
-      15: (
-        kind: Expr(Path((
+        id: 16,
+      )),
+      17: Expr((
+        kind: Path((
           segments: [(
-            res: Local(Var(11)),
+            res: Local(Var((
+              ident: 7,
+              span: (
+                start: 146,
+                end: 150,
+              ),
+              id: 11,
+            ))),
             generics: None,
           )],
-        ))),
+        )),
         span: (
           start: 192,
           end: 196,
         ),
-        id: 15,
-      ),
-      16: (
-        kind: Expr(Field((
-          lhs: 15,
+        id: 17,
+      )),
+      18: Expr((
+        kind: Field((
+          lhs: (
+            kind: Path((
+              segments: [(
+                res: Local(Var((
+                  ident: 7,
+                  span: (
+                    start: 146,
+                    end: 150,
+                  ),
+                  id: 11,
+                ))),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 192,
+              end: 196,
+            ),
+            id: 17,
+          ),
           ident: (
             ident: 4,
             span: (
@@ -256,46 +794,285 @@
               end: 204,
             ),
           ),
-        ))),
+        )),
         span: (
           start: 192,
           end: 204,
         ),
-        id: 16,
-      ),
-      17: (
-        kind: Expr(Infix((
+        id: 18,
+      )),
+      19: Expr((
+        kind: Infix((
           operator: Add,
-          lhs: 14,
-          rhs: 16,
-        ))),
+          lhs: (
+            kind: Field((
+              lhs: (
+                kind: Path((
+                  segments: [(
+                    res: Local(Var((
+                      ident: 7,
+                      span: (
+                        start: 146,
+                        end: 150,
+                      ),
+                      id: 11,
+                    ))),
+                    generics: None,
+                  )],
+                )),
+                span: (
+                  start: 176,
+                  end: 180,
+                ),
+                id: 15,
+              ),
+              ident: (
+                ident: 2,
+                span: (
+                  start: 181,
+                  end: 189,
+                ),
+              ),
+            )),
+            span: (
+              start: 176,
+              end: 189,
+            ),
+            id: 16,
+          ),
+          rhs: (
+            kind: Field((
+              lhs: (
+                kind: Path((
+                  segments: [(
+                    res: Local(Var((
+                      ident: 7,
+                      span: (
+                        start: 146,
+                        end: 150,
+                      ),
+                      id: 11,
+                    ))),
+                    generics: None,
+                  )],
+                )),
+                span: (
+                  start: 192,
+                  end: 196,
+                ),
+                id: 17,
+              ),
+              ident: (
+                ident: 4,
+                span: (
+                  start: 197,
+                  end: 204,
+                ),
+              ),
+            )),
+            span: (
+              start: 192,
+              end: 204,
+            ),
+            id: 18,
+          ),
+        )),
         span: (
           start: 176,
           end: 204,
         ),
-        id: 17,
-      ),
-      18: (
-        kind: Stmt(Return((
-          value: Some(17),
-        ))),
+        id: 19,
+      )),
+      20: Stmt((
+        kind: Return((
+          value: Some((
+            kind: Infix((
+              operator: Add,
+              lhs: (
+                kind: Field((
+                  lhs: (
+                    kind: Path((
+                      segments: [(
+                        res: Local(Var((
+                          ident: 7,
+                          span: (
+                            start: 146,
+                            end: 150,
+                          ),
+                          id: 11,
+                        ))),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 176,
+                      end: 180,
+                    ),
+                    id: 15,
+                  ),
+                  ident: (
+                    ident: 2,
+                    span: (
+                      start: 181,
+                      end: 189,
+                    ),
+                  ),
+                )),
+                span: (
+                  start: 176,
+                  end: 189,
+                ),
+                id: 16,
+              ),
+              rhs: (
+                kind: Field((
+                  lhs: (
+                    kind: Path((
+                      segments: [(
+                        res: Local(Var((
+                          ident: 7,
+                          span: (
+                            start: 146,
+                            end: 150,
+                          ),
+                          id: 11,
+                        ))),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 192,
+                      end: 196,
+                    ),
+                    id: 17,
+                  ),
+                  ident: (
+                    ident: 4,
+                    span: (
+                      start: 197,
+                      end: 204,
+                    ),
+                  ),
+                )),
+                span: (
+                  start: 192,
+                  end: 204,
+                ),
+                id: 18,
+              ),
+            )),
+            span: (
+              start: 176,
+              end: 204,
+            ),
+            id: 19,
+          )),
+        )),
         span: (
           start: 169,
           end: 205,
         ),
-        id: 18,
-      ),
-      19: (
-        kind: Block((
-          stmts: [18],
-        )),
+        id: 20,
+      )),
+      21: Block((
+        stmts: [(
+          kind: Return((
+            value: Some((
+              kind: Infix((
+                operator: Add,
+                lhs: (
+                  kind: Field((
+                    lhs: (
+                      kind: Path((
+                        segments: [(
+                          res: Local(Var((
+                            ident: 7,
+                            span: (
+                              start: 146,
+                              end: 150,
+                            ),
+                            id: 11,
+                          ))),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 176,
+                        end: 180,
+                      ),
+                      id: 15,
+                    ),
+                    ident: (
+                      ident: 2,
+                      span: (
+                        start: 181,
+                        end: 189,
+                      ),
+                    ),
+                  )),
+                  span: (
+                    start: 176,
+                    end: 189,
+                  ),
+                  id: 16,
+                ),
+                rhs: (
+                  kind: Field((
+                    lhs: (
+                      kind: Path((
+                        segments: [(
+                          res: Local(Var((
+                            ident: 7,
+                            span: (
+                              start: 146,
+                              end: 150,
+                            ),
+                            id: 11,
+                          ))),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 192,
+                        end: 196,
+                      ),
+                      id: 17,
+                    ),
+                    ident: (
+                      ident: 4,
+                      span: (
+                        start: 197,
+                        end: 204,
+                      ),
+                    ),
+                  )),
+                  span: (
+                    start: 192,
+                    end: 204,
+                  ),
+                  id: 18,
+                ),
+              )),
+              span: (
+                start: 176,
+                end: 204,
+              ),
+              id: 19,
+            )),
+          )),
+          span: (
+            start: 169,
+            end: 205,
+          ),
+          id: 20,
+        )],
         span: (
           start: 159,
           end: 211,
         ),
-        id: 19,
-      ),
-      20: (
+        id: 21,
+      )),
+      22: Item((
         kind: Fn((
           sig: (
             name: (
@@ -305,26 +1082,162 @@
                 end: 145,
               ),
             ),
-            generic_params: {},
-            params: {
-              7: 11,
-            },
-            return_type: Some(12),
+            generic_params: [],
+            params: [(
+              local_var: (
+                ident: 7,
+                span: (
+                  start: 146,
+                  end: 150,
+                ),
+                id: 11,
+              ),
+              ty: (
+                kind: Path((
+                  definition: (
+                    crate_id: 0,
+                    local_id: 4,
+                  ),
+                  generics: [],
+)),
+                span: (
+                  start: 146,
+                  end: 150,
+                ),
+                id: 12,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 146,
+                end: 150,
+              ),
+              id: 13,
+            )],
+            ret_ty: Some((
+              kind: Primitive(Str),
+              span: (
+                start: 155,
+                end: 158,
+              ),
+              id: 14,
+            )),
           ),
-          body: Some(19),
+          body: Some((
+            stmts: [(
+              kind: Return((
+                value: Some((
+                  kind: Infix((
+                    operator: Add,
+                    lhs: (
+                      kind: Field((
+                        lhs: (
+                          kind: Path((
+                            segments: [(
+                              res: Local(Var((
+                                ident: 7,
+                                span: (
+                                  start: 146,
+                                  end: 150,
+                                ),
+                                id: 11,
+                              ))),
+                              generics: None,
+                            )],
+                          )),
+                          span: (
+                            start: 176,
+                            end: 180,
+                          ),
+                          id: 15,
+                        ),
+                        ident: (
+                          ident: 2,
+                          span: (
+                            start: 181,
+                            end: 189,
+                          ),
+                        ),
+                      )),
+                      span: (
+                        start: 176,
+                        end: 189,
+                      ),
+                      id: 16,
+                    ),
+                    rhs: (
+                      kind: Field((
+                        lhs: (
+                          kind: Path((
+                            segments: [(
+                              res: Local(Var((
+                                ident: 7,
+                                span: (
+                                  start: 146,
+                                  end: 150,
+                                ),
+                                id: 11,
+                              ))),
+                              generics: None,
+                            )],
+                          )),
+                          span: (
+                            start: 192,
+                            end: 196,
+                          ),
+                          id: 17,
+                        ),
+                        ident: (
+                          ident: 4,
+                          span: (
+                            start: 197,
+                            end: 204,
+                          ),
+                        ),
+                      )),
+                      span: (
+                        start: 192,
+                        end: 204,
+                      ),
+                      id: 18,
+                    ),
+                  )),
+                  span: (
+                    start: 176,
+                    end: 204,
+                  ),
+                  id: 19,
+                )),
+              )),
+              span: (
+                start: 169,
+                end: 205,
+              ),
+              id: 20,
+            )],
+            span: (
+              start: 159,
+              end: 211,
+            ),
+            id: 21,
+          )),
+          span: (
+            start: 133,
+            end: 211,
+          ),
+          id: 22,
         )),
         span: (
           start: 133,
           end: 211,
         ),
-        id: 20,
-      ),
-      21: (
+        id: 22,
+      )),
+      23: Item((
         kind: TraitImpl((
           trait_to_impl: (
             definition: (
               crate_id: 0,
-              local_id: 9,
+              local_id: 10,
             ),
             generics: [],
 ),
@@ -332,16 +1245,166 @@
             crate_id: 0,
             local_id: 4,
           ),
-          member_fns: {
-            6: 20,
-          },
+          fn_defs: [(
+            sig: (
+              name: (
+                ident: 6,
+                span: (
+                  start: 136,
+                  end: 145,
+                ),
+              ),
+              generic_params: [],
+              params: [(
+                local_var: (
+                  ident: 7,
+                  span: (
+                    start: 146,
+                    end: 150,
+                  ),
+                  id: 11,
+                ),
+                ty: (
+                  kind: Path((
+                    definition: (
+                      crate_id: 0,
+                      local_id: 4,
+                    ),
+                    generics: [],
+)),
+                  span: (
+                    start: 146,
+                    end: 150,
+                  ),
+                  id: 12,
+                ),
+                mutability: Immutable,
+                span: (
+                  start: 146,
+                  end: 150,
+                ),
+                id: 13,
+              )],
+              ret_ty: Some((
+                kind: Primitive(Str),
+                span: (
+                  start: 155,
+                  end: 158,
+                ),
+                id: 14,
+              )),
+            ),
+            body: Some((
+              stmts: [(
+                kind: Return((
+                  value: Some((
+                    kind: Infix((
+                      operator: Add,
+                      lhs: (
+                        kind: Field((
+                          lhs: (
+                            kind: Path((
+                              segments: [(
+                                res: Local(Var((
+                                  ident: 7,
+                                  span: (
+                                    start: 146,
+                                    end: 150,
+                                  ),
+                                  id: 11,
+                                ))),
+                                generics: None,
+                              )],
+                            )),
+                            span: (
+                              start: 176,
+                              end: 180,
+                            ),
+                            id: 15,
+                          ),
+                          ident: (
+                            ident: 2,
+                            span: (
+                              start: 181,
+                              end: 189,
+                            ),
+                          ),
+                        )),
+                        span: (
+                          start: 176,
+                          end: 189,
+                        ),
+                        id: 16,
+                      ),
+                      rhs: (
+                        kind: Field((
+                          lhs: (
+                            kind: Path((
+                              segments: [(
+                                res: Local(Var((
+                                  ident: 7,
+                                  span: (
+                                    start: 146,
+                                    end: 150,
+                                  ),
+                                  id: 11,
+                                ))),
+                                generics: None,
+                              )],
+                            )),
+                            span: (
+                              start: 192,
+                              end: 196,
+                            ),
+                            id: 17,
+                          ),
+                          ident: (
+                            ident: 4,
+                            span: (
+                              start: 197,
+                              end: 204,
+                            ),
+                          ),
+                        )),
+                        span: (
+                          start: 192,
+                          end: 204,
+                        ),
+                        id: 18,
+                      ),
+                    )),
+                    span: (
+                      start: 176,
+                      end: 204,
+                    ),
+                    id: 19,
+                  )),
+                )),
+                span: (
+                  start: 169,
+                  end: 205,
+                ),
+                id: 20,
+              )],
+              span: (
+                start: 159,
+                end: 211,
+              ),
+              id: 21,
+            )),
+            span: (
+              start: 133,
+              end: 211,
+            ),
+            id: 22,
+          )],
         )),
         span: (
           start: 104,
           end: 213,
         ),
-        id: 21,
-      ),
+        id: 23,
+      )),
     },
   )],
   names_to_indices: [9],

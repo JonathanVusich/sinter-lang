@@ -4,49 +4,141 @@
     id: (
       id: 0,
     ),
-    items: [4],
-    nodes: {
-      0: (
-        kind: Ty(Path((
-          definition: (
-            crate_id: 0,
-            local_id: 4,
+    items: [(
+      kind: Trait((
+        name: (
+          ident: 1,
+          span: (
+            start: 6,
+            end: 14,
           ),
-          generics: [],
-))),
+        ),
+        generic_params: [],
+        fn_defs: [(
+          sig: (
+            name: (
+              ident: 2,
+              span: (
+                start: 24,
+                end: 42,
+              ),
+            ),
+            generic_params: [],
+            params: [(
+              local_var: (
+                ident: 10,
+                span: (
+                  start: 43,
+                  end: 47,
+                ),
+                id: 0,
+              ),
+              ty: (
+                kind: Path((
+                  definition: (
+                    crate_id: 0,
+                    local_id: 5,
+                  ),
+                  generics: [],
+)),
+                span: (
+                  start: 43,
+                  end: 47,
+                ),
+                id: 1,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 43,
+                end: 47,
+              ),
+              id: 2,
+            )],
+            ret_ty: Some((
+              kind: Primitive(Str),
+              span: (
+                start: 52,
+                end: 55,
+              ),
+              id: 3,
+            )),
+          ),
+          body: None,
+          span: (
+            start: 21,
+            end: 56,
+          ),
+          id: 4,
+        )],
+      )),
+      span: (
+        start: 0,
+        end: 58,
+      ),
+      id: 5,
+    )],
+    nodes: {
+      0: LocalVar((
+        ident: 10,
         span: (
           start: 43,
           end: 47,
         ),
         id: 0,
-      ),
-      1: (
-        kind: Param((
-          ident: (
-            ident: 10,
-            span: (
-              start: 43,
-              end: 47,
-            ),
+      )),
+      1: Ty((
+        kind: Path((
+          definition: (
+            crate_id: 0,
+            local_id: 5,
           ),
-          ty: 0,
-          mutability: Immutable,
-        )),
+          generics: [],
+)),
         span: (
           start: 43,
           end: 47,
         ),
         id: 1,
-      ),
-      2: (
-        kind: Ty(Primitive(Str)),
+      )),
+      2: Param((
+        local_var: (
+          ident: 10,
+          span: (
+            start: 43,
+            end: 47,
+          ),
+          id: 0,
+        ),
+        ty: (
+          kind: Path((
+            definition: (
+              crate_id: 0,
+              local_id: 5,
+            ),
+            generics: [],
+)),
+          span: (
+            start: 43,
+            end: 47,
+          ),
+          id: 1,
+        ),
+        mutability: Immutable,
+        span: (
+          start: 43,
+          end: 47,
+        ),
+        id: 2,
+      )),
+      3: Ty((
+        kind: Primitive(Str),
         span: (
           start: 52,
           end: 55,
         ),
-        id: 2,
-      ),
-      3: (
+        id: 3,
+      )),
+      4: Item((
         kind: Fn((
           sig: (
             name: (
@@ -56,21 +148,60 @@
                 end: 42,
               ),
             ),
-            generic_params: {},
-            params: {
-              10: 1,
-            },
-            return_type: Some(2),
+            generic_params: [],
+            params: [(
+              local_var: (
+                ident: 10,
+                span: (
+                  start: 43,
+                  end: 47,
+                ),
+                id: 0,
+              ),
+              ty: (
+                kind: Path((
+                  definition: (
+                    crate_id: 0,
+                    local_id: 5,
+                  ),
+                  generics: [],
+)),
+                span: (
+                  start: 43,
+                  end: 47,
+                ),
+                id: 1,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 43,
+                end: 47,
+              ),
+              id: 2,
+            )],
+            ret_ty: Some((
+              kind: Primitive(Str),
+              span: (
+                start: 52,
+                end: 55,
+              ),
+              id: 3,
+            )),
           ),
           body: None,
+          span: (
+            start: 21,
+            end: 56,
+          ),
+          id: 4,
         )),
         span: (
           start: 21,
           end: 56,
         ),
-        id: 3,
-      ),
-      4: (
+        id: 4,
+      )),
+      5: Item((
         kind: Trait((
           name: (
             ident: 1,
@@ -79,17 +210,78 @@
               end: 14,
             ),
           ),
-          generic_params: {},
-          member_fns: {
-            2: 3,
-          },
+          generic_params: [],
+          fn_defs: [(
+            sig: (
+              name: (
+                ident: 2,
+                span: (
+                  start: 24,
+                  end: 42,
+                ),
+              ),
+              generic_params: [],
+              params: [(
+                local_var: (
+                  ident: 10,
+                  span: (
+                    start: 43,
+                    end: 47,
+                  ),
+                  id: 0,
+                ),
+                ty: (
+                  kind: Path((
+                    definition: (
+                      crate_id: 0,
+                      local_id: 5,
+                    ),
+                    generics: [],
+)),
+                  span: (
+                    start: 43,
+                    end: 47,
+                  ),
+                  id: 1,
+                ),
+                mutability: Immutable,
+                span: (
+                  start: 43,
+                  end: 47,
+                ),
+                id: 2,
+              )],
+              ret_ty: Some((
+                kind: Primitive(Str),
+                span: (
+                  start: 52,
+                  end: 55,
+                ),
+                id: 3,
+              )),
+            ),
+            body: None,
+            span: (
+              start: 21,
+              end: 56,
+            ),
+            id: 4,
+          )],
         )),
         span: (
           start: 0,
           end: 58,
         ),
-        id: 4,
-      ),
+        id: 5,
+      )),
+      19: LocalVar((
+        ident: 7,
+        span: (
+          start: 196,
+          end: 203,
+        ),
+        id: 19,
+      )),
     },
   )],
   names_to_indices: [12],

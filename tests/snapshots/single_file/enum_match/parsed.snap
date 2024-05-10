@@ -18,12 +18,13 @@
       ),
       items: [(
         kind: GlobalLet((
-          name: (
+          local_var: (
             ident: 1,
             span: (
               start: 4,
               end: 18,
             ),
+            id: 0,
           ),
           ty: (
             kind: Str,
@@ -31,7 +32,7 @@
               start: 20,
               end: 23,
             ),
-            id: 0,
+            id: 1,
           ),
           initializer: (
             kind: Match((
@@ -53,7 +54,7 @@
                   start: 32,
                   end: 39,
                 ),
-                id: 1,
+                id: 2,
               ),
               arms: [(
                 pattern: Or((
@@ -83,7 +84,7 @@
                         start: 60,
                         end: 66,
                       ),
-                      id: 2,
+                      id: 3,
                     )],
                   )), Destructure((
                     ty: (
@@ -111,14 +112,21 @@
                         start: 85,
                         end: 91,
                       ),
-                      id: 3,
+                      id: 4,
                     ), (
-                      kind: Identifier(8),
+                      kind: Identifier((
+                        ident: 8,
+                        span: (
+                          start: 93,
+                          end: 98,
+                        ),
+                        id: 5,
+                      )),
                       span: (
                         start: 93,
                         end: 98,
                       ),
-                      id: 4,
+                      id: 6,
                     )],
                   ))],
                 )),
@@ -130,7 +138,7 @@
                         start: 103,
                         end: 105,
                       ),
-                      id: 5,
+                      id: 7,
                     ),
                     implicit_return: true,
                   )),
@@ -138,13 +146,13 @@
                     start: 103,
                     end: 105,
                   ),
-                  id: 6,
+                  id: 8,
                 ),
                 span: (
                   start: 46,
                   end: 105,
                 ),
-                id: 7,
+                id: 9,
               ), (
                 pattern: Destructure((
                   ty: (
@@ -167,12 +175,19 @@
                     generics: [],
 ),
                   exprs: [(
-                    kind: Identifier(2),
+                    kind: Identifier((
+                      ident: 2,
+                      span: (
+                        start: 125,
+                        end: 128,
+                      ),
+                      id: 10,
+                    )),
                     span: (
                       start: 125,
                       end: 128,
                     ),
-                    id: 8,
+                    id: 11,
                   )],
                 )),
                 body: (
@@ -195,7 +210,7 @@
                         start: 133,
                         end: 136,
                       ),
-                      id: 9,
+                      id: 12,
                     ),
                     implicit_return: true,
                   )),
@@ -203,13 +218,13 @@
                     start: 133,
                     end: 136,
                   ),
-                  id: 10,
+                  id: 13,
                 ),
                 span: (
                   start: 111,
                   end: 136,
                 ),
-                id: 11,
+                id: 14,
               ), (
                 pattern: Destructure((
                   ty: (
@@ -232,19 +247,33 @@
                     generics: [],
 ),
                   exprs: [(
-                    kind: Identifier(10),
+                    kind: Identifier((
+                      ident: 10,
+                      span: (
+                        start: 157,
+                        end: 164,
+                      ),
+                      id: 15,
+                    )),
                     span: (
                       start: 157,
                       end: 164,
                     ),
-                    id: 12,
+                    id: 16,
                   ), (
-                    kind: Identifier(8),
+                    kind: Identifier((
+                      ident: 8,
+                      span: (
+                        start: 166,
+                        end: 171,
+                      ),
+                      id: 17,
+                    )),
                     span: (
                       start: 166,
                       end: 171,
                     ),
-                    id: 13,
+                    id: 18,
                   )],
                 )),
                 body: (
@@ -267,7 +296,7 @@
                         start: 176,
                         end: 183,
                       ),
-                      id: 14,
+                      id: 19,
                     ),
                     implicit_return: true,
                   )),
@@ -275,27 +304,27 @@
                     start: 176,
                     end: 183,
                   ),
-                  id: 15,
+                  id: 20,
                 ),
                 span: (
                   start: 142,
                   end: 183,
                 ),
-                id: 16,
+                id: 21,
               )],
             )),
             span: (
               start: 26,
               end: 186,
             ),
-            id: 17,
+            id: 22,
           ),
         )),
         span: (
           start: 0,
           end: 187,
         ),
-        id: 18,
+        id: 23,
       )],
     )],
   ),

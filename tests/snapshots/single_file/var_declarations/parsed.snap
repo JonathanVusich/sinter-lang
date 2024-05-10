@@ -18,12 +18,13 @@
       ),
       items: [(
         kind: GlobalLet((
-          name: (
+          local_var: (
             ident: 1,
             span: (
               start: 4,
               end: 5,
             ),
+            id: 0,
           ),
           ty: (
             kind: I64,
@@ -31,7 +32,7 @@
               start: 7,
               end: 10,
             ),
-            id: 0,
+            id: 1,
           ),
           initializer: (
             kind: Int(1),
@@ -39,22 +40,23 @@
               start: 13,
               end: 14,
             ),
-            id: 1,
+            id: 2,
           ),
         )),
         span: (
           start: 0,
           end: 15,
         ),
-        id: 2,
+        id: 3,
       ), (
         kind: GlobalLet((
-          name: (
+          local_var: (
             ident: 3,
             span: (
               start: 44,
               end: 45,
             ),
+            id: 4,
           ),
           ty: (
             kind: I64,
@@ -62,7 +64,7 @@
               start: 47,
               end: 50,
             ),
-            id: 3,
+            id: 5,
           ),
           initializer: (
             kind: Int(2),
@@ -70,14 +72,14 @@
               start: 53,
               end: 54,
             ),
-            id: 4,
+            id: 6,
           ),
         )),
         span: (
           start: 40,
           end: 55,
         ),
-        id: 5,
+        id: 7,
       )],
     )],
   ),

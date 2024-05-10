@@ -26,6 +26,7 @@ use typed_hir::{ClassDef, EnumDef, MemberDef, ThirMap, TraitDef, TyKind};
 use types::{DefMap, StrMap};
 use validator::validate;
 
+#[derive(Default)]
 pub struct Compiler {
     diagnostics: Diagnostics,
     string_interner: StringInterner,
@@ -52,7 +53,7 @@ impl Compiler {
         crates = self.validate_crates(crates)?;
 
         let resolved_crates = self.resolve_crates(&mut crates)?;
-        let inferred_crates = self.infer_types(resolved_crates)?;
+        let inferred_crates = self.infer_types(&resolved_crates)?;
         // TODO: Lower the AST to MIR with the provided metadata.
 
         // TODO: Generate bytecode
@@ -238,24 +239,23 @@ impl Compiler {
     }
 
     pub fn resolve_crates<'hir>(
-        &mut self,
+        &'hir self,
         mut crates: &'hir mut StrMap<Crate>,
     ) -> Result<HirMap<'hir>, Diagnostics> {
         resolve(
             &self.string_interner,
-            &mut self.diagnostics,
-            &mut self.hir_allocator,
+            &self.diagnostics,
+            &self.hir_allocator,
             crates,
         )
         .ok_or(self.diagnostics.clone())
     }
 
     pub fn infer_types<'hir>(
-        &mut self,
-        hir_map: HirMap<'hir>,
+        &'hir self,
+        hir_map: &'hir HirMap<'hir>,
     ) -> Result<ThirMap<'hir>, Diagnostics> {
-        infer_types(&mut self.diagnostics, &mut self.hir_allocator, &hir_map)
-            .ok_or(self.diagnostics.clone())
+        infer_types(&self.diagnostics, &self.hir_allocator, hir_map).ok_or(self.diagnostics.clone())
     }
 
     fn check_errors<T>(&mut self, val: T) -> Result<T, Diagnostics> {

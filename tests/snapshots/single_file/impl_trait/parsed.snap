@@ -98,12 +98,13 @@
               ),
               generic_params: [],
               params: [(
-                name: (
+                local_var: (
                   ident: 7,
                   span: (
                     start: 87,
                     end: 91,
                   ),
+                  id: 5,
                 ),
                 ty: (
                   kind: QSelf,
@@ -111,14 +112,14 @@
                     start: 87,
                     end: 91,
                   ),
-                  id: 5,
+                  id: 6,
                 ),
                 mutability: Immutable,
                 span: (
                   start: 87,
                   end: 91,
                 ),
-                id: 6,
+                id: 7,
               )],
               return_type: Some((
                 kind: Str,
@@ -126,7 +127,7 @@
                   start: 96,
                   end: 99,
                 ),
-                id: 7,
+                id: 8,
               )),
             ),
             body: None,
@@ -134,14 +135,14 @@
               start: 74,
               end: 100,
             ),
-            id: 8,
+            id: 9,
           )],
         )),
         span: (
           start: 54,
           end: 102,
         ),
-        id: 9,
+        id: 10,
       ), (
         kind: TraitImpl((
           trait_to_impl: (
@@ -178,12 +179,13 @@
               ),
               generic_params: [],
               params: [(
-                name: (
+                local_var: (
                   ident: 7,
                   span: (
                     start: 146,
                     end: 150,
                   ),
+                  id: 11,
                 ),
                 ty: (
                   kind: QSelf,
@@ -191,14 +193,14 @@
                     start: 146,
                     end: 150,
                   ),
-                  id: 10,
+                  id: 12,
                 ),
                 mutability: Immutable,
                 span: (
                   start: 146,
                   end: 150,
                 ),
-                id: 11,
+                id: 13,
               )],
               return_type: Some((
                 kind: Str,
@@ -206,7 +208,7 @@
                   start: 155,
                   end: 158,
                 ),
-                id: 12,
+                id: 14,
               )),
             ),
             body: Some((
@@ -235,7 +237,7 @@
                               start: 176,
                               end: 180,
                             ),
-                            id: 13,
+                            id: 15,
                           ),
                           ident: (
                             ident: 2,
@@ -249,7 +251,7 @@
                           start: 176,
                           end: 189,
                         ),
-                        id: 14,
+                        id: 16,
                       ),
                       rhs: (
                         kind: Field((
@@ -271,7 +273,7 @@
                               start: 192,
                               end: 196,
                             ),
-                            id: 15,
+                            id: 17,
                           ),
                           ident: (
                             ident: 4,
@@ -285,40 +287,40 @@
                           start: 192,
                           end: 204,
                         ),
-                        id: 16,
+                        id: 18,
                       ),
                     )),
                     span: (
                       start: 176,
                       end: 204,
                     ),
-                    id: 17,
+                    id: 19,
                   )),
                 )),
                 span: (
                   start: 169,
                   end: 205,
                 ),
-                id: 18,
+                id: 20,
               )],
               span: (
                 start: 159,
                 end: 211,
               ),
-              id: 19,
+              id: 21,
             )),
             span: (
               start: 133,
               end: 211,
             ),
-            id: 20,
+            id: 22,
           )],
         )),
         span: (
           start: 104,
           end: 213,
         ),
-        id: 21,
+        id: 23,
       )],
     )],
   ),

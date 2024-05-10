@@ -4,117 +4,531 @@
     id: (
       id: 0,
     ),
-    items: [10],
+    items: [(
+      kind: Fn((
+        sig: (
+          name: (
+            ident: 1,
+            span: (
+              start: 3,
+              end: 10,
+            ),
+          ),
+          generic_params: [],
+          params: [],
+          ret_ty: None,
+),
+        body: Some((
+          stmts: [(
+            kind: Let((
+              local_var: (
+                ident: 2,
+                span: (
+                  start: 27,
+                  end: 28,
+                ),
+                id: 0,
+              ),
+              mutability: Mutable,
+              ty: None,
+              initializer: Some((
+                kind: Int(5),
+                span: (
+                  start: 31,
+                  end: 32,
+                ),
+                id: 1,
+              )),
+            )),
+            span: (
+              start: 19,
+              end: 33,
+            ),
+            id: 2,
+          ), (
+            kind: Expression((
+              expr: (
+                kind: Infix((
+                  operator: Assign,
+                  lhs: (
+                    kind: Path((
+                      segments: [(
+                        res: Local(Var((
+                          ident: 2,
+                          span: (
+                            start: 27,
+                            end: 28,
+                          ),
+                          id: 0,
+                        ))),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 64,
+                      end: 65,
+                    ),
+                    id: 3,
+                  ),
+                  rhs: (
+                    kind: Infix((
+                      operator: Add,
+                      lhs: (
+                        kind: Path((
+                          segments: [(
+                            res: Local(Var((
+                              ident: 2,
+                              span: (
+                                start: 27,
+                                end: 28,
+                              ),
+                              id: 0,
+                            ))),
+                            generics: None,
+                          )],
+                        )),
+                        span: (
+                          start: 68,
+                          end: 69,
+                        ),
+                        id: 4,
+                      ),
+                      rhs: (
+                        kind: Int(1),
+                        span: (
+                          start: 72,
+                          end: 73,
+                        ),
+                        id: 5,
+                      ),
+                    )),
+                    span: (
+                      start: 68,
+                      end: 73,
+                    ),
+                    id: 6,
+                  ),
+                )),
+                span: (
+                  start: 64,
+                  end: 73,
+                ),
+                id: 7,
+              ),
+              implicit_return: false,
+            )),
+            span: (
+              start: 64,
+              end: 74,
+            ),
+            id: 8,
+          )],
+          span: (
+            start: 13,
+            end: 76,
+          ),
+          id: 9,
+        )),
+        span: (
+          start: 0,
+          end: 76,
+        ),
+        id: 10,
+      )),
+      span: (
+        start: 0,
+        end: 76,
+      ),
+      id: 10,
+    )],
     nodes: {
-      0: (
-        kind: LocalVar(2),
+      0: LocalVar((
+        ident: 2,
         span: (
           start: 27,
           end: 28,
         ),
         id: 0,
-      ),
-      1: (
-        kind: Expr(Int(5)),
+      )),
+      1: Expr((
+        kind: Int(5),
         span: (
           start: 31,
           end: 32,
         ),
         id: 1,
-      ),
-      2: (
-        kind: Stmt(Let((
-          local_var: 0,
+      )),
+      2: Stmt((
+        kind: Let((
+          local_var: (
+            ident: 2,
+            span: (
+              start: 27,
+              end: 28,
+            ),
+            id: 0,
+          ),
           mutability: Mutable,
           ty: None,
-          initializer: Some(1),
-        ))),
+          initializer: Some((
+            kind: Int(5),
+            span: (
+              start: 31,
+              end: 32,
+            ),
+            id: 1,
+          )),
+        )),
         span: (
           start: 19,
           end: 33,
         ),
         id: 2,
-      ),
-      3: (
-        kind: Expr(Path((
+      )),
+      3: Expr((
+        kind: Path((
           segments: [(
-            res: Local(Var(0)),
+            res: Local(Var((
+              ident: 2,
+              span: (
+                start: 27,
+                end: 28,
+              ),
+              id: 0,
+            ))),
             generics: None,
           )],
-        ))),
+        )),
         span: (
           start: 64,
           end: 65,
         ),
         id: 3,
-      ),
-      4: (
-        kind: Expr(Path((
+      )),
+      4: Expr((
+        kind: Path((
           segments: [(
-            res: Local(Var(0)),
+            res: Local(Var((
+              ident: 2,
+              span: (
+                start: 27,
+                end: 28,
+              ),
+              id: 0,
+            ))),
             generics: None,
           )],
-        ))),
+        )),
         span: (
           start: 68,
           end: 69,
         ),
         id: 4,
-      ),
-      5: (
-        kind: Expr(Int(1)),
+      )),
+      5: Expr((
+        kind: Int(1),
         span: (
           start: 72,
           end: 73,
         ),
         id: 5,
-      ),
-      6: (
-        kind: Expr(Infix((
+      )),
+      6: Expr((
+        kind: Infix((
           operator: Add,
-          lhs: 4,
-          rhs: 5,
-        ))),
+          lhs: (
+            kind: Path((
+              segments: [(
+                res: Local(Var((
+                  ident: 2,
+                  span: (
+                    start: 27,
+                    end: 28,
+                  ),
+                  id: 0,
+                ))),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 68,
+              end: 69,
+            ),
+            id: 4,
+          ),
+          rhs: (
+            kind: Int(1),
+            span: (
+              start: 72,
+              end: 73,
+            ),
+            id: 5,
+          ),
+        )),
         span: (
           start: 68,
           end: 73,
         ),
         id: 6,
-      ),
-      7: (
-        kind: Expr(Infix((
+      )),
+      7: Expr((
+        kind: Infix((
           operator: Assign,
-          lhs: 3,
-          rhs: 6,
-        ))),
+          lhs: (
+            kind: Path((
+              segments: [(
+                res: Local(Var((
+                  ident: 2,
+                  span: (
+                    start: 27,
+                    end: 28,
+                  ),
+                  id: 0,
+                ))),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 64,
+              end: 65,
+            ),
+            id: 3,
+          ),
+          rhs: (
+            kind: Infix((
+              operator: Add,
+              lhs: (
+                kind: Path((
+                  segments: [(
+                    res: Local(Var((
+                      ident: 2,
+                      span: (
+                        start: 27,
+                        end: 28,
+                      ),
+                      id: 0,
+                    ))),
+                    generics: None,
+                  )],
+                )),
+                span: (
+                  start: 68,
+                  end: 69,
+                ),
+                id: 4,
+              ),
+              rhs: (
+                kind: Int(1),
+                span: (
+                  start: 72,
+                  end: 73,
+                ),
+                id: 5,
+              ),
+            )),
+            span: (
+              start: 68,
+              end: 73,
+            ),
+            id: 6,
+          ),
+        )),
         span: (
           start: 64,
           end: 73,
         ),
         id: 7,
-      ),
-      8: (
-        kind: Stmt(Expression((
-          expr: 7,
+      )),
+      8: Stmt((
+        kind: Expression((
+          expr: (
+            kind: Infix((
+              operator: Assign,
+              lhs: (
+                kind: Path((
+                  segments: [(
+                    res: Local(Var((
+                      ident: 2,
+                      span: (
+                        start: 27,
+                        end: 28,
+                      ),
+                      id: 0,
+                    ))),
+                    generics: None,
+                  )],
+                )),
+                span: (
+                  start: 64,
+                  end: 65,
+                ),
+                id: 3,
+              ),
+              rhs: (
+                kind: Infix((
+                  operator: Add,
+                  lhs: (
+                    kind: Path((
+                      segments: [(
+                        res: Local(Var((
+                          ident: 2,
+                          span: (
+                            start: 27,
+                            end: 28,
+                          ),
+                          id: 0,
+                        ))),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 68,
+                      end: 69,
+                    ),
+                    id: 4,
+                  ),
+                  rhs: (
+                    kind: Int(1),
+                    span: (
+                      start: 72,
+                      end: 73,
+                    ),
+                    id: 5,
+                  ),
+                )),
+                span: (
+                  start: 68,
+                  end: 73,
+                ),
+                id: 6,
+              ),
+            )),
+            span: (
+              start: 64,
+              end: 73,
+            ),
+            id: 7,
+          ),
           implicit_return: false,
-        ))),
+        )),
         span: (
           start: 64,
           end: 74,
         ),
         id: 8,
-      ),
-      9: (
-        kind: Block((
-          stmts: [2, 8],
-        )),
+      )),
+      9: Block((
+        stmts: [(
+          kind: Let((
+            local_var: (
+              ident: 2,
+              span: (
+                start: 27,
+                end: 28,
+              ),
+              id: 0,
+            ),
+            mutability: Mutable,
+            ty: None,
+            initializer: Some((
+              kind: Int(5),
+              span: (
+                start: 31,
+                end: 32,
+              ),
+              id: 1,
+            )),
+          )),
+          span: (
+            start: 19,
+            end: 33,
+          ),
+          id: 2,
+        ), (
+          kind: Expression((
+            expr: (
+              kind: Infix((
+                operator: Assign,
+                lhs: (
+                  kind: Path((
+                    segments: [(
+                      res: Local(Var((
+                        ident: 2,
+                        span: (
+                          start: 27,
+                          end: 28,
+                        ),
+                        id: 0,
+                      ))),
+                      generics: None,
+                    )],
+                  )),
+                  span: (
+                    start: 64,
+                    end: 65,
+                  ),
+                  id: 3,
+                ),
+                rhs: (
+                  kind: Infix((
+                    operator: Add,
+                    lhs: (
+                      kind: Path((
+                        segments: [(
+                          res: Local(Var((
+                            ident: 2,
+                            span: (
+                              start: 27,
+                              end: 28,
+                            ),
+                            id: 0,
+                          ))),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 68,
+                        end: 69,
+                      ),
+                      id: 4,
+                    ),
+                    rhs: (
+                      kind: Int(1),
+                      span: (
+                        start: 72,
+                        end: 73,
+                      ),
+                      id: 5,
+                    ),
+                  )),
+                  span: (
+                    start: 68,
+                    end: 73,
+                  ),
+                  id: 6,
+                ),
+              )),
+              span: (
+                start: 64,
+                end: 73,
+              ),
+              id: 7,
+            ),
+            implicit_return: false,
+          )),
+          span: (
+            start: 64,
+            end: 74,
+          ),
+          id: 8,
+        )],
         span: (
           start: 13,
           end: 76,
         ),
         id: 9,
-      ),
-      10: (
+      )),
+      10: Item((
         kind: Fn((
           sig: (
             name: (
@@ -124,18 +538,133 @@
                 end: 10,
               ),
             ),
-            generic_params: {},
-            params: {},
-            return_type: None,
+            generic_params: [],
+            params: [],
+            ret_ty: None,
+),
+          body: Some((
+            stmts: [(
+              kind: Let((
+                local_var: (
+                  ident: 2,
+                  span: (
+                    start: 27,
+                    end: 28,
+                  ),
+                  id: 0,
+                ),
+                mutability: Mutable,
+                ty: None,
+                initializer: Some((
+                  kind: Int(5),
+                  span: (
+                    start: 31,
+                    end: 32,
+                  ),
+                  id: 1,
+                )),
+              )),
+              span: (
+                start: 19,
+                end: 33,
+              ),
+              id: 2,
+            ), (
+              kind: Expression((
+                expr: (
+                  kind: Infix((
+                    operator: Assign,
+                    lhs: (
+                      kind: Path((
+                        segments: [(
+                          res: Local(Var((
+                            ident: 2,
+                            span: (
+                              start: 27,
+                              end: 28,
+                            ),
+                            id: 0,
+                          ))),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 64,
+                        end: 65,
+                      ),
+                      id: 3,
+                    ),
+                    rhs: (
+                      kind: Infix((
+                        operator: Add,
+                        lhs: (
+                          kind: Path((
+                            segments: [(
+                              res: Local(Var((
+                                ident: 2,
+                                span: (
+                                  start: 27,
+                                  end: 28,
+                                ),
+                                id: 0,
+                              ))),
+                              generics: None,
+                            )],
+                          )),
+                          span: (
+                            start: 68,
+                            end: 69,
+                          ),
+                          id: 4,
+                        ),
+                        rhs: (
+                          kind: Int(1),
+                          span: (
+                            start: 72,
+                            end: 73,
+                          ),
+                          id: 5,
+                        ),
+                      )),
+                      span: (
+                        start: 68,
+                        end: 73,
+                      ),
+                      id: 6,
+                    ),
+                  )),
+                  span: (
+                    start: 64,
+                    end: 73,
+                  ),
+                  id: 7,
+                ),
+                implicit_return: false,
+              )),
+              span: (
+                start: 64,
+                end: 74,
+              ),
+              id: 8,
+            )],
+            span: (
+              start: 13,
+              end: 76,
+            ),
+            id: 9,
+          )),
+          span: (
+            start: 0,
+            end: 76,
           ),
-          body: Some(9),
+          id: 10,
         )),
         span: (
           start: 0,
           end: 76,
         ),
         id: 10,
-      ),
+      )),
     },
   )],
   names_to_indices: [4],

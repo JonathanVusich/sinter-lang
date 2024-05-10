@@ -6,58 +6,110 @@
     ),
     items: [],
     nodes: {
-      0: (
-        kind: Ty(Primitive(Str)),
+      0: LocalVar((
+        ident: 2,
+        span: (
+          start: 8,
+          end: 12,
+        ),
+        id: 0,
+      )),
+      1: Ty((
+        kind: Primitive(Str),
         span: (
           start: 15,
           end: 18,
         ),
-        id: 0,
-      ),
-      1: (
-        kind: Ty(Array((
-          ty: 0,
-        ))),
+        id: 1,
+      )),
+      2: Ty((
+        kind: Array((
+          kind: Primitive(Str),
+          span: (
+            start: 15,
+            end: 18,
+          ),
+          id: 1,
+        )),
         span: (
           start: 14,
           end: 18,
         ),
-        id: 1,
-      ),
-      2: (
-        kind: Param((
-          ident: (
-            ident: 2,
-            span: (
-              start: 8,
-              end: 12,
-            ),
+        id: 2,
+      )),
+      3: Param((
+        local_var: (
+          ident: 2,
+          span: (
+            start: 8,
+            end: 12,
           ),
-          ty: 1,
-          mutability: Immutable,
-        )),
+          id: 0,
+        ),
+        ty: (
+          kind: Array((
+            kind: Primitive(Str),
+            span: (
+              start: 15,
+              end: 18,
+            ),
+            id: 1,
+          )),
+          span: (
+            start: 14,
+            end: 18,
+          ),
+          id: 2,
+        ),
+        mutability: Immutable,
         span: (
           start: 8,
           end: 19,
         ),
-        id: 2,
-      ),
-      4: (
-        kind: Expr(Path((
+        id: 3,
+      )),
+      5: Expr((
+        kind: Path((
           segments: [(
-            res: Local(Var(2)),
+            res: Local(Var((
+              ident: 2,
+              span: (
+                start: 8,
+                end: 12,
+              ),
+              id: 0,
+            ))),
             generics: None,
           )],
-        ))),
+        )),
         span: (
           start: 33,
           end: 37,
         ),
-        id: 4,
-      ),
-      5: (
-        kind: Expr(Field((
-          lhs: 4,
+        id: 5,
+      )),
+      6: Expr((
+        kind: Field((
+          lhs: (
+            kind: Path((
+              segments: [(
+                res: Local(Var((
+                  ident: 2,
+                  span: (
+                    start: 8,
+                    end: 12,
+                  ),
+                  id: 0,
+                ))),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 33,
+              end: 37,
+            ),
+            id: 5,
+          ),
           ident: (
             ident: 5,
             span: (
@@ -65,24 +117,59 @@
               end: 44,
             ),
           ),
-        ))),
+        )),
         span: (
           start: 33,
           end: 44,
         ),
-        id: 5,
-      ),
-      6: (
-        kind: Expr(Call((
-          target: 5,
+        id: 6,
+      )),
+      7: Expr((
+        kind: Call((
+          target: (
+            kind: Field((
+              lhs: (
+                kind: Path((
+                  segments: [(
+                    res: Local(Var((
+                      ident: 2,
+                      span: (
+                        start: 8,
+                        end: 12,
+                      ),
+                      id: 0,
+                    ))),
+                    generics: None,
+                  )],
+                )),
+                span: (
+                  start: 33,
+                  end: 37,
+                ),
+                id: 5,
+              ),
+              ident: (
+                ident: 5,
+                span: (
+                  start: 38,
+                  end: 44,
+                ),
+              ),
+            )),
+            span: (
+              start: 33,
+              end: 44,
+            ),
+            id: 6,
+          ),
           args: [],
-))),
+)),
         span: (
           start: 33,
           end: 46,
         ),
-        id: 6,
-      ),
+        id: 7,
+      )),
     },
   )],
   names_to_indices: [7],

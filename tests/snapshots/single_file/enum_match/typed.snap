@@ -1,5 +1,9 @@
-{
-  12: (
-    tys: [None],
-  ),
-}
+(
+  crates: [(
+    name: 12,
+    id: (
+      id: 0,
+    ),
+    bodies: {},
+  )],
+)

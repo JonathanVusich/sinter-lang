@@ -98,7 +98,7 @@
                   ),
                   id: 3,
                 ),
-                implicit_return: true,
+                implicit_return: false,
               )),
               span: (
                 start: 38,

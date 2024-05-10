@@ -1,5 +1,42 @@
-{
-  5: (
-    tys: [None, Some(I64), Some(I64), None, Some(I64), Some(I64)],
-  ),
-}
+(
+  crates: [(
+    name: 5,
+    id: (
+      id: 0,
+    ),
+    bodies: {
+      2: (
+        generic_params: [],
+        ret_ty: (
+          kind: Int(I64),
+        ),
+        blocks: [],
+        arms: [],
+        stmts: [],
+        exprs: [(
+          kind: Int(1),
+          ty: (
+            kind: Int(I64),
+          ),
+        )],
+        destructure_exprs: [],
+),
+      6: (
+        generic_params: [],
+        ret_ty: (
+          kind: Int(I64),
+        ),
+        blocks: [],
+        arms: [],
+        stmts: [],
+        exprs: [(
+          kind: Int(2),
+          ty: (
+            kind: Int(I64),
+          ),
+        )],
+        destructure_exprs: [],
+),
+    },
+  )],
+)
