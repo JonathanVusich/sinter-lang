@@ -21,7 +21,7 @@ const BLANK_STR: &str = "";
 
 pub fn parse(
     string_interner: &mut StringInterner,
-    diagnostics: &mut Diagnostics,
+    diagnostics: &Diagnostics,
     id_generator: &mut IdGenerator,
     input: Vec<Token>,
 ) -> Option<Module> {
@@ -31,7 +31,7 @@ pub fn parse(
 
 struct Parser<'ctxt> {
     string_interner: &'ctxt mut StringInterner,
-    diagnostics: &'ctxt mut Diagnostics,
+    diagnostics: &'ctxt Diagnostics,
     id_generator: &'ctxt mut IdGenerator,
     tokens: Vec<Token>,
     pos: usize,
@@ -41,7 +41,7 @@ struct Parser<'ctxt> {
 impl<'ctxt> Parser<'ctxt> {
     fn new(
         string_interner: &'ctxt mut StringInterner,
-        diagnostics: &'ctxt mut Diagnostics,
+        diagnostics: &'ctxt Diagnostics,
         id_generator: &'ctxt mut IdGenerator,
         tokens: Vec<Token>,
     ) -> Self {
@@ -1817,7 +1817,7 @@ mod tests {
 
     fn create_parser<'a>(
         string_interner: &'a mut StringInterner,
-        diagnostics: &'a mut Diagnostics,
+        diagnostics: &'a Diagnostics,
         id_generator: &'a mut IdGenerator,
         code: String,
     ) -> Parser<'a> {
@@ -1827,11 +1827,11 @@ mod tests {
 
     fn parse_errors<T: AsRef<str>>(code: T) -> (StringInterner, Vec<Diagnostic>) {
         let mut string_interner = StringInterner::default();
-        let mut diagnostics = Diagnostics::default();
+        let diagnostics = Diagnostics::default();
         let mut id_generator = IdGenerator::default();
         let parser = create_parser(
             &mut string_interner,
-            &mut diagnostics,
+            &diagnostics,
             &mut id_generator,
             code.as_ref().to_string(),
         );
@@ -1849,11 +1849,11 @@ mod tests {
     #[cfg(test)]
     fn parse_module<T: AsRef<str>>(code: T) -> Option<ModuleOutput> {
         let mut string_interner = StringInterner::default();
-        let mut diagnostics = Diagnostics::default();
+        let diagnostics = Diagnostics::default();
         let mut id_generator = IdGenerator::default();
         let parser = create_parser(
             &mut string_interner,
-            &mut diagnostics,
+            &diagnostics,
             &mut id_generator,
             code.as_ref().to_string(),
         );
@@ -1868,14 +1868,9 @@ mod tests {
         parser_func: fn(&mut Parser) -> Option<T>,
     ) -> Option<(StringInterner, Diagnostics, T)> {
         let mut string_interner = StringInterner::default();
-        let mut diagnostics = Diagnostics::default();
+        let diagnostics = Diagnostics::default();
         let mut id_generator = IdGenerator::default();
-        let mut parser = create_parser(
-            &mut string_interner,
-            &mut diagnostics,
-            &mut id_generator,
-            code,
-        );
+        let mut parser = create_parser(&mut string_interner, &diagnostics, &mut id_generator, code);
         let parsed_val = parser_func(&mut parser)?;
         Some((string_interner, diagnostics, parsed_val))
     }

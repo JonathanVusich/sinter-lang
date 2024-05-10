@@ -4,7 +4,7 @@ use bumpalo::Bump;
 use lasso::{Rodeo, Spur};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
 #[repr(transparent)]
@@ -55,19 +55,27 @@ impl StringInterner {
 
 #[derive(Debug)]
 pub struct Interner<'a, T> {
-    allocator: &'a Bump,
     interned: RefCell<HashMap<&'a T, ()>>,
+}
+
+impl<'a, T> Default for Interner<'a, T> {
+    fn default() -> Self {
+        Self {
+            interned: RefCell::default(),
+        }
+    }
 }
 
 impl<'a, T> Interner<'a, T>
 where
     T: Eq + Hash,
 {
-    pub fn intern(&self, val: T) -> &'a T {
-        let mut set = self.interned.borrow_mut();
-        set.raw_entry_mut()
+    pub fn intern<F: Fn(T) -> &'a T>(&self, val: T, alloc_fn: F) -> &'a T {
+        let mut interned = self.interned.borrow_mut();
+        interned
+            .raw_entry_mut()
             .from_key(&val)
-            .or_insert_with(|| (self.allocator.alloc(val), ()))
+            .or_insert_with(|| (alloc_fn(val), ()))
             .0
     }
 }

@@ -1,5 +1,6 @@
 #![allow(unused)]
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::{Add, Deref, Index};
@@ -13,7 +14,7 @@ use types::LDefMap;
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct ExprId {
-    pub id: u32,
+    pub(crate) id: u32,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -415,15 +416,15 @@ pub struct ClosureParam {
 
 #[derive(Debug)]
 pub struct Thir<'hir> {
-    pub generic_params: GenericParams<'hir>,
-    pub ret_ty: Ty<'hir>,
+    generic_params: GenericParams<'hir>,
+    ret_ty: Ty<'hir>,
 
     // Contents of the block which will be useful for looking things up later.
-    pub blocks: Vec<Block<'hir>>,
-    pub arms: Vec<MatchArm<'hir>>,
-    pub stmts: Vec<Stmt<'hir>>,
-    pub exprs: Vec<Expr<'hir>>,
-    pub destructure_exprs: Vec<DestructureExpr>,
+    blocks: Vec<Block<'hir>>,
+    arms: Vec<MatchArm<'hir>>,
+    stmts: Vec<Stmt<'hir>>,
+    exprs: Vec<&'hir Expr<'hir>>,
+    destructure_exprs: Vec<DestructureExpr>,
 }
 
 impl<'hir> Thir<'hir> {
@@ -431,12 +432,19 @@ impl<'hir> Thir<'hir> {
         Self {
             generic_params,
             ret_ty,
-            blocks: vec![],
-            arms: vec![],
-            stmts: vec![],
-            exprs: vec![],
-            destructure_exprs: vec![],
+            blocks: Default::default(),
+            arms: Default::default(),
+            stmts: Default::default(),
+            exprs: Default::default(),
+            destructure_exprs: Default::default(),
         }
+    }
+
+    pub fn insert_expr(&mut self, expr: &'hir Expr<'hir>) -> ExprId {
+        let id = self.exprs.len() as u32;
+        let expr_id = ExprId { id };
+        self.exprs.push(expr);
+        expr_id
     }
 }
 

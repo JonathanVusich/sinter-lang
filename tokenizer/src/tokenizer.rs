@@ -18,7 +18,7 @@ use crate::tokenized_file::TokenizedSource;
 
 pub fn tokenize_file(
     string_interner: &mut StringInterner,
-    diagnostics: &mut Diagnostics,
+    diagnostics: &Diagnostics,
     path: &Path,
 ) -> Option<TokenizedSource> {
     let token_source = Source::Path(path.to_path_buf());

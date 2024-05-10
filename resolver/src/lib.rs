@@ -27,7 +27,7 @@ use types::{LDefMap, StrMap};
 
 pub fn resolve<'hir>(
     string_interner: &'hir StringInterner,
-    diagnostics: &'hir mut Diagnostics,
+    diagnostics: &'hir Diagnostics,
     arena: &'hir mut Bump,
     crates: &'hir mut StrMap<Crate>,
 ) -> Option<HirMap<'hir>> {
@@ -171,7 +171,7 @@ type ResolveResult = Option<()>;
 
 struct Resolver<'hir> {
     string_interner: &'hir StringInterner,
-    diagnostics: &'hir mut Diagnostics,
+    diagnostics: &'hir Diagnostics,
     allocator: &'hir Bump,
     krates: &'hir mut StrMap<Crate>,
 }
@@ -179,7 +179,7 @@ struct Resolver<'hir> {
 impl<'hir> Resolver<'hir> {
     fn new(
         string_interner: &'hir StringInterner,
-        diagnostics: &'hir mut Diagnostics,
+        diagnostics: &'hir Diagnostics,
         allocator: &'hir Bump,
         krates: &'hir mut StrMap<Crate>,
     ) -> Self {
@@ -199,7 +199,7 @@ impl<'hir> Resolver<'hir> {
 
         for krate in self.krates.values() {
             let crate_resolver =
-                CrateResolver::new(self.string_interner, self.allocator, krate, self.krates);
+                CrateResolver::new(self.string_interner, self.allocator, krate, &self.krates);
             hir_map.insert(crate_resolver.resolve()?);
         }
 

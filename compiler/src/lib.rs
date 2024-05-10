@@ -26,18 +26,10 @@ use typed_hir::{ClassDef, EnumDef, MemberDef, ThirMap, TraitDef, TyKind};
 use types::{DefMap, StrMap};
 use validator::validate;
 
-mod arenas;
-
-#[derive(Default)]
-pub struct Compiler<'a> {
+pub struct Compiler {
     diagnostics: Diagnostics,
-
     string_interner: StringInterner,
-    ty_interner: Interner<TyKind<'a>>,
-    ty_cache: TyDefCache<'a>,
-
     hir_allocator: Bump,
-    thir_allocator: Bump,
     source_map: SourceMap,
     id_generator: IdGenerator,
 }
@@ -54,12 +46,12 @@ pub enum Application<'a> {
 
 pub struct ByteCode {}
 
-impl<'a> Compiler<'a> {
+impl Compiler {
     pub(crate) fn compile(&mut self, application: Application) -> Result<ByteCode, Diagnostics> {
         let mut crates = self.parse_crates(application)?;
         crates = self.validate_crates(crates)?;
 
-        let resolved_crates = self.resolve_crates(crates)?;
+        let resolved_crates = self.resolve_crates(&mut crates)?;
         let inferred_crates = self.infer_types(resolved_crates)?;
         // TODO: Lower the AST to MIR with the provided metadata.
 
@@ -245,34 +237,29 @@ impl<'a> Compiler<'a> {
         self.check_errors(crates)
     }
 
-    pub fn resolve_crates(&mut self, mut crates: StrMap<Crate>) -> Result<HirMap, Diagnostics> {
+    pub fn resolve_crates<'hir>(
+        &mut self,
+        mut crates: &'hir mut StrMap<Crate>,
+    ) -> Result<HirMap<'hir>, Diagnostics> {
         resolve(
             &self.string_interner,
             &mut self.diagnostics,
             &mut self.hir_allocator,
-            &mut crates,
+            crates,
         )
         .ok_or(self.diagnostics.clone())
     }
 
-    pub fn infer_types(&mut self, hir_map: HirMap) -> Result<ThirMap<'a>, Diagnostics> {
-        infer_types(
-            &mut self.ty_cache,
-            &mut self.diagnostics,
-            &mut self.hir_allocator,
-            &mut self.thir_allocator,
-            &hir_map,
-        )
-        .ok_or(self.diagnostics.clone())
+    pub fn infer_types<'hir>(
+        &mut self,
+        hir_map: HirMap<'hir>,
+    ) -> Result<ThirMap<'hir>, Diagnostics> {
+        infer_types(&mut self.diagnostics, &mut self.hir_allocator, &hir_map)
+            .ok_or(self.diagnostics.clone())
     }
 
     fn check_errors<T>(&mut self, val: T) -> Result<T, Diagnostics> {
-        if self
-            .diagnostics
-            .filter(DiagnosticKind::Error)
-            .next()
-            .is_some()
-        {
+        if !self.diagnostics.filter(DiagnosticKind::Error).is_empty() {
             return Err(self.diagnostics.clone());
         }
         Ok(val)

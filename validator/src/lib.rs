@@ -12,7 +12,7 @@ use span::Span;
 
 pub fn validate(
     string_interner: &StringInterner,
-    diagnostics: &mut Diagnostics,
+    diagnostics: &Diagnostics,
     source_map: &SourceMap,
     module: &Module,
 ) {
@@ -22,7 +22,7 @@ pub fn validate(
 
 struct Validator<'a> {
     string_interner: &'a StringInterner,
-    diagnostics: &'a mut Diagnostics,
+    diagnostics: &'a Diagnostics,
     source_map: &'a SourceMap,
     module: &'a Module,
     use_stmts: MultiMap<QualifiedIdent, LocalDefId>,
@@ -34,7 +34,7 @@ struct Validator<'a> {
 impl<'a> Validator<'a> {
     pub(crate) fn new(
         string_interner: &'a StringInterner,
-        diagnostics: &'a mut Diagnostics,
+        diagnostics: &'a Diagnostics,
         source_map: &'a SourceMap,
         module: &'a Module,
     ) -> Self {
@@ -263,7 +263,7 @@ mod tests {
     fn validate<T: AsRef<str>>(code: T) -> ValidationOutput {
         let code = code.as_ref().to_string();
         let mut string_interner = StringInterner::default();
-        let mut diagnostics = Diagnostics::default();
+        let diagnostics = Diagnostics::default();
         let mut id_generator = IdGenerator::default();
         let mut source_map = SourceMap::default();
 
@@ -274,7 +274,7 @@ mod tests {
         } = tokenize(&mut string_interner, code);
         let module = parse(
             &mut string_interner,
-            &mut diagnostics,
+            &diagnostics,
             &mut id_generator,
             tokens,
         )
@@ -291,11 +291,8 @@ mod tests {
         let krate = krates.get(&krate_name).unwrap();
         let module = krate.module(ModuleId::new(0, 0));
 
-        crate::validate(&string_interner, &mut diagnostics, &source_map, module);
-        (
-            string_interner,
-            diagnostics.filter(DiagnosticKind::Error).collect(),
-        )
+        crate::validate(&string_interner, &diagnostics, &source_map, module);
+        (string_interner, diagnostics.filter(DiagnosticKind::Error))
     }
 
     #[test]

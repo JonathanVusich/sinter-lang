@@ -499,7 +499,7 @@ impl<'a> HirMap<'a> {
     pub fn krate(&self, def_id: &DefId) -> &HirCrate {
         &self.crates[def_id.crate_id().as_usize()]
     }
-    pub fn krates(&self) -> impl Iterator<Item = &HirCrate> {
+    pub fn krates(&self) -> impl Iterator<Item = &HirCrate<'a>> {
         self.crates.iter()
     }
 
