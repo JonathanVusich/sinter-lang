@@ -517,6 +517,8 @@ impl<'hir> CrateResolver<'hir> {
         let fields = self.resolve_fields(&class_stmt.fields)?;
         let fn_defs = self.resolve_self_fn_stmts(&class_stmt.self_fns)?;
 
+        self.scopes.pop();
+
         let hir_class = self.alloc(ClassDef {
             name: class_stmt.name,
             class_type: class_stmt.class_type,
@@ -814,6 +816,8 @@ impl<'hir> CrateResolver<'hir> {
             let fields = self.resolve_fields(&member.fields)?;
             let member_fns = self.resolve_self_fn_stmts(&member.self_fns)?;
 
+            self.scopes.pop();
+
             let member_def = self.alloc(MemberDef {
                 name: member.name,
                 fields,
@@ -831,8 +835,6 @@ impl<'hir> CrateResolver<'hir> {
             self.insert_node(member.id, Node::Item(item));
 
             enum_members.push(member_def);
-
-            self.scopes.pop();
         }
         Some(self.alloc_slice(&*enum_members))
     }
@@ -886,6 +888,9 @@ impl<'hir> CrateResolver<'hir> {
         });
 
         let member_fns = self.resolve_self_fn_stmts(&trait_stmt.self_fns)?;
+
+        self.scopes.pop();
+
         let trait_impl_stmt = self.alloc(TraitImplDef {
             trait_to_impl,
             target_ty,
@@ -1460,12 +1465,7 @@ impl<'hir> CrateResolver<'hir> {
             ast::TyKind::TraitBound { trait_bound } => {
                 let mut paths = Vec::<&'hir PathTy<'hir>>::with_capacity(trait_bound.len());
                 for path in trait_bound {
-                    let definition = self.resolve_qualified_ident(&path.ident)?;
-                    let generics = self.resolve_generics(&path.generics)?;
-                    let path_ty = self.alloc(PathTy {
-                        definition,
-                        generics,
-                    });
+                    let path_ty = self.resolve_path_ty(path)?;
                     paths.push(path_ty);
                 }
                 let paths = self.alloc_slice(&*paths);

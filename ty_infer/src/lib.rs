@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use ast::{InfixOp, UnaryOp};
 use diagnostics::{Diagnostic, Diagnostics};
-use hir::{HirCrate, HirMap, ItemKind, Node, Primitive};
+use hir::{HirCrate, HirMap, Item, ItemKind, Node, Primitive};
 use id::{DefId, LocalDefId};
 use interner::{InternedStr, Interner};
 use typed_hir::{
@@ -77,6 +77,7 @@ pub enum DefType<'a> {
     Member(&'a MemberDef<'a>),
     Trait(&'a TraitDef<'a>),
     Fn(&'a FnDef<'a>),
+    GenericParam(&'a GenericParam<'a>),
 }
 
 impl<'a> TyDefCache<'a> {
@@ -93,11 +94,12 @@ impl<'a> TyDefCache<'a> {
         def_id: DefId,
         resolver: F,
     ) -> &'a DefType<'a> {
-        let mut borrowed_defs = self.defs.borrow_mut();
-        match borrowed_defs.entry(def_id) {
-            Entry::Occupied(occupied) => occupied.get(),
-            Entry::Vacant(vacant) => vacant.insert(resolver()),
+        if let Some(occupied) = self.defs.borrow().get(&def_id) {
+            return *occupied;
         }
+        let resolved_value = resolver();
+        self.defs.borrow_mut().insert(def_id, resolved_value);
+        resolved_value
     }
 
     pub fn intern(&self, kind: TyKind<'a>) -> Ty<'a> {
@@ -254,7 +256,7 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
         (constraints, expr_id)
     }
 
-    fn infer_array(&self, array_expr: hir::ArrayExpr) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_array(&self, array_expr: hir::ArrayExpr<'hir>) -> (Constraints<'hir>, Expr<'hir>) {
         todo!()
     }
 
@@ -446,10 +448,11 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
                 .map(|trait_bound| self.alloc(TyKind::TraitBound(trait_bound))),
             TyKind::GenericParam(GenericParam { ident, trait_bound }) => match trait_bound {
                 Some(trait_bound) => self.normalize_trait_bound(trait_bound).map(|trait_bound| {
-                    self.alloc(TyKind::GenericParam(GenericParam {
+                    let generic_param = self.alloc(GenericParam {
                         ident: *ident,
                         trait_bound: Some(trait_bound),
-                    }))
+                    });
+                    self.alloc(TyKind::GenericParam(generic_param))
                 }),
                 None => None,
             },
@@ -828,12 +831,12 @@ impl<'hir, 'cache> CrateInference<'hir, 'cache> {
             .alloc_slice_fill_iter(params.iter().map(|param| self.resolve_generic_param(param)))
     }
 
-    fn resolve_generic_param(&self, param: &hir::GenericParam<'hir>) -> GenericParam<'hir> {
+    fn resolve_generic_param(&self, param: &hir::GenericParam<'hir>) -> &'hir GenericParam<'hir> {
         let trait_bound = self.maybe_resolve_trait_bound(&param.trait_bound);
-        GenericParam {
+        self.alloc(GenericParam {
             ident: param.ident,
             trait_bound,
-        }
+        })
     }
 
     fn resolve_path_ty(&mut self, path: &hir::PathTy<'hir>) -> TyKind<'hir> {
@@ -855,23 +858,41 @@ impl<'hir, 'cache> CrateInference<'hir, 'cache> {
                 TyKind::TraitBound(trait_bound)
             }
             DefType::Fn(fn_def) => TyKind::Fn(fn_def, generics),
+            DefType::GenericParam(generic_param) => TyKind::GenericParam(generic_param),
         }
     }
 
     fn resolve_path(&mut self, id: DefId) -> &'hir DefType<'hir> {
         let node = self.hir_map.krate(&id).node(&id.local_id());
         let def_type = match node {
-            Node::Item(item) => match item.kind {
-                ItemKind::Class(class_def) => DefType::Class(self.resolve_class_def(class_def)),
-                ItemKind::Fn(fn_def) => DefType::Fn(self.resolve_fn_def(fn_def)),
-                ItemKind::Enum(enum_def) => DefType::Enum(self.resolve_enum_def(enum_def)),
-                ItemKind::Member(member) => DefType::Member(self.resolve_enum_member(member)),
-                ItemKind::Trait(trait_def) => DefType::Trait(self.resolve_trait_def(trait_def)),
-                _ => panic!("Invalid path!"),
-            },
-            _ => panic!("Invalid path!"),
-
-            _ => panic!("Unreachable!"),
+            Node::Item(Item {
+                kind: ItemKind::Class(class_def),
+                ..
+            }) => DefType::Class(self.resolve_class_def(class_def)),
+            Node::Item(Item {
+                kind: ItemKind::Enum(enum_def),
+                ..
+            }) => DefType::Enum(self.resolve_enum_def(enum_def)),
+            Node::Item(Item {
+                kind: ItemKind::Member(member_def),
+                ..
+            }) => DefType::Member(self.resolve_enum_member(member_def)),
+            Node::Item(Item {
+                kind: ItemKind::Fn(fn_def),
+                ..
+            }) => DefType::Fn(self.resolve_fn_def(fn_def)),
+            Node::Item(Item {
+                kind: ItemKind::Trait(trait_def),
+                ..
+            }) => DefType::Trait(self.resolve_trait_def(trait_def)),
+            Node::Ty(hir::Ty {
+                kind: hir::TyKind::GenericParam(param),
+                ..
+            }) => DefType::GenericParam(self.resolve_generic_param(param)),
+            node => {
+                dbg!(node);
+                panic!("Unsupported node type!");
+            }
         };
         self.alloc(def_type)
     }

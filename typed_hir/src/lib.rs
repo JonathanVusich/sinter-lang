@@ -82,7 +82,7 @@ pub enum TyKind<'a> {
     Enum(&'a EnumDef<'a>, Generics<'a>),
     Member(&'a MemberDef<'a>, Generics<'a>),
     TraitBound(TraitBound<'a>),
-    GenericParam(GenericParam<'a>),
+    GenericParam(&'a GenericParam<'a>),
     Fn(&'a FnDef<'a>, Generics<'a>),
     Closure(&'a ClosureDef<'a>),
     Infer(TyVar),
@@ -238,7 +238,7 @@ pub enum UintTy {
 
 pub type TraitBound<'a> = &'a [&'a Trait<'a>];
 pub type Generics<'a> = &'a [Ty<'a>];
-pub type GenericParams<'a> = &'a [GenericParam<'a>];
+pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
 pub type Params<'a> = &'a [Ty<'a>];
 pub type Fields<'a> = &'a [Ty<'a>];
 pub type MemberDefs<'a> = &'a [&'a MemberDef<'a>];
