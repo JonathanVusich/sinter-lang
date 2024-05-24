@@ -122,6 +122,19 @@ pub struct Stmt<'a> {
     pub id: LocalDefId,
 }
 
+impl<'a> Stmt<'a> {
+    pub fn is_return(&self) -> bool {
+        match &self.kind {
+            StmtKind::Return(_) => true,
+            StmtKind::Expression(Expression {
+                expr,
+                implicit_return: true,
+            }) => true,
+            _ => false,
+        }
+    }
+}
+
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub enum StmtKind<'a> {
     Let(&'a LetStmt<'a>),

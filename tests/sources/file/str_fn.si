@@ -1,0 +1,3 @@
+fn str_fn() => str {
+    "hello world"
+}

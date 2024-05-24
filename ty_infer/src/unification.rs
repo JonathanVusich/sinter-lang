@@ -54,10 +54,10 @@ impl<'a> UnificationTable<'a> {
         lhs == rhs
     }
 
-    pub(crate) fn unify_var_ty<F: Fn(&'a Ty<'a>, &'a Ty<'a>) -> bool>(
+    pub(crate) fn unify_var_ty<F: Fn(&Ty<'a>, &Ty<'a>) -> bool>(
         &self,
         var: TyVar,
-        ty: Ty<'_>,
+        ty: Ty<'a>,
         assignable_check: F,
     ) -> bool {
         let root = self.get_root_key(var);
@@ -68,7 +68,7 @@ impl<'a> UnificationTable<'a> {
                 entry.value = Some(ty);
                 true
             }
-            Some(prev_ty) => assignable_check(prev_ty, &ty),
+            Some(prev_ty) => assignable_check(&prev_ty, &ty),
         }
     }
 

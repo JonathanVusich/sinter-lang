@@ -144,8 +144,15 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
     /// The main function that performs type inference. Every function body or
     /// expression should have a return type defined at compile time, and we can
     /// use this to infer and validate an entire expression/blocks' types.
-    fn check_block(self, block: &hir::Block) -> Thir<'hir> {
-        todo!()
+    fn check_block(self, block: &hir::Block<'hir>, ret_ty: Ty<'hir>) -> Thir<'hir> {
+        for stmt in block.stmts {
+            // TODO: Move this into the infer_stmt method.
+            if stmt.is_return() {
+                self.check_stmt(stmt, ret_ty);
+            }
+            self.infer_stmt(stmt);
+        }
+        self.thir
     }
 
     fn check(&mut self, expr: &hir::Expr<'hir>, ty: Ty<'hir>) {
@@ -210,8 +217,9 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
             _ => {
                 let (mut constraints, expr) = self.infer_expr(expr);
                 constraints.push(Constraint::Assignable(ty, self.thir[expr].ty));
-                self.unify_constraints(constraints);
-                self.substitute_expr(expr);
+                if self.unify_constraints(constraints) {
+                    self.substitute_expr(expr);
+                }
                 return;
             }
         };
@@ -280,6 +288,8 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
                     constraints.push(Constraint::Assignable(array_ty, inferred_ty));
                     inits.push(initializer);
                 }
+
+                let ty = self.ty_cache.intern(TyKind::Array(array_ty));
                 let expr = Expr {
                     kind: ExprKind::Array(ArrayExpr::Unsized {
                         initializers: inits.into_boxed_slice(),
@@ -347,22 +357,20 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
         todo!()
     }
 
-    fn infer_index(&self, index_expr: hir::IndexExpr) -> (Constraints<'hir>, Expr<'hir>) {
-        todo!()
-    }
+    fn infer_index(&self, index_expr: hir::IndexExpr) -> (Constraints<'hir>, Expr<'hir>) {}
 
     fn infer_path(&self, path: hir::PathExpr) -> (Constraints<'hir>, Expr<'hir>) {
         todo!()
     }
 
-    fn infer_block(&self, block: hir::Block) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_block(&self, block: hir::Block<'hir>) -> (Constraints<'hir>, Expr<'hir>) {
         todo!()
     }
 
     /// Walk the expression tree and normalize the types
     /// which should generate a completely typed expression tree.
     fn substitute_expr(&mut self, expr_id: ExprId) {
-        let expr = &self.thir[expr_id];
+        let expr = self.thir[expr_id].clone();
         match &expr.kind {
             ExprKind::Array(ArrayExpr::Sized { initializer, size }) => {
                 self.substitute_expr(*initializer);
@@ -395,16 +403,16 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
         }
     }
 
-    fn unify_constraints(&self, constraints: Constraints<'hir>) {
+    fn unify_constraints(&self, constraints: Constraints<'hir>) -> bool {
         constraints
             .into_iter()
-            .for_each(|constraint| self.unify(constraint))
+            .all(|constraint| self.unify(constraint))
     }
 
-    fn unify(&self, constraint: Constraint<'hir>) {
+    fn unify(&self, constraint: Constraint<'hir>) -> bool {
         match constraint {
             Constraint::Equal(lhs, rhs) => {
-                self.unify_ty_ty(lhs, rhs, Ty::eq);
+                self.unify_ty_ty(lhs, rhs, Ty::eq)
                 // TODO: Handle type errors
             }
             Constraint::Assignable(lhs, rhs) => {
@@ -417,16 +425,32 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
         &self,
         lhs: Ty<'hir>,
         rhs: Ty<'hir>,
-        assignable_check: fn(&Ty, &Ty) -> bool,
+        assignable_check: fn(&Ty<'hir>, &Ty<'hir>) -> bool,
     ) -> bool {
         let lhs = self.normalize_ty(lhs).unwrap_or(lhs);
         let rhs = self.normalize_ty(rhs).unwrap_or(rhs);
 
         match (lhs, rhs) {
-            (TyKind::Infer(infer), other) | (other, TyKind::Infer(infer)) => {
-                self.unify_var_ty(infer, other, assignable_check)
-            }
-            (TyKind::Infer(lhs), TyKind::Infer(rhs)) => self.unify_var_var(lhs, rhs),
+            (
+                Ty {
+                    kind: TyKind::Infer(infer),
+                },
+                other,
+            )
+            | (
+                other,
+                Ty {
+                    kind: TyKind::Infer(infer),
+                },
+            ) => self.unify_var_ty(*infer, other, assignable_check),
+            (
+                Ty {
+                    kind: TyKind::Infer(lhs),
+                },
+                Ty {
+                    kind: TyKind::Infer(rhs),
+                },
+            ) => self.unify_var_var(*lhs, *rhs),
             /// Both types are at least partially known, so we unify them.
             (lhs, rhs) => {
                 if !assignable_check(&lhs, &rhs) {
@@ -441,7 +465,7 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
         &self,
         var: TyVar,
         ty: Ty<'hir>,
-        assignable_check: fn(&Ty, &Ty) -> bool,
+        assignable_check: fn(&Ty<'hir>, &Ty<'hir>) -> bool,
     ) -> bool {
         if !self.unify_table.unify_var_ty(var, ty, assignable_check) {
             // TODO: Record type error
@@ -663,6 +687,12 @@ impl<'hir, 'cache> CrateInference<'hir, 'cache> {
         }
     }
 
+    fn infer_member(&mut self, node: &hir::MemberDef<'hir>) {
+        for function in node.fn_defs {
+            self.check_fn_def(function);
+        }
+    }
+
     fn infer_trait_def(&mut self, trait_def: &hir::TraitDef<'hir>) {
         for function in trait_def.fn_defs {
             self.check_fn_def(function);
@@ -690,7 +720,7 @@ impl<'hir, 'cache> CrateInference<'hir, 'cache> {
 
             let infer_ctxt =
                 InferCtxt::new(generic_params, &self.ty_cache, &self.hir_allocator, ret_ty);
-            let thir = infer_ctxt.check_block(block);
+            let thir = infer_ctxt.check_block(block, ret_ty);
         }
     }
 

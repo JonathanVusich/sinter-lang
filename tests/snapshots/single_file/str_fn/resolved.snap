@@ -1,0 +1,186 @@
+(
+  crates: [(
+    name: 5,
+    id: (
+      id: 0,
+    ),
+    items: [(
+      kind: Fn((
+        sig: (
+          name: (
+            ident: 1,
+            span: (
+              start: 3,
+              end: 9,
+            ),
+          ),
+          generic_params: [],
+          params: [],
+          ret_ty: Some((
+            kind: Primitive(Str),
+            span: (
+              start: 15,
+              end: 18,
+            ),
+            id: 0,
+          )),
+        ),
+        body: Some((
+          stmts: [(
+            kind: Expression((
+              expr: (
+                kind: String(3),
+                span: (
+                  start: 25,
+                  end: 38,
+                ),
+                id: 1,
+              ),
+              implicit_return: true,
+            )),
+            span: (
+              start: 25,
+              end: 38,
+            ),
+            id: 2,
+          )],
+          span: (
+            start: 19,
+            end: 40,
+          ),
+          id: 3,
+        )),
+        span: (
+          start: 0,
+          end: 40,
+        ),
+        id: 4,
+      )),
+      span: (
+        start: 0,
+        end: 40,
+      ),
+      id: 4,
+    )],
+    nodes: {
+      0: Ty((
+        kind: Primitive(Str),
+        span: (
+          start: 15,
+          end: 18,
+        ),
+        id: 0,
+      )),
+      1: Expr((
+        kind: String(3),
+        span: (
+          start: 25,
+          end: 38,
+        ),
+        id: 1,
+      )),
+      2: Stmt((
+        kind: Expression((
+          expr: (
+            kind: String(3),
+            span: (
+              start: 25,
+              end: 38,
+            ),
+            id: 1,
+          ),
+          implicit_return: true,
+        )),
+        span: (
+          start: 25,
+          end: 38,
+        ),
+        id: 2,
+      )),
+      3: Block((
+        stmts: [(
+          kind: Expression((
+            expr: (
+              kind: String(3),
+              span: (
+                start: 25,
+                end: 38,
+              ),
+              id: 1,
+            ),
+            implicit_return: true,
+          )),
+          span: (
+            start: 25,
+            end: 38,
+          ),
+          id: 2,
+        )],
+        span: (
+          start: 19,
+          end: 40,
+        ),
+        id: 3,
+      )),
+      4: Item((
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 1,
+              span: (
+                start: 3,
+                end: 9,
+              ),
+            ),
+            generic_params: [],
+            params: [],
+            ret_ty: Some((
+              kind: Primitive(Str),
+              span: (
+                start: 15,
+                end: 18,
+              ),
+              id: 0,
+            )),
+          ),
+          body: Some((
+            stmts: [(
+              kind: Expression((
+                expr: (
+                  kind: String(3),
+                  span: (
+                    start: 25,
+                    end: 38,
+                  ),
+                  id: 1,
+                ),
+                implicit_return: true,
+              )),
+              span: (
+                start: 25,
+                end: 38,
+              ),
+              id: 2,
+            )],
+            span: (
+              start: 19,
+              end: 40,
+            ),
+            id: 3,
+          )),
+          span: (
+            start: 0,
+            end: 40,
+          ),
+          id: 4,
+        )),
+        span: (
+          start: 0,
+          end: 40,
+        ),
+        id: 4,
+      )),
+    },
+  )],
+  names_to_indices: [5],
+)

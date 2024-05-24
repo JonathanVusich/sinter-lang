@@ -1,0 +1,26 @@
+(
+  crates: [(
+    name: 5,
+    id: (
+      id: 0,
+    ),
+    bodies: {
+      2: (
+        generic_params: [],
+        ret_ty: (
+          kind: Str,
+        ),
+        blocks: [],
+        arms: [],
+        stmts: [],
+        exprs: [(
+          kind: String(3),
+          ty: (
+            kind: Str,
+          ),
+        )],
+        destructure_exprs: [],
+),
+    },
+  )],
+)
