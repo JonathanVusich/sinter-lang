@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use ast::{InfixOp, UnaryOp};
 use diagnostics::{Diagnostic, Diagnostics};
+
 use hir::{HirCrate, HirMap, Item, ItemKind, Node, Primitive};
 use id::{DefId, LocalDefId};
 use interner::{InternedStr, Interner};
@@ -208,17 +209,12 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
             },
             _ => {
                 let (mut constraints, expr) = self.infer_expr(expr);
-
-                if self.unify_constraints(constraints) {
-                    self.substitute_expr(expr);
-                } else {
-                    // TODO: Record type error
-                    todo!()
-                }
+                constraints.push(Constraint::Assignable(ty, self.thir[expr].ty));
+                self.unify_constraints(constraints);
+                self.substitute_expr(expr);
                 return;
             }
         };
-        let expr = self.hir_allocator.alloc(expr);
         self.thir.insert_expr(expr);
     }
 
@@ -251,13 +247,48 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
             hir::ExprKind::Break => self.infer_static(ExprKind::None, TyKind::None),
             hir::ExprKind::Continue => self.infer_static(ExprKind::None, TyKind::None),
         };
-        let expr = self.hir_allocator.alloc(expr);
         let expr_id = self.thir.insert_expr(expr);
         (constraints, expr_id)
     }
 
-    fn infer_array(&self, array_expr: hir::ArrayExpr<'hir>) -> (Constraints<'hir>, Expr<'hir>) {
-        todo!()
+    fn infer_array(&mut self, array_expr: hir::ArrayExpr<'hir>) -> (Constraints<'hir>, Expr<'hir>) {
+        match array_expr {
+            hir::ArrayExpr::Sized { initializer, size } => {
+                let (mut constraints, initializer) = self.infer_expr(initializer);
+                let (size_constraints, size) = self.infer_expr(size);
+                constraints.extend(size_constraints);
+
+                let kind = TyKind::Array(self.thir[initializer].ty);
+                let expr = Expr {
+                    kind: ExprKind::Array(ArrayExpr::Sized { initializer, size }),
+                    ty: self.ty_cache.intern(kind),
+                };
+                (constraints, expr)
+            }
+            hir::ArrayExpr::Unsized { initializers } => {
+                let mut constraints = Constraints::default();
+                let mut inits = Vec::default();
+                let array_ty = self
+                    .ty_cache
+                    .intern(TyKind::Infer(self.unify_table.fresh_ty()));
+
+                for initializer in initializers {
+                    let (c, initializer) = self.infer_expr(initializer);
+                    constraints.extend(c);
+
+                    let inferred_ty = self.thir[initializer].ty;
+                    constraints.push(Constraint::Assignable(array_ty, inferred_ty));
+                    inits.push(initializer);
+                }
+                let expr = Expr {
+                    kind: ExprKind::Array(ArrayExpr::Unsized {
+                        initializers: inits.into_boxed_slice(),
+                    }),
+                    ty,
+                };
+                (constraints, expr)
+            }
+        }
     }
 
     fn infer_call(&self, call: hir::CallExpr) -> (Constraints<'hir>, Expr<'hir>) {
@@ -330,7 +361,7 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
 
     /// Walk the expression tree and normalize the types
     /// which should generate a completely typed expression tree.
-    fn substitute_expr(&self, expr_id: ExprId) {
+    fn substitute_expr(&mut self, expr_id: ExprId) {
         let expr = &self.thir[expr_id];
         match &expr.kind {
             ExprKind::Array(ArrayExpr::Sized { initializer, size }) => {
@@ -364,19 +395,19 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
         }
     }
 
-    fn unify_constraints(&self, constraints: Constraints<'hir>) -> bool {
+    fn unify_constraints(&self, constraints: Constraints<'hir>) {
         constraints
             .into_iter()
-            .all(|constraint| self.unify(constraint))
+            .for_each(|constraint| self.unify(constraint))
     }
 
-    fn unify(&self, constraint: Constraint<'hir>) -> bool {
+    fn unify(&self, constraint: Constraint<'hir>) {
         match constraint {
-            Constraint::Equal(lhs, rhs) => self.unify_ty_ty(lhs, rhs, TyKind::eq),
-            Constraint::Assignable(lhs, rhs) => {
-                todo!()
+            Constraint::Equal(lhs, rhs) => {
+                self.unify_ty_ty(lhs, rhs, Ty::eq);
+                // TODO: Handle type errors
             }
-            Constraint::Array(_) => {
+            Constraint::Assignable(lhs, rhs) => {
                 todo!()
             }
         }
@@ -384,21 +415,21 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
 
     fn unify_ty_ty(
         &self,
-        lhs: &'hir TyKind,
-        rhs: &'hir TyKind,
-        assignable_check: fn(&TyKind<'hir>, &TyKind<'hir>) -> bool,
+        lhs: Ty<'hir>,
+        rhs: Ty<'hir>,
+        assignable_check: fn(&Ty, &Ty) -> bool,
     ) -> bool {
         let lhs = self.normalize_ty(lhs).unwrap_or(lhs);
         let rhs = self.normalize_ty(rhs).unwrap_or(rhs);
 
         match (lhs, rhs) {
             (TyKind::Infer(infer), other) | (other, TyKind::Infer(infer)) => {
-                self.unify_var_ty(*infer, other, assignable_check)
+                self.unify_var_ty(infer, other, assignable_check)
             }
-            (TyKind::Infer(lhs), TyKind::Infer(rhs)) => self.unify_var_var(*lhs, *rhs),
+            (TyKind::Infer(lhs), TyKind::Infer(rhs)) => self.unify_var_var(lhs, rhs),
             /// Both types are at least partially known, so we unify them.
             (lhs, rhs) => {
-                if !assignable_check(lhs, rhs) {
+                if !assignable_check(&lhs, &rhs) {
                     return false;
                 }
                 true
@@ -409,8 +440,8 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
     fn unify_var_ty(
         &self,
         var: TyVar,
-        ty: &'hir TyKind<'hir>,
-        assignable_check: fn(&TyKind<'hir>, &TyKind<'hir>) -> bool,
+        ty: Ty<'hir>,
+        assignable_check: fn(&Ty, &Ty) -> bool,
     ) -> bool {
         if !self.unify_table.unify_var_ty(var, ty, assignable_check) {
             // TODO: Record type error
@@ -429,41 +460,40 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
 
     /// This method inspects a given type and returns an optional new type
     /// if there is some aspect of the type that can be updated due to constraint solving.
-    fn normalize_ty(&self, ty: &TyKind<'hir>) -> Option<&'hir TyKind<'hir>> {
-        match ty {
+    fn normalize_ty(&self, ty: Ty<'hir>) -> Option<Ty<'hir>> {
+        match ty.kind {
             TyKind::Array(array) => self
-                .normalize_ty(array.kind)
-                .map(|inner_ty| self.alloc(TyKind::Array(Ty { kind: inner_ty }))),
+                .normalize_ty(*array)
+                .map(|inner_ty| self.ty_cache.intern(TyKind::Array(inner_ty))),
             TyKind::Class(class_def, generics) => self
                 .normalize_tys(generics)
-                .map(|generics| self.alloc(TyKind::Class(class_def, generics))),
+                .map(|generics| self.ty_cache.intern(TyKind::Class(class_def, generics))),
             TyKind::Enum(enum_def, generics) => self
                 .normalize_tys(generics)
-                .map(|generics| self.alloc(TyKind::Enum(enum_def, generics))),
+                .map(|generics| self.ty_cache.intern(TyKind::Enum(enum_def, generics))),
             TyKind::Member(member_def, generics) => self
                 .normalize_tys(generics)
-                .map(|generics| self.alloc(TyKind::Member(member_def, generics))),
+                .map(|generics| self.ty_cache.intern(TyKind::Member(member_def, generics))),
             TyKind::TraitBound(trait_bound) => self
                 .normalize_trait_bound(trait_bound)
-                .map(|trait_bound| self.alloc(TyKind::TraitBound(trait_bound))),
+                .map(|trait_bound| self.ty_cache.intern(TyKind::TraitBound(trait_bound))),
             TyKind::GenericParam(GenericParam { ident, trait_bound }) => match trait_bound {
                 Some(trait_bound) => self.normalize_trait_bound(trait_bound).map(|trait_bound| {
                     let generic_param = self.alloc(GenericParam {
                         ident: *ident,
                         trait_bound: Some(trait_bound),
                     });
-                    self.alloc(TyKind::GenericParam(generic_param))
+                    self.ty_cache.intern(TyKind::GenericParam(generic_param))
                 }),
                 None => None,
             },
             TyKind::Fn(fn_def, generics) => self
                 .normalize_tys(generics)
-                .map(|generics| self.alloc(TyKind::Fn(fn_def, generics))),
+                .map(|generics| self.ty_cache.intern(TyKind::Fn(fn_def, generics))),
             TyKind::Closure(closure_def) => {
                 // TODO: There is a bug here where the params may need normalization but not the return type.
                 // Need to properly handle both cases.
-                self.normalize_ty(closure_def.return_type.kind)
-                    .map(|kind| Ty { kind })
+                self.normalize_ty(closure_def.return_type)
                     .map(|return_type| {
                         let params = self
                             .normalize_tys(closure_def.params)
@@ -472,7 +502,7 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
                             params,
                             return_type,
                         });
-                        self.alloc(TyKind::Closure(closure_def))
+                        self.ty_cache.intern(TyKind::Closure(closure_def))
                     })
             }
             TyKind::Infer(ty_var) => {
@@ -495,13 +525,13 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
         let mut replaced_generics = Vec::with_capacity(generics.len());
         let mut any_replaced = false;
         for generic in generics {
-            match self.normalize_ty(generic.kind) {
+            match self.normalize_ty(*generic) {
                 None => {
                     replaced_generics.push(*generic);
                 }
                 Some(generic) => {
                     any_replaced = true;
-                    replaced_generics.push(Ty { kind: generic });
+                    replaced_generics.push(generic);
                 }
             };
         }
@@ -591,6 +621,7 @@ impl<'hir, 'cache> CrateInference<'hir, 'cache> {
                 ItemKind::Constant(constant) => self.infer_constant(constant),
                 ItemKind::Class(class_def) => self.infer_class(class_def),
                 ItemKind::Enum(enum_def) => self.infer_enum(enum_def),
+                ItemKind::Member(member_def) => self.infer_member(member_def),
                 ItemKind::Fn(fn_def) => self.check_fn_def(fn_def),
                 ItemKind::Trait(trait_def) => self.infer_trait_def(trait_def),
                 ItemKind::TraitImpl(trait_impl_def) => self.check_trait_impl_def(trait_impl_def),
@@ -640,6 +671,12 @@ impl<'hir, 'cache> CrateInference<'hir, 'cache> {
 
     fn check_trait_impl_def(&mut self, trait_impl_def: &hir::TraitImplDef<'hir>) {
         for function in trait_impl_def.fn_defs {
+            self.check_fn_def(function);
+        }
+    }
+
+    fn check_member_def(&mut self, member_def: &hir::MemberDef<'hir>) {
+        for function in member_def.fn_defs {
             self.check_fn_def(function);
         }
     }
@@ -924,10 +961,8 @@ type Constraints<'hir> = Vec<Constraint<'hir>>;
 
 #[derive(Debug)]
 enum Constraint<'hir> {
-    Equal(&'hir TyKind<'hir>, &'hir TyKind<'hir>),
-    Assignable(&'hir TyKind<'hir>, &'hir TyKind<'hir>),
-    Array(&'hir TyKind<'hir>),
-    // Callable(CallableConstraint), // Arg types
+    Equal(Ty<'hir>, Ty<'hir>),
+    Assignable(Ty<'hir>, Ty<'hir>),
 }
 
 #[derive(Debug)]

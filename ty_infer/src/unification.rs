@@ -1,7 +1,7 @@
 use crate::TyKind;
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
-use typed_hir::TyVar;
+use typed_hir::{Ty, TyVar};
 
 #[derive(Default, Debug)]
 pub(crate) struct UnificationTable<'a> {
@@ -34,7 +34,7 @@ impl<'a> InnerTable<'a> {
 #[derive(Copy, Clone, Debug)]
 struct Entry<'a> {
     parent: TyVar,
-    value: Option<&'a TyKind<'a>>,
+    value: Option<Ty<'a>>,
 }
 
 impl<'a> Entry<'a> {
@@ -54,10 +54,10 @@ impl<'a> UnificationTable<'a> {
         lhs == rhs
     }
 
-    pub(crate) fn unify_var_ty<F: Fn(&'a TyKind<'a>, &'a TyKind<'a>) -> bool>(
+    pub(crate) fn unify_var_ty<F: Fn(&'a Ty<'a>, &'a Ty<'a>) -> bool>(
         &self,
         var: TyVar,
-        ty: &'a TyKind<'_>,
+        ty: Ty<'_>,
         assignable_check: F,
     ) -> bool {
         let root = self.get_root_key(var);
@@ -72,7 +72,7 @@ impl<'a> UnificationTable<'a> {
         }
     }
 
-    pub(crate) fn probe(&self, key: TyVar) -> Option<&'a TyKind<'a>> {
+    pub(crate) fn probe(&self, key: TyVar) -> Option<Ty<'a>> {
         let root_key = self.get_root_key(key);
         self.table.borrow().entry(root_key).value.clone()
     }

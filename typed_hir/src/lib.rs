@@ -3,7 +3,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::ops::{Add, Deref, Index};
+use std::ops::{Add, Deref, Index, IndexMut};
 
 use serde::Serialize;
 
@@ -423,7 +423,7 @@ pub struct Thir<'hir> {
     blocks: Vec<Block<'hir>>,
     arms: Vec<MatchArm<'hir>>,
     stmts: Vec<Stmt<'hir>>,
-    exprs: Vec<&'hir Expr<'hir>>,
+    exprs: Vec<Expr<'hir>>,
     destructure_exprs: Vec<DestructureExpr>,
 }
 
@@ -440,7 +440,7 @@ impl<'hir> Thir<'hir> {
         }
     }
 
-    pub fn insert_expr(&mut self, expr: &'hir Expr<'hir>) -> ExprId {
+    pub fn insert_expr(&mut self, expr: Expr<'hir>) -> ExprId {
         let id = self.exprs.len() as u32;
         let expr_id = ExprId { id };
         self.exprs.push(expr);
@@ -454,6 +454,14 @@ impl<'hir> Index<ExprId> for Thir<'hir> {
     fn index(&self, expr_id: ExprId) -> &Self::Output {
         self.exprs
             .get(expr_id.id as usize)
+            .expect("Invalid expr id!")
+    }
+}
+
+impl<'hir> IndexMut<ExprId> for Thir<'hir> {
+    fn index_mut(&mut self, expr_id: ExprId) -> &mut Self::Output {
+        self.exprs
+            .get_mut(expr_id.id as usize)
             .expect("Invalid expr id!")
     }
 }
