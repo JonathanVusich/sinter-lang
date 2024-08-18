@@ -192,6 +192,7 @@ mod tests {
     single_file!(str_fn);
     single_file!(str_expr);
     single_file!(str_expr_but_num_assigned);
+    single_file!(fn_body_infer);
     single_file!(basic_enum);
     single_file!(classes_and_vars);
     single_file!(enum_match);

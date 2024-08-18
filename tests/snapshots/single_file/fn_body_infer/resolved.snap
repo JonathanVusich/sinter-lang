@@ -1,0 +1,668 @@
+(
+  crates: [(
+    name: 8,
+    id: (
+      id: 0,
+    ),
+    items: [(
+      kind: Fn((
+        sig: (
+          name: (
+            ident: 1,
+            span: (
+              start: 3,
+              end: 12,
+            ),
+          ),
+          generic_params: [],
+          params: [(
+            local_var: (
+              ident: 2,
+              span: (
+                start: 13,
+                end: 16,
+              ),
+              id: 0,
+            ),
+            ty: (
+              kind: Primitive(U64),
+              span: (
+                start: 18,
+                end: 21,
+              ),
+              id: 1,
+            ),
+            mutability: Immutable,
+            span: (
+              start: 13,
+              end: 21,
+            ),
+            id: 2,
+          )],
+          ret_ty: Some((
+            kind: Primitive(Str),
+            span: (
+              start: 26,
+              end: 29,
+            ),
+            id: 3,
+          )),
+        ),
+        body: Some((
+          stmts: [(
+            kind: If((
+              condition: (
+                kind: Infix((
+                  operator: Greater,
+                  lhs: (
+                    kind: Path((
+                      segments: [(
+                        res: Local(Var((
+                          ident: 2,
+                          span: (
+                            start: 13,
+                            end: 16,
+                          ),
+                          id: 0,
+                        ))),
+                        generics: None,
+                      )],
+                    )),
+                    span: (
+                      start: 39,
+                      end: 42,
+                    ),
+                    id: 4,
+                  ),
+                  rhs: (
+                    kind: Int(1000),
+                    span: (
+                      start: 45,
+                      end: 49,
+                    ),
+                    id: 5,
+                  ),
+                )),
+                span: (
+                  start: 39,
+                  end: 49,
+                ),
+                id: 6,
+              ),
+              if_true: (
+                stmts: [(
+                  kind: Return((
+                    value: Some((
+                      kind: String(5),
+                      span: (
+                        start: 65,
+                        end: 84,
+                      ),
+                      id: 7,
+                    )),
+                  )),
+                  span: (
+                    start: 58,
+                    end: 85,
+                  ),
+                  id: 8,
+                )],
+                span: (
+                  start: 50,
+                  end: 91,
+                ),
+                id: 9,
+              ),
+              if_false: None,
+            )),
+            span: (
+              start: 36,
+              end: 91,
+            ),
+            id: 10,
+          ), (
+            kind: Return((
+              value: Some((
+                kind: String(6),
+                span: (
+                  start: 103,
+                  end: 131,
+                ),
+                id: 11,
+              )),
+            )),
+            span: (
+              start: 96,
+              end: 132,
+            ),
+            id: 12,
+          )],
+          span: (
+            start: 30,
+            end: 134,
+          ),
+          id: 13,
+        )),
+        span: (
+          start: 0,
+          end: 134,
+        ),
+        id: 14,
+      )),
+      span: (
+        start: 0,
+        end: 134,
+      ),
+      id: 14,
+    )],
+    nodes: {
+      0: LocalVar((
+        ident: 2,
+        span: (
+          start: 13,
+          end: 16,
+        ),
+        id: 0,
+      )),
+      1: Ty((
+        kind: Primitive(U64),
+        span: (
+          start: 18,
+          end: 21,
+        ),
+        id: 1,
+      )),
+      2: Param((
+        local_var: (
+          ident: 2,
+          span: (
+            start: 13,
+            end: 16,
+          ),
+          id: 0,
+        ),
+        ty: (
+          kind: Primitive(U64),
+          span: (
+            start: 18,
+            end: 21,
+          ),
+          id: 1,
+        ),
+        mutability: Immutable,
+        span: (
+          start: 13,
+          end: 21,
+        ),
+        id: 2,
+      )),
+      3: Ty((
+        kind: Primitive(Str),
+        span: (
+          start: 26,
+          end: 29,
+        ),
+        id: 3,
+      )),
+      4: Expr((
+        kind: Path((
+          segments: [(
+            res: Local(Var((
+              ident: 2,
+              span: (
+                start: 13,
+                end: 16,
+              ),
+              id: 0,
+            ))),
+            generics: None,
+          )],
+        )),
+        span: (
+          start: 39,
+          end: 42,
+        ),
+        id: 4,
+      )),
+      5: Expr((
+        kind: Int(1000),
+        span: (
+          start: 45,
+          end: 49,
+        ),
+        id: 5,
+      )),
+      6: Expr((
+        kind: Infix((
+          operator: Greater,
+          lhs: (
+            kind: Path((
+              segments: [(
+                res: Local(Var((
+                  ident: 2,
+                  span: (
+                    start: 13,
+                    end: 16,
+                  ),
+                  id: 0,
+                ))),
+                generics: None,
+              )],
+            )),
+            span: (
+              start: 39,
+              end: 42,
+            ),
+            id: 4,
+          ),
+          rhs: (
+            kind: Int(1000),
+            span: (
+              start: 45,
+              end: 49,
+            ),
+            id: 5,
+          ),
+        )),
+        span: (
+          start: 39,
+          end: 49,
+        ),
+        id: 6,
+      )),
+      7: Expr((
+        kind: String(5),
+        span: (
+          start: 65,
+          end: 84,
+        ),
+        id: 7,
+      )),
+      8: Stmt((
+        kind: Return((
+          value: Some((
+            kind: String(5),
+            span: (
+              start: 65,
+              end: 84,
+            ),
+            id: 7,
+          )),
+        )),
+        span: (
+          start: 58,
+          end: 85,
+        ),
+        id: 8,
+      )),
+      9: Block((
+        stmts: [(
+          kind: Return((
+            value: Some((
+              kind: String(5),
+              span: (
+                start: 65,
+                end: 84,
+              ),
+              id: 7,
+            )),
+          )),
+          span: (
+            start: 58,
+            end: 85,
+          ),
+          id: 8,
+        )],
+        span: (
+          start: 50,
+          end: 91,
+        ),
+        id: 9,
+      )),
+      10: Stmt((
+        kind: If((
+          condition: (
+            kind: Infix((
+              operator: Greater,
+              lhs: (
+                kind: Path((
+                  segments: [(
+                    res: Local(Var((
+                      ident: 2,
+                      span: (
+                        start: 13,
+                        end: 16,
+                      ),
+                      id: 0,
+                    ))),
+                    generics: None,
+                  )],
+                )),
+                span: (
+                  start: 39,
+                  end: 42,
+                ),
+                id: 4,
+              ),
+              rhs: (
+                kind: Int(1000),
+                span: (
+                  start: 45,
+                  end: 49,
+                ),
+                id: 5,
+              ),
+            )),
+            span: (
+              start: 39,
+              end: 49,
+            ),
+            id: 6,
+          ),
+          if_true: (
+            stmts: [(
+              kind: Return((
+                value: Some((
+                  kind: String(5),
+                  span: (
+                    start: 65,
+                    end: 84,
+                  ),
+                  id: 7,
+                )),
+              )),
+              span: (
+                start: 58,
+                end: 85,
+              ),
+              id: 8,
+            )],
+            span: (
+              start: 50,
+              end: 91,
+            ),
+            id: 9,
+          ),
+          if_false: None,
+        )),
+        span: (
+          start: 36,
+          end: 91,
+        ),
+        id: 10,
+      )),
+      11: Expr((
+        kind: String(6),
+        span: (
+          start: 103,
+          end: 131,
+        ),
+        id: 11,
+      )),
+      12: Stmt((
+        kind: Return((
+          value: Some((
+            kind: String(6),
+            span: (
+              start: 103,
+              end: 131,
+            ),
+            id: 11,
+          )),
+        )),
+        span: (
+          start: 96,
+          end: 132,
+        ),
+        id: 12,
+      )),
+      13: Block((
+        stmts: [(
+          kind: If((
+            condition: (
+              kind: Infix((
+                operator: Greater,
+                lhs: (
+                  kind: Path((
+                    segments: [(
+                      res: Local(Var((
+                        ident: 2,
+                        span: (
+                          start: 13,
+                          end: 16,
+                        ),
+                        id: 0,
+                      ))),
+                      generics: None,
+                    )],
+                  )),
+                  span: (
+                    start: 39,
+                    end: 42,
+                  ),
+                  id: 4,
+                ),
+                rhs: (
+                  kind: Int(1000),
+                  span: (
+                    start: 45,
+                    end: 49,
+                  ),
+                  id: 5,
+                ),
+              )),
+              span: (
+                start: 39,
+                end: 49,
+              ),
+              id: 6,
+            ),
+            if_true: (
+              stmts: [(
+                kind: Return((
+                  value: Some((
+                    kind: String(5),
+                    span: (
+                      start: 65,
+                      end: 84,
+                    ),
+                    id: 7,
+                  )),
+                )),
+                span: (
+                  start: 58,
+                  end: 85,
+                ),
+                id: 8,
+              )],
+              span: (
+                start: 50,
+                end: 91,
+              ),
+              id: 9,
+            ),
+            if_false: None,
+          )),
+          span: (
+            start: 36,
+            end: 91,
+          ),
+          id: 10,
+        ), (
+          kind: Return((
+            value: Some((
+              kind: String(6),
+              span: (
+                start: 103,
+                end: 131,
+              ),
+              id: 11,
+            )),
+          )),
+          span: (
+            start: 96,
+            end: 132,
+          ),
+          id: 12,
+        )],
+        span: (
+          start: 30,
+          end: 134,
+        ),
+        id: 13,
+      )),
+      14: Item((
+        kind: Fn((
+          sig: (
+            name: (
+              ident: 1,
+              span: (
+                start: 3,
+                end: 12,
+              ),
+            ),
+            generic_params: [],
+            params: [(
+              local_var: (
+                ident: 2,
+                span: (
+                  start: 13,
+                  end: 16,
+                ),
+                id: 0,
+              ),
+              ty: (
+                kind: Primitive(U64),
+                span: (
+                  start: 18,
+                  end: 21,
+                ),
+                id: 1,
+              ),
+              mutability: Immutable,
+              span: (
+                start: 13,
+                end: 21,
+              ),
+              id: 2,
+            )],
+            ret_ty: Some((
+              kind: Primitive(Str),
+              span: (
+                start: 26,
+                end: 29,
+              ),
+              id: 3,
+            )),
+          ),
+          body: Some((
+            stmts: [(
+              kind: If((
+                condition: (
+                  kind: Infix((
+                    operator: Greater,
+                    lhs: (
+                      kind: Path((
+                        segments: [(
+                          res: Local(Var((
+                            ident: 2,
+                            span: (
+                              start: 13,
+                              end: 16,
+                            ),
+                            id: 0,
+                          ))),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 39,
+                        end: 42,
+                      ),
+                      id: 4,
+                    ),
+                    rhs: (
+                      kind: Int(1000),
+                      span: (
+                        start: 45,
+                        end: 49,
+                      ),
+                      id: 5,
+                    ),
+                  )),
+                  span: (
+                    start: 39,
+                    end: 49,
+                  ),
+                  id: 6,
+                ),
+                if_true: (
+                  stmts: [(
+                    kind: Return((
+                      value: Some((
+                        kind: String(5),
+                        span: (
+                          start: 65,
+                          end: 84,
+                        ),
+                        id: 7,
+                      )),
+                    )),
+                    span: (
+                      start: 58,
+                      end: 85,
+                    ),
+                    id: 8,
+                  )],
+                  span: (
+                    start: 50,
+                    end: 91,
+                  ),
+                  id: 9,
+                ),
+                if_false: None,
+              )),
+              span: (
+                start: 36,
+                end: 91,
+              ),
+              id: 10,
+            ), (
+              kind: Return((
+                value: Some((
+                  kind: String(6),
+                  span: (
+                    start: 103,
+                    end: 131,
+                  ),
+                  id: 11,
+                )),
+              )),
+              span: (
+                start: 96,
+                end: 132,
+              ),
+              id: 12,
+            )],
+            span: (
+              start: 30,
+              end: 134,
+            ),
+            id: 13,
+          )),
+          span: (
+            start: 0,
+            end: 134,
+          ),
+          id: 14,
+        )),
+        span: (
+          start: 0,
+          end: 134,
+        ),
+        id: 14,
+      )),
+    },
+  )],
+  names_to_indices: [8],
+)

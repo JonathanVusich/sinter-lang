@@ -96,7 +96,7 @@ impl<'a> UnificationTable<'a> {
     }
 
     // Creates a self-referential index ptr into the vec.
-    pub(crate) fn fresh_ty(&mut self) -> TyVar {
+    pub(crate) fn fresh_ty(&self) -> TyVar {
         let index = self.table.borrow().len();
         let key = TyVar { id: index as u32 };
         self.table.borrow_mut().push(Entry::new(key));

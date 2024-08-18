@@ -1603,9 +1603,9 @@ impl<'hir> CrateResolver<'hir> {
                 self.scopes.pop();
 
                 let if_stmt = IfStmt {
-                    condition,
-                    if_true,
-                    if_false,
+                    condition: *condition,
+                    if_true: *if_true,
+                    if_false: if_false.map(|block| *block),
                 };
 
                 StmtKind::If(self.alloc(if_stmt))

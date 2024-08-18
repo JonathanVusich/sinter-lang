@@ -475,9 +475,9 @@ pub struct ForStmt<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct IfStmt<'a> {
-    pub condition: &'a Expr<'a>,
-    pub if_true: &'a Block<'a>,
-    pub if_false: Option<&'a Block<'a>>,
+    pub condition: Expr<'a>,
+    pub if_true: Block<'a>,
+    pub if_false: Option<Block<'a>>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]

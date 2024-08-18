@@ -1473,7 +1473,7 @@ impl<'ctxt> Parser<'ctxt> {
     fn destructure_expr(&mut self) -> Option<DestructureExpr> {
         self.track_span();
         match self.current() {
-            Some(TokenType::Identifier(ident)) => {
+            Some(TokenType::Identifier(_)) => {
                 // If the next token is a comma, we know that this is an identifier not a path.
                 match self.next_type(1) {
                     Some(TokenType::Comma) | Some(TokenType::RightParentheses) => {

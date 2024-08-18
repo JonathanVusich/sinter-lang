@@ -1,14 +1,12 @@
 #![allow(unused)]
 
-use std::cell::RefCell;
-use std::collections::HashMap;
 use std::fmt::Debug;
 use std::ops::{Add, Deref, Index, IndexMut};
 
 use serde::Serialize;
 
 use ast::{ClassType, Ident, InfixOp, Mutability, UnaryOp};
-use id::{CrateId, DefId, LocalDefId};
+use id::{CrateId, LocalDefId};
 use interner::InternedStr;
 use types::LDefMap;
 
@@ -141,7 +139,7 @@ pub struct FnDef<'a> {
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct ClosureDef<'a> {
-    pub params: Params<'a>,
+    pub params: ClosureDefParams<'a>,
     pub return_type: Ty<'a>,
 }
 
@@ -239,7 +237,8 @@ pub enum UintTy {
 pub type TraitBound<'a> = &'a [&'a Trait<'a>];
 pub type Generics<'a> = &'a [Ty<'a>];
 pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
-pub type Params<'a> = &'a [Ty<'a>];
+pub type Params<'a> = &'a [Param<'a>];
+pub type ClosureDefParams<'a> = &'a [Ty<'a>];
 pub type Fields<'a> = &'a [Ty<'a>];
 pub type MemberDefs<'a> = &'a [&'a MemberDef<'a>];
 pub type FnDefs<'a> = &'a [&'a FnDef<'a>];
@@ -405,6 +404,12 @@ pub struct IfStmt {
 pub struct GenericParam<'a> {
     pub ident: Ident,
     pub trait_bound: Option<TraitBound<'a>>,
+}
+
+#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
+pub struct Param<'a> {
+    pub ident: Ident,
+    pub ty: Ty<'a>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]

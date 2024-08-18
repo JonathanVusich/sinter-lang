@@ -1,10 +1,9 @@
 #![feature(hash_raw_entry)]
 
-use bumpalo::Bump;
 use lasso::{Rodeo, Spur};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::hash::Hash;
 
 #[repr(transparent)]

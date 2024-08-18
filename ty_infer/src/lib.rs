@@ -9,18 +9,20 @@ use bumpalo::Bump;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use ast::{InfixOp, UnaryOp};
-use diagnostics::{Diagnostic, Diagnostics};
-
-use hir::{HirCrate, HirMap, Item, ItemKind, Node, Primitive};
-use id::{DefId, LocalDefId};
+use ast::{Ident, InfixOp, LocalVar, ValueDef};
+use diagnostics::Diagnostics;
+use hir::{
+    Block, ForStmt, HirCrate, HirMap, IfStmt, Item, ItemKind, LetStmt, LocalDef, Node, Primitive,
+    Res, ReturnStmt, Segment, StmtKind, WhileStmt,
+};
+use id::DefId;
 use interner::{InternedStr, Interner};
 use typed_hir::{
-    ArrayExpr, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind, Fields, FloatTy, FnDef,
-    FnDefs, GenericParam, GenericParams, Generics, IntTy, LocalVar, MemberDef, MemberDefs, Params,
-    Stmt, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
+    ClassDef, ClosureDef, EnumDef, ExprId, ExprKind, Fields, FloatTy, FnDef, FnDefs, GenericParam,
+    GenericParams, IntTy, MemberDef, MemberDefs, Param, Params, Thir, ThirCrate, ThirMap, Trait,
+    TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
 };
-use types::LDefMap;
+use types::{LDefMap, StrMap};
 
 use crate::unification::UnificationTable;
 
@@ -33,10 +35,10 @@ pub fn infer_types<'hir>(
     hir_map: &'hir HirMap<'hir>,
 ) -> Option<ThirMap<'hir>> {
     let mut crates = Vec::default();
-    let ty_def_cache = TyDefCache::new(hir_allocator);
+    let ty_resolver: TyResolver<'hir> = TyResolver::new(hir_map, hir_allocator);
     for krate in hir_map.krates() {
         let crate_inference =
-            CrateInference::new(diagnostics, &ty_def_cache, hir_allocator, krate, hir_map);
+            CrateInference::new(diagnostics, &ty_resolver, hir_allocator, krate, hir_map);
         let bodies = crate_inference.infer_bodies()?;
         let tkrate = ThirCrate {
             name: krate.name,
@@ -54,21 +56,15 @@ pub fn infer_types<'hir>(
 ///
 /// TODO: All types SHOULD also be interned across crates using a ty interner.
 #[derive(Debug)]
-pub struct CrateInference<'hir, 'cache> {
+pub struct CrateInference<'a, 'hir> {
     diagnostics: &'hir Diagnostics,
-    ty_cache: &'cache TyDefCache<'hir>,
+    ty_resolver: &'a TyResolver<'hir>,
+
     hir_map: &'hir HirMap<'hir>,
     krate: &'hir HirCrate<'hir>,
 
     hir_allocator: &'hir Bump,
     bodies: LDefMap<Thir<'hir>>,
-}
-
-#[derive(Debug)]
-pub struct TyDefCache<'a> {
-    ty_allocator: &'a Bump,
-    defs: RefCell<HashMap<DefId, &'a DefType<'a>>>,
-    interner: Interner<'a, TyKind<'a>>,
 }
 
 #[derive(Debug)]
@@ -79,6 +75,13 @@ pub enum DefType<'a> {
     Trait(&'a TraitDef<'a>),
     Fn(&'a FnDef<'a>),
     GenericParam(&'a GenericParam<'a>),
+}
+
+#[derive(Debug)]
+pub struct TyDefCache<'a> {
+    ty_allocator: &'a Bump,
+    defs: RefCell<HashMap<DefId, &'a DefType<'a>>>,
+    interner: Interner<'a, TyKind<'a>>,
 }
 
 impl<'a> TyDefCache<'a> {
@@ -123,127 +126,402 @@ fn resolve_def<'a, T, F: FnOnce() -> &'a T>(
 }
 
 #[derive(Debug)]
-pub struct InferCtxt<'hir, 'cache> {
-    // Contains the current THIR body and information used to unify all the types.
-    thir: Thir<'hir>,
-    unify_table: UnificationTable<'hir>,
-
+pub struct TyResolver<'hir> {
+    ty_cache: TyDefCache<'hir>,
+    hir_map: &'hir HirMap<'hir>,
     hir_allocator: &'hir Bump,
-    ty_cache: &'cache TyDefCache<'hir>,
 }
 
-impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
-    /// The main function that performs type inference. Every function body or
-    /// expression should have a return type defined at compile time, and we can
-    /// use this to infer and validate an entire expression/blocks' types.
-    fn check_expr(mut self, expr: &hir::Expr<'hir>, ret_ty: Ty<'hir>) -> Thir<'hir> {
-        self.check(expr, ret_ty);
-        self.thir
-    }
-
-    /// The main function that performs type inference. Every function body or
-    /// expression should have a return type defined at compile time, and we can
-    /// use this to infer and validate an entire expression/blocks' types.
-    fn check_block(self, block: &hir::Block<'hir>, ret_ty: Ty<'hir>) -> Thir<'hir> {
-        for stmt in block.stmts {
-            // TODO: Move this into the infer_stmt method.
-            if stmt.is_return() {
-                self.check_stmt(stmt, ret_ty);
-            }
-            self.infer_stmt(stmt);
+impl<'hir> TyResolver<'hir> {
+    pub fn new(hir_map: &'hir HirMap<'hir>, hir_allocator: &'hir Bump) -> Self {
+        let ty_cache = TyDefCache::new(hir_allocator);
+        Self {
+            ty_cache,
+            hir_map,
+            hir_allocator,
         }
-        self.thir
     }
 
-    fn check(&mut self, expr: &hir::Expr<'hir>, ty: Ty<'hir>) {
-        let expr = match (expr.kind, ty) {
-            (hir::ExprKind::None, Ty { kind: TyKind::None }) => Expr {
-                kind: ExprKind::None,
-                ty,
+    pub fn intern(&self, ty_kind: TyKind<'hir>) -> Ty<'hir> {
+        self.ty_cache.intern(ty_kind)
+    }
+
+    fn maybe_resolve_ty(&self, existing_ty: Option<&hir::Ty<'hir>>) -> Option<Ty<'hir>> {
+        existing_ty.map(|ty| self.resolve_ty(ty))
+    }
+
+    fn resolve_ty(&self, existing_ty: &hir::Ty<'hir>) -> Ty<'hir> {
+        let ty_kind = match existing_ty.kind {
+            hir::TyKind::Array(array_ty) => TyKind::Array(self.resolve_ty(array_ty)),
+            hir::TyKind::Path(path) => self.resolve_path_ty(path),
+            hir::TyKind::GenericParam(generic_param) => {
+                let generic_param = self.resolve_generic_param(generic_param);
+                TyKind::GenericParam(generic_param)
+            }
+            hir::TyKind::TraitBound(trait_bound) => {
+                let trait_bound = self.resolve_trait_bound(trait_bound);
+                TyKind::TraitBound(trait_bound)
+            }
+            hir::TyKind::Closure(closure) => {
+                let params = self.hir_allocator.alloc_slice_fill_iter(
+                    closure.params.iter().map(|param| self.resolve_ty(param)),
+                );
+                let return_type = self.resolve_ty(closure.ret_ty);
+                let closure_def = self.alloc(ClosureDef {
+                    params,
+                    return_type,
+                });
+                TyKind::Closure(closure_def)
+            }
+            hir::TyKind::Primitive(primitive) => match primitive {
+                Primitive::U8 => TyKind::Uint(UintTy::U8),
+                Primitive::U16 => TyKind::Uint(UintTy::U16),
+                Primitive::U32 => TyKind::Uint(UintTy::U32),
+                Primitive::U64 => TyKind::Uint(UintTy::U64),
+                Primitive::I8 => TyKind::Int(IntTy::I8),
+                Primitive::I16 => TyKind::Int(IntTy::I16),
+                Primitive::I32 => TyKind::Int(IntTy::I32),
+                Primitive::I64 => TyKind::Int(IntTy::I64),
+                Primitive::F32 => TyKind::Float(FloatTy::F32),
+                Primitive::F64 => TyKind::Float(FloatTy::F64),
+                Primitive::Str => TyKind::Str,
+                Primitive::Boolean => TyKind::Boolean,
+                Primitive::None => TyKind::None,
             },
+        };
+        self.intern(ty_kind)
+    }
+
+    pub fn resolve_generic_params(&self, params: hir::GenericParams<'hir>) -> GenericParams<'hir> {
+        self.hir_allocator
+            .alloc_slice_fill_iter(params.iter().map(|param| self.resolve_generic_param(param)))
+    }
+
+    fn resolve_path_ty(&self, path: &hir::PathTy<'hir>) -> TyKind<'hir> {
+        let trait_ty = self
+            .ty_cache
+            .resolve_def(path.definition, || self.resolve_path(path.definition));
+        let generics = self
+            .hir_allocator
+            .alloc_slice_fill_iter(path.generics.iter().map(|generic| self.resolve_ty(generic)));
+        match trait_ty {
+            DefType::Class(class_def) => TyKind::Class(class_def, generics),
+            DefType::Enum(enum_def) => TyKind::Enum(enum_def, generics),
+            DefType::Member(member_def) => TyKind::Member(member_def, generics),
+            DefType::Trait(trait_def) => {
+                let trait_bound = self.hir_allocator.alloc_slice_fill_iter([self.alloc(Trait {
+                    trait_def,
+                    generics,
+                })]);
+                TyKind::TraitBound(trait_bound)
+            }
+            DefType::Fn(fn_def) => TyKind::Fn(fn_def, generics),
+            DefType::GenericParam(generic_param) => TyKind::GenericParam(generic_param),
+        }
+    }
+
+    fn resolve_path(&self, id: DefId) -> &'hir DefType<'hir> {
+        let node = self.hir_map.krate(&id).node(&id.local_id());
+        let def_type = match node {
+            Node::Item(Item {
+                kind: ItemKind::Class(class_def),
+                ..
+            }) => DefType::Class(self.resolve_class_def(class_def)),
+            Node::Item(Item {
+                kind: ItemKind::Enum(enum_def),
+                ..
+            }) => DefType::Enum(self.resolve_enum_def(enum_def)),
+            Node::Item(Item {
+                kind: ItemKind::Member(member_def),
+                ..
+            }) => DefType::Member(self.resolve_enum_member(member_def)),
+            Node::Item(Item {
+                kind: ItemKind::Fn(fn_def),
+                ..
+            }) => DefType::Fn(self.resolve_fn_def(fn_def)),
+            Node::Item(Item {
+                kind: ItemKind::Trait(trait_def),
+                ..
+            }) => DefType::Trait(self.resolve_trait_def(trait_def)),
+            Node::Ty(hir::Ty {
+                kind: hir::TyKind::GenericParam(param),
+                ..
+            }) => DefType::GenericParam(self.resolve_generic_param(param)),
+            node => {
+                dbg!(node);
+                panic!("Unsupported node type!");
+            }
+        };
+        self.alloc(def_type)
+    }
+
+    fn maybe_resolve_trait_bound(
+        &self,
+        trait_bound: &Option<hir::TraitBound>,
+    ) -> Option<TraitBound<'hir>> {
+        if let Some(trait_bound) = trait_bound {
+            return Some(self.resolve_trait_bound(trait_bound));
+        }
+        None
+    }
+
+    fn resolve_trait_bound(&self, trait_bound: hir::TraitBound) -> TraitBound<'hir> {
+        todo!()
+    }
+
+    fn resolve_class_def(&self, class_def: &hir::ClassDef<'hir>) -> &'hir ClassDef<'hir> {
+        let generic_params = self.resolve_generic_params(class_def.generic_params);
+        let fields = self.resolve_fields(class_def.fields);
+        let fns = self.resolve_fn_defs(class_def.fn_defs);
+        let class_def = self.alloc(ClassDef {
+            name: class_def.name,
+            class_type: class_def.class_type,
+            generic_params,
+            fields,
+            fns,
+        });
+        class_def
+    }
+
+    fn resolve_enum_def(&self, enum_def: &hir::EnumDef<'hir>) -> &'hir EnumDef<'hir> {
+        let name = enum_def.name;
+        let generic_params = self.resolve_generic_params(enum_def.generic_params);
+        let members = self.resolve_members(enum_def.members);
+        let fn_defs = self.resolve_fn_defs(enum_def.fn_defs);
+        let enum_def = self.alloc(EnumDef {
+            name,
+            generic_params,
+            members,
+            fn_defs,
+        });
+        enum_def
+    }
+
+    fn resolve_members(&self, members: hir::MemberDefs<'hir>) -> MemberDefs<'hir> {
+        self.hir_allocator.alloc_slice_fill_iter(
+            members
+                .iter()
+                .map(|member| self.resolve_enum_member(member)),
+        )
+    }
+
+    fn resolve_enum_member(&self, enum_member: &hir::MemberDef<'hir>) -> &'hir MemberDef<'hir> {
+        let name = enum_member.name;
+        let fields = self.resolve_fields(enum_member.fields);
+        let fn_defs = self.resolve_fn_defs(enum_member.fn_defs);
+
+        let member_def = self.alloc(MemberDef {
+            name,
+            fields,
+            fn_defs,
+        });
+        member_def
+    }
+
+    fn resolve_trait_def(&self, trait_def: &hir::TraitDef<'hir>) -> &'hir TraitDef<'hir> {
+        let name = trait_def.name;
+        let generic_params = self.resolve_generic_params(trait_def.generic_params);
+        let fn_defs = self.resolve_fn_defs(trait_def.fn_defs);
+        let trait_def = self.alloc(TraitDef {
+            name,
+            generic_params,
+            fn_defs,
+        });
+        trait_def
+    }
+
+    fn resolve_fn_defs(&self, fn_defs: hir::FnDefs<'hir>) -> FnDefs<'hir> {
+        self.hir_allocator
+            .alloc_slice_fill_iter(fn_defs.iter().map(|fn_def| self.resolve_fn_def(fn_def)))
+    }
+
+    fn resolve_fn_def(&self, fn_def: &hir::FnDef<'hir>) -> &'hir FnDef<'hir> {
+        let name = fn_def.sig.name;
+        let generic_params = self.resolve_generic_params(fn_def.sig.generic_params);
+        let params = self.resolve_params(fn_def.sig.params);
+        let return_type = fn_def
+            .sig
+            .ret_ty
+            .map(|ty| self.resolve_ty(ty))
+            .unwrap_or_else(|| self.intern(TyKind::None));
+
+        let fn_def = self.alloc(FnDef {
+            name,
+            generic_params,
+            params,
+            return_type,
+        });
+        fn_def
+    }
+
+    fn resolve_fields(&self, fields: hir::Fields<'hir>) -> Fields<'hir> {
+        self.hir_allocator
+            .alloc_slice_fill_iter(fields.iter().map(|field| self.resolve_ty(field.ty)))
+    }
+
+    fn resolve_params(&self, params: hir::Params<'hir>) -> Params<'hir> {
+        self.hir_allocator
+            .alloc_slice_fill_iter(params.iter().map(|param| {
+                let ty = self.resolve_ty(param.ty);
+                Param {
+                    ident: Ident::new(param.local_var.ident, param.local_var.span),
+                    ty,
+                }
+            }))
+    }
+
+    fn resolve_generic_param(&self, param: &hir::GenericParam<'hir>) -> &'hir GenericParam<'hir> {
+        let trait_bound = self.maybe_resolve_trait_bound(&param.trait_bound);
+        self.alloc(GenericParam {
+            ident: param.ident,
+            trait_bound,
+        })
+    }
+
+    fn alloc<T>(&self, val: T) -> &'hir T {
+        self.hir_allocator.alloc(val)
+    }
+}
+
+#[derive(Debug)]
+pub struct InferCtxt<'a, 'hir> {
+    // Contains the current THIR body and information used to unify all the types.
+    unify_table: UnificationTable<'hir>,
+    ty_resolver: &'a TyResolver<'hir>,
+    ty_map: LDefMap<Ty<'hir>>,
+    constraints: Constraints<'hir>,
+    type_envs: TypeEnvs<'hir>,
+    hir_allocator: &'hir Bump,
+}
+
+impl<'a, 'hir> InferCtxt<'a, 'hir> {
+    /// The main function that performs type inference. Every function body or
+    /// expression should have a return type defined at compile time, and we can
+    /// use this to infer and validate an entire expression/blocks' types.
+    fn check_expr(&self, expr: hir::Expr<'hir>, ret_ty: Ty<'hir>) {
+        self.type_envs.push(TypeEnv::new(ret_ty));
+        match (expr.kind, ret_ty) {
+            (hir::ExprKind::None, Ty { kind: TyKind::None }) => {}
             (
                 hir::ExprKind::True,
                 Ty {
                     kind: TyKind::Boolean,
                 },
-            ) => Expr {
-                kind: ExprKind::True,
-                ty,
-            },
+            ) => {}
             (
                 hir::ExprKind::False,
                 Ty {
                     kind: TyKind::Boolean,
                 },
-            ) => Expr {
-                kind: ExprKind::False,
-                ty,
-            },
+            ) => {}
             (
                 hir::ExprKind::Int(int),
                 Ty {
                     kind: TyKind::Int(IntTy::I64),
                 },
-            ) => Expr {
-                kind: ExprKind::Int(int),
-                ty,
-            },
+            ) => {}
             (
                 hir::ExprKind::UInt(uint),
                 Ty {
                     kind: TyKind::Uint(UintTy::U64),
                 },
-            ) => Expr {
-                kind: ExprKind::UInt(uint),
-                ty,
-            },
+            ) => {}
             (
                 hir::ExprKind::Float(float),
                 Ty {
                     kind: TyKind::Float(FloatTy::F64),
                 },
-            ) => Expr {
-                kind: ExprKind::Float(float),
-                ty,
-            },
-            (hir::ExprKind::String(string), Ty { kind: TyKind::Str }) => Expr {
-                kind: ExprKind::String(string),
-                ty,
-            },
-            (hir::ExprKind::None, Ty { kind: TyKind::None }) => Expr {
-                kind: ExprKind::None,
-                ty,
-            },
+            ) => {}
+            (hir::ExprKind::String(string), Ty { kind: TyKind::Str }) => {}
+            (hir::ExprKind::None, Ty { kind: TyKind::None }) => {}
             _ => {
-                let (mut constraints, expr) = self.infer_expr(expr);
-                constraints.push(Constraint::Assignable(ty, self.thir[expr].ty));
-                if self.unify_constraints(constraints) {
-                    self.substitute_expr(expr);
-                }
-                return;
+                let inferred_ty = self.infer_expr(&expr);
+                self.add_constraint(Constraint::Assignable(inferred_ty, ret_ty));
             }
         };
-        self.thir.insert_expr(expr);
+        self.type_envs.pop();
     }
 
-    fn infer_expr(&mut self, expr: &hir::Expr<'hir>) -> (Constraints<'hir>, ExprId) {
-        let (constraints, expr) = match expr.kind {
+    /// The main function that performs type inference. Every function body or
+    /// expression should have a return type defined at compile time, and we can
+    /// use this to infer and validate an entire expression/blocks' types.
+    fn check_block(&self, block: &hir::Block<'hir>, ret_ty: Ty<'hir>) {
+        self.type_envs.push(TypeEnv::new(ret_ty));
+        for stmt in block.stmts {
+            self.infer_stmt(stmt);
+        }
+        self.type_envs.pop();
+    }
+
+    fn check_stmt(&self, stmt: &hir::Stmt<'hir>, ret_ty: Ty<'hir>) {
+        todo!()
+    }
+
+    fn infer_stmt(&self, stmt: &hir::Stmt<'hir>) -> Ty<'hir> {
+        match stmt.kind {
+            StmtKind::Let(let_stmt) => self.infer_let_stmt(let_stmt),
+            StmtKind::For(for_stmt) => self.infer_for_stmt(for_stmt),
+            StmtKind::If(if_stmt) => self.infer_if_stmt(if_stmt),
+            StmtKind::Return(return_stmt) => self.infer_return_stmt(return_stmt),
+            StmtKind::While(while_stmt) => self.infer_while_stmt(while_stmt),
+            StmtKind::Block(block) => self.infer_block(block),
+            StmtKind::Expression(expr) => self.infer_expr(expr.expr),
+        }
+    }
+
+    fn infer_let_stmt(&self, let_stmt: &'hir LetStmt<'hir>) -> Ty<'hir> {
+        if let Some(explicit_ty) = let_stmt.ty {
+            todo!()
+        }
+        self.ty_resolver.intern(TyKind::None)
+    }
+
+    fn infer_for_stmt(&self, for_stmt: &'hir ForStmt<'hir>) -> Ty<'hir> {
+        todo!()
+    }
+
+    fn infer_if_stmt(&self, if_stmt: &'hir IfStmt<'hir>) -> Ty<'hir> {
+        let bool_ty = self.ty_resolver.intern(TyKind::Boolean);
+        self.check_expr(if_stmt.condition, bool_ty);
+        let true_ty = self.infer_block(&if_stmt.if_true);
+        if let Some(false_block) = if_stmt.if_false {
+            let false_ty = self.infer_block(&false_block);
+            self.add_constraint(Constraint::Assignable(false_ty, true_ty))
+        }
+        true_ty
+    }
+
+    fn infer_return_stmt(&self, return_stmt: &'hir ReturnStmt<'hir>) -> Ty<'hir> {
+        if let Some(ret_expr) = return_stmt.value {
+            return self.infer_expr(ret_expr);
+        }
+        self.infer_static(TyKind::None)
+    }
+
+    fn infer_while_stmt(&self, while_stmt: &'hir WhileStmt<'hir>) -> Ty<'hir> {
+        todo!()
+    }
+
+    fn build_thir(&self) -> Thir<'hir> {
+        // Solve constraints (if possible)
+        self.unify_constraints();
+
+        // Build Thir or return error
+        todo!()
+    }
+
+    fn infer_expr(&self, expr: &hir::Expr<'hir>) -> Ty<'hir> {
+        let ty = match expr.kind {
             hir::ExprKind::Array(array) => self.infer_array(array),
             hir::ExprKind::Call(call) => self.infer_call(call),
             hir::ExprKind::Infix(infix) => self.infer_infix(infix),
             hir::ExprKind::Unary(unary) => self.infer_unary(unary),
-            hir::ExprKind::None => self.infer_static(ExprKind::None, TyKind::None),
-            hir::ExprKind::True => self.infer_static(ExprKind::True, TyKind::Boolean),
-            hir::ExprKind::False => self.infer_static(ExprKind::False, TyKind::Boolean),
-            hir::ExprKind::Int(int) => {
-                self.infer_static(ExprKind::Int(int), TyKind::Int(IntTy::I64))
-            }
-            hir::ExprKind::UInt(uint) => {
-                self.infer_static(ExprKind::UInt(uint), TyKind::Uint(UintTy::U64))
-            }
-            hir::ExprKind::Float(float) => {
-                self.infer_static(ExprKind::Float(float), TyKind::Float(FloatTy::F64))
-            }
+            hir::ExprKind::None => self.infer_static(TyKind::None),
+            hir::ExprKind::True => self.infer_static(TyKind::Boolean),
+            hir::ExprKind::False => self.infer_static(TyKind::Boolean),
+            hir::ExprKind::Int(int) => self.infer_static(TyKind::Int(IntTy::I64)),
+            hir::ExprKind::UInt(uint) => self.infer_static(TyKind::Uint(UintTy::U64)),
+            hir::ExprKind::Float(float) => self.infer_static(TyKind::Float(FloatTy::F64)),
             hir::ExprKind::String(string) => self.infer_string(string),
             hir::ExprKind::Match(match_expr) => self.infer_match(match_expr),
             hir::ExprKind::Closure(closure) => self.infer_closure(closure),
@@ -251,171 +529,151 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
             hir::ExprKind::Field(field) => self.infer_field(field),
             hir::ExprKind::Index(index) => self.infer_index(index),
             hir::ExprKind::Path(path) => self.infer_path(path),
-            hir::ExprKind::Block(block) => self.infer_block(block),
-            hir::ExprKind::Break => self.infer_static(ExprKind::None, TyKind::None),
-            hir::ExprKind::Continue => self.infer_static(ExprKind::None, TyKind::None),
+            hir::ExprKind::Block(block) => self.infer_block(&block),
+            hir::ExprKind::Break => self.infer_static(TyKind::None),
+            hir::ExprKind::Continue => self.infer_static(TyKind::None),
         };
-        let expr_id = self.thir.insert_expr(expr);
-        (constraints, expr_id)
+        ty
     }
 
-    fn infer_array(&mut self, array_expr: hir::ArrayExpr<'hir>) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_array(&self, array_expr: hir::ArrayExpr<'hir>) -> Ty<'hir> {
         match array_expr {
             hir::ArrayExpr::Sized { initializer, size } => {
-                let (mut constraints, initializer) = self.infer_expr(initializer);
-                let (size_constraints, size) = self.infer_expr(size);
-                constraints.extend(size_constraints);
+                let initializer = self.infer_expr(&initializer);
+                let size = self.infer_expr(size);
 
-                let kind = TyKind::Array(self.thir[initializer].ty);
-                let expr = Expr {
-                    kind: ExprKind::Array(ArrayExpr::Sized { initializer, size }),
-                    ty: self.ty_cache.intern(kind),
-                };
-                (constraints, expr)
+                let kind = TyKind::Array(initializer);
+                self.ty_resolver.intern(kind)
             }
             hir::ArrayExpr::Unsized { initializers } => {
-                let mut constraints = Constraints::default();
-                let mut inits = Vec::default();
                 let array_ty = self
-                    .ty_cache
+                    .ty_resolver
                     .intern(TyKind::Infer(self.unify_table.fresh_ty()));
 
                 for initializer in initializers {
-                    let (c, initializer) = self.infer_expr(initializer);
-                    constraints.extend(c);
-
-                    let inferred_ty = self.thir[initializer].ty;
-                    constraints.push(Constraint::Assignable(array_ty, inferred_ty));
-                    inits.push(initializer);
+                    let initializer = self.infer_expr(initializer);
+                    self.constraints
+                        .borrow_mut()
+                        .push(Constraint::Assignable(array_ty, initializer));
                 }
 
-                let ty = self.ty_cache.intern(TyKind::Array(array_ty));
-                let expr = Expr {
-                    kind: ExprKind::Array(ArrayExpr::Unsized {
-                        initializers: inits.into_boxed_slice(),
-                    }),
-                    ty,
-                };
-                (constraints, expr)
+                self.ty_resolver.intern(TyKind::Array(array_ty))
             }
         }
     }
 
-    fn infer_call(&self, call: hir::CallExpr) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_call(&self, call: hir::CallExpr) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_infix(&self, infix: hir::InfixExpr) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_infix(&self, infix: hir::InfixExpr<'hir>) -> Ty<'hir> {
+        let lhs = self.infer_expr(infix.lhs);
+        let rhs = self.infer_expr(infix.rhs);
+
+        self.add_constraint(Constraint::Assignable(lhs, rhs));
+        self.add_constraint(Constraint::Infix(lhs, rhs, infix.operator));
+        lhs
+    }
+
+    fn infer_unary(&self, unary: hir::UnaryExpr) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_unary(&self, unary: hir::UnaryExpr) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_static(&self, ty_kind: TyKind<'hir>) -> Ty<'hir> {
+        self.ty_resolver.intern(ty_kind)
+    }
+
+    fn infer_int(&self, int: i64) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_static(
-        &self,
-        kind: ExprKind<'hir>,
-        ty_kind: TyKind<'hir>,
-    ) -> (Constraints<'hir>, Expr<'hir>) {
-        let expr = Expr {
-            kind,
-            ty: self.ty_cache.intern(ty_kind),
-        };
-        (vec![], expr)
-    }
-
-    fn infer_int(&self, int: i64) -> (Constraints<'hir>, Expr) {
+    fn infer_uint(&self, int: u64) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_uint(&self, int: u64) -> (Constraints<'hir>, Expr) {
+    fn infer_float(&self, float: f64) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_float(&self, float: f64) -> (Constraints<'hir>, Expr) {
+    fn infer_string(&self, string: InternedStr) -> Ty<'hir> {
+        self.ty_resolver.intern(TyKind::Str)
+    }
+
+    fn infer_match(&self, match_expr: hir::MatchExpr) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_string(&self, string: InternedStr) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_closure(&self, closure: hir::ClosureExpr) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_match(&self, match_expr: hir::MatchExpr) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_assign(&self, assign: hir::AssignExpr) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_closure(&self, closure: hir::ClosureExpr) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_field(&self, field: hir::FieldExpr) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_assign(&self, assign: hir::AssignExpr) -> (Constraints<'hir>, Expr<'hir>) {
+    fn infer_index(&self, index_expr: hir::IndexExpr) -> Ty<'hir> {
         todo!()
     }
 
-    fn infer_field(&self, field: hir::FieldExpr) -> (Constraints<'hir>, Expr<'hir>) {
-        todo!()
+    fn infer_path(&self, path: hir::PathExpr<'hir>) -> Ty<'hir> {
+        match path.segments.last().unwrap().res {
+            Res::Crate(_) | Res::ModuleSegment(_, _) | Res::Module(_) | Res::Primitive(_) => {
+                panic!("I think this is a logic bug that should be caught by the resolver.")
+            }
+            Res::Local(LocalDef::Var(local_var)) => {
+                // Unwrap should be safe since we have already validated the HIR and local vars should resolve.
+                self.type_envs.find(local_var).unwrap()
+            }
+            _ => todo!(),
+        }
     }
 
-    fn infer_index(&self, index_expr: hir::IndexExpr) -> (Constraints<'hir>, Expr<'hir>) {}
-
-    fn infer_path(&self, path: hir::PathExpr) -> (Constraints<'hir>, Expr<'hir>) {
-        todo!()
+    fn infer_block(&self, block: &Block<'hir>) -> Ty<'hir> {
+        self.type_envs.push(TypeEnv::new(self.fresh_ty()));
+        for stmt in block.stmts {
+            self.infer_stmt(stmt);
+        }
+        let type_env = self.type_envs.pop().unwrap();
+        type_env.ret_ty
     }
 
-    fn infer_block(&self, block: hir::Block<'hir>) -> (Constraints<'hir>, Expr<'hir>) {
-        todo!()
+    fn fresh_ty(&self) -> Ty<'hir> {
+        let ty_kind = TyKind::Infer(self.unify_table.fresh_ty());
+        self.ty_resolver.intern(ty_kind)
     }
 
     /// Walk the expression tree and normalize the types
     /// which should generate a completely typed expression tree.
-    fn substitute_expr(&mut self, expr_id: ExprId) {
-        let expr = self.thir[expr_id].clone();
-        match &expr.kind {
-            ExprKind::Array(ArrayExpr::Sized { initializer, size }) => {
-                self.substitute_expr(*initializer);
-                self.substitute_expr(*size);
-            }
-            ExprKind::Array(ArrayExpr::Unsized { initializers }) => {
-                initializers
-                    .iter()
-                    .for_each(|initializer| self.substitute_expr(*initializer));
-            }
-            ExprKind::Call(_) => {}
-            ExprKind::Infix(_) => {}
-            ExprKind::Unary(_) => {}
-            ExprKind::None => {}
-            ExprKind::True => {}
-            ExprKind::False => {}
-            ExprKind::Int(_) => {}
-            ExprKind::UInt(_) => {}
-            ExprKind::Float(_) => {}
-            ExprKind::String(_) => {}
-            ExprKind::Match(_) => {}
-            ExprKind::Closure(_) => {}
-            ExprKind::Assign(_) => {}
-            ExprKind::Field(_) => {}
-            ExprKind::Index(_) => {}
-            ExprKind::Block(_) => {}
-            ExprKind::Path(_) => {}
-            ExprKind::Break => {}
-            ExprKind::Continue => {}
-        }
+    fn substitute_expr(&self, expr_id: ExprId) {
+        todo!()
     }
 
-    fn unify_constraints(&self, constraints: Constraints<'hir>) -> bool {
-        constraints
-            .into_iter()
+    fn add_constraint(&self, constraint: Constraint<'hir>) {
+        self.constraints.borrow_mut().push(constraint);
+    }
+
+    fn unify_constraints(&self) -> bool {
+        self.constraints
+            .borrow()
+            .iter()
             .all(|constraint| self.unify(constraint))
     }
 
-    fn unify(&self, constraint: Constraint<'hir>) -> bool {
+    fn unify(&self, constraint: &Constraint<'hir>) -> bool {
         match constraint {
             Constraint::Equal(lhs, rhs) => {
-                self.unify_ty_ty(lhs, rhs, Ty::eq)
+                self.unify_ty_ty(*lhs, *rhs, Ty::eq)
                 // TODO: Handle type errors
             }
             Constraint::Assignable(lhs, rhs) => {
+                // self.unify_ty_ty(*lhs, *rhs, Ty::assignable)
+                todo!()
+            }
+            Constraint::Infix(lhs, rhs, infix_op) => {
                 todo!()
             }
         }
@@ -488,32 +746,33 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
         match ty.kind {
             TyKind::Array(array) => self
                 .normalize_ty(*array)
-                .map(|inner_ty| self.ty_cache.intern(TyKind::Array(inner_ty))),
+                .map(|inner_ty| self.ty_resolver.intern(TyKind::Array(inner_ty))),
             TyKind::Class(class_def, generics) => self
                 .normalize_tys(generics)
-                .map(|generics| self.ty_cache.intern(TyKind::Class(class_def, generics))),
+                .map(|generics| self.ty_resolver.intern(TyKind::Class(class_def, generics))),
             TyKind::Enum(enum_def, generics) => self
                 .normalize_tys(generics)
-                .map(|generics| self.ty_cache.intern(TyKind::Enum(enum_def, generics))),
-            TyKind::Member(member_def, generics) => self
-                .normalize_tys(generics)
-                .map(|generics| self.ty_cache.intern(TyKind::Member(member_def, generics))),
+                .map(|generics| self.ty_resolver.intern(TyKind::Enum(enum_def, generics))),
+            TyKind::Member(member_def, generics) => self.normalize_tys(generics).map(|generics| {
+                self.ty_resolver
+                    .intern(TyKind::Member(member_def, generics))
+            }),
             TyKind::TraitBound(trait_bound) => self
                 .normalize_trait_bound(trait_bound)
-                .map(|trait_bound| self.ty_cache.intern(TyKind::TraitBound(trait_bound))),
+                .map(|trait_bound| self.ty_resolver.intern(TyKind::TraitBound(trait_bound))),
             TyKind::GenericParam(GenericParam { ident, trait_bound }) => match trait_bound {
                 Some(trait_bound) => self.normalize_trait_bound(trait_bound).map(|trait_bound| {
                     let generic_param = self.alloc(GenericParam {
                         ident: *ident,
                         trait_bound: Some(trait_bound),
                     });
-                    self.ty_cache.intern(TyKind::GenericParam(generic_param))
+                    self.ty_resolver.intern(TyKind::GenericParam(generic_param))
                 }),
                 None => None,
             },
             TyKind::Fn(fn_def, generics) => self
                 .normalize_tys(generics)
-                .map(|generics| self.ty_cache.intern(TyKind::Fn(fn_def, generics))),
+                .map(|generics| self.ty_resolver.intern(TyKind::Fn(fn_def, generics))),
             TyKind::Closure(closure_def) => {
                 // TODO: There is a bug here where the params may need normalization but not the return type.
                 // Need to properly handle both cases.
@@ -526,7 +785,7 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
                             params,
                             return_type,
                         });
-                        self.ty_cache.intern(TyKind::Closure(closure_def))
+                        self.ty_resolver.intern(TyKind::Closure(closure_def))
                     })
             }
             TyKind::Infer(ty_var) => {
@@ -606,30 +865,39 @@ impl<'hir, 'cache> InferCtxt<'hir, 'cache> {
 
     fn new(
         generic_params: GenericParams<'hir>,
-        ty_interner: &'cache TyDefCache<'hir>,
+        params: Params<'hir>,
+        ty_resolver: &'a TyResolver<'hir>,
         hir_allocator: &'hir Bump,
         ret_ty: Ty<'hir>,
     ) -> Self {
+        let mut type_envs = TypeEnvs::default();
+        let mut type_env = TypeEnv::new(ret_ty);
+        for param in params {
+            type_env.local_vars.insert(param.ident.ident, param.ty);
+        }
+        type_envs.push(type_env);
         Self {
-            thir: Thir::new(generic_params, ret_ty),
             unify_table: Default::default(),
+            ty_resolver,
+            ty_map: Default::default(),
+            constraints: Constraints::default(),
+            type_envs,
             hir_allocator,
-            ty_cache: ty_interner,
         }
     }
 }
 
-impl<'hir, 'cache> CrateInference<'hir, 'cache> {
+impl<'a, 'hir> CrateInference<'a, 'hir> {
     pub fn new(
         diagnostics: &'hir Diagnostics,
-        ty_cache: &'cache TyDefCache<'hir>,
+        ty_resolver: &'a TyResolver<'hir>,
         hir_allocator: &'hir Bump,
         krate: &'hir HirCrate,
         hir_map: &'hir HirMap,
     ) -> Self {
         Self {
             diagnostics,
-            ty_cache,
+            ty_resolver,
             hir_allocator,
             hir_map,
             krate,
@@ -658,19 +926,23 @@ impl<'hir, 'cache> CrateInference<'hir, 'cache> {
     }
 
     fn infer_constant(&mut self, constant: &hir::Constant<'hir>) {
-        let ret_ty = self.resolve_ty(constant.ty);
+        let ret_ty = self.ty_resolver.resolve_ty(constant.ty);
 
         let mut infer_ctxt: InferCtxt = InferCtxt::new(
             GenericParams::default(),
-            &self.ty_cache,
+            Params::default(),
+            &self.ty_resolver,
             &self.hir_allocator,
             ret_ty,
         );
-        let thir = infer_ctxt.check_expr(constant.initializer, ret_ty);
+        infer_ctxt.check_expr(*constant.initializer, ret_ty);
+        let thir = infer_ctxt.build_thir();
+
         self.bodies.insert(constant.initializer.id, thir);
     }
 
     fn infer_class(&mut self, class_def: &hir::ClassDef<'hir>) {
+        // TODO: Add type checking for proper usage of generic parameters and type construction of field types.
         for function in class_def.fn_defs {
             self.check_fn_def(function);
         }
@@ -713,19 +985,27 @@ impl<'hir, 'cache> CrateInference<'hir, 'cache> {
 
     fn check_fn_def(&mut self, fn_def: &hir::FnDef<'hir>) {
         if let Some(block) = fn_def.body {
-            let generic_params = self.resolve_generic_params(fn_def.sig.generic_params);
+            let generic_params = self
+                .ty_resolver
+                .resolve_generic_params(fn_def.sig.generic_params);
+            let params = self.ty_resolver.resolve_params(fn_def.sig.params);
+
             let ret_ty = self
+                .ty_resolver
                 .maybe_resolve_ty(fn_def.sig.ret_ty)
-                .unwrap_or_else(|| self.intern_ty(TyKind::None));
+                .unwrap_or_else(|| self.ty_resolver.intern(TyKind::None));
 
-            let infer_ctxt =
-                InferCtxt::new(generic_params, &self.ty_cache, &self.hir_allocator, ret_ty);
-            let thir = infer_ctxt.check_block(block, ret_ty);
+            let infer_ctxt = InferCtxt::new(
+                generic_params,
+                params,
+                &self.ty_resolver,
+                &self.hir_allocator,
+                ret_ty,
+            );
+            infer_ctxt.check_block(block, ret_ty);
+            let thir = infer_ctxt.build_thir();
+            let 
         }
-    }
-
-    fn check_block(&self, block: &hir::Block) -> Thir<'hir> {
-        todo!()
     }
 
     /// This method is not fallible since all constraints should already have been satisfied.
@@ -751,248 +1031,65 @@ impl<'hir, 'cache> CrateInference<'hir, 'cache> {
     //
     //     self.unify_ty_ty(ret_ty, *fn_sig.ret_ty.clone(), Type::assignable)
     // }
+}
 
-    fn maybe_resolve_ty(&mut self, existing_ty: Option<&hir::Ty<'hir>>) -> Option<Ty<'hir>> {
-        existing_ty.map(|ty| self.resolve_ty(ty))
-    }
+type Constraints<'hir> = RefCell<Vec<Constraint<'hir>>>;
 
-    fn resolve_ty(&mut self, existing_ty: &hir::Ty<'hir>) -> Ty<'hir> {
-        let ty_kind = match existing_ty.kind {
-            hir::TyKind::Array(array_ty) => TyKind::Array(self.resolve_ty(array_ty)),
-            hir::TyKind::Path(path) => self.resolve_path_ty(path),
-            hir::TyKind::GenericParam(generic_param) => {
-                let generic_param = self.resolve_generic_param(generic_param);
-                TyKind::GenericParam(generic_param)
-            }
-            hir::TyKind::TraitBound(trait_bound) => {
-                let trait_bound = self.resolve_trait_bound(trait_bound);
-                TyKind::TraitBound(trait_bound)
-            }
-            hir::TyKind::Closure(closure) => {
-                let params = self.hir_allocator.alloc_slice_fill_iter(
-                    closure.params.iter().map(|param| self.resolve_ty(param)),
-                );
-                let return_type = self.resolve_ty(closure.ret_ty);
-                let closure_def = self.alloc(ClosureDef {
-                    params,
-                    return_type,
-                });
-                TyKind::Closure(closure_def)
-            }
-            hir::TyKind::Primitive(primitive) => match primitive {
-                Primitive::U8 => TyKind::Uint(UintTy::U8),
-                Primitive::U16 => TyKind::Uint(UintTy::U16),
-                Primitive::U32 => TyKind::Uint(UintTy::U32),
-                Primitive::U64 => TyKind::Uint(UintTy::U64),
-                Primitive::I8 => TyKind::Int(IntTy::I8),
-                Primitive::I16 => TyKind::Int(IntTy::I16),
-                Primitive::I32 => TyKind::Int(IntTy::I32),
-                Primitive::I64 => TyKind::Int(IntTy::I64),
-                Primitive::F32 => TyKind::Float(FloatTy::F32),
-                Primitive::F64 => TyKind::Float(FloatTy::F64),
-                Primitive::Str => TyKind::Str,
-                Primitive::Boolean => TyKind::Boolean,
-                Primitive::None => TyKind::None,
-            },
-        };
-        self.intern_ty(ty_kind)
-    }
+#[derive(Debug, Default)]
+struct TypeEnvs<'hir> {
+    envs: RefCell<Vec<TypeEnv<'hir>>>,
+}
 
-    fn resolve_class_def(&mut self, class_def: &hir::ClassDef<'hir>) -> &'hir ClassDef<'hir> {
-        let generic_params = self.resolve_generic_params(class_def.generic_params);
-        let fields = self.resolve_fields(class_def.fields);
-        let fns = self.resolve_fn_defs(class_def.fn_defs);
-        let class_def = self.alloc(ClassDef {
-            name: class_def.name,
-            class_type: class_def.class_type,
-            generic_params,
-            fields,
-            fns,
-        });
-        class_def
-    }
-
-    fn resolve_enum_def(&mut self, enum_def: &hir::EnumDef<'hir>) -> &'hir EnumDef<'hir> {
-        let name = enum_def.name;
-        let generic_params = self.resolve_generic_params(enum_def.generic_params);
-        let members = self.resolve_members(enum_def.members);
-        let fn_defs = self.resolve_fn_defs(enum_def.fn_defs);
-        let enum_def = self.alloc(EnumDef {
-            name,
-            generic_params,
-            members,
-            fn_defs,
-        });
-        enum_def
-    }
-
-    fn resolve_members(&mut self, members: hir::MemberDefs<'hir>) -> MemberDefs<'hir> {
-        self.hir_allocator.alloc_slice_fill_iter(
-            members
-                .iter()
-                .map(|member| self.resolve_enum_member(member)),
-        )
-    }
-
-    fn resolve_enum_member(&mut self, enum_member: &hir::MemberDef<'hir>) -> &'hir MemberDef<'hir> {
-        let name = enum_member.name;
-        let fields = self.resolve_fields(enum_member.fields);
-        let fn_defs = self.resolve_fn_defs(enum_member.fn_defs);
-
-        let member_def = self.alloc(MemberDef {
-            name,
-            fields,
-            fn_defs,
-        });
-        member_def
-    }
-
-    fn resolve_trait_def(&mut self, trait_def: &hir::TraitDef<'hir>) -> &'hir TraitDef<'hir> {
-        let name = trait_def.name;
-        let generic_params = self.resolve_generic_params(trait_def.generic_params);
-        let fn_defs = self.resolve_fn_defs(trait_def.fn_defs);
-        let trait_def = self.alloc(TraitDef {
-            name,
-            generic_params,
-            fn_defs,
-        });
-        trait_def
-    }
-
-    fn resolve_fn_defs(&mut self, fn_defs: hir::FnDefs<'hir>) -> FnDefs<'hir> {
-        self.hir_allocator
-            .alloc_slice_fill_iter(fn_defs.iter().map(|fn_def| self.resolve_fn_def(fn_def)))
-    }
-
-    fn resolve_fn_def(&mut self, fn_def: &hir::FnDef<'hir>) -> &'hir FnDef<'hir> {
-        let name = fn_def.sig.name;
-        let generic_params = self.resolve_generic_params(fn_def.sig.generic_params);
-        let params = self.resolve_params(fn_def.sig.params);
-        let return_type = fn_def
-            .sig
-            .ret_ty
-            .map(|ty| self.resolve_ty(ty))
-            .unwrap_or_else(|| self.intern_ty(TyKind::None));
-
-        let fn_def = self.alloc(FnDef {
-            name,
-            generic_params,
-            params,
-            return_type,
-        });
-        fn_def
-    }
-
-    fn resolve_fields(&mut self, fields: hir::Fields<'hir>) -> Fields<'hir> {
-        self.hir_allocator
-            .alloc_slice_fill_iter(fields.iter().map(|field| self.resolve_ty(field.ty)))
-    }
-
-    fn resolve_params(&mut self, params: hir::Params<'hir>) -> Params<'hir> {
-        self.hir_allocator
-            .alloc_slice_fill_iter(params.iter().map(|param| self.resolve_ty(param.ty)))
-    }
-
-    fn resolve_generic_params(&mut self, params: hir::GenericParams<'hir>) -> GenericParams<'hir> {
-        self.hir_allocator
-            .alloc_slice_fill_iter(params.iter().map(|param| self.resolve_generic_param(param)))
-    }
-
-    fn resolve_generic_param(&self, param: &hir::GenericParam<'hir>) -> &'hir GenericParam<'hir> {
-        let trait_bound = self.maybe_resolve_trait_bound(&param.trait_bound);
-        self.alloc(GenericParam {
-            ident: param.ident,
-            trait_bound,
-        })
-    }
-
-    fn resolve_path_ty(&mut self, path: &hir::PathTy<'hir>) -> TyKind<'hir> {
-        let trait_ty = self
-            .ty_cache
-            .resolve_def(path.definition, || self.resolve_path(path.definition));
-        let generics = self
-            .hir_allocator
-            .alloc_slice_fill_iter(path.generics.iter().map(|generic| self.resolve_ty(generic)));
-        match trait_ty {
-            DefType::Class(class_def) => TyKind::Class(class_def, generics),
-            DefType::Enum(enum_def) => TyKind::Enum(enum_def, generics),
-            DefType::Member(member_def) => TyKind::Member(member_def, generics),
-            DefType::Trait(trait_def) => {
-                let trait_bound = self.hir_allocator.alloc_slice_fill_iter([self.alloc(Trait {
-                    trait_def,
-                    generics,
-                })]);
-                TyKind::TraitBound(trait_bound)
-            }
-            DefType::Fn(fn_def) => TyKind::Fn(fn_def, generics),
-            DefType::GenericParam(generic_param) => TyKind::GenericParam(generic_param),
+impl<'hir> TypeEnvs<'hir> {
+    pub fn from(type_env: TypeEnv<'hir>) -> Self {
+        Self {
+            envs: RefCell::new(vec![type_env]),
         }
     }
+    pub fn push(&self, type_env: TypeEnv<'hir>) {
+        self.envs.borrow_mut().push(type_env);
+    }
 
-    fn resolve_path(&mut self, id: DefId) -> &'hir DefType<'hir> {
-        let node = self.hir_map.krate(&id).node(&id.local_id());
-        let def_type = match node {
-            Node::Item(Item {
-                kind: ItemKind::Class(class_def),
-                ..
-            }) => DefType::Class(self.resolve_class_def(class_def)),
-            Node::Item(Item {
-                kind: ItemKind::Enum(enum_def),
-                ..
-            }) => DefType::Enum(self.resolve_enum_def(enum_def)),
-            Node::Item(Item {
-                kind: ItemKind::Member(member_def),
-                ..
-            }) => DefType::Member(self.resolve_enum_member(member_def)),
-            Node::Item(Item {
-                kind: ItemKind::Fn(fn_def),
-                ..
-            }) => DefType::Fn(self.resolve_fn_def(fn_def)),
-            Node::Item(Item {
-                kind: ItemKind::Trait(trait_def),
-                ..
-            }) => DefType::Trait(self.resolve_trait_def(trait_def)),
-            Node::Ty(hir::Ty {
-                kind: hir::TyKind::GenericParam(param),
-                ..
-            }) => DefType::GenericParam(self.resolve_generic_param(param)),
-            node => {
-                dbg!(node);
-                panic!("Unsupported node type!");
+    pub fn pop(&self) -> Option<TypeEnv<'hir>> {
+        self.envs.borrow_mut().pop()
+    }
+
+    pub fn insert(&self, local_var: hir::LocalVar, ty: Ty<'hir>) {
+        let mut borrowed_envs = self.envs.borrow_mut();
+        let env = borrowed_envs.last_mut().unwrap();
+        env.local_vars.insert(local_var.ident, ty);
+    }
+
+    pub fn find(&self, local_var: &hir::LocalVar) -> Option<Ty<'hir>> {
+        for env in self.envs.borrow().iter().rev() {
+            if let Some(ty) = env.local_vars.get(&local_var.ident) {
+                return Some(*ty);
             }
-        };
-        self.alloc(def_type)
-    }
-
-    fn maybe_resolve_trait_bound(
-        &self,
-        trait_bound: &Option<hir::TraitBound>,
-    ) -> Option<TraitBound<'hir>> {
-        if let Some(trait_bound) = trait_bound {
-            return Some(self.resolve_trait_bound(trait_bound));
         }
-        None
-    }
-
-    fn resolve_trait_bound(&self, trait_bound: hir::TraitBound) -> TraitBound<'hir> {
-        todo!()
-    }
-
-    fn intern_ty(&self, ty_kind: TyKind<'hir>) -> Ty<'hir> {
-        self.ty_cache.intern(ty_kind)
-    }
-
-    fn alloc<T>(&self, val: T) -> &'hir T {
-        self.hir_allocator.alloc(val)
+        return None;
     }
 }
 
-type Constraints<'hir> = Vec<Constraint<'hir>>;
+#[derive(Debug)]
+struct TypeEnv<'hir> {
+    local_vars: StrMap<Ty<'hir>>,
+    ret_ty: Ty<'hir>,
+}
+
+impl<'hir> TypeEnv<'hir> {
+    pub fn new(ret_ty: Ty<'hir>) -> Self {
+        Self {
+            local_vars: Default::default(),
+            ret_ty,
+        }
+    }
+}
 
 #[derive(Debug)]
 enum Constraint<'hir> {
     Equal(Ty<'hir>, Ty<'hir>),
     Assignable(Ty<'hir>, Ty<'hir>),
+    Infix(Ty<'hir>, Ty<'hir>, InfixOp),
 }
 
 #[derive(Debug)]
