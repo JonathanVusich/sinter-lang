@@ -22,7 +22,9 @@ pub struct DestructureExprId(u32);
 pub struct BlockId(u32);
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct StmtId(u32);
+pub struct StmtId {
+    pub(crate) id: u32,
+}
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ArmId(u32);
@@ -300,7 +302,7 @@ pub struct TyPattern {
     pub ident: Option<LocalVar>,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize)]
+#[derive(Copy, Clone, PartialEq, Debug, Serialize)]
 pub struct LocalVar {
     pub ident: InternedStr,
 }
@@ -436,7 +438,6 @@ impl<'hir> Thir<'hir> {
         Self {
             generic_params,
             ret_ty,
-            blocks: Default::default(),
             arms: Default::default(),
             stmts: Default::default(),
             exprs: Default::default(),
@@ -449,6 +450,13 @@ impl<'hir> Thir<'hir> {
         let expr_id = ExprId { id };
         self.exprs.push(expr);
         expr_id
+    }
+
+    pub fn insert_stmt(&mut self, stmt: Stmt<'hir>) -> StmtId {
+        let id = self.stmts.len() as u32;
+        let stmt_id = StmtId { id };
+        self.stmts.push(stmt);
+        stmt_id
     }
 }
 

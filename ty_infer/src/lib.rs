@@ -9,15 +9,12 @@ use bumpalo::Bump;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use ast::{Ident, InfixOp, LocalVar, ValueDef};
+use ast::{Ident, InfixOp, ValueDef};
 use diagnostics::Diagnostics;
-use hir::{
-    ForStmt, HirCrate, HirMap, IfStmt, Item, ItemKind, LetStmt, LocalDef, Node, Primitive,
-    Res, ReturnStmt, Segment, StmtKind, WhileStmt,
-};
+use hir::{ForStmt, HirCrate, HirMap, IfStmt, Item, ItemKind, LocalDef, Node, Primitive, Res, ReturnStmt, Segment, StmtKind, WhileStmt};
 use id::DefId;
 use interner::{InternedStr, Interner};
-use typed_hir::{ArrayExpr, Block, BlockId, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind, Fields, FloatTy, FnDef, FnDefs, GenericParam, GenericParams, InfixExpr, IntTy, MemberDef, MemberDefs, Param, Params, StmtId, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy};
+use typed_hir::{ArrayExpr, Block, BlockId, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind, Fields, FloatTy, FnDef, FnDefs, GenericParam, GenericParams, InfixExpr, IntTy, LetStmt, LocalVar, MemberDef, MemberDefs, Param, Params, Stmt, StmtId, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy};
 use types::{LDefMap, StrMap};
 
 use crate::unification::UnificationTable;
@@ -388,7 +385,7 @@ pub struct InferCtxt<'a, 'hir> {
     constraints: Constraints<'hir>,
     type_envs: TypeEnvs<'hir>,
     hir_allocator: &'hir Bump,
-    thir: RefCell<Thir<'hir>>, 
+    thir: RefCell<Thir<'hir>>,
 }
 
 impl<'a, 'hir> InferCtxt<'a, 'hir> {
@@ -432,8 +429,8 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             (hir::ExprKind::String(string), Ty { kind: TyKind::Str }) => {}
             (hir::ExprKind::None, Ty { kind: TyKind::None }) => {}
             _ => {
-                let inferred_ty = self.infer_expr(&expr);
-                self.add_constraint(Constraint::Assignable(inferred_ty, ret_ty));
+                let (expr_id, ty) = self.infer_expr(&expr);
+                self.add_constraint(Constraint::Assignable(ty, ret_ty));
             }
         };
         self.type_envs.pop();
@@ -462,15 +459,41 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             StmtKind::Return(return_stmt) => self.infer_return_stmt(return_stmt),
             StmtKind::While(while_stmt) => self.infer_while_stmt(while_stmt),
             StmtKind::Block(block) => self.infer_block(block),
-            StmtKind::Expression(expr) => self.infer_expr(expr.expr),
+            StmtKind::Expression(expr) => self.infer_expr_stmt(expr),
         }
     }
 
-    fn infer_let_stmt(&self, let_stmt: &'hir LetStmt<'hir>) -> (StmtId, Ty<'hir>) {
-        if let Some(explicit_ty) = let_stmt.ty {
-            todo!()
+    fn infer_let_stmt(&self, let_stmt: &'hir hir::LetStmt<'hir>) -> (StmtId, Ty<'hir>) {
+        let ty = match let_stmt.ty {
+            Some(explicit_ty) => {
+                self.ty_resolver.resolve_ty(explicit_ty)
+            }
+            None => {
+                self.ty_resolver
+                    .intern(TyKind::Infer(self.unify_table.fresh_ty()))
+            }
+        };
+        let local_var = LocalVar {
+            ident: let_stmt.local_var.ident,
+        };
+        
+        self.type_envs.insert(local_var, ty);
+        
+        let mutability = let_stmt.mutability;
+        
+        let mut initializer = None;
+        if let Some(expr) = let_stmt.initializer {
+            let (expr_id, expr_ty) = self.infer_expr(expr);
+            self.add_constraint(Constraint::Assignable(ty, expr_ty));
+            initializer = Some(expr_id);
         }
-        self.ty_resolver.intern(TyKind::None)
+        let stmt = LetStmt {
+            local_var,
+            mutability,
+            initializer,
+        };
+        let stmt_id = self.thir.borrow_mut().insert_stmt(Stmt::Let(stmt));
+        (stmt_id, ty)
     }
 
     fn infer_for_stmt(&self, for_stmt: &'hir ForStmt<'hir>) -> (StmtId, Ty<'hir>) {
@@ -496,6 +519,11 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
     }
 
     fn infer_while_stmt(&self, while_stmt: &'hir WhileStmt<'hir>) -> (StmtId, Ty<'hir>) {
+        todo!()
+    }
+
+    fn infer_expr_stmt(&self, expression: &hir::Expression) -> (StmtId, Ty<'hir>) {
+
         todo!()
     }
 
@@ -540,7 +568,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
                 let kind = TyKind::Array(init_ty);
                 let ty = self.ty_resolver.intern(kind);
-                
+
                 let expr = Expr {
                     kind: ExprKind::Array(ArrayExpr::Sized {
                         initializer: init_id,
@@ -549,7 +577,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                     ty,
                 };
                 let expr_id = self.thir.borrow_mut().insert_expr(expr);
-                
+
                 (expr_id, ty)
             }
             hir::ArrayExpr::Unsized { initializers } => {
@@ -588,7 +616,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
         self.add_constraint(Constraint::Assignable(lhs_ty, rhs_ty));
         self.add_constraint(Constraint::Infix(lhs_ty, rhs_ty, infix.operator));
-        
+
         let expr = Expr {
             kind: ExprKind::Infix(InfixExpr {
                 operator: infix.operator,
@@ -662,18 +690,18 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn infer_block(&self, block: &hir::Block<'hir>) -> (StmtId, Ty<'hir>) {
         self.type_envs.push(TypeEnv::new(self.fresh_ty()));
-        
+
         let mut stmts = Vec::with_capacity(block.stmts.len());
         for stmt in block.stmts {
-            self.infer_stmt(stmt);
-            
+            let (stmt_id, stmt_ty) = self.infer_stmt(stmt);
+            stmts.push(stmt_id);
         }
-        
+
         let block = Block {
             stmts: Box::new([]),
             ret_ty: Ty {},
         }
-        
+
         let type_env = self.type_envs.pop().unwrap();
         type_env.ret_ty
     }
@@ -1116,7 +1144,7 @@ impl<'hir> TypeEnvs<'hir> {
         self.envs.borrow_mut().pop()
     }
 
-    pub fn insert(&self, local_var: hir::LocalVar, ty: Ty<'hir>) {
+    pub fn insert(&self, local_var: LocalVar, ty: Ty<'hir>) {
         let mut borrowed_envs = self.envs.borrow_mut();
         let env = borrowed_envs.last_mut().unwrap();
         env.local_vars.insert(local_var.ident, ty);
