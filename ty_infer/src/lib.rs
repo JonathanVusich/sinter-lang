@@ -666,24 +666,48 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
     fn unify(&self, constraint: &Constraint<'hir>) -> bool {
         match constraint {
             Constraint::Equal(lhs, rhs) => {
-                self.unify_ty_ty(*lhs, *rhs, Ty::eq)
+                self.unify_ty_ty(*lhs, *rhs, |lhs, rhs| self.eq(*lhs, *rhs))
                 // TODO: Handle type errors
             }
             Constraint::Assignable(lhs, rhs) => {
-                // self.unify_ty_ty(*lhs, *rhs, Ty::assignable)
-                todo!()
+                self.unify_ty_ty(*lhs, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
             }
             Constraint::Infix(lhs, rhs, infix_op) => {
                 todo!()
             }
         }
     }
+    
+    fn eq(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> bool {
+        lhs.eq(&rhs)
+    }
+    
+    fn assignable(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> bool {
+        match *lhs {
+            TyKind::TraitBound(trait_bound) => {
+                todo!()
+                // Implement trait mapping logic
+            }
+            TyKind::Infer(_) => true,
+            TyKind::Float(FloatTy::F32) => matches!(*rhs, TyKind::Float(_)),
+            TyKind::Float(FloatTy::F64) => matches!(*rhs, TyKind::Float(FloatTy::F64)),
+            TyKind::Int(IntTy::I8) => matches!(*rhs, TyKind::Int(_)),
+            TyKind::Int(IntTy::I16) => matches!(*rhs, TyKind::Int(IntTy::I16) | TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64)),
+            TyKind::Int(IntTy::I32) => matches!(*rhs, TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64)),
+            TyKind::Int(IntTy::I64) => matches!(*rhs, TyKind::Int(IntTy::I64)),
+            TyKind::Uint(UintTy::U8) => matches!(*rhs, TyKind::Uint(_)),
+            TyKind::Uint(UintTy::U16) => matches!(*rhs, TyKind::Uint(UintTy::U16) | TyKind::Uint(UintTy::U32) | TyKind::Uint(UintTy::U64)),
+            TyKind::Uint(UintTy::U32) => matches!(*rhs, TyKind::Uint(UintTy::U32) | TyKind::Uint(UintTy::U64)),
+            TyKind::Uint(UintTy::U64) => matches!(*rhs, TyKind::Uint(UintTy::U64)),
+            _ => lhs.eq(&rhs),
+        }
+    }
 
-    fn unify_ty_ty(
+    fn unify_ty_ty<F: Fn(&Ty<'hir>, &Ty<'hir>) -> bool>(
         &self,
         lhs: Ty<'hir>,
         rhs: Ty<'hir>,
-        assignable_check: fn(&Ty<'hir>, &Ty<'hir>) -> bool,
+        assignable_check: F,
     ) -> bool {
         let lhs = self.normalize_ty(lhs).unwrap_or(lhs);
         let rhs = self.normalize_ty(rhs).unwrap_or(rhs);
@@ -719,11 +743,11 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         }
     }
 
-    fn unify_var_ty(
+    fn unify_var_ty<F: Fn(&Ty<'hir>, &Ty<'hir>) -> bool>(
         &self,
         var: TyVar,
         ty: Ty<'hir>,
-        assignable_check: fn(&Ty<'hir>, &Ty<'hir>) -> bool,
+        assignable_check: F,
     ) -> bool {
         if !self.unify_table.unify_var_ty(var, ty, assignable_check) {
             // TODO: Record type error
@@ -1004,7 +1028,7 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
             );
             infer_ctxt.check_block(block, ret_ty);
             let thir = infer_ctxt.build_thir();
-            let 
+            self.bodies.insert(fn_def.id, thir);
         }
     }
 
