@@ -425,7 +425,6 @@ pub struct Thir<'hir> {
     ret_ty: Ty<'hir>,
 
     // Contents of the block which will be useful for looking things up later.
-    blocks: Vec<Block<'hir>>,
     arms: Vec<MatchArm<'hir>>,
     stmts: Vec<Stmt<'hir>>,
     exprs: Vec<Expr<'hir>>,

@@ -12,16 +12,12 @@ use serde::{Deserialize, Serialize};
 use ast::{Ident, InfixOp, LocalVar, ValueDef};
 use diagnostics::Diagnostics;
 use hir::{
-    Block, ForStmt, HirCrate, HirMap, IfStmt, Item, ItemKind, LetStmt, LocalDef, Node, Primitive,
+    ForStmt, HirCrate, HirMap, IfStmt, Item, ItemKind, LetStmt, LocalDef, Node, Primitive,
     Res, ReturnStmt, Segment, StmtKind, WhileStmt,
 };
 use id::DefId;
 use interner::{InternedStr, Interner};
-use typed_hir::{
-    ClassDef, ClosureDef, EnumDef, ExprId, ExprKind, Fields, FloatTy, FnDef, FnDefs, GenericParam,
-    GenericParams, IntTy, MemberDef, MemberDefs, Param, Params, Thir, ThirCrate, ThirMap, Trait,
-    TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
-};
+use typed_hir::{ArrayExpr, Block, BlockId, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind, Fields, FloatTy, FnDef, FnDefs, GenericParam, GenericParams, InfixExpr, IntTy, MemberDef, MemberDefs, Param, Params, StmtId, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy};
 use types::{LDefMap, StrMap};
 
 use crate::unification::UnificationTable;
@@ -392,6 +388,7 @@ pub struct InferCtxt<'a, 'hir> {
     constraints: Constraints<'hir>,
     type_envs: TypeEnvs<'hir>,
     hir_allocator: &'hir Bump,
+    thir: RefCell<Thir<'hir>>, 
 }
 
 impl<'a, 'hir> InferCtxt<'a, 'hir> {
@@ -457,7 +454,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         todo!()
     }
 
-    fn infer_stmt(&self, stmt: &hir::Stmt<'hir>) -> Ty<'hir> {
+    fn infer_stmt(&self, stmt: &hir::Stmt<'hir>) -> (StmtId, Ty<'hir>) {
         match stmt.kind {
             StmtKind::Let(let_stmt) => self.infer_let_stmt(let_stmt),
             StmtKind::For(for_stmt) => self.infer_for_stmt(for_stmt),
@@ -469,18 +466,18 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         }
     }
 
-    fn infer_let_stmt(&self, let_stmt: &'hir LetStmt<'hir>) -> Ty<'hir> {
+    fn infer_let_stmt(&self, let_stmt: &'hir LetStmt<'hir>) -> (StmtId, Ty<'hir>) {
         if let Some(explicit_ty) = let_stmt.ty {
             todo!()
         }
         self.ty_resolver.intern(TyKind::None)
     }
 
-    fn infer_for_stmt(&self, for_stmt: &'hir ForStmt<'hir>) -> Ty<'hir> {
+    fn infer_for_stmt(&self, for_stmt: &'hir ForStmt<'hir>) -> (StmtId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_if_stmt(&self, if_stmt: &'hir IfStmt<'hir>) -> Ty<'hir> {
+    fn infer_if_stmt(&self, if_stmt: &'hir IfStmt<'hir>) -> (StmtId, Ty<'hir>) {
         let bool_ty = self.ty_resolver.intern(TyKind::Boolean);
         self.check_expr(if_stmt.condition, bool_ty);
         let true_ty = self.infer_block(&if_stmt.if_true);
@@ -491,14 +488,14 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         true_ty
     }
 
-    fn infer_return_stmt(&self, return_stmt: &'hir ReturnStmt<'hir>) -> Ty<'hir> {
+    fn infer_return_stmt(&self, return_stmt: &'hir ReturnStmt<'hir>) -> (StmtId, Ty<'hir>) {
         if let Some(ret_expr) = return_stmt.value {
             return self.infer_expr(ret_expr);
         }
         self.infer_static(TyKind::None)
     }
 
-    fn infer_while_stmt(&self, while_stmt: &'hir WhileStmt<'hir>) -> Ty<'hir> {
+    fn infer_while_stmt(&self, while_stmt: &'hir WhileStmt<'hir>) -> (StmtId, Ty<'hir>) {
         todo!()
     }
 
@@ -510,8 +507,8 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         todo!()
     }
 
-    fn infer_expr(&self, expr: &hir::Expr<'hir>) -> Ty<'hir> {
-        let ty = match expr.kind {
+    fn infer_expr(&self, expr: &hir::Expr<'hir>) -> (ExprId, Ty<'hir>) {
+        match expr.kind {
             hir::ExprKind::Array(array) => self.infer_array(array),
             hir::ExprKind::Call(call) => self.infer_call(call),
             hir::ExprKind::Infix(infix) => self.infer_infix(infix),
@@ -532,94 +529,125 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             hir::ExprKind::Block(block) => self.infer_block(&block),
             hir::ExprKind::Break => self.infer_static(TyKind::None),
             hir::ExprKind::Continue => self.infer_static(TyKind::None),
-        };
-        ty
+        }
     }
 
-    fn infer_array(&self, array_expr: hir::ArrayExpr<'hir>) -> Ty<'hir> {
+    fn infer_array(&self, array_expr: hir::ArrayExpr<'hir>) -> (ExprId, Ty<'hir>) {
         match array_expr {
             hir::ArrayExpr::Sized { initializer, size } => {
-                let initializer = self.infer_expr(&initializer);
-                let size = self.infer_expr(size);
+                let (init_id, init_ty) = self.infer_expr(&initializer);
+                let (size_id, size_ty) = self.infer_expr(size);
 
-                let kind = TyKind::Array(initializer);
-                self.ty_resolver.intern(kind)
+                let kind = TyKind::Array(init_ty);
+                let ty = self.ty_resolver.intern(kind);
+                
+                let expr = Expr {
+                    kind: ExprKind::Array(ArrayExpr::Sized {
+                        initializer: init_id,
+                        size: size_id,
+                    }),
+                    ty,
+                };
+                let expr_id = self.thir.borrow_mut().insert_expr(expr);
+                
+                (expr_id, ty)
             }
             hir::ArrayExpr::Unsized { initializers } => {
                 let array_ty = self
                     .ty_resolver
                     .intern(TyKind::Infer(self.unify_table.fresh_ty()));
 
+                let mut init_ids = Vec::with_capacity(initializers.len());
                 for initializer in initializers {
-                    let initializer = self.infer_expr(initializer);
+                    let (init_id, init_ty) = self.infer_expr(initializer);
+                    init_ids.push(init_id);
                     self.constraints
                         .borrow_mut()
-                        .push(Constraint::Assignable(array_ty, initializer));
+                        .push(Constraint::Assignable(array_ty, init_ty));
                 }
-
-                self.ty_resolver.intern(TyKind::Array(array_ty))
+                let ty = self.ty_resolver.intern(TyKind::Array(array_ty));
+                let expr = Expr {
+                    kind: ExprKind::Array(ArrayExpr::Unsized {
+                        initializers: init_ids.into_boxed_slice(),
+                    }),
+                    ty,
+                };
+                let expr_id = self.thir.borrow_mut().insert_expr(expr);
+                (expr_id, ty)
             }
         }
     }
 
-    fn infer_call(&self, call: hir::CallExpr) -> Ty<'hir> {
+    fn infer_call(&self, call: hir::CallExpr) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_infix(&self, infix: hir::InfixExpr<'hir>) -> Ty<'hir> {
-        let lhs = self.infer_expr(infix.lhs);
-        let rhs = self.infer_expr(infix.rhs);
+    fn infer_infix(&self, infix: hir::InfixExpr<'hir>) -> (ExprId, Ty<'hir>) {
+        let (lhs, lhs_ty) = self.infer_expr(infix.lhs);
+        let (rhs, rhs_ty) = self.infer_expr(infix.rhs);
 
-        self.add_constraint(Constraint::Assignable(lhs, rhs));
-        self.add_constraint(Constraint::Infix(lhs, rhs, infix.operator));
-        lhs
+        self.add_constraint(Constraint::Assignable(lhs_ty, rhs_ty));
+        self.add_constraint(Constraint::Infix(lhs_ty, rhs_ty, infix.operator));
+        
+        let expr = Expr {
+            kind: ExprKind::Infix(InfixExpr {
+                operator: infix.operator,
+                lhs,
+                rhs,
+            }),
+            // Use the LHS ty since the right side should be coercable to the LHS ty.
+            ty: lhs_ty,
+        };
+        let expr_id = self.thir.borrow_mut().insert_expr(expr);
+
+        (expr_id, lhs_ty)
     }
 
-    fn infer_unary(&self, unary: hir::UnaryExpr) -> Ty<'hir> {
+    fn infer_unary(&self, unary: hir::UnaryExpr) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_static(&self, ty_kind: TyKind<'hir>) -> Ty<'hir> {
+    fn infer_static(&self, ty_kind: TyKind<'hir>) -> (ExprId, Ty<'hir>) {
         self.ty_resolver.intern(ty_kind)
     }
 
-    fn infer_int(&self, int: i64) -> Ty<'hir> {
+    fn infer_int(&self, int: i64) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_uint(&self, int: u64) -> Ty<'hir> {
+    fn infer_uint(&self, int: u64) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_float(&self, float: f64) -> Ty<'hir> {
+    fn infer_float(&self, float: f64) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_string(&self, string: InternedStr) -> Ty<'hir> {
+    fn infer_string(&self, string: InternedStr) -> (ExprId, Ty<'hir>) {
         self.ty_resolver.intern(TyKind::Str)
     }
 
-    fn infer_match(&self, match_expr: hir::MatchExpr) -> Ty<'hir> {
+    fn infer_match(&self, match_expr: hir::MatchExpr) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_closure(&self, closure: hir::ClosureExpr) -> Ty<'hir> {
+    fn infer_closure(&self, closure: hir::ClosureExpr) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_assign(&self, assign: hir::AssignExpr) -> Ty<'hir> {
+    fn infer_assign(&self, assign: hir::AssignExpr) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_field(&self, field: hir::FieldExpr) -> Ty<'hir> {
+    fn infer_field(&self, field: hir::FieldExpr) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_index(&self, index_expr: hir::IndexExpr) -> Ty<'hir> {
+    fn infer_index(&self, index_expr: hir::IndexExpr) -> (ExprId, Ty<'hir>) {
         todo!()
     }
 
-    fn infer_path(&self, path: hir::PathExpr<'hir>) -> Ty<'hir> {
+    fn infer_path(&self, path: hir::PathExpr<'hir>) -> (ExprId, Ty<'hir>) {
         match path.segments.last().unwrap().res {
             Res::Crate(_) | Res::ModuleSegment(_, _) | Res::Module(_) | Res::Primitive(_) => {
                 panic!("I think this is a logic bug that should be caught by the resolver.")
@@ -632,11 +660,20 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         }
     }
 
-    fn infer_block(&self, block: &Block<'hir>) -> Ty<'hir> {
+    fn infer_block(&self, block: &hir::Block<'hir>) -> (StmtId, Ty<'hir>) {
         self.type_envs.push(TypeEnv::new(self.fresh_ty()));
+        
+        let mut stmts = Vec::with_capacity(block.stmts.len());
         for stmt in block.stmts {
             self.infer_stmt(stmt);
+            
         }
+        
+        let block = Block {
+            stmts: Box::new([]),
+            ret_ty: Ty {},
+        }
+        
         let type_env = self.type_envs.pop().unwrap();
         type_env.ret_ty
     }
@@ -907,6 +944,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             constraints: Constraints::default(),
             type_envs,
             hir_allocator,
+            thir: Default::default(),
         }
     }
 }
