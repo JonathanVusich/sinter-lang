@@ -11,10 +11,13 @@ use serde::{Deserialize, Serialize};
 
 use ast::{Ident, InfixOp, ValueDef};
 use diagnostics::Diagnostics;
-use hir::{ForStmt, HirCrate, HirMap, IfStmt, Item, ItemKind, LocalDef, Node, Primitive, Res, ReturnStmt, Segment, StmtKind, WhileStmt};
+use hir::{
+    ForStmt, HirCrate, HirMap, Item, ItemKind, LocalDef, Node, Primitive, Res, ReturnStmt,
+    Segment, StmtKind, WhileStmt,
+};
 use id::DefId;
 use interner::{InternedStr, Interner};
-use typed_hir::{ArrayExpr, Block, BlockId, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind, Fields, FloatTy, FnDef, FnDefs, GenericParam, GenericParams, InfixExpr, IntTy, LetStmt, LocalVar, MemberDef, MemberDefs, Param, Params, Stmt, StmtId, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy};
+use typed_hir::{ArrayExpr, Block, BlockId, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind, Fields, FloatTy, FnDef, FnDefs, GenericParam, GenericParams, IfStmt, InfixExpr, IntTy, LetStmt, LocalVar, MemberDef, MemberDefs, Param, Params, Stmt, StmtId, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy};
 use types::{LDefMap, StrMap};
 
 use crate::unification::UnificationTable;
@@ -392,42 +395,20 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
     /// The main function that performs type inference. Every function body or
     /// expression should have a return type defined at compile time, and we can
     /// use this to infer and validate an entire expression/blocks' types.
-    fn check_expr(&self, expr: hir::Expr<'hir>, ret_ty: Ty<'hir>) {
+    fn check_expr(&self, expr: hir::Expr<'hir>, ret_ty: Ty<'hir>) -> ExprId {
         self.type_envs.push(TypeEnv::new(ret_ty));
-        match (expr.kind, ret_ty) {
-            (hir::ExprKind::None, Ty { kind: TyKind::None }) => {}
-            (
-                hir::ExprKind::True,
-                Ty {
-                    kind: TyKind::Boolean,
-                },
-            ) => {}
-            (
-                hir::ExprKind::False,
-                Ty {
-                    kind: TyKind::Boolean,
-                },
-            ) => {}
-            (
-                hir::ExprKind::Int(int),
-                Ty {
-                    kind: TyKind::Int(IntTy::I64),
-                },
-            ) => {}
-            (
-                hir::ExprKind::UInt(uint),
-                Ty {
-                    kind: TyKind::Uint(UintTy::U64),
-                },
-            ) => {}
-            (
-                hir::ExprKind::Float(float),
-                Ty {
-                    kind: TyKind::Float(FloatTy::F64),
-                },
-            ) => {}
-            (hir::ExprKind::String(string), Ty { kind: TyKind::Str }) => {}
-            (hir::ExprKind::None, Ty { kind: TyKind::None }) => {}
+        
+        let expr_id = match (expr.kind, ret_ty.kind) {
+            (hir::ExprKind::None, TyKind::None ) |
+            (hir::ExprKind::True, TyKind::Boolean) | 
+            (hir::ExprKind::False, TyKind::Boolean) |
+            (hir::ExprKind::Int(int), TyKind::Int(IntTy::I64)) | 
+            (hir::ExprKind::UInt(uint), TyKind::Uint(UintTy::U64)) | 
+            (hir::ExprKind::Float(float), TyKind::Float(FloatTy::F64)) |
+            (hir::ExprKind::String(string), TyKind::Str) |
+            (hir::ExprKind::None, TyKind::None) => {
+                todo!()
+            }
             _ => {
                 let (expr_id, ty) = self.infer_expr(&expr);
                 self.add_constraint(Constraint::Assignable(ty, ret_ty));
@@ -465,22 +446,19 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn infer_let_stmt(&self, let_stmt: &'hir hir::LetStmt<'hir>) -> (StmtId, Ty<'hir>) {
         let ty = match let_stmt.ty {
-            Some(explicit_ty) => {
-                self.ty_resolver.resolve_ty(explicit_ty)
-            }
-            None => {
-                self.ty_resolver
-                    .intern(TyKind::Infer(self.unify_table.fresh_ty()))
-            }
+            Some(explicit_ty) => self.ty_resolver.resolve_ty(explicit_ty),
+            None => self
+                .ty_resolver
+                .intern(TyKind::Infer(self.unify_table.fresh_ty())),
         };
         let local_var = LocalVar {
             ident: let_stmt.local_var.ident,
         };
-        
+
         self.type_envs.insert(local_var, ty);
-        
+
         let mutability = let_stmt.mutability;
-        
+
         let mut initializer = None;
         if let Some(expr) = let_stmt.initializer {
             let (expr_id, expr_ty) = self.infer_expr(expr);
@@ -500,14 +478,21 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         todo!()
     }
 
-    fn infer_if_stmt(&self, if_stmt: &'hir IfStmt<'hir>) -> (StmtId, Ty<'hir>) {
+    fn infer_if_stmt(&self, if_stmt: &'hir hir::IfStmt<'hir>) -> (StmtId, Ty<'hir>) {
         let bool_ty = self.ty_resolver.intern(TyKind::Boolean);
         self.check_expr(if_stmt.condition, bool_ty);
-        let true_ty = self.infer_block(&if_stmt.if_true);
+        let (true_id, true_ty) = self.infer_block(&if_stmt.if_true);
         if let Some(false_block) = if_stmt.if_false {
-            let false_ty = self.infer_block(&false_block);
+            let (false_id, false_ty) = self.infer_block(&false_block);
             self.add_constraint(Constraint::Assignable(false_ty, true_ty))
         }
+        
+        let if_stmt = IfStmt {
+            condition: (),
+            if_true: (),
+            if_false: None,
+        }
+        
         true_ty
     }
 
@@ -523,7 +508,6 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
     }
 
     fn infer_expr_stmt(&self, expression: &hir::Expression) -> (StmtId, Ty<'hir>) {
-
         todo!()
     }
 
@@ -697,13 +681,15 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             stmts.push(stmt_id);
         }
 
-        let block = Block {
-            stmts: Box::new([]),
-            ret_ty: Ty {},
-        }
+        let ret_ty = self.type_envs.pop().unwrap().ret_ty;
 
-        let type_env = self.type_envs.pop().unwrap();
-        type_env.ret_ty
+        let block = Block {
+            stmts: stmts.into_boxed_slice(),
+            ret_ty,
+        };
+
+        let stmt_id = self.thir.borrow_mut().insert_stmt(Stmt::Block(block));
+        (stmt_id, ret_ty)
     }
 
     fn fresh_ty(&self) -> Ty<'hir> {
@@ -742,11 +728,11 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             }
         }
     }
-    
+
     fn eq(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> bool {
         lhs.eq(&rhs)
     }
-    
+
     fn assignable(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> bool {
         match *lhs {
             TyKind::TraitBound(trait_bound) => {
@@ -757,12 +743,22 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             TyKind::Float(FloatTy::F32) => matches!(*rhs, TyKind::Float(_)),
             TyKind::Float(FloatTy::F64) => matches!(*rhs, TyKind::Float(FloatTy::F64)),
             TyKind::Int(IntTy::I8) => matches!(*rhs, TyKind::Int(_)),
-            TyKind::Int(IntTy::I16) => matches!(*rhs, TyKind::Int(IntTy::I16) | TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64)),
-            TyKind::Int(IntTy::I32) => matches!(*rhs, TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64)),
+            TyKind::Int(IntTy::I16) => matches!(
+                *rhs,
+                TyKind::Int(IntTy::I16) | TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64)
+            ),
+            TyKind::Int(IntTy::I32) => {
+                matches!(*rhs, TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64))
+            }
             TyKind::Int(IntTy::I64) => matches!(*rhs, TyKind::Int(IntTy::I64)),
             TyKind::Uint(UintTy::U8) => matches!(*rhs, TyKind::Uint(_)),
-            TyKind::Uint(UintTy::U16) => matches!(*rhs, TyKind::Uint(UintTy::U16) | TyKind::Uint(UintTy::U32) | TyKind::Uint(UintTy::U64)),
-            TyKind::Uint(UintTy::U32) => matches!(*rhs, TyKind::Uint(UintTy::U32) | TyKind::Uint(UintTy::U64)),
+            TyKind::Uint(UintTy::U16) => matches!(
+                *rhs,
+                TyKind::Uint(UintTy::U16) | TyKind::Uint(UintTy::U32) | TyKind::Uint(UintTy::U64)
+            ),
+            TyKind::Uint(UintTy::U32) => {
+                matches!(*rhs, TyKind::Uint(UintTy::U32) | TyKind::Uint(UintTy::U64))
+            }
             TyKind::Uint(UintTy::U64) => matches!(*rhs, TyKind::Uint(UintTy::U64)),
             _ => lhs.eq(&rhs),
         }
