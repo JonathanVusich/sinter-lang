@@ -9,15 +9,20 @@ use bumpalo::Bump;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
-use ast::{Ident, InfixOp, ValueDef};
-use diagnostics::Diagnostics;
+use ast::Ident;
+use diagnostics::{Diagnostic, Diagnostics};
 use hir::{
-    ForStmt, HirCrate, HirMap, Item, ItemKind, LocalDef, Node, Primitive, Res, ReturnStmt,
-    Segment, StmtKind, WhileStmt,
+    ForStmt, HirCrate, HirMap, InfixOp, InfixOpClass, Item, ItemKind, LocalDef, Node, Primitive,
+    Res, StmtKind, WhileStmt,
 };
 use id::DefId;
-use interner::{InternedStr, Interner};
-use typed_hir::{ArrayExpr, Block, BlockId, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind, Fields, FloatTy, FnDef, FnDefs, GenericParam, GenericParams, IfStmt, InfixExpr, IntTy, LetStmt, LocalVar, MemberDef, MemberDefs, Param, Params, Stmt, StmtId, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy};
+use interner::Interner;
+use typed_hir::{
+    ArrayExpr, Block, BlockStmt, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind, Fields,
+    FloatTy, FnDef, FnDefs, GenericParam, GenericParams, IfStmt, InfixExpr, IntTy, LetStmt,
+    LocalVar, MemberDef, MemberDefs, Param, Params, PathExpr, ReturnStmt, Stmt, StmtId, Thir,
+    ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
+};
 use types::{LDefMap, StrMap};
 
 use crate::unification::UnificationTable;
@@ -384,6 +389,7 @@ pub struct InferCtxt<'a, 'hir> {
     // Contains the current THIR body and information used to unify all the types.
     unify_table: UnificationTable<'hir>,
     ty_resolver: &'a TyResolver<'hir>,
+    diagnostics: &'a Diagnostics,
     ty_map: LDefMap<Ty<'hir>>,
     constraints: Constraints<'hir>,
     type_envs: TypeEnvs<'hir>,
@@ -397,24 +403,32 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
     /// use this to infer and validate an entire expression/blocks' types.
     fn check_expr(&self, expr: hir::Expr<'hir>, ret_ty: Ty<'hir>) -> ExprId {
         self.type_envs.push(TypeEnv::new(ret_ty));
-        
+
         let expr_id = match (expr.kind, ret_ty.kind) {
-            (hir::ExprKind::None, TyKind::None ) |
-            (hir::ExprKind::True, TyKind::Boolean) | 
-            (hir::ExprKind::False, TyKind::Boolean) |
-            (hir::ExprKind::Int(int), TyKind::Int(IntTy::I64)) | 
-            (hir::ExprKind::UInt(uint), TyKind::Uint(UintTy::U64)) | 
-            (hir::ExprKind::Float(float), TyKind::Float(FloatTy::F64)) |
-            (hir::ExprKind::String(string), TyKind::Str) |
-            (hir::ExprKind::None, TyKind::None) => {
-                todo!()
+            (hir::ExprKind::None, TyKind::None) => self.insert_expr(ExprKind::None, ret_ty),
+            (hir::ExprKind::True, TyKind::Boolean) => self.insert_expr(ExprKind::True, ret_ty),
+            (hir::ExprKind::False, TyKind::Boolean) => self.insert_expr(ExprKind::False, ret_ty),
+            (hir::ExprKind::Int(int), TyKind::Int(IntTy::I64)) => {
+                self.insert_expr(ExprKind::Int(int), ret_ty)
             }
+            (hir::ExprKind::UInt(uint), TyKind::Uint(UintTy::U64)) => {
+                self.insert_expr(ExprKind::UInt(uint), ret_ty)
+            }
+            (hir::ExprKind::Float(float), TyKind::Float(FloatTy::F64)) => {
+                self.insert_expr(ExprKind::Float(float), ret_ty)
+            }
+            (hir::ExprKind::String(string), TyKind::Str) => {
+                self.insert_expr(ExprKind::String(string), ret_ty)
+            }
+            (hir::ExprKind::None, TyKind::None) => self.insert_expr(ExprKind::None, ret_ty),
             _ => {
                 let (expr_id, ty) = self.infer_expr(&expr);
                 self.add_constraint(Constraint::Assignable(ty, ret_ty));
+                expr_id
             }
         };
         self.type_envs.pop();
+        expr_id
     }
 
     /// The main function that performs type inference. Every function body or
@@ -432,6 +446,11 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         todo!()
     }
 
+    fn insert_expr(&self, kind: ExprKind<'hir>, ty: Ty<'hir>) -> ExprId {
+        let expr = Expr { kind, ty };
+        self.thir.borrow_mut().insert_expr(expr)
+    }
+
     fn infer_stmt(&self, stmt: &hir::Stmt<'hir>) -> (StmtId, Ty<'hir>) {
         match stmt.kind {
             StmtKind::Let(let_stmt) => self.infer_let_stmt(let_stmt),
@@ -439,7 +458,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             StmtKind::If(if_stmt) => self.infer_if_stmt(if_stmt),
             StmtKind::Return(return_stmt) => self.infer_return_stmt(return_stmt),
             StmtKind::While(while_stmt) => self.infer_while_stmt(while_stmt),
-            StmtKind::Block(block) => self.infer_block(block),
+            StmtKind::Block(block) => self.infer_block_stmt(block),
             StmtKind::Expression(expr) => self.infer_expr_stmt(expr),
         }
     }
@@ -453,6 +472,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         };
         let local_var = LocalVar {
             ident: let_stmt.local_var.ident,
+            ty,
         };
 
         self.type_envs.insert(local_var, ty);
@@ -480,27 +500,41 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn infer_if_stmt(&self, if_stmt: &'hir hir::IfStmt<'hir>) -> (StmtId, Ty<'hir>) {
         let bool_ty = self.ty_resolver.intern(TyKind::Boolean);
-        self.check_expr(if_stmt.condition, bool_ty);
-        let (true_id, true_ty) = self.infer_block(&if_stmt.if_true);
-        if let Some(false_block) = if_stmt.if_false {
-            let (false_id, false_ty) = self.infer_block(&false_block);
-            self.add_constraint(Constraint::Assignable(false_ty, true_ty))
-        }
-        
+        let condition = self.check_expr(if_stmt.condition, bool_ty);
+        let (if_true, true_ty) = self.infer_block(&if_stmt.if_true);
+        let (if_false, false_ty) = if_stmt
+            .if_false
+            .map(|block| {
+                let (false_id, false_ty) = self.infer_block(&block);
+                self.add_constraint(Constraint::Assignable(false_ty, true_ty));
+                (Some(false_id), Some(false_ty))
+            })
+            .unwrap_or_else(|| (None, None));
+
         let if_stmt = IfStmt {
-            condition: (),
-            if_true: (),
-            if_false: None,
-        }
-        
-        true_ty
+            condition,
+            if_true,
+            if_false,
+        };
+        let stmt_id = self.thir.borrow_mut().insert_stmt(Stmt::If(if_stmt));
+        (stmt_id, true_ty)
     }
 
-    fn infer_return_stmt(&self, return_stmt: &'hir ReturnStmt<'hir>) -> (StmtId, Ty<'hir>) {
-        if let Some(ret_expr) = return_stmt.value {
-            return self.infer_expr(ret_expr);
-        }
-        self.infer_static(TyKind::None)
+    fn infer_return_stmt(&self, return_stmt: &'hir hir::ReturnStmt<'hir>) -> (StmtId, Ty<'hir>) {
+        let (expr, ty) = return_stmt
+            .value
+            .map(|expr| {
+                let (id, ty) = self.infer_expr(expr);
+                (Some(id), ty)
+            })
+            .unwrap_or_else(|| (None, self.ty_resolver.intern(TyKind::None)));
+
+        let return_stmt = ReturnStmt { expr };
+        let stmt_id = self
+            .thir
+            .borrow_mut()
+            .insert_stmt(Stmt::Return(return_stmt));
+        (stmt_id, ty)
     }
 
     fn infer_while_stmt(&self, while_stmt: &'hir WhileStmt<'hir>) -> (StmtId, Ty<'hir>) {
@@ -511,12 +545,13 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         todo!()
     }
 
-    fn build_thir(&self) -> Thir<'hir> {
+    fn build_thir(self) -> Thir<'hir> {
         // Solve constraints (if possible)
         self.unify_constraints();
+        dbg!(&self.diagnostics);
+        self.substitute_thir();
 
-        // Build Thir or return error
-        todo!()
+        self.thir.into_inner()
     }
 
     fn infer_expr(&self, expr: &hir::Expr<'hir>) -> (ExprId, Ty<'hir>) {
@@ -525,13 +560,21 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             hir::ExprKind::Call(call) => self.infer_call(call),
             hir::ExprKind::Infix(infix) => self.infer_infix(infix),
             hir::ExprKind::Unary(unary) => self.infer_unary(unary),
-            hir::ExprKind::None => self.infer_static(TyKind::None),
-            hir::ExprKind::True => self.infer_static(TyKind::Boolean),
-            hir::ExprKind::False => self.infer_static(TyKind::Boolean),
-            hir::ExprKind::Int(int) => self.infer_static(TyKind::Int(IntTy::I64)),
-            hir::ExprKind::UInt(uint) => self.infer_static(TyKind::Uint(UintTy::U64)),
-            hir::ExprKind::Float(float) => self.infer_static(TyKind::Float(FloatTy::F64)),
-            hir::ExprKind::String(string) => self.infer_string(string),
+            hir::ExprKind::None => self.infer_static(ExprKind::None, TyKind::None),
+            hir::ExprKind::True => self.infer_static(ExprKind::True, TyKind::Boolean),
+            hir::ExprKind::False => self.infer_static(ExprKind::False, TyKind::Boolean),
+            hir::ExprKind::Int(int) => {
+                self.infer_static(ExprKind::Int(int), TyKind::Int(IntTy::I64))
+            }
+            hir::ExprKind::UInt(uint) => {
+                self.infer_static(ExprKind::UInt(uint), TyKind::Uint(UintTy::U64))
+            }
+            hir::ExprKind::Float(float) => {
+                self.infer_static(ExprKind::Float(float), TyKind::Float(FloatTy::F64))
+            }
+            hir::ExprKind::String(string) => {
+                self.infer_static(ExprKind::String(string), TyKind::Str)
+            }
             hir::ExprKind::Match(match_expr) => self.infer_match(match_expr),
             hir::ExprKind::Closure(closure) => self.infer_closure(closure),
             hir::ExprKind::Assign(assign) => self.infer_assign(assign),
@@ -539,8 +582,8 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             hir::ExprKind::Index(index) => self.infer_index(index),
             hir::ExprKind::Path(path) => self.infer_path(path),
             hir::ExprKind::Block(block) => self.infer_block(&block),
-            hir::ExprKind::Break => self.infer_static(TyKind::None),
-            hir::ExprKind::Continue => self.infer_static(TyKind::None),
+            hir::ExprKind::Break => self.infer_static(ExprKind::Break, TyKind::None),
+            hir::ExprKind::Continue => self.infer_static(ExprKind::Continue, TyKind::None),
         }
     }
 
@@ -598,8 +641,14 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         let (lhs, lhs_ty) = self.infer_expr(infix.lhs);
         let (rhs, rhs_ty) = self.infer_expr(infix.rhs);
 
-        self.add_constraint(Constraint::Assignable(lhs_ty, rhs_ty));
         self.add_constraint(Constraint::Infix(lhs_ty, rhs_ty, infix.operator));
+
+        let resultant_ty = match infix.operator.class() {
+            InfixOpClass::Assignment | InfixOpClass::Arithmetic | InfixOpClass::Bitwise => lhs_ty,
+            InfixOpClass::Logical | InfixOpClass::Comparison => {
+                self.ty_resolver.intern(TyKind::Boolean)
+            }
+        };
 
         let expr = Expr {
             kind: ExprKind::Infix(InfixExpr {
@@ -608,7 +657,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 rhs,
             }),
             // Use the LHS ty since the right side should be coercable to the LHS ty.
-            ty: lhs_ty,
+            ty: resultant_ty,
         };
         let expr_id = self.thir.borrow_mut().insert_expr(expr);
 
@@ -619,8 +668,10 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         todo!()
     }
 
-    fn infer_static(&self, ty_kind: TyKind<'hir>) -> (ExprId, Ty<'hir>) {
-        self.ty_resolver.intern(ty_kind)
+    fn infer_static(&self, expr_kind: ExprKind<'hir>, ty_kind: TyKind<'hir>) -> (ExprId, Ty<'hir>) {
+        let ty = self.ty_resolver.intern(ty_kind);
+        let expr_id = self.insert_expr(expr_kind, ty);
+        (expr_id, ty)
     }
 
     fn infer_int(&self, int: i64) -> (ExprId, Ty<'hir>) {
@@ -633,10 +684,6 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn infer_float(&self, float: f64) -> (ExprId, Ty<'hir>) {
         todo!()
-    }
-
-    fn infer_string(&self, string: InternedStr) -> (ExprId, Ty<'hir>) {
-        self.ty_resolver.intern(TyKind::Str)
     }
 
     fn infer_match(&self, match_expr: hir::MatchExpr) -> (ExprId, Ty<'hir>) {
@@ -666,13 +713,30 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             }
             Res::Local(LocalDef::Var(local_var)) => {
                 // Unwrap should be safe since we have already validated the HIR and local vars should resolve.
-                self.type_envs.find(local_var).unwrap()
+                let ty = self.type_envs.find(local_var).unwrap();
+                let path_expr = PathExpr::Var(LocalVar {
+                    ident: local_var.ident,
+                    ty,
+                });
+                let expr = Expr {
+                    kind: ExprKind::Path(path_expr),
+                    ty,
+                };
+                let expr_id = self.thir.borrow_mut().insert_expr(expr);
+                (expr_id, ty)
             }
             _ => todo!(),
         }
     }
 
-    fn infer_block(&self, block: &hir::Block<'hir>) -> (StmtId, Ty<'hir>) {
+    fn infer_block_stmt(&self, block_stmt: &hir::BlockStmt<'hir>) -> (StmtId, Ty<'hir>) {
+        let (block, ty) = self.infer_block(&block_stmt.block);
+        let block_stmt = BlockStmt { block };
+        let block = self.thir.borrow_mut().insert_stmt(Stmt::Block(block_stmt));
+        (block, ty)
+    }
+
+    fn infer_block(&self, block: &hir::Block<'hir>) -> (ExprId, Ty<'hir>) {
         self.type_envs.push(TypeEnv::new(self.fresh_ty()));
 
         let mut stmts = Vec::with_capacity(block.stmts.len());
@@ -687,9 +751,8 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             stmts: stmts.into_boxed_slice(),
             ret_ty,
         };
-
-        let stmt_id = self.thir.borrow_mut().insert_stmt(Stmt::Block(block));
-        (stmt_id, ret_ty)
+        let expr_id = self.insert_expr(ExprKind::Block(block), ret_ty);
+        (expr_id, ret_ty)
     }
 
     fn fresh_ty(&self) -> Ty<'hir> {
@@ -699,79 +762,210 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     /// Walk the expression tree and normalize the types
     /// which should generate a completely typed expression tree.
-    fn substitute_expr(&self, expr_id: ExprId) {
-        todo!()
+    fn substitute_thir(&self) {
+        let mut borrowed_thir = self.thir.borrow_mut();
+        for expr in borrowed_thir.exprs() {
+            expr.ty = self.normalize_ty(expr.ty).unwrap_or(expr.ty);
+        }
+        for stmt in borrowed_thir.stmts() {
+            match stmt {
+                Stmt::Let(let_stmt) => {
+                    let_stmt.local_var.ty = self
+                        .normalize_ty(let_stmt.local_var.ty)
+                        .unwrap_or(let_stmt.local_var.ty);
+                }
+                Stmt::For(for_stmt) => {
+                    for_stmt.ident.ty = self
+                        .normalize_ty(for_stmt.ident.ty)
+                        .unwrap_or(for_stmt.ident.ty);
+                }
+                _ => {}
+            }
+        }
     }
 
     fn add_constraint(&self, constraint: Constraint<'hir>) {
         self.constraints.borrow_mut().push(constraint);
     }
 
-    fn unify_constraints(&self) -> bool {
+    fn unify_constraints(&self) {
         self.constraints
             .borrow()
             .iter()
-            .all(|constraint| self.unify(constraint))
+            .map(|constraint| self.unify(constraint))
+            .filter(|eval| eval.is_error())
+            // TODO: Add diagnostic information for each failure.
+            .for_each(|eval| {
+                let diagnostic_str = match eval {
+                    ConstraintEvaluation::Success => unreachable!(),
+                    ConstraintEvaluation::NotEqual(lhs, rhs) => {
+                        format!("{:?} is not equal to {:?}", lhs, rhs)
+                    }
+                    ConstraintEvaluation::NotAssignable(lhs, rhs) => {
+                        format!("{:?} is not assignable to {:?}", lhs, rhs)
+                    }
+                    ConstraintEvaluation::InfixOpUnsupported(ty, infix) => {
+                        format!("{:?} does not support infix operator {:?}", ty, infix)
+                    }
+                };
+                self.diagnostics.push(Diagnostic::Error(diagnostic_str));
+            });
     }
 
-    fn unify(&self, constraint: &Constraint<'hir>) -> bool {
+    fn unify(&self, constraint: &Constraint<'hir>) -> ConstraintEvaluation<'hir> {
+        dbg!(constraint);
         match constraint {
             Constraint::Equal(lhs, rhs) => {
                 self.unify_ty_ty(*lhs, *rhs, |lhs, rhs| self.eq(*lhs, *rhs))
-                // TODO: Handle type errors
             }
             Constraint::Assignable(lhs, rhs) => {
                 self.unify_ty_ty(*lhs, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
             }
-            Constraint::Infix(lhs, rhs, infix_op) => {
-                todo!()
-            }
+            Constraint::Infix(lhs, rhs, infix_op) => self.unify_ty_ty(*lhs, *rhs, |lhs, rhs| {
+                self.assignable(*lhs, *rhs)
+                    .and(self.supports_infix(*lhs, *infix_op))
+            }),
         }
     }
 
-    fn eq(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> bool {
-        lhs.eq(&rhs)
+    fn supports_infix(&self, ty: Ty<'hir>, infix_op: InfixOp) -> ConstraintEvaluation<'hir> {
+        let supported = match ty.kind {
+            TyKind::Float(_) => match infix_op {
+                InfixOp::Assign
+                | InfixOp::Add
+                | InfixOp::Subtract
+                | InfixOp::Multiply
+                | InfixOp::Divide
+                | InfixOp::Less
+                | InfixOp::Greater
+                | InfixOp::LessEqual
+                | InfixOp::GreaterEqual => true,
+                _ => false,
+            },
+            TyKind::Int(_) => true,
+            TyKind::Uint(_) => true,
+            TyKind::Boolean => match infix_op {
+                InfixOp::Or | InfixOp::And | InfixOp::Equal | InfixOp::NotEqual => true,
+                _ => false,
+            },
+            TyKind::Str => match infix_op {
+                InfixOp::Equal | InfixOp::NotEqual => true,
+                _ => false,
+            },
+            _ => false,
+        };
+        if supported {
+            ConstraintEvaluation::Success
+        } else {
+            ConstraintEvaluation::InfixOpUnsupported(ty, infix_op)
+        }
     }
 
-    fn assignable(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> bool {
+    fn eq(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> ConstraintEvaluation<'hir> {
+        return if (lhs.eq(&rhs)) {
+            ConstraintEvaluation::Success
+        } else {
+            ConstraintEvaluation::NotEqual(lhs, rhs)
+        };
+    }
+
+    fn assignable(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> ConstraintEvaluation<'hir> {
         match *lhs {
             TyKind::TraitBound(trait_bound) => {
                 todo!()
                 // Implement trait mapping logic
             }
-            TyKind::Infer(_) => true,
-            TyKind::Float(FloatTy::F32) => matches!(*rhs, TyKind::Float(_)),
-            TyKind::Float(FloatTy::F64) => matches!(*rhs, TyKind::Float(FloatTy::F64)),
-            TyKind::Int(IntTy::I8) => matches!(*rhs, TyKind::Int(_)),
-            TyKind::Int(IntTy::I16) => matches!(
-                *rhs,
-                TyKind::Int(IntTy::I16) | TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64)
-            ),
+            TyKind::Infer(_) => ConstraintEvaluation::Success,
+            TyKind::Float(FloatTy::F32) => {
+                if matches!(*rhs, TyKind::Float(_)) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
+            }
+            TyKind::Float(FloatTy::F64) => {
+                if matches!(*rhs, TyKind::Float(FloatTy::F64)) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
+            }
+            TyKind::Int(IntTy::I8) => {
+                if matches!(*rhs, TyKind::Int(_)) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
+            }
+            TyKind::Int(IntTy::I16) => {
+                if matches!(
+                    *rhs,
+                    TyKind::Int(IntTy::I16) | TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64)
+                ) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
+            }
             TyKind::Int(IntTy::I32) => {
-                matches!(*rhs, TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64))
+                if matches!(*rhs, TyKind::Int(IntTy::I32) | TyKind::Int(IntTy::I64)) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
             }
-            TyKind::Int(IntTy::I64) => matches!(*rhs, TyKind::Int(IntTy::I64)),
-            TyKind::Uint(UintTy::U8) => matches!(*rhs, TyKind::Uint(_)),
-            TyKind::Uint(UintTy::U16) => matches!(
-                *rhs,
-                TyKind::Uint(UintTy::U16) | TyKind::Uint(UintTy::U32) | TyKind::Uint(UintTy::U64)
-            ),
+            TyKind::Int(IntTy::I64) => {
+                if matches!(*rhs, TyKind::Int(IntTy::I64)) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
+            }
+            TyKind::Uint(UintTy::U8) => {
+                if matches!(*rhs, TyKind::Uint(_)) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
+            }
+            TyKind::Uint(UintTy::U16) => {
+                if matches!(
+                    *rhs,
+                    TyKind::Uint(UintTy::U16)
+                        | TyKind::Uint(UintTy::U32)
+                        | TyKind::Uint(UintTy::U64)
+                ) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
+            }
             TyKind::Uint(UintTy::U32) => {
-                matches!(*rhs, TyKind::Uint(UintTy::U32) | TyKind::Uint(UintTy::U64))
+                if matches!(*rhs, TyKind::Uint(UintTy::U32) | TyKind::Uint(UintTy::U64)) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
             }
-            TyKind::Uint(UintTy::U64) => matches!(*rhs, TyKind::Uint(UintTy::U64)),
-            _ => lhs.eq(&rhs),
+            TyKind::Uint(UintTy::U64) => {
+                if matches!(*rhs, TyKind::Uint(UintTy::U64)) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
+            }
+            _ => self.eq(lhs, rhs),
         }
     }
 
-    fn unify_ty_ty<F: Fn(&Ty<'hir>, &Ty<'hir>) -> bool>(
+    fn unify_ty_ty<F: Fn(&Ty<'hir>, &Ty<'hir>) -> ConstraintEvaluation<'hir>>(
         &self,
         lhs: Ty<'hir>,
         rhs: Ty<'hir>,
         assignable_check: F,
-    ) -> bool {
-        let lhs = self.normalize_ty(lhs).unwrap_or(lhs);
-        let rhs = self.normalize_ty(rhs).unwrap_or(rhs);
+    ) -> ConstraintEvaluation<'hir> {
+        let lhs_ty = self.normalize_ty(lhs).unwrap_or(lhs);
+        let rhs_ty = self.normalize_ty(rhs).unwrap_or(rhs);
 
         match (lhs, rhs) {
             (
@@ -793,36 +987,29 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 Ty {
                     kind: TyKind::Infer(rhs),
                 },
-            ) => self.unify_var_var(*lhs, *rhs),
-            /// Both types are at least partially known, so we unify them.
-            (lhs, rhs) => {
-                if !assignable_check(&lhs, &rhs) {
-                    return false;
+            ) => {
+                if self.unify_var_var(*lhs, *rhs) {
+                    ConstraintEvaluation::Success
+                } else {
+                    ConstraintEvaluation::NotEqual(lhs_ty, rhs_ty)
                 }
-                true
             }
+            /// Both types are at least partially known, so we unify them.
+            (lhs, rhs) => assignable_check(&lhs, &rhs),
         }
     }
 
-    fn unify_var_ty<F: Fn(&Ty<'hir>, &Ty<'hir>) -> bool>(
+    fn unify_var_ty<F: Fn(&Ty<'hir>, &Ty<'hir>) -> ConstraintEvaluation<'hir>>(
         &self,
         var: TyVar,
         ty: Ty<'hir>,
         assignable_check: F,
-    ) -> bool {
-        if !self.unify_table.unify_var_ty(var, ty, assignable_check) {
-            // TODO: Record type error
-            return false;
-        }
-        true
+    ) -> ConstraintEvaluation<'hir> {
+        self.unify_table.unify_var_ty(var, ty, assignable_check)
     }
 
     fn unify_var_var(&self, lhs: TyVar, rhs: TyVar) -> bool {
-        if !self.unify_table.unify_var_var(lhs, rhs) {
-            // TODO: Record type error
-            return false;
-        }
-        true
+        self.unify_table.unify_var_var(lhs, rhs)
     }
 
     /// This method inspects a given type and returns an optional new type
@@ -952,6 +1139,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         generic_params: GenericParams<'hir>,
         params: Params<'hir>,
         ty_resolver: &'a TyResolver<'hir>,
+        diagnostics: &'a Diagnostics,
         hir_allocator: &'hir Bump,
         ret_ty: Ty<'hir>,
     ) -> Self {
@@ -961,14 +1149,16 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             type_env.local_vars.insert(param.ident.ident, param.ty);
         }
         type_envs.push(type_env);
+        let thir = Thir::new(generic_params, ret_ty);
         Self {
             unify_table: Default::default(),
             ty_resolver,
+            diagnostics,
             ty_map: Default::default(),
-            constraints: Constraints::default(),
+            constraints: Default::default(),
             type_envs,
             hir_allocator,
-            thir: Default::default(),
+            thir: RefCell::new(thir),
         }
     }
 }
@@ -1018,6 +1208,7 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
             GenericParams::default(),
             Params::default(),
             &self.ty_resolver,
+            &self.diagnostics,
             &self.hir_allocator,
             ret_ty,
         );
@@ -1085,6 +1276,7 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
                 generic_params,
                 params,
                 &self.ty_resolver,
+                &self.diagnostics,
                 &self.hir_allocator,
                 ret_ty,
             );
@@ -1092,12 +1284,6 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
             let thir = infer_ctxt.build_thir();
             self.bodies.insert(fn_def.id, thir);
         }
-    }
-
-    /// This method is not fallible since all constraints should already have been satisfied.
-    /// If this method panics, it is due to improper constraint generation.
-    fn substitute_expr(&self, expr: ExprId) -> Ty<'hir> {
-        todo!()
     }
 
     // fn unify_fn_sig(&mut self, fn_sig: &FnSig, args: &[Type], ret_ty: Type) -> bool {
@@ -1167,6 +1353,29 @@ impl<'hir> TypeEnv<'hir> {
         Self {
             local_vars: Default::default(),
             ret_ty,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+enum ConstraintEvaluation<'hir> {
+    Success,
+    NotEqual(Ty<'hir>, Ty<'hir>),
+    NotAssignable(Ty<'hir>, Ty<'hir>),
+    InfixOpUnsupported(Ty<'hir>, InfixOp),
+}
+
+impl<'hir> ConstraintEvaluation<'hir> {
+    pub fn and(&self, other: ConstraintEvaluation<'hir>) -> ConstraintEvaluation<'hir> {
+        match self {
+            ConstraintEvaluation::Success => other,
+            _ => *self,
+        }
+    }
+    pub fn is_error(&self) -> bool {
+        match self {
+            ConstraintEvaluation::Success => false,
+            _ => true,
         }
     }
 }

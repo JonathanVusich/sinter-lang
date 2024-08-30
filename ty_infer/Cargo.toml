@@ -18,3 +18,4 @@ krate = { path = "../krate" }
 hir = { path = "../hir" }
 typed_hir = { path = "../typed_hir" }
 types = { path = "../types" }
+phf = "0.11.2"

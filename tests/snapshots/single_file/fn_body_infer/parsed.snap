@@ -37,7 +37,7 @@
                 id: 0,
               ),
               ty: (
-                kind: U64,
+                kind: I64,
                 span: (
                   start: 18,
                   end: 21,

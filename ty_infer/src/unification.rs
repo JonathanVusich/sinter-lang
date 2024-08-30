@@ -1,4 +1,4 @@
-use crate::TyKind;
+use crate::{ConstraintEvaluation, TyKind};
 use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use typed_hir::{Ty, TyVar};
@@ -54,19 +54,19 @@ impl<'a> UnificationTable<'a> {
         lhs == rhs
     }
 
-    pub(crate) fn unify_var_ty<F: Fn(&Ty<'a>, &Ty<'a>) -> bool>(
+    pub(crate) fn unify_var_ty<F: Fn(&Ty<'a>, &Ty<'a>) -> ConstraintEvaluation<'a>>(
         &self,
         var: TyVar,
         ty: Ty<'a>,
         assignable_check: F,
-    ) -> bool {
+    ) -> ConstraintEvaluation<'a> {
         let root = self.get_root_key(var);
         let mut table = self.table.borrow_mut();
         let entry = table.entry_mut(root);
         match &entry.value {
             None => {
                 entry.value = Some(ty);
-                true
+                ConstraintEvaluation::Success
             }
             Some(prev_ty) => assignable_check(&prev_ty, &ty),
         }

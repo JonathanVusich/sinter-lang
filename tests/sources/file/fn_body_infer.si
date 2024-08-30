@@ -1,4 +1,4 @@
-fn to_string(num: u64) => str {
+fn to_string(num: i64) => str {
     if num > 1000 {
       return "Greater than 1000";
     }

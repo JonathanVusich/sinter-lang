@@ -4,6 +4,87 @@
     id: (
       id: 0,
     ),
-    bodies: {},
+    bodies: {
+      14: (
+        generic_params: [],
+        ret_ty: (
+          kind: Str,
+        ),
+        arms: [],
+        stmts: [Return((
+          expr: Some((
+            id: 3,
+          )),
+        )), If((
+          condition: (
+            id: 2,
+          ),
+          if_true: (
+            id: 4,
+          ),
+          if_false: None,
+        )), Return((
+          expr: Some((
+            id: 5,
+          )),
+        ))],
+        exprs: [(
+          kind: Path(Var((
+            ident: 2,
+            ty: (
+              kind: Int(I64),
+            ),
+          ))),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
+          kind: Int(1000),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
+          kind: Infix((
+            operator: Greater,
+            lhs: (
+              id: 0,
+            ),
+            rhs: (
+              id: 1,
+            ),
+          )),
+          ty: (
+            kind: Boolean,
+          ),
+        ), (
+          kind: String(5),
+          ty: (
+            kind: Str,
+          ),
+        ), (
+          kind: Block((
+            stmts: [(
+              id: 0,
+            )],
+            ret_ty: (
+              kind: Infer((
+                id: 0,
+              )),
+            ),
+          )),
+          ty: (
+            kind: Infer((
+              id: 0,
+            )),
+          ),
+        ), (
+          kind: String(6),
+          ty: (
+            kind: Str,
+          ),
+        )],
+        destructure_exprs: [],
+),
+    },
   )],
 )

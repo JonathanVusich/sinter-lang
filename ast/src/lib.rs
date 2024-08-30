@@ -1256,7 +1256,7 @@ impl PostfixOp {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize, Deserialize, Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum InfixOp {
     Assign,
     Add,

@@ -1050,7 +1050,7 @@ impl<'hir> CrateResolver<'hir> {
                 let rhs = self.resolve_expr(&infix.rhs)?;
 
                 ExprKind::Infix(InfixExpr {
-                    operator: infix.operator,
+                    operator: infix.operator.into(),
                     lhs,
                     rhs,
                 })

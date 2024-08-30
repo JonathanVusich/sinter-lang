@@ -1,11 +1,11 @@
 #![allow(unused)]
 
 use std::collections::BTreeMap;
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-use ast::{ClassType, Ident, InfixOp, MaybeFnDef, ModulePath, Mutability, UnaryOp, ValueDef};
+use ast::{ClassType, Ident, MaybeFnDef, ModulePath, Mutability, UnaryOp, ValueDef};
 use id::{CrateId, DefId, LocalDefId, ModuleId};
 use interner::InternedStr;
 use span::Span;
@@ -142,7 +142,7 @@ pub enum StmtKind<'a> {
     If(&'a IfStmt<'a>),
     Return(&'a ReturnStmt<'a>),
     While(&'a WhileStmt<'a>),
-    Block(&'a Block<'a>),
+    Block(&'a BlockStmt<'a>),
     Expression(&'a Expression<'a>),
 }
 
@@ -239,6 +239,11 @@ pub struct Param<'a> {
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+pub struct BlockStmt<'a> {
+    pub block: Block<'a>,
+}
+
+#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Block<'a> {
     pub stmts: Stmts<'a>,
     pub span: Span,
@@ -323,6 +328,96 @@ pub struct CallExpr<'a> {
 pub struct UnaryExpr<'a> {
     pub operator: UnaryOp,
     pub expr: &'a Expr<'a>,
+}
+
+#[derive(PartialEq, Eq, Hash, Debug, Serialize, Deserialize, Copy, Clone)]
+pub enum InfixOpClass {
+    Assignment,
+    Arithmetic,
+    Logical,
+    Comparison,
+    Bitwise,
+}
+
+impl From<ast::InfixOp> for InfixOp {
+    fn from(value: ast::InfixOp) -> Self {
+        match value {
+            ast::InfixOp::Assign => InfixOp::Assign,
+            ast::InfixOp::Add => InfixOp::Add,
+            ast::InfixOp::Subtract => InfixOp::Subtract,
+            ast::InfixOp::Multiply => InfixOp::Multiply,
+            ast::InfixOp::Divide => InfixOp::Divide,
+            ast::InfixOp::Modulo => InfixOp::Modulo,
+            ast::InfixOp::Or => InfixOp::Or,
+            ast::InfixOp::And => InfixOp::And,
+            ast::InfixOp::Less => InfixOp::Less,
+            ast::InfixOp::Greater => InfixOp::Greater,
+            ast::InfixOp::LessEqual => InfixOp::LessEqual,
+            ast::InfixOp::GreaterEqual => InfixOp::GreaterEqual,
+            ast::InfixOp::BitwiseOr => InfixOp::BitwiseOr,
+            ast::InfixOp::BitwiseAnd => InfixOp::BitwiseAnd,
+            ast::InfixOp::BitwiseComplement => InfixOp::BitwiseComplement,
+            ast::InfixOp::BitwiseXor => InfixOp::BitwiseXor,
+            ast::InfixOp::Equal => InfixOp::Equal,
+            ast::InfixOp::NotEqual => InfixOp::NotEqual,
+            ast::InfixOp::LeftShift => InfixOp::LeftShift,
+            ast::InfixOp::RightShift => InfixOp::RightShift,
+            ast::InfixOp::TripleRightShift => InfixOp::TripleRightShift,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Hash, Debug, Serialize, Deserialize, Copy, Clone)]
+pub enum InfixOp {
+    Assign,
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulo,
+    Or,
+    And,
+    Less,
+    Greater,
+    LessEqual,
+    GreaterEqual,
+    BitwiseOr,
+    BitwiseAnd,
+    BitwiseComplement,
+    BitwiseXor,
+    Equal,
+    NotEqual,
+    LeftShift,
+    RightShift,
+    TripleRightShift,
+}
+
+impl InfixOp {
+    pub fn class(&self) -> InfixOpClass {
+        match self {
+            InfixOp::Assign => InfixOpClass::Assignment,
+            InfixOp::Add
+            | InfixOp::Subtract
+            | InfixOp::Multiply
+            | InfixOp::Divide
+            | InfixOp::Modulo => InfixOpClass::Arithmetic,
+            InfixOp::Or | InfixOp::And => InfixOpClass::Logical,
+            InfixOp::Equal
+            | InfixOp::NotEqual
+            | InfixOp::LessEqual
+            | InfixOp::Less
+            | InfixOp::LessEqual
+            | InfixOp::Greater
+            | InfixOp::GreaterEqual => InfixOpClass::Comparison,
+            InfixOp::BitwiseOr
+            | InfixOp::BitwiseAnd
+            | InfixOp::BitwiseComplement
+            | InfixOp::BitwiseXor
+            | InfixOp::LeftShift
+            | InfixOp::RightShift
+            | InfixOp::TripleRightShift => InfixOpClass::Bitwise,
+        }
+    }
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]

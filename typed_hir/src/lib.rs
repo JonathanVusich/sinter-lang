@@ -5,7 +5,8 @@ use std::ops::{Add, Deref, Index, IndexMut};
 
 use serde::Serialize;
 
-use ast::{ClassType, Ident, InfixOp, Mutability, UnaryOp};
+use ast::{ClassType, Ident, Mutability, UnaryOp};
+use hir::InfixOp;
 use id::{CrateId, LocalDefId};
 use interner::InternedStr;
 use types::LDefMap;
@@ -19,7 +20,9 @@ pub struct ExprId {
 pub struct DestructureExprId(u32);
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct BlockId(u32);
+pub struct BlockId {
+    pub(crate) id: u32,
+}
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct StmtId {
@@ -146,9 +149,9 @@ pub struct ClosureDef<'a> {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub enum DestructureExpr {
+pub enum DestructureExpr<'a> {
     Pattern(DestructurePattern),
-    Identifier(LocalVar),
+    Identifier(LocalVar<'a>),
     None,
     True,
     False,
@@ -159,13 +162,13 @@ pub enum DestructureExpr {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub enum Stmt<'hir> {
-    Let(LetStmt),
-    For(ForStmt),
+pub enum Stmt<'a> {
+    Let(LetStmt<'a>),
+    For(ForStmt<'a>),
     If(IfStmt),
     Return(ReturnStmt),
     While(WhileStmt),
-    Block(Block<'hir>),
+    Block(BlockStmt),
     Expression(Expression),
 }
 
@@ -186,14 +189,13 @@ pub enum PatternKind<'a> {
     UInt(u64),
     Float(f64),
     String(InternedStr),
-    Ty(TyPattern),
+    Ty(TyPattern<'a>),
     Destructure(DestructurePattern),
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct Constant<'a> {
-    pub local_var: LocalVar,
-    pub ty: Ty<'a>,
+    pub local_var: LocalVar<'a>,
     pub initializer: ExprId,
 }
 
@@ -297,14 +299,15 @@ pub struct OrPattern<'a> {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct TyPattern {
+pub struct TyPattern<'a> {
     pub ty: ExprId,
-    pub ident: Option<LocalVar>,
+    pub ident: Option<LocalVar<'a>>,
 }
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize)]
-pub struct LocalVar {
+pub struct LocalVar<'a> {
     pub ident: InternedStr,
+    pub ty: Ty<'a>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -343,7 +346,7 @@ pub enum PathExpr<'a> {
     Enum(&'a EnumDef<'a>, Generics<'a>),
     Trait(&'a TraitDef<'a>, Generics<'a>),
     Fn(&'a FnDef<'a>, Generics<'a>),
-    Var(LocalVar),
+    Var(LocalVar<'a>),
     Generic(GenericParam<'a>),
     Float(FloatTy),
     Int(IntTy),
@@ -354,8 +357,8 @@ pub enum PathExpr<'a> {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub enum LocalDef {
-    Var(LocalVar),
+pub enum LocalDef<'a> {
+    Var(LocalVar<'a>),
     Generic(LocalDefId),
 }
 
@@ -370,8 +373,8 @@ pub enum DefTy {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct LetStmt {
-    pub local_var: LocalVar,
+pub struct LetStmt<'a> {
+    pub local_var: LocalVar<'a>,
     pub mutability: Mutability,
     // Don't need to record a Ty here because the expression will be typed.
     pub initializer: Option<ExprId>,
@@ -379,7 +382,7 @@ pub struct LetStmt {
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct ReturnStmt {
-    pub value: Option<ExprId>,
+    pub expr: Option<ExprId>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -389,8 +392,13 @@ pub struct WhileStmt {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct ForStmt {
-    pub ident: LocalVar,
+pub struct BlockStmt {
+    pub block: ExprId,
+}
+
+#[derive(PartialEq, Debug, Clone, Serialize)]
+pub struct ForStmt<'a> {
+    pub ident: LocalVar<'a>,
     pub range: ExprId,
     pub body: BlockId,
 }
@@ -398,8 +406,8 @@ pub struct ForStmt {
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct IfStmt {
     pub condition: ExprId,
-    pub if_true: BlockId,
-    pub if_false: Option<BlockId>,
+    pub if_true: ExprId,
+    pub if_false: Option<ExprId>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
@@ -430,7 +438,7 @@ pub struct Thir<'hir> {
     arms: Vec<MatchArm<'hir>>,
     stmts: Vec<Stmt<'hir>>,
     exprs: Vec<Expr<'hir>>,
-    destructure_exprs: Vec<DestructureExpr>,
+    destructure_exprs: Vec<DestructureExpr<'hir>>,
 }
 
 impl<'hir> Thir<'hir> {
@@ -443,6 +451,14 @@ impl<'hir> Thir<'hir> {
             exprs: Default::default(),
             destructure_exprs: Default::default(),
         }
+    }
+
+    pub fn exprs(&mut self) -> impl Iterator<Item = &'_ mut Expr<'hir>> {
+        return self.exprs.iter_mut();
+    }
+
+    pub fn stmts(&mut self) -> impl Iterator<Item = &'_ mut Stmt<'hir>> {
+        return self.stmts.iter_mut();
     }
 
     pub fn insert_expr(&mut self, expr: Expr<'hir>) -> ExprId {
