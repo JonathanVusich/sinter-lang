@@ -59,7 +59,7 @@ pub enum ExprKind<'a> {
     Assign(AssignExpr),
     Field(FieldExpr),
     Index(IndexExpr),
-    Block(Block<'a>),
+    Block(Block),
     Path(PathExpr<'a>),
     Break,
     Continue,
@@ -134,6 +134,12 @@ pub struct Trait<'a> {
     pub generics: Generics<'a>,
 }
 
+#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
+pub struct Field<'a> {
+    pub ident: Ident,
+    pub ty: Ty<'a>,
+}
+
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct FnDef<'a> {
     pub name: Ident,
@@ -200,9 +206,8 @@ pub struct Constant<'a> {
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
-pub struct Block<'hir> {
+pub struct Block {
     pub stmts: Stmts,
-    pub ret_ty: Ty<'hir>,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
@@ -243,7 +248,7 @@ pub type Generics<'a> = &'a [Ty<'a>];
 pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
 pub type Params<'a> = &'a [Param<'a>];
 pub type ClosureDefParams<'a> = &'a [Ty<'a>];
-pub type Fields<'a> = &'a [Ty<'a>];
+pub type Fields<'a> = &'a [Field<'a>];
 pub type MemberDefs<'a> = &'a [&'a MemberDef<'a>];
 pub type FnDefs<'a> = &'a [&'a FnDef<'a>];
 pub type Args = Box<[ExprId]>;

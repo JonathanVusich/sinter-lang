@@ -1,6 +1,6 @@
 {
-  8: (
-    name: 8,
+  9: (
+    name: 9,
     crate_id: (
       id: 0,
     ),
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [7],
+        module_path: [8],
       ),
       namespace: (
         modules: {},
@@ -62,6 +62,62 @@
           ),
           body: Some((
             stmts: [(
+              kind: Let((
+                local_var: (
+                  ident: 5,
+                  span: (
+                    start: 40,
+                    end: 51,
+                  ),
+                  id: 4,
+                ),
+                mutability: Immutable,
+                ty: None,
+                initializer: Some((
+                  kind: Infix((
+                    operator: Multiply,
+                    lhs: (
+                      kind: Path((
+                        ident_type: LocalOrUse,
+                        segments: [(
+                          ident: (
+                            ident: 2,
+                            span: (
+                              start: 54,
+                              end: 57,
+                            ),
+                          ),
+                          generics: None,
+                        )],
+                      )),
+                      span: (
+                        start: 54,
+                        end: 57,
+                      ),
+                      id: 5,
+                    ),
+                    rhs: (
+                      kind: Int(2),
+                      span: (
+                        start: 60,
+                        end: 61,
+                      ),
+                      id: 6,
+                    ),
+                  )),
+                  span: (
+                    start: 54,
+                    end: 61,
+                  ),
+                  id: 7,
+                )),
+              )),
+              span: (
+                start: 36,
+                end: 62,
+              ),
+              id: 8,
+            ), (
               kind: If((
                 condition: (
                   kind: Infix((
@@ -73,94 +129,94 @@
                           ident: (
                             ident: 2,
                             span: (
-                              start: 39,
-                              end: 42,
+                              start: 70,
+                              end: 73,
                             ),
                           ),
                           generics: None,
                         )],
                       )),
                       span: (
-                        start: 39,
-                        end: 42,
+                        start: 70,
+                        end: 73,
                       ),
-                      id: 4,
+                      id: 9,
                     ),
                     rhs: (
                       kind: Int(1000),
                       span: (
-                        start: 45,
-                        end: 49,
+                        start: 76,
+                        end: 80,
                       ),
-                      id: 5,
+                      id: 10,
                     ),
                   )),
                   span: (
-                    start: 39,
-                    end: 49,
+                    start: 70,
+                    end: 80,
                   ),
-                  id: 6,
+                  id: 11,
                 ),
                 if_true: (
                   stmts: [(
                     kind: Return((
                       value: Some((
-                        kind: String(5),
+                        kind: String(6),
                         span: (
-                          start: 65,
-                          end: 84,
+                          start: 96,
+                          end: 115,
                         ),
-                        id: 7,
+                        id: 12,
                       )),
                     )),
                     span: (
-                      start: 58,
-                      end: 85,
+                      start: 89,
+                      end: 116,
                     ),
-                    id: 8,
+                    id: 13,
                   )],
                   span: (
-                    start: 50,
-                    end: 91,
+                    start: 81,
+                    end: 122,
                   ),
-                  id: 9,
+                  id: 14,
                 ),
                 if_false: None,
               )),
               span: (
-                start: 36,
-                end: 91,
+                start: 67,
+                end: 122,
               ),
-              id: 10,
+              id: 15,
             ), (
               kind: Return((
                 value: Some((
-                  kind: String(6),
+                  kind: String(7),
                   span: (
-                    start: 103,
-                    end: 131,
+                    start: 134,
+                    end: 162,
                   ),
-                  id: 11,
+                  id: 16,
                 )),
               )),
               span: (
-                start: 96,
-                end: 132,
+                start: 127,
+                end: 163,
               ),
-              id: 12,
+              id: 17,
             )],
             span: (
               start: 30,
-              end: 134,
+              end: 165,
             ),
-            id: 13,
+            id: 18,
           )),
         )),
         span: (
           start: 0,
-          end: 134,
+          end: 165,
         ),
-        id: 14,
+        id: 19,
       )],
     )],
   ),

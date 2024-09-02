@@ -255,10 +255,16 @@ impl Compiler {
         &'hir self,
         hir_map: &'hir HirMap<'hir>,
     ) -> Result<ThirMap<'hir>, Diagnostics> {
-        infer_types(&self.diagnostics, &self.hir_allocator, hir_map).ok_or(self.diagnostics.clone())
+        let thirs = infer_types(
+            &self.string_interner,
+            &self.diagnostics,
+            &self.hir_allocator,
+            hir_map,
+        );
+        self.check_errors(thirs)
     }
 
-    fn check_errors<T>(&mut self, val: T) -> Result<T, Diagnostics> {
+    fn check_errors<T>(&self, val: T) -> Result<T, Diagnostics> {
         if !self.diagnostics.filter(DiagnosticKind::Error).is_empty() {
             return Err(self.diagnostics.clone());
         }

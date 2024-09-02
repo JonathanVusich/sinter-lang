@@ -1,4 +1,5 @@
 fn to_string(num: i64) => str {
+    let doubled_num = num * 2;
     if num > 1000 {
       return "Greater than 1000";
     }

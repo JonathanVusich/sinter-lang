@@ -1,0 +1,54 @@
+{
+  4: (
+    name: 4,
+    crate_id: (
+      id: 0,
+    ),
+    modules: [(
+      id: (
+        crate_id: 0,
+        module_id: 0,
+      ),
+      path: (
+        module_path: [3],
+      ),
+      namespace: (
+        modules: {},
+        values: {},
+      ),
+      items: [(
+        kind: GlobalLet((
+          local_var: (
+            ident: 1,
+            span: (
+              start: 4,
+              end: 10,
+            ),
+            id: 0,
+          ),
+          ty: (
+            kind: Str,
+            span: (
+              start: 12,
+              end: 15,
+            ),
+            id: 1,
+          ),
+          initializer: (
+            kind: Int(123),
+            span: (
+              start: 18,
+              end: 21,
+            ),
+            id: 2,
+          ),
+        )),
+        span: (
+          start: 0,
+          end: 22,
+        ),
+        id: 3,
+      )],
+    )],
+  ),
+}

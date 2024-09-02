@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 
 use bumpalo::Bump;
-use itertools::Itertools;
+use itertools::{EitherOrBoth, Itertools};
 use serde::{Deserialize, Serialize};
 
 use ast::Ident;
@@ -16,12 +16,12 @@ use hir::{
     Res, StmtKind, WhileStmt,
 };
 use id::DefId;
-use interner::Interner;
+use interner::{Interner, StringInterner};
 use typed_hir::{
-    ArrayExpr, Block, BlockStmt, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind, Fields,
-    FloatTy, FnDef, FnDefs, GenericParam, GenericParams, IfStmt, InfixExpr, IntTy, LetStmt,
-    LocalVar, MemberDef, MemberDefs, Param, Params, PathExpr, ReturnStmt, Stmt, StmtId, Thir,
-    ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
+    ArrayExpr, Block, BlockStmt, CallExpr, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind,
+    Field, Fields, FloatTy, FnDef, FnDefs, GenericParam, GenericParams, IfStmt, InfixExpr, IntTy,
+    LetStmt, LocalVar, MemberDef, MemberDefs, Param, Params, PathExpr, ReturnStmt, Stmt, StmtId,
+    Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
 };
 use types::{LDefMap, StrMap};
 
@@ -31,16 +31,23 @@ mod trait_solver;
 mod unification;
 
 pub fn infer_types<'hir>(
+    string_interner: &'hir StringInterner,
     diagnostics: &'hir Diagnostics,
     hir_allocator: &'hir Bump,
     hir_map: &'hir HirMap<'hir>,
-) -> Option<ThirMap<'hir>> {
+) -> ThirMap<'hir> {
     let mut crates = Vec::default();
     let ty_resolver: TyResolver<'hir> = TyResolver::new(hir_map, hir_allocator);
     for krate in hir_map.krates() {
-        let crate_inference =
-            CrateInference::new(diagnostics, &ty_resolver, hir_allocator, krate, hir_map);
-        let bodies = crate_inference.infer_bodies()?;
+        let crate_inference = CrateInference::new(
+            string_interner,
+            diagnostics,
+            &ty_resolver,
+            hir_allocator,
+            krate,
+            hir_map,
+        );
+        let bodies = crate_inference.infer_bodies();
         let tkrate = ThirCrate {
             name: krate.name,
             id: krate.id,
@@ -48,7 +55,8 @@ pub fn infer_types<'hir>(
         };
         crates.push(tkrate);
     }
-    Some(ThirMap { crates })
+
+    ThirMap { crates }
 }
 
 /// Contains the data needed to infer types for a given HIR crate.
@@ -58,6 +66,7 @@ pub fn infer_types<'hir>(
 /// TODO: All types SHOULD also be interned across crates using a ty interner.
 #[derive(Debug)]
 pub struct CrateInference<'a, 'hir> {
+    string_interner: &'hir StringInterner,
     diagnostics: &'hir Diagnostics,
     ty_resolver: &'a TyResolver<'hir>,
 
@@ -357,7 +366,11 @@ impl<'hir> TyResolver<'hir> {
 
     fn resolve_fields(&self, fields: hir::Fields<'hir>) -> Fields<'hir> {
         self.hir_allocator
-            .alloc_slice_fill_iter(fields.iter().map(|field| self.resolve_ty(field.ty)))
+            .alloc_slice_fill_iter(fields.iter().map(|field| {
+                let ident = field.ident;
+                let ty = self.resolve_ty(field.ty);
+                Field { ident, ty }
+            }))
     }
 
     fn resolve_params(&self, params: hir::Params<'hir>) -> Params<'hir> {
@@ -389,6 +402,7 @@ pub struct InferCtxt<'a, 'hir> {
     // Contains the current THIR body and information used to unify all the types.
     unify_table: UnificationTable<'hir>,
     ty_resolver: &'a TyResolver<'hir>,
+    string_interner: &'a StringInterner,
     diagnostics: &'a Diagnostics,
     ty_map: LDefMap<Ty<'hir>>,
     constraints: Constraints<'hir>,
@@ -500,13 +514,18 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn infer_if_stmt(&self, if_stmt: &'hir hir::IfStmt<'hir>) -> (StmtId, Ty<'hir>) {
         let bool_ty = self.ty_resolver.intern(TyKind::Boolean);
+        let none_ty = self.ty_resolver.intern(TyKind::None);
         let condition = self.check_expr(if_stmt.condition, bool_ty);
         let (if_true, true_ty) = self.infer_block(&if_stmt.if_true);
+
+        // If stmt blocks (for now) should not yield a value.
+        self.add_constraint(Constraint::Equal(none_ty, true_ty));
+
         let (if_false, false_ty) = if_stmt
             .if_false
             .map(|block| {
                 let (false_id, false_ty) = self.infer_block(&block);
-                self.add_constraint(Constraint::Assignable(false_ty, true_ty));
+                self.add_constraint(Constraint::Equal(none_ty, true_ty));
                 (Some(false_id), Some(false_ty))
             })
             .unwrap_or_else(|| (None, None));
@@ -517,7 +536,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             if_false,
         };
         let stmt_id = self.thir.borrow_mut().insert_stmt(Stmt::If(if_stmt));
-        (stmt_id, true_ty)
+        (stmt_id, none_ty)
     }
 
     fn infer_return_stmt(&self, return_stmt: &'hir hir::ReturnStmt<'hir>) -> (StmtId, Ty<'hir>) {
@@ -528,6 +547,8 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 (Some(id), ty)
             })
             .unwrap_or_else(|| (None, self.ty_resolver.intern(TyKind::None)));
+
+        self.add_constraint(Constraint::Assignable(self.type_envs.root_ty(), ty));
 
         let return_stmt = ReturnStmt { expr };
         let stmt_id = self
@@ -633,8 +654,27 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         }
     }
 
-    fn infer_call(&self, call: hir::CallExpr) -> (ExprId, Ty<'hir>) {
-        todo!()
+    fn infer_call(&self, call: hir::CallExpr<'hir>) -> (ExprId, Ty<'hir>) {
+        let (target, target_ty) = self.infer_expr(call.target);
+
+        let mut args = Vec::with_capacity(call.args.len());
+        let mut tys = Vec::with_capacity(call.args.len());
+        for arg in call.args {
+            let (expr_id, ty) = self.infer_expr(arg);
+            args.push(expr_id);
+            tys.push(ty);
+        }
+        let boxed_args = args.into_boxed_slice();
+
+        self.add_constraint(Constraint::Callable(target_ty, tys));
+
+        let expr_kind = ExprKind::Call(CallExpr {
+            target,
+            args: boxed_args,
+        });
+
+        let expr_id = self.insert_expr(expr_kind, target_ty);
+        (expr_id, target_ty)
     }
 
     fn infer_infix(&self, infix: hir::InfixExpr<'hir>) -> (ExprId, Ty<'hir>) {
@@ -661,7 +701,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         };
         let expr_id = self.thir.borrow_mut().insert_expr(expr);
 
-        (expr_id, lhs_ty)
+        (expr_id, resultant_ty)
     }
 
     fn infer_unary(&self, unary: hir::UnaryExpr) -> (ExprId, Ty<'hir>) {
@@ -749,7 +789,6 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
         let block = Block {
             stmts: stmts.into_boxed_slice(),
-            ret_ty,
         };
         let expr_id = self.insert_expr(ExprKind::Block(block), ret_ty);
         (expr_id, ret_ty)
@@ -765,14 +804,16 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
     fn substitute_thir(&self) {
         let mut borrowed_thir = self.thir.borrow_mut();
         for expr in borrowed_thir.exprs() {
+            // TODO: Identify why blocks have a separately defined ret_ty and fix the type solving for it or consolidate it into the expr.ty field.
             expr.ty = self.normalize_ty(expr.ty).unwrap_or(expr.ty);
         }
         for stmt in borrowed_thir.stmts() {
             match stmt {
                 Stmt::Let(let_stmt) => {
-                    let_stmt.local_var.ty = self
+                    let normalized_ty = self
                         .normalize_ty(let_stmt.local_var.ty)
                         .unwrap_or(let_stmt.local_var.ty);
+                    let_stmt.local_var.ty = normalized_ty;
                 }
                 Stmt::For(for_stmt) => {
                     for_stmt.ident.ty = self
@@ -799,13 +840,23 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 let diagnostic_str = match eval {
                     ConstraintEvaluation::Success => unreachable!(),
                     ConstraintEvaluation::NotEqual(lhs, rhs) => {
-                        format!("{:?} is not equal to {:?}", lhs, rhs)
+                        format!("{:?} is not equal to {:?}", *lhs, *rhs)
                     }
                     ConstraintEvaluation::NotAssignable(lhs, rhs) => {
-                        format!("{:?} is not assignable to {:?}", lhs, rhs)
+                        format!("{:?} is not assignable to {:?}", *lhs, *rhs)
                     }
                     ConstraintEvaluation::InfixOpUnsupported(ty, infix) => {
-                        format!("{:?} does not support infix operator {:?}", ty, infix)
+                        format!("{:?} does not support infix operator {:?}", *ty, infix)
+                    }
+                    ConstraintEvaluation::NotCallable(ty) => {
+                        format!("{:?} is not a callable type!", *ty)
+                    }
+                    ConstraintEvaluation::MissingArg(field) => {
+                        let field_name = self.string_interner.resolve(field.ident.ident);
+                        format!("Missing an argument for field {:?}", field_name)
+                    }
+                    ConstraintEvaluation::ExtraArg(arg) => {
+                        format!("Extra argument of {:?} supplied!", *arg)
                     }
                 };
                 self.diagnostics.push(Diagnostic::Error(diagnostic_str));
@@ -821,6 +872,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             Constraint::Assignable(lhs, rhs) => {
                 self.unify_ty_ty(*lhs, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
             }
+            Constraint::Callable(target, args) => self.unify_callable(*target, args),
             Constraint::Infix(lhs, rhs, infix_op) => self.unify_ty_ty(*lhs, *rhs, |lhs, rhs| {
                 self.assignable(*lhs, *rhs)
                     .and(self.supports_infix(*lhs, *infix_op))
@@ -958,6 +1010,34 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         }
     }
 
+    fn callable(&self, ty: Ty<'hir>, args: Vec<Ty<'hir>>) -> ConstraintEvaluation<'hir> {
+        match *ty {
+            TyKind::Class(class_def, _) => {
+                let fields = class_def.fields;
+                return fields
+                    .iter()
+                    .zip_longest(args.iter())
+                    .map(|item| match item {
+                        EitherOrBoth::Both(field, rhs) => self.assignable(field.ty, *rhs),
+                        EitherOrBoth::Left(field) => ConstraintEvaluation::MissingArg(*field),
+                        EitherOrBoth::Right(arg) => ConstraintEvaluation::ExtraArg(*arg),
+                    })
+                    .reduce(|lhs, rhs| {
+                        return if let ConstraintEvaluation::Success = lhs {
+                            rhs
+                        } else {
+                            lhs
+                        };
+                    })
+                    .unwrap_or(ConstraintEvaluation::Success);
+            }
+            TyKind::Member(_, _) | TyKind::Fn(_, _) | TyKind::Closure(_) => {
+                ConstraintEvaluation::Success
+            }
+            _ => ConstraintEvaluation::NotCallable(ty),
+        }
+    }
+
     fn unify_ty_ty<F: Fn(&Ty<'hir>, &Ty<'hir>) -> ConstraintEvaluation<'hir>>(
         &self,
         lhs: Ty<'hir>,
@@ -1012,6 +1092,16 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         self.unify_table.unify_var_var(lhs, rhs)
     }
 
+    fn unify_callable(&self, target: Ty<'hir>, args: &Vec<Ty<'hir>>) -> ConstraintEvaluation<'hir> {
+        let target = self.normalize_ty(target).unwrap_or(target);
+        let args = args
+            .iter()
+            .copied()
+            .map(|arg| self.normalize_ty(arg).unwrap_or(arg))
+            .collect();
+        return self.callable(target, args);
+    }
+
     /// This method inspects a given type and returns an optional new type
     /// if there is some aspect of the type that can be updated due to constraint solving.
     fn normalize_ty(&self, ty: Ty<'hir>) -> Option<Ty<'hir>> {
@@ -1062,9 +1152,11 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             }
             TyKind::Infer(ty_var) => {
                 let probed = self.unify_table.probe(*ty_var);
+                dbg!(*ty_var);
+                dbg!(probed);
                 match probed {
                     None => None,
-                    Some(ty_kind) => self.normalize_ty(ty_kind),
+                    Some(ty_kind) => Some(self.normalize_ty(ty_kind).unwrap_or(ty_kind)),
                 }
             }
             TyKind::Float(_)
@@ -1139,6 +1231,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         generic_params: GenericParams<'hir>,
         params: Params<'hir>,
         ty_resolver: &'a TyResolver<'hir>,
+        string_interner: &'a StringInterner,
         diagnostics: &'a Diagnostics,
         hir_allocator: &'hir Bump,
         ret_ty: Ty<'hir>,
@@ -1153,6 +1246,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         Self {
             unify_table: Default::default(),
             ty_resolver,
+            string_interner,
             diagnostics,
             ty_map: Default::default(),
             constraints: Default::default(),
@@ -1165,6 +1259,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
 impl<'a, 'hir> CrateInference<'a, 'hir> {
     pub fn new(
+        string_interner: &'hir StringInterner,
         diagnostics: &'hir Diagnostics,
         ty_resolver: &'a TyResolver<'hir>,
         hir_allocator: &'hir Bump,
@@ -1172,6 +1267,7 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
         hir_map: &'hir HirMap,
     ) -> Self {
         Self {
+            string_interner,
             diagnostics,
             ty_resolver,
             hir_allocator,
@@ -1183,7 +1279,7 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
 
     // TODO: Returned interned ty representation to reduce memory overhead.
     // TODO: Record existing types for class fields and other nodes whose types are known statically.
-    pub fn infer_bodies(mut self) -> Option<LDefMap<Thir<'hir>>> {
+    pub fn infer_bodies(mut self) -> LDefMap<Thir<'hir>> {
         for item in self.krate.items.iter() {
             match item.kind {
                 ItemKind::Constant(constant) => self.infer_constant(constant),
@@ -1198,7 +1294,7 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
                 }
             }
         }
-        Some(self.bodies)
+        self.bodies
     }
 
     fn infer_constant(&mut self, constant: &hir::Constant<'hir>) {
@@ -1208,6 +1304,7 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
             GenericParams::default(),
             Params::default(),
             &self.ty_resolver,
+            &self.string_interner,
             &self.diagnostics,
             &self.hir_allocator,
             ret_ty,
@@ -1276,6 +1373,7 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
                 generic_params,
                 params,
                 &self.ty_resolver,
+                &self.string_interner,
                 &self.diagnostics,
                 &self.hir_allocator,
                 ret_ty,
@@ -1340,6 +1438,11 @@ impl<'hir> TypeEnvs<'hir> {
         }
         return None;
     }
+
+    /// This represents the ret_ty of the type env, which is always a function return type.
+    pub fn root_ty(&self) -> Ty<'hir> {
+        self.envs.borrow().first().map(|env| env.ret_ty).unwrap()
+    }
 }
 
 #[derive(Debug)]
@@ -1362,6 +1465,9 @@ enum ConstraintEvaluation<'hir> {
     Success,
     NotEqual(Ty<'hir>, Ty<'hir>),
     NotAssignable(Ty<'hir>, Ty<'hir>),
+    NotCallable(Ty<'hir>),
+    MissingArg(Field<'hir>),
+    ExtraArg(Ty<'hir>),
     InfixOpUnsupported(Ty<'hir>, InfixOp),
 }
 
@@ -1384,6 +1490,7 @@ impl<'hir> ConstraintEvaluation<'hir> {
 enum Constraint<'hir> {
     Equal(Ty<'hir>, Ty<'hir>),
     Assignable(Ty<'hir>, Ty<'hir>),
+    Callable(Ty<'hir>, Vec<Ty<'hir>>),
     Infix(Ty<'hir>, Ty<'hir>, InfixOp),
 }
 

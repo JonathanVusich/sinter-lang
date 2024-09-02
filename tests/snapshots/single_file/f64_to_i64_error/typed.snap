@@ -1,26 +1,3 @@
 (
-  crates: [(
-    name: 4,
-    id: (
-      id: 0,
-    ),
-    bodies: {
-      2: (
-        generic_params: [],
-        ret_ty: (
-          kind: Int(I64),
-        ),
-        blocks: [],
-        arms: [],
-        stmts: [],
-        exprs: [(
-          kind: Float(9.5),
-          ty: (
-            kind: Float(F64),
-          ),
-        )],
-        destructure_exprs: [],
-),
-    },
-  )],
+  diagnostics: [Error("Ty { kind: Float(F64) } is not assignable to Ty { kind: Int(I64) }")],
 )

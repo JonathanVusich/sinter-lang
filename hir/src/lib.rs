@@ -568,6 +568,8 @@ pub struct ForStmt<'a> {
     pub body: &'a Block<'a>,
 }
 
+/// TODO: Consider making if statements an expression so that they can yield a value.
+/// Alternatively you can just wrap an if statement in a function to yield a value, but this is clumsy.
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct IfStmt<'a> {
     pub condition: Expr<'a>,

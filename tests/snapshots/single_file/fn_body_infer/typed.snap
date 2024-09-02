@@ -1,34 +1,73 @@
 (
   crates: [(
-    name: 8,
+    name: 9,
     id: (
       id: 0,
     ),
     bodies: {
-      14: (
+      19: (
         generic_params: [],
         ret_ty: (
           kind: Str,
         ),
         arms: [],
-        stmts: [Return((
+        stmts: [Let((
+          local_var: (
+            ident: 5,
+            ty: (
+              kind: Int(I64),
+            ),
+          ),
+          mutability: Immutable,
+          initializer: Some((
+            id: 2,
+          )),
+        )), Return((
           expr: Some((
-            id: 3,
+            id: 6,
           )),
         )), If((
           condition: (
-            id: 2,
+            id: 5,
           ),
           if_true: (
-            id: 4,
+            id: 7,
           ),
           if_false: None,
         )), Return((
           expr: Some((
-            id: 5,
+            id: 8,
           )),
         ))],
         exprs: [(
+          kind: Path(Var((
+            ident: 2,
+            ty: (
+              kind: Int(I64),
+            ),
+          ))),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
+          kind: Int(2),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
+          kind: Infix((
+            operator: Multiply,
+            lhs: (
+              id: 0,
+            ),
+            rhs: (
+              id: 1,
+            ),
+          )),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
           kind: Path(Var((
             ident: 2,
             ty: (
@@ -47,38 +86,31 @@
           kind: Infix((
             operator: Greater,
             lhs: (
-              id: 0,
+              id: 3,
             ),
             rhs: (
-              id: 1,
+              id: 4,
             ),
           )),
           ty: (
             kind: Boolean,
           ),
         ), (
-          kind: String(5),
+          kind: String(6),
           ty: (
             kind: Str,
           ),
         ), (
           kind: Block((
             stmts: [(
-              id: 0,
+              id: 1,
             )],
-            ret_ty: (
-              kind: Infer((
-                id: 0,
-              )),
-            ),
           )),
           ty: (
-            kind: Infer((
-              id: 0,
-            )),
+            kind: None,
           ),
         ), (
-          kind: String(6),
+          kind: String(7),
           ty: (
             kind: Str,
           ),
