@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use std::fmt::Debug;
-use std::ops::{Add, Deref, Index, IndexMut};
+use std::ops::{Add, Deref, Index, IndexMut, Sub};
 
 use serde::Serialize;
 
@@ -244,7 +244,7 @@ pub enum UintTy {
 }
 
 pub type TraitBound<'a> = &'a [&'a Trait<'a>];
-pub type Generics<'a> = &'a [Ty<'a>];
+pub type Generics<'a> = &'a [Generic<'a>];
 pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
 pub type Params<'a> = &'a [Param<'a>];
 pub type ClosureDefParams<'a> = &'a [Ty<'a>];
@@ -415,10 +415,20 @@ pub struct IfStmt {
     pub if_false: Option<ExprId>,
 }
 
+/// This type represents a generic parameter to a class, enum or function.
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
 pub struct GenericParam<'a> {
     pub ident: Ident,
     pub trait_bound: Option<TraitBound<'a>>,
+}
+
+/// This type represents an instantiated generic.
+/// It retains a reference to the underlying param for trait bound validation
+/// and to propagate the inferred type to generic param references.
+#[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
+pub struct Generic<'a> {
+    pub ty: Ty<'a>,
+    pub param: &'a GenericParam<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]

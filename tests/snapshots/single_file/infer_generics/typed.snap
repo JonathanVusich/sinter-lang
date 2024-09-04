@@ -1,0 +1,446 @@
+(
+  crates: [(
+    name: 9,
+    id: (
+      id: 0,
+    ),
+    bodies: {
+      15: (
+        generic_params: [],
+        ret_ty: (
+          kind: None,
+        ),
+        arms: [],
+        stmts: [Let((
+          local_var: (
+            ident: 5,
+            ty: (
+              kind: Class((
+                name: (
+                  ident: 1,
+                  span: (
+                    start: 6,
+                    end: 12,
+                  ),
+                ),
+                class_type: Inline,
+                generic_params: [(
+                  ident: (
+                    ident: 2,
+                    span: (
+                      start: 13,
+                      end: 14,
+                    ),
+                  ),
+                  trait_bound: None,
+                )],
+                fields: [(
+                  ident: (
+                    ident: 3,
+                    span: (
+                      start: 22,
+                      end: 27,
+                    ),
+                  ),
+                  ty: (
+                    kind: GenericParam((
+                      ident: (
+                        ident: 2,
+                        span: (
+                          start: 13,
+                          end: 14,
+                        ),
+                      ),
+                      trait_bound: None,
+                    )),
+                  ),
+                )],
+                fns: [],
+), [(
+                kind: Infer((
+                  id: 1,
+                )),
+              )]),
+            ),
+          ),
+          mutability: Immutable,
+          initializer: Some((
+            id: 2,
+          )),
+        )), Let((
+          local_var: (
+            ident: 6,
+            ty: (
+              kind: Class((
+                name: (
+                  ident: 1,
+                  span: (
+                    start: 6,
+                    end: 12,
+                  ),
+                ),
+                class_type: Inline,
+                generic_params: [(
+                  ident: (
+                    ident: 2,
+                    span: (
+                      start: 13,
+                      end: 14,
+                    ),
+                  ),
+                  trait_bound: None,
+                )],
+                fields: [(
+                  ident: (
+                    ident: 3,
+                    span: (
+                      start: 22,
+                      end: 27,
+                    ),
+                  ),
+                  ty: (
+                    kind: GenericParam((
+                      ident: (
+                        ident: 2,
+                        span: (
+                          start: 13,
+                          end: 14,
+                        ),
+                      ),
+                      trait_bound: None,
+                    )),
+                  ),
+                )],
+                fns: [],
+), [(
+                kind: Infer((
+                  id: 3,
+                )),
+              )]),
+            ),
+          ),
+          mutability: Immutable,
+          initializer: Some((
+            id: 5,
+          )),
+        ))],
+        exprs: [(
+          kind: Path(Class((
+            name: (
+              ident: 1,
+              span: (
+                start: 6,
+                end: 12,
+              ),
+            ),
+            class_type: Inline,
+            generic_params: [(
+              ident: (
+                ident: 2,
+                span: (
+                  start: 13,
+                  end: 14,
+                ),
+              ),
+              trait_bound: None,
+            )],
+            fields: [(
+              ident: (
+                ident: 3,
+                span: (
+                  start: 22,
+                  end: 27,
+                ),
+              ),
+              ty: (
+                kind: GenericParam((
+                  ident: (
+                    ident: 2,
+                    span: (
+                      start: 13,
+                      end: 14,
+                    ),
+                  ),
+                  trait_bound: None,
+                )),
+              ),
+            )],
+            fns: [],
+), [(
+            kind: Infer((
+              id: 1,
+            )),
+          )])),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 1,
+                span: (
+                  start: 6,
+                  end: 12,
+                ),
+              ),
+              class_type: Inline,
+              generic_params: [(
+                ident: (
+                  ident: 2,
+                  span: (
+                    start: 13,
+                    end: 14,
+                  ),
+                ),
+                trait_bound: None,
+              )],
+              fields: [(
+                ident: (
+                  ident: 3,
+                  span: (
+                    start: 22,
+                    end: 27,
+                  ),
+                ),
+                ty: (
+                  kind: GenericParam((
+                    ident: (
+                      ident: 2,
+                      span: (
+                        start: 13,
+                        end: 14,
+                      ),
+                    ),
+                    trait_bound: None,
+                  )),
+                ),
+              )],
+              fns: [],
+), [(
+              kind: Infer((
+                id: 1,
+              )),
+            )]),
+          ),
+        ), (
+          kind: Int(123),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
+          kind: Call((
+            target: (
+              id: 0,
+            ),
+            args: [(
+              id: 1,
+            )],
+          )),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 1,
+                span: (
+                  start: 6,
+                  end: 12,
+                ),
+              ),
+              class_type: Inline,
+              generic_params: [(
+                ident: (
+                  ident: 2,
+                  span: (
+                    start: 13,
+                    end: 14,
+                  ),
+                ),
+                trait_bound: None,
+              )],
+              fields: [(
+                ident: (
+                  ident: 3,
+                  span: (
+                    start: 22,
+                    end: 27,
+                  ),
+                ),
+                ty: (
+                  kind: GenericParam((
+                    ident: (
+                      ident: 2,
+                      span: (
+                        start: 13,
+                        end: 14,
+                      ),
+                    ),
+                    trait_bound: None,
+                  )),
+                ),
+              )],
+              fns: [],
+), [(
+              kind: Infer((
+                id: 1,
+              )),
+            )]),
+          ),
+        ), (
+          kind: Path(Class((
+            name: (
+              ident: 1,
+              span: (
+                start: 6,
+                end: 12,
+              ),
+            ),
+            class_type: Inline,
+            generic_params: [(
+              ident: (
+                ident: 2,
+                span: (
+                  start: 13,
+                  end: 14,
+                ),
+              ),
+              trait_bound: None,
+            )],
+            fields: [(
+              ident: (
+                ident: 3,
+                span: (
+                  start: 22,
+                  end: 27,
+                ),
+              ),
+              ty: (
+                kind: GenericParam((
+                  ident: (
+                    ident: 2,
+                    span: (
+                      start: 13,
+                      end: 14,
+                    ),
+                  ),
+                  trait_bound: None,
+                )),
+              ),
+            )],
+            fns: [],
+), [(
+            kind: Infer((
+              id: 3,
+            )),
+          )])),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 1,
+                span: (
+                  start: 6,
+                  end: 12,
+                ),
+              ),
+              class_type: Inline,
+              generic_params: [(
+                ident: (
+                  ident: 2,
+                  span: (
+                    start: 13,
+                    end: 14,
+                  ),
+                ),
+                trait_bound: None,
+              )],
+              fields: [(
+                ident: (
+                  ident: 3,
+                  span: (
+                    start: 22,
+                    end: 27,
+                  ),
+                ),
+                ty: (
+                  kind: GenericParam((
+                    ident: (
+                      ident: 2,
+                      span: (
+                        start: 13,
+                        end: 14,
+                      ),
+                    ),
+                    trait_bound: None,
+                  )),
+                ),
+              )],
+              fns: [],
+), [(
+              kind: Infer((
+                id: 3,
+              )),
+            )]),
+          ),
+        ), (
+          kind: String(7),
+          ty: (
+            kind: Str,
+          ),
+        ), (
+          kind: Call((
+            target: (
+              id: 3,
+            ),
+            args: [(
+              id: 4,
+            )],
+          )),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 1,
+                span: (
+                  start: 6,
+                  end: 12,
+                ),
+              ),
+              class_type: Inline,
+              generic_params: [(
+                ident: (
+                  ident: 2,
+                  span: (
+                    start: 13,
+                    end: 14,
+                  ),
+                ),
+                trait_bound: None,
+              )],
+              fields: [(
+                ident: (
+                  ident: 3,
+                  span: (
+                    start: 22,
+                    end: 27,
+                  ),
+                ),
+                ty: (
+                  kind: GenericParam((
+                    ident: (
+                      ident: 2,
+                      span: (
+                        start: 13,
+                        end: 14,
+                      ),
+                    ),
+                    trait_bound: None,
+                  )),
+                ),
+              )],
+              fns: [],
+), [(
+              kind: Infer((
+                id: 3,
+              )),
+            )]),
+          ),
+        )],
+        destructure_exprs: [],
+),
+    },
+  )],
+)

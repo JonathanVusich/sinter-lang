@@ -21,7 +21,7 @@ use parser::parse;
 use resolver::resolve;
 use source::{SourceCode, SourceMap};
 use tokenizer::{tokenize, tokenize_file, TokenizedSource};
-use ty_infer::{infer_types, CrateInference, TyDefCache};
+use ty_infer::{infer_types, CrateInference};
 use typed_hir::{ClassDef, EnumDef, MemberDef, ThirMap, TraitDef, TyKind};
 use types::{DefMap, StrMap};
 use validator::validate;
