@@ -2,10 +2,11 @@
 
 #[cfg(test)]
 mod tests {
+    use ron::extensions::Extensions;
+    use ron::Options;
+    use serde::Serialize;
     use std::fmt::Debug;
     use std::path::PathBuf;
-
-    use serde::Serialize;
 
     use diagnostics::Diagnostics;
 
@@ -78,13 +79,15 @@ mod tests {
         test_type: TestType,
         snapshot_type: SnapshotType,
     ) {
-        let serialized_val = ron::ser::to_string_pretty(
-            val,
-            ron::ser::PrettyConfig::new()
-                .indentor("  ".to_string())
-                .compact_arrays(true),
-        )
-        .unwrap();
+        let serialized_val = Options::default()
+            .with_default_extension(Extensions::IMPLICIT_SOME)
+            .to_string_pretty(
+                val,
+                ron::ser::PrettyConfig::new()
+                    .indentor("  ".to_string())
+                    .compact_arrays(true),
+            )
+            .unwrap();
 
         if let Some(saved_val) = load_snapshot(path, test_type, snapshot_type) {
             pretty_assertions::assert_eq!(saved_val, serialized_val);

@@ -73,7 +73,7 @@
           params: [],
           ret_ty: None,
 ),
-        body: Some((
+        body: (
           stmts: [(
             kind: Let((
               local_var: (
@@ -86,7 +86,7 @@
               ),
               mutability: Immutable,
               ty: None,
-              initializer: Some((
+              initializer: (
                 kind: Call((
                   target: (
                     kind: Path((
@@ -128,7 +128,7 @@
                   end: 82,
                 ),
                 id: 7,
-              )),
+              ),
             )),
             span: (
               start: 54,
@@ -147,7 +147,7 @@
               ),
               mutability: Immutable,
               ty: None,
-              initializer: Some((
+              initializer: (
                 kind: Call((
                   target: (
                     kind: Path((
@@ -189,7 +189,7 @@
                   end: 123,
                 ),
                 id: 12,
-              )),
+              ),
             )),
             span: (
               start: 88,
@@ -202,7 +202,7 @@
             end: 126,
           ),
           id: 14,
-        )),
+        ),
         span: (
           start: 35,
           end: 126,
@@ -428,7 +428,7 @@
           ),
           mutability: Immutable,
           ty: None,
-          initializer: Some((
+          initializer: (
             kind: Call((
               target: (
                 kind: Path((
@@ -470,7 +470,7 @@
               end: 82,
             ),
             id: 7,
-          )),
+          ),
         )),
         span: (
           start: 54,
@@ -575,7 +575,7 @@
           ),
           mutability: Immutable,
           ty: None,
-          initializer: Some((
+          initializer: (
             kind: Call((
               target: (
                 kind: Path((
@@ -617,7 +617,7 @@
               end: 123,
             ),
             id: 12,
-          )),
+          ),
         )),
         span: (
           start: 88,
@@ -638,7 +638,7 @@
             ),
             mutability: Immutable,
             ty: None,
-            initializer: Some((
+            initializer: (
               kind: Call((
                 target: (
                   kind: Path((
@@ -680,7 +680,7 @@
                 end: 82,
               ),
               id: 7,
-            )),
+            ),
           )),
           span: (
             start: 54,
@@ -699,7 +699,7 @@
             ),
             mutability: Immutable,
             ty: None,
-            initializer: Some((
+            initializer: (
               kind: Call((
                 target: (
                   kind: Path((
@@ -741,7 +741,7 @@
                 end: 123,
               ),
               id: 12,
-            )),
+            ),
           )),
           span: (
             start: 88,
@@ -769,7 +769,7 @@
             params: [],
             ret_ty: None,
 ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Let((
                 local_var: (
@@ -782,7 +782,7 @@
                 ),
                 mutability: Immutable,
                 ty: None,
-                initializer: Some((
+                initializer: (
                   kind: Call((
                     target: (
                       kind: Path((
@@ -824,7 +824,7 @@
                     end: 82,
                   ),
                   id: 7,
-                )),
+                ),
               )),
               span: (
                 start: 54,
@@ -843,7 +843,7 @@
                 ),
                 mutability: Immutable,
                 ty: None,
-                initializer: Some((
+                initializer: (
                   kind: Call((
                     target: (
                       kind: Path((
@@ -885,7 +885,7 @@
                     end: 123,
                   ),
                   id: 12,
-                )),
+                ),
               )),
               span: (
                 start: 88,
@@ -898,7 +898,7 @@
               end: 126,
             ),
             id: 14,
-          )),
+          ),
           span: (
             start: 35,
             end: 126,

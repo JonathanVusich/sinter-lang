@@ -461,7 +461,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             Res::ValueDef(ValueDef::Class(class_def)) => {
                 if let DefType::Class(class_def) = self.ty_resolver.resolve_def(class_def.id) {
                     let generics = self.infer_generic_args(class_def.generic_params, generics);
-                    let expr = PathExpr::Class(class_def, generics);
+                    let expr = PathExpr::Class(class_def);
                     let ty = self.ty_resolver.intern(TyKind::Class(class_def, generics));
                     let expr_id = self.insert_expr(ExprKind::Path(expr), ty);
                     return (expr_id, ty);
@@ -483,18 +483,12 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         match maybe_generics {
             Some(generics) => {
                 assert_eq!(generics.len(), generic_params.len());
-                let generics =
-                    zip(generics.iter(), generic_params.iter()).map(|(generic, param)| Generic {
-                        ty: self.ty_resolver.resolve_ty(generic),
-                        param,
-                    });
+                let generics = zip(generics.iter(), generic_params.iter())
+                    .map(|(generic, param)| self.ty_resolver.resolve_ty(generic));
                 self.hir_allocator.alloc_slice_fill_iter(generics)
             }
             None => {
-                let generics = generic_params.iter().map(|param| Generic {
-                    ty: self.fresh_ty(),
-                    param,
-                });
+                let generics = generic_params.iter().map(|param| self.fresh_ty());
                 self.hir_allocator.alloc_slice_fill_iter(generics)
             }
         }
@@ -536,6 +530,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         let mut borrowed_thir = self.thir.borrow_mut();
         for expr in borrowed_thir.exprs() {
             // TODO: Identify why blocks have a separately defined ret_ty and fix the type solving for it or consolidate it into the expr.ty field.
+            dbg!(&expr);
             expr.ty = self.normalize_ty(expr.ty).unwrap_or(expr.ty);
         }
         for stmt in borrowed_thir.stmts() {
@@ -747,14 +742,17 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn callable(&self, ty: Ty<'hir>, args: Vec<Ty<'hir>>) -> ConstraintEvaluation<'hir> {
         match *ty {
-            TyKind::Class(class_def, _) => {
-                let fields = class_def.fields;
-                dbg!(fields);
-                return fields
+            TyKind::Class(class_def, generics) => {
+                let field_tys =
+                    self.substitute_fields(class_def.fields, class_def.generic_params, generics);
+                dbg!(field_tys);
+                return field_tys
                     .iter()
                     .zip_longest(args.iter())
                     .map(|item| match item {
-                        EitherOrBoth::Both(field, rhs) => self.assignable(field.ty, *rhs),
+                        EitherOrBoth::Both(field, rhs) => {
+                            self.unify_ty_ty(field.ty, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
+                        }
                         EitherOrBoth::Left(field) => ConstraintEvaluation::MissingArg(*field),
                         EitherOrBoth::Right(arg) => ConstraintEvaluation::ExtraArg(*arg),
                     })
@@ -946,6 +944,32 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         } else {
             None
         }
+    }
+
+    fn substitute_fields(
+        &self,
+        fields: Fields<'hir>,
+        generic_params: GenericParams<'hir>,
+        generics: Generics<'hir>,
+    ) -> Fields<'hir> {
+        assert_eq!(generic_params.len(), generics.len());
+        self.hir_allocator
+            .alloc_slice_fill_iter(fields.iter().map(|field| match *field.ty {
+                TyKind::GenericParam(param) => {
+                    let generic_index = generic_params
+                        .iter()
+                        .copied()
+                        .enumerate()
+                        .find(|(index, inner)| *inner == param)
+                        .map(|(index, param)| index)
+                        .unwrap();
+                    return Field {
+                        ident: field.ident,
+                        ty: generics[generic_index],
+                    };
+                }
+                _ => *field,
+            }))
     }
 
     fn alloc<T>(&self, val: T) -> &'hir T {

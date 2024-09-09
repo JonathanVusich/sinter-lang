@@ -23,50 +23,15 @@
                     end: 12,
                   ),
                 ),
-                class_type: Inline,
-                generic_params: [(
-                  ident: (
-                    ident: 2,
-                    span: (
-                      start: 13,
-                      end: 14,
-                    ),
-                  ),
-                  trait_bound: None,
-                )],
-                fields: [(
-                  ident: (
-                    ident: 3,
-                    span: (
-                      start: 22,
-                      end: 27,
-                    ),
-                  ),
-                  ty: (
-                    kind: GenericParam((
-                      ident: (
-                        ident: 2,
-                        span: (
-                          start: 13,
-                          end: 14,
-                        ),
-                      ),
-                      trait_bound: None,
-                    )),
-                  ),
-                )],
-                fns: [],
-), [(
-                kind: Infer((
-                  id: 1,
-                )),
+              ), [(
+                kind: Int(I64),
               )]),
             ),
           ),
           mutability: Immutable,
-          initializer: Some((
+          initializer: (
             id: 2,
-          )),
+          ),
         )), Let((
           local_var: (
             ident: 6,
@@ -79,50 +44,15 @@
                     end: 12,
                   ),
                 ),
-                class_type: Inline,
-                generic_params: [(
-                  ident: (
-                    ident: 2,
-                    span: (
-                      start: 13,
-                      end: 14,
-                    ),
-                  ),
-                  trait_bound: None,
-                )],
-                fields: [(
-                  ident: (
-                    ident: 3,
-                    span: (
-                      start: 22,
-                      end: 27,
-                    ),
-                  ),
-                  ty: (
-                    kind: GenericParam((
-                      ident: (
-                        ident: 2,
-                        span: (
-                          start: 13,
-                          end: 14,
-                        ),
-                      ),
-                      trait_bound: None,
-                    )),
-                  ),
-                )],
-                fns: [],
-), [(
-                kind: Infer((
-                  id: 3,
-                )),
+              ), [(
+                kind: Str,
               )]),
             ),
           ),
           mutability: Immutable,
-          initializer: Some((
+          initializer: (
             id: 5,
-          )),
+          ),
         ))],
         exprs: [(
           kind: Path(Class((
@@ -133,44 +63,7 @@
                 end: 12,
               ),
             ),
-            class_type: Inline,
-            generic_params: [(
-              ident: (
-                ident: 2,
-                span: (
-                  start: 13,
-                  end: 14,
-                ),
-              ),
-              trait_bound: None,
-            )],
-            fields: [(
-              ident: (
-                ident: 3,
-                span: (
-                  start: 22,
-                  end: 27,
-                ),
-              ),
-              ty: (
-                kind: GenericParam((
-                  ident: (
-                    ident: 2,
-                    span: (
-                      start: 13,
-                      end: 14,
-                    ),
-                  ),
-                  trait_bound: None,
-                )),
-              ),
-            )],
-            fns: [],
-), [(
-            kind: Infer((
-              id: 1,
-            )),
-          )])),
+          ))),
           ty: (
             kind: Class((
               name: (
@@ -180,43 +73,8 @@
                   end: 12,
                 ),
               ),
-              class_type: Inline,
-              generic_params: [(
-                ident: (
-                  ident: 2,
-                  span: (
-                    start: 13,
-                    end: 14,
-                  ),
-                ),
-                trait_bound: None,
-              )],
-              fields: [(
-                ident: (
-                  ident: 3,
-                  span: (
-                    start: 22,
-                    end: 27,
-                  ),
-                ),
-                ty: (
-                  kind: GenericParam((
-                    ident: (
-                      ident: 2,
-                      span: (
-                        start: 13,
-                        end: 14,
-                      ),
-                    ),
-                    trait_bound: None,
-                  )),
-                ),
-              )],
-              fns: [],
-), [(
-              kind: Infer((
-                id: 1,
-              )),
+            ), [(
+              kind: Int(I64),
             )]),
           ),
         ), (
@@ -242,43 +100,8 @@
                   end: 12,
                 ),
               ),
-              class_type: Inline,
-              generic_params: [(
-                ident: (
-                  ident: 2,
-                  span: (
-                    start: 13,
-                    end: 14,
-                  ),
-                ),
-                trait_bound: None,
-              )],
-              fields: [(
-                ident: (
-                  ident: 3,
-                  span: (
-                    start: 22,
-                    end: 27,
-                  ),
-                ),
-                ty: (
-                  kind: GenericParam((
-                    ident: (
-                      ident: 2,
-                      span: (
-                        start: 13,
-                        end: 14,
-                      ),
-                    ),
-                    trait_bound: None,
-                  )),
-                ),
-              )],
-              fns: [],
-), [(
-              kind: Infer((
-                id: 1,
-              )),
+            ), [(
+              kind: Int(I64),
             )]),
           ),
         ), (
@@ -290,44 +113,7 @@
                 end: 12,
               ),
             ),
-            class_type: Inline,
-            generic_params: [(
-              ident: (
-                ident: 2,
-                span: (
-                  start: 13,
-                  end: 14,
-                ),
-              ),
-              trait_bound: None,
-            )],
-            fields: [(
-              ident: (
-                ident: 3,
-                span: (
-                  start: 22,
-                  end: 27,
-                ),
-              ),
-              ty: (
-                kind: GenericParam((
-                  ident: (
-                    ident: 2,
-                    span: (
-                      start: 13,
-                      end: 14,
-                    ),
-                  ),
-                  trait_bound: None,
-                )),
-              ),
-            )],
-            fns: [],
-), [(
-            kind: Infer((
-              id: 3,
-            )),
-          )])),
+          ))),
           ty: (
             kind: Class((
               name: (
@@ -337,43 +123,8 @@
                   end: 12,
                 ),
               ),
-              class_type: Inline,
-              generic_params: [(
-                ident: (
-                  ident: 2,
-                  span: (
-                    start: 13,
-                    end: 14,
-                  ),
-                ),
-                trait_bound: None,
-              )],
-              fields: [(
-                ident: (
-                  ident: 3,
-                  span: (
-                    start: 22,
-                    end: 27,
-                  ),
-                ),
-                ty: (
-                  kind: GenericParam((
-                    ident: (
-                      ident: 2,
-                      span: (
-                        start: 13,
-                        end: 14,
-                      ),
-                    ),
-                    trait_bound: None,
-                  )),
-                ),
-              )],
-              fns: [],
-), [(
-              kind: Infer((
-                id: 3,
-              )),
+            ), [(
+              kind: Str,
             )]),
           ),
         ), (
@@ -399,43 +150,8 @@
                   end: 12,
                 ),
               ),
-              class_type: Inline,
-              generic_params: [(
-                ident: (
-                  ident: 2,
-                  span: (
-                    start: 13,
-                    end: 14,
-                  ),
-                ),
-                trait_bound: None,
-              )],
-              fields: [(
-                ident: (
-                  ident: 3,
-                  span: (
-                    start: 22,
-                    end: 27,
-                  ),
-                ),
-                ty: (
-                  kind: GenericParam((
-                    ident: (
-                      ident: 2,
-                      span: (
-                        start: 13,
-                        end: 14,
-                      ),
-                    ),
-                    trait_bound: None,
-                  )),
-                ),
-              )],
-              fns: [],
-), [(
-              kind: Infer((
-                id: 3,
-              )),
+            ), [(
+              kind: Str,
             )]),
           ),
         )],

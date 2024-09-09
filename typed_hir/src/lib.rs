@@ -100,9 +100,13 @@ pub enum TyKind<'a> {
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct ClassDef<'a> {
     pub name: Ident,
+    #[serde(skip)]
     pub class_type: ClassType,
+    #[serde(skip)]
     pub generic_params: GenericParams<'a>,
+    #[serde(skip)]
     pub fields: Fields<'a>,
+    #[serde(skip)]
     pub fns: FnDefs<'a>,
 }
 
@@ -244,7 +248,7 @@ pub enum UintTy {
 }
 
 pub type TraitBound<'a> = &'a [&'a Trait<'a>];
-pub type Generics<'a> = &'a [Generic<'a>];
+pub type Generics<'a> = &'a [Ty<'a>];
 pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
 pub type Params<'a> = &'a [Param<'a>];
 pub type ClosureDefParams<'a> = &'a [Ty<'a>];
@@ -347,10 +351,10 @@ pub struct IndexExpr {
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum PathExpr<'a> {
-    Class(&'a ClassDef<'a>, Generics<'a>),
-    Enum(&'a EnumDef<'a>, Generics<'a>),
-    Trait(&'a TraitDef<'a>, Generics<'a>),
-    Fn(&'a FnDef<'a>, Generics<'a>),
+    Class(&'a ClassDef<'a>),
+    Enum(&'a EnumDef<'a>),
+    Trait(&'a TraitDef<'a>),
+    Fn(&'a FnDef<'a>),
     Var(LocalVar<'a>),
     Generic(GenericParam<'a>),
     Float(FloatTy),
