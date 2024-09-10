@@ -199,7 +199,6 @@ mod tests {
     single_file!(basic_enum);
     single_file!(classes_and_vars);
     single_file!(enum_match);
-    single_file!(enum_message);
     single_file!(generic_lists);
     single_file!(hello_world);
     single_file!(impl_trait);

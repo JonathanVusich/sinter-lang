@@ -1,3 +1,12 @@
+enum Message {
+    Text(message: str),
+    Photo(caption: str, photo: SerializedPhoto) {
+        fn size(self) => u64 {
+            return self.photo.size();
+        }
+    },
+}
+
 let extracted_text: str = match message {
     Message::Text("null") | Message::Photo("null", photo) => "",
     Message::Text(str) => str,

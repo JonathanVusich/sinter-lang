@@ -649,6 +649,14 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn assignable(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> ConstraintEvaluation<'hir> {
         match *lhs {
+            TyKind::Infer(_) => ConstraintEvaluation::Success,
+            TyKind::Array(inner_lhs) => {
+                return if let TyKind::Array(inner_rhs) = *rhs {
+                    self.assignable(inner_lhs, inner_rhs)
+                } else {
+                    ConstraintEvaluation::NotAssignable(lhs, rhs)
+                }
+            }
             TyKind::TraitBound(trait_bound) => {
                 todo!()
                 // Implement trait mapping logic
@@ -657,7 +665,6 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 // TODO: Implement trait bound logic
                 ConstraintEvaluation::Success
             }
-            TyKind::Infer(_) => ConstraintEvaluation::Success,
             TyKind::Float(FloatTy::F32) => {
                 if matches!(*rhs, TyKind::Float(_)) {
                     ConstraintEvaluation::Success
@@ -781,7 +788,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         let lhs_ty = self.normalize_ty(lhs).unwrap_or(lhs);
         let rhs_ty = self.normalize_ty(rhs).unwrap_or(rhs);
 
-        match (lhs, rhs) {
+        match (lhs_ty, rhs_ty) {
             (
                 Ty {
                     kind: TyKind::Infer(infer),

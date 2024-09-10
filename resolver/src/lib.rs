@@ -464,7 +464,12 @@ impl<'hir> CrateResolver<'hir> {
             Some(item) => {
                 self.items.push(item);
             }
-            _ => {}
+            _ => {
+                // This resets invalid scopes
+                while (self.scopes.len() > 1) {
+                    self.scopes.pop();
+                }
+            }
         }
     }
 
@@ -1138,6 +1143,7 @@ impl<'hir> CrateResolver<'hir> {
     }
 
     fn resolve_local_var(&mut self, local_var: &ast::LocalVar) -> LocalVar {
+        dbg!(&self.scopes);
         let hir_local_var = LocalVar {
             ident: local_var.ident,
             span: local_var.span,

@@ -109,7 +109,7 @@
           ty: (
             kind: Array(
               ty: (
-                kind: I32,
+                kind: I64,
                 span: (
                   start: 72,
                   end: 75,

@@ -1,0 +1,318 @@
+(
+  crates: [(
+    name: 11,
+    id: (
+      id: 0,
+    ),
+    bodies: {
+      12: (
+        generic_params: [],
+        ret_ty: (
+          kind: Array((
+            kind: Int(I64),
+          )),
+        ),
+        arms: [],
+        stmts: [],
+        exprs: [(
+          kind: Int(1),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
+          kind: Int(2),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
+          kind: Int(3),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
+          kind: Array(Unsized(
+            initializers: [(
+              id: 0,
+            ), (
+              id: 1,
+            ), (
+              id: 2,
+            )],
+          )),
+          ty: (
+            kind: Array((
+              kind: Int(I64),
+            )),
+          ),
+        )],
+        destructure_exprs: [],
+),
+      25: (
+        generic_params: [],
+        ret_ty: (
+          kind: Array((
+            kind: Class((
+              name: (
+                ident: 1,
+                span: (
+                  start: 6,
+                  end: 11,
+                ),
+              ),
+            ), []),
+)),
+        ),
+        arms: [],
+        stmts: [],
+        exprs: [(
+          kind: Path(Class((
+            name: (
+              ident: 1,
+              span: (
+                start: 6,
+                end: 11,
+              ),
+            ),
+          ))),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 1,
+                span: (
+                  start: 6,
+                  end: 11,
+                ),
+              ),
+            ), []),
+),
+        ), (
+          kind: Float(1.0),
+          ty: (
+            kind: Float(F64),
+          ),
+        ), (
+          kind: Float(2.0),
+          ty: (
+            kind: Float(F64),
+          ),
+        ), (
+          kind: Call((
+            target: (
+              id: 0,
+            ),
+            args: [(
+              id: 1,
+            ), (
+              id: 2,
+            )],
+          )),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 1,
+                span: (
+                  start: 6,
+                  end: 11,
+                ),
+              ),
+            ), []),
+),
+        ), (
+          kind: Path(Class((
+            name: (
+              ident: 1,
+              span: (
+                start: 6,
+                end: 11,
+              ),
+            ),
+          ))),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 1,
+                span: (
+                  start: 6,
+                  end: 11,
+                ),
+              ),
+            ), []),
+),
+        ), (
+          kind: Float(1.5),
+          ty: (
+            kind: Float(F64),
+          ),
+        ), (
+          kind: Float(2.5),
+          ty: (
+            kind: Float(F64),
+          ),
+        ), (
+          kind: Call((
+            target: (
+              id: 4,
+            ),
+            args: [(
+              id: 5,
+            ), (
+              id: 6,
+            )],
+          )),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 1,
+                span: (
+                  start: 6,
+                  end: 11,
+                ),
+              ),
+            ), []),
+),
+        ), (
+          kind: Array(Unsized(
+            initializers: [(
+              id: 3,
+            ), (
+              id: 7,
+            )],
+          )),
+          ty: (
+            kind: Array((
+              kind: Class((
+                name: (
+                  ident: 1,
+                  span: (
+                    start: 6,
+                    end: 11,
+                  ),
+                ),
+              ), []),
+)),
+          ),
+        )],
+        destructure_exprs: [],
+),
+      34: (
+        generic_params: [],
+        ret_ty: (
+          kind: Array((
+            kind: Class((
+              name: (
+                ident: 5,
+                span: (
+                  start: 50,
+                  end: 54,
+                ),
+              ),
+            ), []),
+)),
+        ),
+        arms: [],
+        stmts: [],
+        exprs: [(
+          kind: Path(Class((
+            name: (
+              ident: 5,
+              span: (
+                start: 50,
+                end: 54,
+              ),
+            ),
+          ))),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 5,
+                span: (
+                  start: 50,
+                  end: 54,
+                ),
+              ),
+            ), []),
+),
+        ), (
+          kind: Call((
+            target: (
+              id: 0,
+            ),
+            args: [],
+)),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 5,
+                span: (
+                  start: 50,
+                  end: 54,
+                ),
+              ),
+            ), []),
+),
+        ), (
+          kind: Path(Class((
+            name: (
+              ident: 5,
+              span: (
+                start: 50,
+                end: 54,
+              ),
+            ),
+          ))),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 5,
+                span: (
+                  start: 50,
+                  end: 54,
+                ),
+              ),
+            ), []),
+),
+        ), (
+          kind: Call((
+            target: (
+              id: 2,
+            ),
+            args: [],
+)),
+          ty: (
+            kind: Class((
+              name: (
+                ident: 5,
+                span: (
+                  start: 50,
+                  end: 54,
+                ),
+              ),
+            ), []),
+),
+        ), (
+          kind: Array(Unsized(
+            initializers: [(
+              id: 1,
+            ), (
+              id: 3,
+            )],
+          )),
+          ty: (
+            kind: Array((
+              kind: Class((
+                name: (
+                  ident: 5,
+                  span: (
+                    start: 50,
+                    end: 54,
+                  ),
+                ),
+              ), []),
+)),
+          ),
+        )],
+        destructure_exprs: [],
+),
+    },
+  )],
+)

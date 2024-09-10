@@ -96,7 +96,7 @@
         ),
         ty: (
           kind: Array((
-            kind: Primitive(I32),
+            kind: Primitive(I64),
             span: (
               start: 72,
               end: 75,
@@ -561,7 +561,7 @@
         id: 6,
       )),
       7: Ty((
-        kind: Primitive(I32),
+        kind: Primitive(I64),
         span: (
           start: 72,
           end: 75,
@@ -570,7 +570,7 @@
       )),
       8: Ty((
         kind: Array((
-          kind: Primitive(I32),
+          kind: Primitive(I64),
           span: (
             start: 72,
             end: 75,
@@ -650,7 +650,7 @@
           ),
           ty: (
             kind: Array((
-              kind: Primitive(I32),
+              kind: Primitive(I64),
               span: (
                 start: 72,
                 end: 75,
