@@ -7,7 +7,7 @@ use serde::Serialize;
 
 use ast::{ClassType, Ident, Mutability, UnaryOp};
 use hir::InfixOp;
-use id::{CrateId, LocalDefId};
+use id::{CrateId, DefId, LocalDefId};
 use interner::InternedStr;
 use types::LDefMap;
 
@@ -84,6 +84,7 @@ pub enum TyKind<'a> {
     Class(&'a ClassDef<'a>, Generics<'a>),
     Enum(&'a EnumDef<'a>, Generics<'a>),
     Member(&'a MemberDef<'a>, Generics<'a>),
+    Trait(&'a TraitDef<'a>, Generics<'a>),
     TraitBound(TraitBound<'a>),
     GenericParam(&'a GenericParam<'a>),
     Fn(&'a FnDef<'a>, Generics<'a>),
@@ -100,10 +101,6 @@ pub enum TyKind<'a> {
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct ClassDef<'a> {
     pub name: Ident,
-    #[serde(skip)]
-    pub class_type: ClassType,
-    #[serde(skip)]
-    pub generic_params: GenericParams<'a>,
     #[serde(skip)]
     pub fields: Fields<'a>,
     #[serde(skip)]
@@ -128,7 +125,6 @@ pub struct MemberDef<'a> {
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct TraitDef<'a> {
     pub name: Ident,
-    pub generic_params: GenericParams<'a>,
     pub fn_defs: FnDefs<'a>,
 }
 
@@ -140,16 +136,15 @@ pub struct Trait<'a> {
 
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
 pub struct Field<'a> {
-    pub ident: Ident,
+    pub name: Ident,
     pub ty: Ty<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct FnDef<'a> {
     pub name: Ident,
-    pub generic_params: GenericParams<'a>,
+    pub ret_ty: Option<DefId>,
     pub params: Params<'a>,
-    pub return_type: Ty<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
@@ -253,8 +248,8 @@ pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
 pub type Params<'a> = &'a [Param<'a>];
 pub type ClosureDefParams<'a> = &'a [Ty<'a>];
 pub type Fields<'a> = &'a [Field<'a>];
-pub type MemberDefs<'a> = &'a [&'a MemberDef<'a>];
-pub type FnDefs<'a> = &'a [&'a FnDef<'a>];
+pub type MemberDefs<'a> = &'a [MemberDef<'a>];
+pub type FnDefs<'a> = &'a [FnDef<'a>];
 pub type Args = Box<[ExprId]>;
 pub type Stmts = Box<[StmtId]>;
 pub type AnonParams<'a> = &'a [Ty<'a>];
@@ -351,10 +346,10 @@ pub struct IndexExpr {
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum PathExpr<'a> {
-    Class(&'a ClassDef<'a>),
-    Enum(&'a EnumDef<'a>),
-    Trait(&'a TraitDef<'a>),
-    Fn(&'a FnDef<'a>),
+    Class(DefId),
+    Enum(DefId),
+    Trait(DefId),
+    Fn(DefId),
     Var(LocalVar<'a>),
     Generic(GenericParam<'a>),
     Float(FloatTy),
@@ -437,8 +432,9 @@ pub struct Generic<'a> {
 
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
 pub struct Param<'a> {
-    pub ident: Ident,
+    pub name: Ident,
     pub ty: Ty<'a>,
+    pub id: DefId,
 }
 
 #[derive(PartialEq, Debug, Clone, Serialize)]

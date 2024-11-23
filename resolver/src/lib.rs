@@ -210,7 +210,7 @@ impl<'hir> Resolver<'hir> {
     fn build_crate_ns(&mut self, crates: &mut StrMap<Crate>) -> Option<()> {
         // Generate the initial module ns
         for krate in crates.values_mut() {
-            let krate_id = krate.crate_id;
+            let krate_id = krate.id;
             for module in krate.modules_mut() {
                 let module_ns = generate_mod_values(module, krate_id);
                 module.namespace = module_ns;
@@ -403,7 +403,7 @@ impl<'hir> CrateResolver<'hir> {
     ) -> Self {
         let crate_lookup = crates
             .values()
-            .sorted_by_key(|krate| krate.crate_id)
+            .sorted_by_key(|krate| krate.id)
             .collect_vec()
             .into();
         Self {
@@ -429,7 +429,7 @@ impl<'hir> CrateResolver<'hir> {
 
         Some(HirCrate {
             name: self.krate.name,
-            id: self.krate.crate_id,
+            id: self.krate.id,
             items: self.items,
             nodes: self.nodes,
         })
@@ -511,7 +511,7 @@ impl<'hir> CrateResolver<'hir> {
         id: LocalDefId,
     ) -> Option<&'hir Item<'hir>> {
         self.scopes.push(Scope::Class {
-            id: id.to_def_id(self.krate.crate_id),
+            id: id.to_def_id(self.krate.id),
             fields: Default::default(),
             self_fns: Default::default(),
             generics: Default::default(),
@@ -755,7 +755,7 @@ impl<'hir> CrateResolver<'hir> {
                 Otherwise we can't look it up later when handling errors.
             */
             let field = self.allocator.alloc(Field {
-                ident: *ident,
+                name: *ident,
                 ty: resolved_ty,
                 span: *span,
                 id: *id,
@@ -774,7 +774,7 @@ impl<'hir> CrateResolver<'hir> {
         id: LocalDefId,
     ) -> Option<&'hir Item<'hir>> {
         self.scopes.push(Scope::Enum {
-            id: id.to_def_id(self.krate.crate_id),
+            id: id.to_def_id(self.krate.id),
             members: Default::default(),
             self_fns: Default::default(),
             generics: Default::default(),
@@ -851,7 +851,7 @@ impl<'hir> CrateResolver<'hir> {
         id: LocalDefId,
     ) -> Option<&'hir Item<'hir>> {
         self.scopes.push(Scope::Trait {
-            id: id.to_def_id(self.krate.crate_id),
+            id: id.to_def_id(self.krate.id),
             self_fns: Default::default(),
             generics: Default::default(),
         });
@@ -1174,7 +1174,7 @@ impl<'hir> CrateResolver<'hir> {
         let mut segments = Vec::<&'hir Segment<'hir>>::with_capacity(path_expr.segments.len());
         match path_expr.ident_type {
             ast::IdentType::Crate => {
-                let res = self.alloc(Res::Crate(self.krate.crate_id));
+                let res = self.alloc(Res::Crate(self.krate.id));
                 segments.push(self.alloc(Segment {
                     res,
                     generics: None,
@@ -1242,7 +1242,7 @@ impl<'hir> CrateResolver<'hir> {
             .or_else(|| {
                 self.crates
                     .get(&ident)
-                    .map(|krate| krate.crate_id)
+                    .map(|krate| krate.id)
                     .map(Res::Crate)
             })
             .map(|res| {
@@ -1784,7 +1784,7 @@ impl<'hir> CrateResolver<'hir> {
             ast::IdentType::LocalOrUse => {
                 if let Some(ident) = ident.is_single() {
                     self.find_generic_param(ident)
-                        .map(|param| param.to_def_id(self.krate.crate_id))
+                        .map(|param| param.to_def_id(self.krate.id))
                         .or_else(|| module_ns.find_value(ident).map(|value_def| value_def.id()))
                         .or_else(|| {
                             // TODO: Emit compiler warning

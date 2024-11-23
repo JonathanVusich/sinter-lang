@@ -192,7 +192,7 @@ impl AstPass<HashSet<UsedCrate>> for UsedCrateCollector {
 #[serde(from = "DeserCrate")]
 pub struct Crate {
     pub name: InternedStr,
-    pub crate_id: CrateId,
+    pub id: CrateId,
     #[serde(skip)]
     module_trie: Trie<ModulePath, ModuleId>,
     modules: Vec<Module>,
@@ -213,7 +213,7 @@ impl From<DeserCrate> for Crate {
         }
         Crate {
             name: value.name,
-            crate_id: value.crate_id,
+            id: value.crate_id,
             module_trie,
             modules: value.modules,
         }
@@ -224,7 +224,7 @@ impl Crate {
     pub fn new(name: InternedStr, crate_id: CrateId) -> Self {
         Self {
             name,
-            crate_id,
+            id: crate_id,
             module_trie: Trie::default(),
             // module_lookup: Default::default(),
             modules: Default::default(),
@@ -233,7 +233,7 @@ impl Crate {
 
     pub fn add_module(&mut self, module_path: ModulePath, mut module: Module) -> ModuleId {
         let module_id = self.modules.len();
-        let full_mod_id = ModuleId::new(self.crate_id.into(), module_id as u32);
+        let full_mod_id = ModuleId::new(self.id.into(), module_id as u32);
         module.id = full_mod_id;
         self.module_trie.insert(module_path, full_mod_id);
         // self.module_lookup.insert(module_path, full_mod_id);

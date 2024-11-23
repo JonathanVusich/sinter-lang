@@ -536,7 +536,7 @@ pub struct Segment<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Field<'a> {
-    pub ident: Ident,
+    pub name: Ident,
     pub ty: &'a Ty<'a>,
     pub span: Span,
     pub id: LocalDefId,

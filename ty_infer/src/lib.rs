@@ -1,32 +1,28 @@
 #![allow(unused)]
 
+use std::cell::RefCell;
+use std::fmt::{Debug, Display};
+
 use bumpalo::Bump;
 use itertools::{EitherOrBoth, Itertools};
 use serde::{Deserialize, Serialize};
-use std::cell::RefCell;
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
-use std::fmt::{Debug, Display};
-use std::iter::zip;
+
+use ast::ValueDef;
+use diagnostics::{Diagnostic, Diagnostics};
+use hir::{
+    ForStmt, HirCrate, HirMap, InfixOp, InfixOpClass, ItemKind, LocalDef, Res, StmtKind, WhileStmt,
+};
+use interner::StringInterner;
+use typed_hir::{
+    ArrayExpr, Block, BlockStmt, CallExpr, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind,
+    Field, Fields, FloatTy, FnDef, GenericParam, GenericParams, Generics, IfStmt, InfixExpr, IntTy,
+    LetStmt, LocalVar, MemberDef, Params, PathExpr, ReturnStmt, Stmt, StmtId, Thir, ThirCrate,
+    ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
+};
+use types::{DefMap, LDefMap, StrMap};
 
 use crate::resolution::TyResolver;
 use crate::unification::UnificationTable;
-use ast::{Ident, ValueDef};
-use diagnostics::{Diagnostic, Diagnostics};
-use hir::{
-    ForStmt, HirCrate, HirMap, InfixOp, InfixOpClass, Item, ItemKind, LocalDef, Node, Primitive,
-    Res, StmtKind, WhileStmt,
-};
-use id::DefId;
-use interner::{Interner, StringInterner};
-use typed_hir::{
-    ArrayExpr, Block, BlockStmt, CallExpr, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind,
-    Field, Fields, FloatTy, FnDef, FnDefs, Generic, GenericParam, GenericParams, Generics, IfStmt,
-    InfixExpr, IntTy, LetStmt, LocalVar, MemberDef, MemberDefs, Param, Params, PathExpr,
-    ReturnStmt, Stmt, StmtId, Thir, ThirCrate, ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind,
-    TyVar, UintTy,
-};
-use types::{LDefMap, StrMap};
 
 mod resolution;
 mod trait_solver;
@@ -76,18 +72,23 @@ pub struct CrateInference<'a, 'hir> {
     krate: &'hir HirCrate<'hir>,
 
     hir_allocator: &'hir Bump,
-    bodies: LDefMap<Thir<'hir>>,
+    bodies: DefMap<Thir<'hir>>,
 }
 
+/// TODO: Need to figure out an alternate representation for these types
+/// that will work with type resolution and will avoid the need for recursive
+/// type building.
 #[derive(Debug)]
 pub enum DefType<'a> {
-    Class(&'a ClassDef<'a>),
-    Enum(&'a EnumDef<'a>),
-    Member(&'a MemberDef<'a>),
-    Trait(&'a TraitDef<'a>),
-    Fn(&'a FnDef<'a>),
+    Class(ClassDef<'a>),
+    Enum(EnumDef<'a>),
+    Member(MemberDef<'a>),
+    Trait(TraitDef<'a>),
+    Fn(FnDef<'a>),
     GenericParam(&'a GenericParam<'a>),
 }
+
+static GENERICS: hir::Generics<'static> = &[];
 
 #[derive(Debug)]
 pub struct InferCtxt<'a, 'hir> {
@@ -439,7 +440,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn infer_path(&self, path: hir::PathExpr<'hir>) -> (ExprId, Ty<'hir>) {
         let last_segment = path.segments.last().unwrap();
-        let (res, generics) = (last_segment.res, last_segment.generics);
+        let (res, generics) = (last_segment.res, last_segment.generics.unwrap_or(GENERICS));
         match res {
             Res::Crate(_) | Res::ModuleSegment(_, _) | Res::Module(_) | Res::Primitive(_) => {
                 panic!("I think this is a logic bug that should be caught by the resolver.")
@@ -459,37 +460,14 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 (expr_id, ty)
             }
             Res::ValueDef(ValueDef::Class(class_def)) => {
-                if let DefType::Class(class_def) = self.ty_resolver.resolve_def(class_def.id) {
-                    let generics = self.infer_generic_args(class_def.generic_params, generics);
-                    let expr = PathExpr::Class(class_def);
-                    let ty = self.ty_resolver.intern(TyKind::Class(class_def, generics));
-                    let expr_id = self.insert_expr(ExprKind::Path(expr), ty);
-                    return (expr_id, ty);
-                }
-                panic!("Compiler bug!")
+                let ty = self.ty_resolver.type_of(class_def.id, generics);
+                let expr = PathExpr::Class(class_def.id);
+                let expr_id = self.insert_expr(ExprKind::Path(expr), ty);
+                return (expr_id, ty);
             }
             any => {
                 dbg!(any);
                 todo!()
-            }
-        }
-    }
-
-    fn infer_generic_args(
-        &self,
-        generic_params: GenericParams<'hir>,
-        maybe_generics: Option<hir::Generics<'hir>>,
-    ) -> Generics<'hir> {
-        match maybe_generics {
-            Some(generics) => {
-                assert_eq!(generics.len(), generic_params.len());
-                let generics = zip(generics.iter(), generic_params.iter())
-                    .map(|(generic, param)| self.ty_resolver.resolve_ty(generic));
-                self.hir_allocator.alloc_slice_fill_iter(generics)
-            }
-            None => {
-                let generics = generic_params.iter().map(|param| self.fresh_ty());
-                self.hir_allocator.alloc_slice_fill_iter(generics)
             }
         }
     }
@@ -578,7 +556,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                         format!("{:?} is not a callable type!", *ty)
                     }
                     ConstraintEvaluation::MissingArg(field) => {
-                        let field_name = self.string_interner.resolve(field.ident.ident);
+                        let field_name = self.string_interner.resolve(field.name.ident);
                         format!("Missing an argument for field {:?}", field_name)
                     }
                     ConstraintEvaluation::ExtraArg(arg) => {
@@ -971,7 +949,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                         .map(|(index, param)| index)
                         .unwrap();
                     return Field {
-                        ident: field.ident,
+                        name: field.name,
                         ty: generics[generic_index],
                     };
                 }
@@ -1004,7 +982,8 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         let mut type_envs = TypeEnvs::default();
         let mut type_env = TypeEnv::new(ret_ty);
         for param in params {
-            type_env.local_vars.insert(param.ident.ident, param.ty);
+            let ty = ty_resolver.type_of(param.id);
+            type_env.local_vars.insert(param.name.ident, param.ty);
         }
         type_envs.push(type_env);
         let thir = Thir::new(generic_params, ret_ty);
