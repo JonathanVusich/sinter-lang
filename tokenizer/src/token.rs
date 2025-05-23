@@ -116,7 +116,7 @@ impl TokenType {
         &'a self,
         ctxt: &'a StringInterner,
         print_option: PrintOption,
-    ) -> Cow<str> {
+    ) -> Cow<'a, str> {
         match self {
             TokenType::Unrecognized(str) => {
                 let interned_str = ctxt.resolve(*str);

@@ -1,7 +1,7 @@
 {
   9: (
     name: 9,
-    crate_id: (
+    id: (
       id: 0,
     ),
     modules: [(
@@ -51,16 +51,16 @@
               ),
               id: 2,
             )],
-            return_type: Some((
+            return_type: (
               kind: Str,
               span: (
                 start: 26,
                 end: 29,
               ),
               id: 3,
-            )),
+            ),
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Let((
                 local_var: (
@@ -73,7 +73,7 @@
                 ),
                 mutability: Immutable,
                 ty: None,
-                initializer: Some((
+                initializer: (
                   kind: Infix((
                     operator: Multiply,
                     lhs: (
@@ -110,7 +110,7 @@
                     end: 61,
                   ),
                   id: 7,
-                )),
+                ),
               )),
               span: (
                 start: 36,
@@ -160,14 +160,14 @@
                 if_true: (
                   stmts: [(
                     kind: Return((
-                      value: Some((
+                      value: (
                         kind: String(6),
                         span: (
                           start: 96,
                           end: 115,
                         ),
                         id: 12,
-                      )),
+                      ),
                     )),
                     span: (
                       start: 89,
@@ -190,14 +190,14 @@
               id: 15,
             ), (
               kind: Return((
-                value: Some((
+                value: (
                   kind: String(7),
                   span: (
                     start: 134,
                     end: 162,
                   ),
                   id: 16,
-                )),
+                ),
               )),
               span: (
                 start: 127,
@@ -210,7 +210,7 @@
               end: 165,
             ),
             id: 18,
-          )),
+          ),
         )),
         span: (
           start: 0,

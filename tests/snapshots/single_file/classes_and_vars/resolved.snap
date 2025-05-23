@@ -16,7 +16,7 @@
         class_type: Inline,
         generic_params: [],
         fields: [(
-          ident: (
+          name: (
             ident: 2,
             span: (
               start: 18,
@@ -37,7 +37,7 @@
           ),
           id: 1,
         ), (
-          ident: (
+          name: (
             ident: 4,
             span: (
               start: 30,
@@ -419,7 +419,7 @@
         id: 0,
       )),
       1: Field((
-        ident: (
+        name: (
           ident: 2,
           span: (
             start: 18,
@@ -449,7 +449,7 @@
         id: 2,
       )),
       3: Field((
-        ident: (
+        name: (
           ident: 4,
           span: (
             start: 30,
@@ -482,7 +482,7 @@
           class_type: Inline,
           generic_params: [],
           fields: [(
-            ident: (
+            name: (
               ident: 2,
               span: (
                 start: 18,
@@ -503,7 +503,7 @@
             ),
             id: 1,
           ), (
-            ident: (
+            name: (
               ident: 4,
               span: (
                 start: 30,

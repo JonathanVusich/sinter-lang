@@ -1,5 +1,4 @@
 #![feature(proc_macro_span)]
-#![feature(const_extern_fn)]
 
 use proc_macro::{Span, TokenStream};
 use std::path::PathBuf;

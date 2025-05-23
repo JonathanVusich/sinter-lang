@@ -66,13 +66,8 @@
         stmts: [],
         exprs: [(
           kind: Path(Class((
-            name: (
-              ident: 1,
-              span: (
-                start: 6,
-                end: 11,
-              ),
-            ),
+            crate_id: 0,
+            local_id: 4,
           ))),
           ty: (
             kind: Class((
@@ -119,13 +114,8 @@
 ),
         ), (
           kind: Path(Class((
-            name: (
-              ident: 1,
-              span: (
-                start: 6,
-                end: 11,
-              ),
-            ),
+            crate_id: 0,
+            local_id: 4,
           ))),
           ty: (
             kind: Class((
@@ -213,13 +203,8 @@
         stmts: [],
         exprs: [(
           kind: Path(Class((
-            name: (
-              ident: 5,
-              span: (
-                start: 50,
-                end: 54,
-              ),
-            ),
+            crate_id: 0,
+            local_id: 5,
           ))),
           ty: (
             kind: Class((
@@ -252,13 +237,8 @@
 ),
         ), (
           kind: Path(Class((
-            name: (
-              ident: 5,
-              span: (
-                start: 50,
-                end: 54,
-              ),
-            ),
+            crate_id: 0,
+            local_id: 5,
           ))),
           ty: (
             kind: Class((
