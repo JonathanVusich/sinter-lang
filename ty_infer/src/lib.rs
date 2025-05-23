@@ -72,7 +72,7 @@ pub struct CrateInference<'a, 'hir> {
     krate: &'hir HirCrate<'hir>,
 
     hir_allocator: &'hir Bump,
-    bodies: DefMap<Thir<'hir>>,
+    bodies: LDefMap<Thir<'hir>>,
 }
 
 /// TODO: Need to figure out an alternate representation for these types
@@ -727,30 +727,27 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn callable(&self, ty: Ty<'hir>, args: Vec<Ty<'hir>>) -> ConstraintEvaluation<'hir> {
         match *ty {
-            TyKind::Class(class_def, generics) => {
-                let field_tys =
-                    self.substitute_fields(class_def.fields, class_def.generic_params, generics);
-                dbg!(field_tys);
-                return field_tys
-                    .iter()
-                    .zip_longest(args.iter())
-                    .map(|item| match item {
-                        EitherOrBoth::Both(field, rhs) => {
-                            self.unify_ty_ty(field.ty, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
-                        }
-                        EitherOrBoth::Left(field) => ConstraintEvaluation::MissingArg(*field),
-                        EitherOrBoth::Right(arg) => ConstraintEvaluation::ExtraArg(*arg),
-                    })
-                    .reduce(|lhs, rhs| {
-                        return if let ConstraintEvaluation::Success = lhs {
-                            rhs
-                        } else {
-                            lhs
-                        };
-                    })
-                    .unwrap_or(ConstraintEvaluation::Success);
-            }
+            TyKind::Class(class_def, generics) => class_def
+                .fields
+                .iter()
+                .zip_longest(args.iter())
+                .map(|item| match item {
+                    EitherOrBoth::Both(field, rhs) => {
+                        self.unify_ty_ty(field.ty, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
+                    }
+                    EitherOrBoth::Left(field) => ConstraintEvaluation::MissingArg(*field),
+                    EitherOrBoth::Right(arg) => ConstraintEvaluation::ExtraArg(*arg),
+                })
+                .reduce(|lhs, rhs| {
+                    return if let ConstraintEvaluation::Success = lhs {
+                        rhs
+                    } else {
+                        lhs
+                    };
+                })
+                .unwrap_or(ConstraintEvaluation::Success),
             TyKind::Member(_, _) | TyKind::Fn(_, _) | TyKind::Closure(_) => {
+                // TODO: Implement fixes
                 ConstraintEvaluation::Success
             }
             _ => ConstraintEvaluation::NotCallable(ty),
@@ -818,7 +815,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             .copied()
             .map(|arg| self.normalize_ty(arg).unwrap_or(arg))
             .collect();
-        return self.callable(target, args);
+        self.callable(target, args)
     }
 
     /// This method inspects a given type and returns an optional new type
@@ -834,6 +831,9 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             TyKind::Enum(enum_def, generics) => self
                 .normalize_tys(generics)
                 .map(|generics| self.ty_resolver.intern(TyKind::Enum(enum_def, generics))),
+            TyKind::Trait(trait_def, generics) => {
+                todo!()
+            }
             TyKind::Member(member_def, generics) => self.normalize_tys(generics).map(|generics| {
                 self.ty_resolver
                     .intern(TyKind::Member(member_def, generics))
@@ -931,32 +931,6 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         }
     }
 
-    fn substitute_fields(
-        &self,
-        fields: Fields<'hir>,
-        generic_params: GenericParams<'hir>,
-        generics: Generics<'hir>,
-    ) -> Fields<'hir> {
-        assert_eq!(generic_params.len(), generics.len());
-        self.hir_allocator
-            .alloc_slice_fill_iter(fields.iter().map(|field| match *field.ty {
-                TyKind::GenericParam(param) => {
-                    let generic_index = generic_params
-                        .iter()
-                        .copied()
-                        .enumerate()
-                        .find(|(index, inner)| *inner == param)
-                        .map(|(index, param)| index)
-                        .unwrap();
-                    return Field {
-                        name: field.name,
-                        ty: generics[generic_index],
-                    };
-                }
-                _ => *field,
-            }))
-    }
-
     fn alloc<T>(&self, val: T) -> &'hir T {
         self.hir_allocator.alloc(val)
     }
@@ -982,7 +956,6 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         let mut type_envs = TypeEnvs::default();
         let mut type_env = TypeEnv::new(ret_ty);
         for param in params {
-            let ty = ty_resolver.type_of(param.id);
             type_env.local_vars.insert(param.name.ident, param.ty);
         }
         type_envs.push(type_env);
@@ -1106,7 +1079,9 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
             let generic_params = self
                 .ty_resolver
                 .resolve_generic_params(fn_def.sig.generic_params);
-            let params = self.ty_resolver.resolve_params(fn_def.sig.params);
+            let params = self
+                .ty_resolver
+                .resolve_params(fn_def.sig.params, self.krate.id);
 
             let ret_ty = self
                 .ty_resolver

@@ -9,4 +9,4 @@ edition = "2021"
 bumpalo = "3.16.0"
 
 serde = { version = "1.0.196", features = ["derive"] }
-lasso = { version = "0.7.2", features = ["serialize"] }
+lasso = { version = "0.7.3", features = ["serialize"] }
