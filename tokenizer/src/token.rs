@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 
 use serde::{Deserialize, Serialize};
 
-use interner::{InternedStr, StringInterner};
+use interner::InternedStr;
 
 use span::Span;
 
@@ -112,29 +112,16 @@ pub enum PrintOption {
 }
 
 impl TokenType {
-    pub fn pretty_print<'a>(
-        &'a self,
-        ctxt: &'a StringInterner,
-        print_option: PrintOption,
-    ) -> Cow<'a, str> {
+    pub fn pretty_print(&self, print_option: PrintOption) -> Cow<str> {
         match self {
-            TokenType::Unrecognized(str) => {
-                let interned_str = ctxt.resolve(*str);
-                Cow::Borrowed(interned_str)
-            }
+            TokenType::Unrecognized(str) => Cow::Borrowed(str),
             TokenType::Identifier(str) => match print_option {
                 PrintOption::Type => Cow::Borrowed("'identifier'"),
-                PrintOption::Value => {
-                    let interned_str = ctxt.resolve(*str);
-                    Cow::Borrowed(interned_str)
-                }
+                PrintOption::Value => Cow::Borrowed(str),
             },
             TokenType::String(str) => match print_option {
                 PrintOption::Type => Cow::Borrowed("'string'"),
-                PrintOption::Value => {
-                    let interned_str = ctxt.resolve(*str);
-                    Cow::Borrowed(interned_str)
-                }
+                PrintOption::Value => Cow::Borrowed(str),
             },
             TokenType::Int(int) => match print_option {
                 PrintOption::Type => Cow::Borrowed("'int'"),

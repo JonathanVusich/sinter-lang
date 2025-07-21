@@ -12,7 +12,7 @@ use syn::{ItemFn, ReturnType, Type};
 pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
     let mut resource_path = PathBuf::from("snapshots");
 
-    let mut source_path = Span::call_site().source_file().path();
+    let mut source_path = Span::call_site().local_file().unwrap();
 
     source_path.set_extension("");
     resource_path.push(source_path);
@@ -75,7 +75,7 @@ pub fn snapshot(_ignored: TokenStream, tokens: TokenStream) -> TokenStream {
 pub fn snapshot_folder(_ignored: TokenStream) -> TokenStream {
     let mut resource_path = PathBuf::from("snapshots");
 
-    let mut source_path = Span::call_site().source_file().path();
+    let mut source_path = Span::call_site().local_file().unwrap();
 
     source_path.set_extension("");
     resource_path.push(source_path);

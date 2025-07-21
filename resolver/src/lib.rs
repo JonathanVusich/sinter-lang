@@ -20,18 +20,17 @@ use hir::{
     UnaryExpr, WhileStmt,
 };
 use id::{CrateId, DefId, LocalDefId, ModuleId};
-use interner::{InternedStr, StringInterner};
+use interner::InternedStr;
 use krate::{Crate, CrateDef, CrateLookup};
 use span::Span;
 use types::{LDefMap, StrMap};
 
 pub fn resolve<'hir>(
-    string_interner: &'hir StringInterner,
     diagnostics: &'hir Diagnostics,
     arena: &'hir Bump,
     crates: &'hir mut StrMap<Crate>,
 ) -> Option<HirMap<'hir>> {
-    let resolver = Resolver::new(string_interner, diagnostics, arena);
+    let resolver = Resolver::new(diagnostics, arena);
     resolver.resolve(crates)
 }
 
@@ -174,19 +173,13 @@ impl Scope {
 type ResolveResult = Option<()>;
 
 struct Resolver<'hir> {
-    string_interner: &'hir StringInterner,
     diagnostics: &'hir Diagnostics,
     allocator: &'hir Bump,
 }
 
 impl<'hir> Resolver<'hir> {
-    fn new(
-        string_interner: &'hir StringInterner,
-        diagnostics: &'hir Diagnostics,
-        allocator: &'hir Bump,
-    ) -> Self {
+    fn new(diagnostics: &'hir Diagnostics, allocator: &'hir Bump) -> Self {
         Self {
-            string_interner,
             diagnostics,
             allocator,
         }
@@ -199,8 +192,7 @@ impl<'hir> Resolver<'hir> {
         self.build_crate_ns(crates)?;
 
         for krate in crates.values() {
-            let crate_resolver =
-                CrateResolver::new(self.string_interner, self.allocator, &krate, crates);
+            let crate_resolver = CrateResolver::new(self.allocator, &krate, crates);
             hir_map.insert(crate_resolver.resolve()?);
         }
 
@@ -244,7 +236,7 @@ impl<'hir> Resolver<'hir> {
                                 missing_defs = true;
                                 let error_message = format!(
                                     "Unable to resolve definition for {}",
-                                    use_stmt.path.format(self.string_interner)
+                                    use_stmt.path.format()
                                 );
                                 self.diagnostics.push(Diagnostic::Error(error_message))
                             }
@@ -383,7 +375,6 @@ fn generate_mod_values(module: &ast::Module, krate_id: CrateId) -> ast::ModuleNS
 }
 
 struct CrateResolver<'hir> {
-    string_interner: &'hir StringInterner,
     allocator: &'hir Bump,
     krate: &'hir Crate,
     crates: &'hir StrMap<Crate>,
@@ -395,19 +386,13 @@ struct CrateResolver<'hir> {
 }
 
 impl<'hir> CrateResolver<'hir> {
-    fn new(
-        string_interner: &'hir StringInterner,
-        arena: &'hir Bump,
-        krate: &'hir Crate,
-        crates: &'hir StrMap<Crate>,
-    ) -> Self {
+    fn new(arena: &'hir Bump, krate: &'hir Crate, crates: &'hir StrMap<Crate>) -> Self {
         let crate_lookup = crates
             .values()
             .sorted_by_key(|krate| krate.id)
             .collect_vec()
             .into();
         Self {
-            string_interner,
             allocator: arena,
             krate,
             crates,
@@ -1395,7 +1380,7 @@ impl<'hir> CrateResolver<'hir> {
     }
 
     fn matches_primitive(&self, ident: InternedStr) -> Option<Primitive> {
-        match self.string_interner.resolve(ident) {
+        match &*ident {
             "u8" => Some(Primitive::U8),
             "u16" => Some(Primitive::U16),
             "u32" => Some(Primitive::U32),
@@ -1414,7 +1399,7 @@ impl<'hir> CrateResolver<'hir> {
     }
 
     fn matches_self_ty(&self, ident: InternedStr) -> Option<()> {
-        match self.string_interner.resolve(ident) {
+        match &*ident {
             "Self" => Some(()),
             _ => None,
         }

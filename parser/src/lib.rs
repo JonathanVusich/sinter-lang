@@ -13,24 +13,22 @@ use ast::{
 };
 use diagnostics::{Diagnostic, Diagnostics};
 use id::{IdGenerator, LocalDefId};
-use interner::{InternedStr, StringInterner};
+use interner::InternedStr;
 use span::Span;
 use tokenizer::{PrintOption, Token, TokenType};
 
-const BLANK_STR: &str = "";
+const BLANK_STR: &'static str = "";
 
 pub fn parse(
-    string_interner: &mut StringInterner,
     diagnostics: &Diagnostics,
     id_generator: &mut IdGenerator,
     input: Vec<Token>,
 ) -> Option<Module> {
-    let parser = Parser::new(string_interner, diagnostics, id_generator, input);
+    let parser = Parser::new(diagnostics, id_generator, input);
     parser.parse()
 }
 
 struct Parser<'ctxt> {
-    string_interner: &'ctxt mut StringInterner,
     diagnostics: &'ctxt Diagnostics,
     id_generator: &'ctxt mut IdGenerator,
     tokens: Vec<Token>,
@@ -40,13 +38,11 @@ struct Parser<'ctxt> {
 
 impl<'ctxt> Parser<'ctxt> {
     fn new(
-        string_interner: &'ctxt mut StringInterner,
         diagnostics: &'ctxt Diagnostics,
         id_generator: &'ctxt mut IdGenerator,
         tokens: Vec<Token>,
     ) -> Self {
         Self {
-            string_interner,
             diagnostics,
             id_generator,
             tokens,
@@ -315,7 +311,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
             Some(TokenType::Identifier(_)) => Immutable,
             Some(token) => {
-                let ident = self.intern_str(BLANK_STR);
+                let ident = InternedStr::from(BLANK_STR);
                 return self
                     .expected_tokens(vec![TokenType::Mut, TokenType::Identifier(ident)], token);
             }
@@ -511,10 +507,10 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Some(Ident::new(ident, span))
             }
-            Some(token) => {
-                let ident = self.intern_str(BLANK_STR);
-                self.expected_token(TokenType::Identifier(ident), token.token_type)
-            }
+            Some(token) => self.expected_token(
+                TokenType::Identifier(InternedStr::from(BLANK_STR)),
+                token.token_type,
+            ),
             None => self.unexpected_end(),
         }
     }
@@ -546,8 +542,10 @@ impl<'ctxt> Parser<'ctxt> {
                     }
                 }
                 Some(token) => {
-                    let ident = self.intern_str(BLANK_STR);
-                    return self.expected_token(TokenType::Identifier(ident), token.token_type);
+                    return self.expected_token(
+                        TokenType::Identifier(InternedStr::from(BLANK_STR)),
+                        token.token_type,
+                    );
                 }
                 None => {
                     return self.unexpected_end();
@@ -555,7 +553,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
         }
         let first = idents.first().unwrap();
-        let ident_type = if self.string_interner.resolve(first.ident) == "crate" {
+        let ident_type = if first.ident.eq("crate") {
             idents.remove(0);
             IdentType::Crate
         } else {
@@ -635,8 +633,7 @@ impl<'ctxt> Parser<'ctxt> {
                 Some(EnumMember::new(ident, fields, fn_self_stmts, span, id))
             }
             Some(token) => {
-                let ident = self.intern_str(BLANK_STR);
-                self.expected_token(TokenType::Identifier(ident), token)
+                self.expected_token(TokenType::Identifier(InternedStr::from(BLANK_STR)), token)
             }
             None => self.unexpected_end(),
         }
@@ -706,7 +703,7 @@ impl<'ctxt> Parser<'ctxt> {
         }) = self.current_token()
         {
             self.advance();
-            ident = LocalVar::new(self.intern_str("self"), span, self.get_id());
+            ident = LocalVar::new(InternedStr::from("self"), span, self.get_id());
             ty = Ty::new(TyKind::QSelf, span, self.get_id());
         } else {
             ident = self.local_var()?;
@@ -727,7 +724,7 @@ impl<'ctxt> Parser<'ctxt> {
                 span,
             }) => {
                 self.advance();
-                let ident = LocalVar::new(self.intern_str("self"), span, self.get_id());
+                let ident = LocalVar::new(InternedStr::from("self"), span, self.get_id());
                 let ty = Ty::new(TyKind::QSelf, span, self.get_id());
 
                 Some(Param::new(
@@ -820,8 +817,7 @@ impl<'ctxt> Parser<'ctxt> {
             }) => {
                 // These built in types are officially encoded as strings to avoid them being
                 // tokenized as keywords.
-                let ident = self.resolve_str(ident);
-                match ident {
+                match ident.as_str() {
                     "u8" => {
                         self.advance();
                         Some(Ty::new(TyKind::U8, span, self.get_id()))
@@ -1068,9 +1064,11 @@ impl<'ctxt> Parser<'ctxt> {
                         self.advance();
                     }
                     Some(token) => {
-                        let ident = self.intern_str("");
                         return self.expected_tokens(
-                            vec![TokenType::Less, TokenType::Identifier(ident)],
+                            vec![
+                                TokenType::Less,
+                                TokenType::Identifier(InternedStr::from(BLANK_STR)),
+                            ],
                             token.token_type,
                         );
                     }
@@ -1083,7 +1081,7 @@ impl<'ctxt> Parser<'ctxt> {
             }
         }
 
-        let ident_type = if self.matches_str(first_ident.ident, "crate") {
+        let ident_type = if first_ident.ident.eq("crate") {
             path_segments.remove(0);
             IdentType::Crate
         } else {
@@ -1105,7 +1103,7 @@ impl<'ctxt> Parser<'ctxt> {
             let expr = match current.token_type {
                 TokenType::SelfLowercase => {
                     self.advance();
-                    let ident = Ident::new(self.intern_str("self"), current.span);
+                    let ident = Ident::new(InternedStr::from("self"), current.span);
                     ExprKind::Path(PathExpr::new(
                         IdentType::LocalOrUse,
                         vec![Segment::new(ident, None)],
@@ -1138,7 +1136,7 @@ impl<'ctxt> Parser<'ctxt> {
                 TokenType::Identifier(_) => ExprKind::Path(self.parse_path_expr()?),
                 TokenType::SelfCapitalized => {
                     self.advance();
-                    let ident = Ident::new(self.intern_str("Self"), current.span);
+                    let ident = Ident::new(InternedStr::from("Self"), current.span);
                     ExprKind::Path(PathExpr::new(
                         IdentType::LocalOrUse,
                         vec![Segment::new(ident, None)],
@@ -1214,7 +1212,6 @@ impl<'ctxt> Parser<'ctxt> {
 
                 // Handle unexpected token
                 token => {
-                    let blank_str = self.string_interner.intern(BLANK_STR);
                     return self.expected_tokens(
                         vec![
                             TokenType::LeftBracket,
@@ -1224,8 +1221,8 @@ impl<'ctxt> Parser<'ctxt> {
                             TokenType::None,
                             TokenType::SelfCapitalized,
                             TokenType::SelfLowercase,
-                            TokenType::Identifier(blank_str),
-                            TokenType::String(blank_str),
+                            TokenType::Identifier(InternedStr::from("")),
+                            TokenType::String(InternedStr::from("")),
                             TokenType::UInt(0),
                             TokenType::Int(0),
                             TokenType::Float(0.0),
@@ -1451,18 +1448,15 @@ impl<'ctxt> Parser<'ctxt> {
                         let ty_pat = TyPattern::new(ty, None);
                         Some(Pattern::Ty(ty_pat))
                     }
-                    Some(token) => {
-                        let blank_str = self.string_interner.intern(BLANK_STR);
-                        self.expected_tokens(
-                            vec![
-                                TokenType::LeftParentheses,
-                                TokenType::Identifier(blank_str),
-                                TokenType::RightArrow,
-                                TokenType::BitwiseXor,
-                            ],
-                            token,
-                        )
-                    }
+                    Some(token) => self.expected_tokens(
+                        vec![
+                            TokenType::LeftParentheses,
+                            TokenType::Identifier(InternedStr::from("")),
+                            TokenType::RightArrow,
+                            TokenType::BitwiseXor,
+                        ],
+                        token,
+                    ),
                     None => self.unexpected_end(),
                 }
             }
@@ -1558,22 +1552,19 @@ impl<'ctxt> Parser<'ctxt> {
                     self.get_id(),
                 ))
             }
-            Some(token) => {
-                let blank_str = self.string_interner.intern(BLANK_STR);
-                self.expected_tokens(
-                    vec![
-                        TokenType::Identifier(blank_str),
-                        TokenType::True,
-                        TokenType::False,
-                        TokenType::String(blank_str),
-                        TokenType::Int(0),
-                        TokenType::UInt(0),
-                        TokenType::Float(0.0),
-                        TokenType::None,
-                    ],
-                    token,
-                )
-            }
+            Some(token) => self.expected_tokens(
+                vec![
+                    TokenType::Identifier(InternedStr::from("")),
+                    TokenType::True,
+                    TokenType::False,
+                    TokenType::String(InternedStr::from("")),
+                    TokenType::Int(0),
+                    TokenType::UInt(0),
+                    TokenType::Float(0.0),
+                    TokenType::None,
+                ],
+                token,
+            ),
             None => self.unexpected_end(),
         }
     }
@@ -1701,21 +1692,9 @@ impl<'ctxt> Parser<'ctxt> {
         Some(items)
     }
 
-    fn intern_str(&mut self, str: &str) -> InternedStr {
-        self.string_interner.intern(str)
-    }
-
-    fn resolve_str(&mut self, key: InternedStr) -> &str {
-        self.string_interner.resolve(key)
-    }
-
-    fn matches_str(&mut self, key: InternedStr, string: &str) -> bool {
-        self.string_interner.resolve(key) == string
-    }
-
     fn expected_token<T>(&mut self, expected: TokenType, received: TokenType) -> Option<T> {
-        let expected = expected.pretty_print(self.string_interner, PrintOption::Type);
-        let received = received.pretty_print(self.string_interner, PrintOption::Value);
+        let expected = expected.pretty_print(PrintOption::Type);
+        let received = received.pretty_print(PrintOption::Value);
 
         let error_message = format!("ERROR: Expected {expected}, received {received}!\n");
         self.diagnostics.push(Diagnostic::Error(error_message));
@@ -1729,9 +1708,9 @@ impl<'ctxt> Parser<'ctxt> {
     ) -> Option<T> {
         let expected = token_types
             .iter()
-            .map(|token_type| token_type.pretty_print(self.string_interner, PrintOption::Type))
+            .map(|token_type| token_type.pretty_print(PrintOption::Type))
             .join(" | ");
-        let received = received.pretty_print(self.string_interner, PrintOption::Value);
+        let received = received.pretty_print(PrintOption::Value);
 
         let error_message = format!("ERROR: Expected {expected}, received {received}!\n");
         self.diagnostics.push(Diagnostic::Error(error_message));
@@ -1809,38 +1788,30 @@ mod tests {
     use ast::{Expr, Module, PathExpr, Stmt, Ty, TyKind};
     use diagnostics::{Diagnostic, DiagnosticKind, Diagnostics};
     use id::{IdGenerator, LocalDefId};
-    use interner::StringInterner;
     use snap::snapshot;
     use tokenizer::{tokenize, TokenizedSource};
 
     use crate::Parser;
 
     fn create_parser<'a>(
-        string_interner: &'a mut StringInterner,
         diagnostics: &'a Diagnostics,
         id_generator: &'a mut IdGenerator,
         code: String,
     ) -> Parser<'a> {
-        let TokenizedSource { tokens, .. } = tokenize(string_interner, code);
-        Parser::new(string_interner, diagnostics, id_generator, tokens)
+        let TokenizedSource { tokens, .. } = tokenize(code);
+        Parser::new(diagnostics, id_generator, tokens)
     }
 
-    fn parse_errors<T: AsRef<str>>(code: T) -> (StringInterner, Vec<Diagnostic>) {
-        let mut string_interner = StringInterner::default();
+    fn parse_errors<T: AsRef<str>>(code: T) -> Vec<Diagnostic> {
         let diagnostics = Diagnostics::default();
         let mut id_generator = IdGenerator::default();
-        let parser = create_parser(
-            &mut string_interner,
-            &diagnostics,
-            &mut id_generator,
-            code.as_ref().to_string(),
-        );
+        let parser = create_parser(&diagnostics, &mut id_generator, code.as_ref().to_string());
 
         // let diagnostics = compiler_ctxt.emit_error()
         parser.parse();
         let errors: Vec<Diagnostic> = diagnostics.filter(DiagnosticKind::Error).collect();
         if !errors.is_empty() {
-            (string_interner, errors)
+            errors
         } else {
             panic!("Expected parsing to fail!")
         }
@@ -1848,63 +1819,50 @@ mod tests {
 
     #[cfg(test)]
     fn parse_module<T: AsRef<str>>(code: T) -> Option<ModuleOutput> {
-        let mut string_interner = StringInterner::default();
         let diagnostics = Diagnostics::default();
         let mut id_generator = IdGenerator::default();
-        let parser = create_parser(
-            &mut string_interner,
-            &diagnostics,
-            &mut id_generator,
-            code.as_ref().to_string(),
-        );
-        parser
-            .parse()
-            .map(|ast| (string_interner, diagnostics, ast))
+        let parser = create_parser(&diagnostics, &mut id_generator, code.as_ref().to_string());
+        parser.parse().map(|ast| (diagnostics, ast))
     }
 
     #[cfg(test)]
     fn parse_code<T>(
         code: String,
         parser_func: fn(&mut Parser) -> Option<T>,
-    ) -> Option<(StringInterner, Diagnostics, T)> {
-        let mut string_interner = StringInterner::default();
+    ) -> Option<(Diagnostics, T)> {
         let diagnostics = Diagnostics::default();
         let mut id_generator = IdGenerator::default();
-        let mut parser = create_parser(&mut string_interner, &diagnostics, &mut id_generator, code);
+        let mut parser = create_parser(&diagnostics, &mut id_generator, code);
         let parsed_val = parser_func(&mut parser)?;
-        Some((string_interner, diagnostics, parsed_val))
+        Some((diagnostics, parsed_val))
     }
 
-    type ModuleOutput = (StringInterner, Diagnostics, Module);
-    type ExprOutput = (StringInterner, Diagnostics, Expr);
+    type ModuleOutput = (Diagnostics, Module);
+    type ExprOutput = (Diagnostics, Expr);
 
     #[cfg(test)]
     fn parse<T: AsRef<str>>(code: T) -> ModuleOutput {
-        let (string_interner, diagnostics, ast) = parse_module(code.as_ref()).unwrap();
-        (string_interner, diagnostics, ast)
+        parse_module(code.as_ref()).unwrap()
     }
 
     #[cfg(test)]
     macro_rules! parse_ty {
         ($code:expr) => {{
-            let (string_interner, _, ty) =
-                parse_code($code.to_string(), |parser| parser.parse_ty()).unwrap();
-            (string_interner, ty)
+            let (_, ty) = parse_code($code.to_string(), |parser| parser.parse_ty()).unwrap();
+            ty
         }};
     }
 
     #[cfg(test)]
-    fn parse_path(code: &str) -> (StringInterner, PathExpr) {
-        let (string_interner, _, path) =
-            parse_code(code.to_string(), |parser| parser.parse_path_expr()).unwrap();
-        (string_interner, path)
+    fn parse_path(code: &str) -> PathExpr {
+        let (_, path) = parse_code(code.to_string(), |parser| parser.parse_path_expr()).unwrap();
+        path
     }
 
     #[cfg(test)]
-    fn parse_stmt(code: &str) -> (StringInterner, Stmt) {
-        let (string_interner, _, path) =
-            parse_code(code.to_string(), |parser| parser.parse_inner_stmt()).unwrap();
-        (string_interner, path)
+    fn parse_stmt(code: &str) -> Stmt {
+        let (_, path) = parse_code(code.to_string(), |parser| parser.parse_inner_stmt()).unwrap();
+        path
     }
 
     #[cfg(test)]
@@ -1933,7 +1891,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn closure_return_closure() -> (StringInterner, Ty) {
+    pub fn closure_return_closure() -> Ty {
         parse_ty!("() => (() => None)")
     }
 
@@ -1945,109 +1903,109 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn closure_returns_trait_bound_or_none() -> (StringInterner, Ty) {
+    pub fn closure_returns_trait_bound_or_none() -> Ty {
         parse_ty!("() => [first::party::package::Send<K, V> + third::party::package::Sync<T> + std::Copy + std::Clone] | None")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_type() -> (StringInterner, Ty) {
+    pub fn generic_type() -> Ty {
         parse_ty!("List<List<i64>>")
     }
 
     #[test]
     #[snapshot]
-    pub fn single_value() -> (StringInterner, Diagnostics, Expr) {
+    pub fn single_value() -> (Diagnostics, Expr) {
         parse_expr!("1")
     }
 
     #[test]
     #[snapshot]
-    pub fn add_and_multiply() -> (StringInterner, Diagnostics, Expr) {
+    pub fn add_and_multiply() -> (Diagnostics, Expr) {
         parse_expr!("1 + 2 * 3")
     }
 
     #[test]
     #[snapshot]
-    pub fn add_and_multiply_idents() -> (StringInterner, Diagnostics, Expr) {
+    pub fn add_and_multiply_idents() -> (Diagnostics, Expr) {
         parse_expr!("a + b * c * d + e")
     }
 
     #[test]
     #[snapshot]
-    pub fn function_composition() -> (StringInterner, Diagnostics, Expr) {
+    pub fn function_composition() -> (Diagnostics, Expr) {
         parse_expr!("f(g(h()))")
     }
 
     #[test]
     #[snapshot]
-    pub fn complex_function_composition() -> (StringInterner, Diagnostics, Expr) {
+    pub fn complex_function_composition() -> (Diagnostics, Expr) {
         parse_expr!("1 + 2 + f(g(h())) * 3 * 4")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_infix() -> (StringInterner, Diagnostics, Expr) {
+    pub fn double_infix() -> (Diagnostics, Expr) {
         parse_expr!("--1 * 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_infix_call() -> (StringInterner, Diagnostics, Expr) {
+    pub fn double_infix_call() -> (Diagnostics, Expr) {
         parse_expr!("--f(g)")
     }
 
     #[test]
     #[snapshot]
-    pub fn parenthesized_expr() -> (StringInterner, Diagnostics, Expr) {
+    pub fn parenthesized_expr() -> (Diagnostics, Expr) {
         parse_expr!("(((0)))")
     }
 
     #[test]
     #[snapshot]
-    pub fn closure_expression() -> (StringInterner, Diagnostics, Expr) {
+    pub fn closure_expression() -> (Diagnostics, Expr) {
         parse_expr!("(x, y) => x + y")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_index_expression() -> (StringInterner, Diagnostics, Expr) {
+    pub fn double_index_expression() -> (Diagnostics, Expr) {
         parse_expr!("x[0][1]")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_negate_and_multiply() -> (StringInterner, Diagnostics, Expr) {
+    pub fn double_negate_and_multiply() -> (Diagnostics, Expr) {
         parse_expr!("--1 * 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn comparison() -> (StringInterner, Diagnostics, Expr) {
+    pub fn comparison() -> (Diagnostics, Expr) {
         parse_expr!("1 < 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn parenthesized_comparison() -> (StringInterner, Diagnostics, Expr) {
+    pub fn parenthesized_comparison() -> (Diagnostics, Expr) {
         parse_expr!("(1 + 2 * 4) < (2 - 1)")
     }
 
     #[test]
     #[snapshot]
-    pub fn complex_conditional() -> (StringInterner, Diagnostics, Expr) {
+    pub fn complex_conditional() -> (Diagnostics, Expr) {
         parse_expr!("year % 4 == 0 && year % 100 != 0 || year % 400 == 0")
     }
 
     #[test]
     #[snapshot]
-    pub fn bit_operations() -> (StringInterner, Diagnostics, Expr) {
+    pub fn bit_operations() -> (Diagnostics, Expr) {
         parse_expr!("x + x * x / x - --x + 3 >> 1 | 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn class_constructor() -> (StringInterner, Diagnostics, Expr) {
+    pub fn class_constructor() -> (Diagnostics, Expr) {
         parse_expr!("Point(1.0, 2.0)")
     }
 
@@ -2095,55 +2053,55 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn single_path_expr() -> (StringInterner, PathExpr) {
+    pub fn single_path_expr() -> PathExpr {
         parse_path("std")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_path_expr() -> (StringInterner, PathExpr) {
+    pub fn simple_path_expr() -> PathExpr {
         parse_path("std::Clone")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_path_expr() -> (StringInterner, PathExpr) {
+    pub fn generic_path_expr() -> PathExpr {
         parse_path("std::HashMap::<T>::new")
     }
 
     #[test]
     #[snapshot]
-    pub fn nested_generic_path() -> (StringInterner, PathExpr) {
+    pub fn nested_generic_path() -> PathExpr {
         parse_path("List::<List<f64>>::new")
     }
 
     #[test]
     #[snapshot]
-    pub fn generic_trait_bound_path() -> (StringInterner, PathExpr) {
+    pub fn generic_trait_bound_path() -> PathExpr {
         parse_path("List::<Loggable + Serializable>::new")
     }
 
     #[test]
     #[snapshot]
-    pub fn while_stmt() -> (StringInterner, Stmt) {
+    pub fn while_stmt() -> Stmt {
         parse_stmt("while x < 100 { }")
     }
 
     #[test]
     #[snapshot]
-    pub fn for_stmt() -> (StringInterner, Stmt) {
+    pub fn for_stmt() -> Stmt {
         parse_stmt("for index in range(0, 100) { }")
     }
 
     #[test]
     #[snapshot]
-    pub fn if_stmt() -> (StringInterner, Stmt) {
+    pub fn if_stmt() -> Stmt {
         parse_stmt("if x < 100 { let y = 30; print(y); }")
     }
 
     #[test]
     #[snapshot]
-    pub fn block_stmt() -> (StringInterner, Stmt) {
+    pub fn block_stmt() -> Stmt {
         parse_stmt("{ let y = 30; } ")
     }
 
@@ -2154,7 +2112,7 @@ mod tests {
                 use ::span::Span;
 
                 let actual_ty = Ty::new($typ, Span::new(0, $code.len() as u32), LocalDefId::new(0));
-                let (_, ty) = parse_ty!($code);
+                let ty = parse_ty!($code);
                 assert_eq!(actual_ty, ty);
             }
         };
@@ -2176,7 +2134,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn unexpected_outer_stmt_token() -> (StringInterner, Vec<Diagnostic>) {
+    pub fn unexpected_outer_stmt_token() -> Vec<Diagnostic> {
         parse_errors("enum Stmt { } aflatoxin")
     }
 }

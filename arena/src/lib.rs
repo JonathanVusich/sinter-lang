@@ -1,4 +1,3 @@
-#![feature(ptr_sub_ptr)]
 #![feature(maybe_uninit_slice)]
 
 use std::cell::{Cell, RefCell};

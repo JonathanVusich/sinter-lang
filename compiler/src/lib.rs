@@ -15,7 +15,7 @@ use ast::{EnumMemberDef, ModulePath};
 use diagnostics::{Diagnostic, DiagnosticKind, Diagnostics, FatalError};
 use hir::HirMap;
 use id::{DefId, IdGenerator};
-use interner::{InternedStr, Interner, StringInterner};
+use interner::{InternedStr, Interner};
 use krate::Crate;
 use parser::parse;
 use resolver::resolve;
@@ -29,7 +29,6 @@ use validator::validate;
 #[derive(Default)]
 pub struct Compiler {
     diagnostics: Diagnostics,
-    string_interner: StringInterner,
     hir_allocator: Bump,
     source_map: SourceMap,
     id_generator: IdGenerator,
@@ -87,7 +86,7 @@ impl Compiler {
                     let mut new_crates = Vec::new();
                     for used_crate in krate.used_crates() {
                         if !crates_visited.contains(&used_crate.crate_name) {
-                            let crate_name = self.string_interner.resolve(used_crate.crate_name);
+                            let crate_name = used_crate.crate_name.as_str();
                             let mut crate_path = crate_path.to_path_buf();
                             crate_path.push(crate_name);
 
@@ -120,23 +119,18 @@ impl Compiler {
     }
 
     fn parse_inline_crate(&mut self, code: String) -> Option<Crate> {
-        let tokens = tokenize(&mut self.string_interner, code);
+        let tokens = tokenize(code);
         let TokenizedSource {
             tokens,
             line_map,
             token_source,
         } = tokens;
 
-        let mut ast = parse(
-            &mut self.string_interner,
-            &mut self.diagnostics,
-            &mut self.id_generator,
-            tokens,
-        )?;
-        let module_name = self.string_interner.intern("module");
+        let mut ast = parse(&mut self.diagnostics, &mut self.id_generator, tokens)?;
+        let module_name = InternedStr::from("module");
         let module_path = ModulePath::from_iter([module_name]);
 
-        let krate_name = self.string_interner.intern("crate");
+        let krate_name = InternedStr::from("crate");
 
         let crate_id = self.id_generator.crate_id();
         let mut krate = Crate::new(krate_name, crate_id);
@@ -162,7 +156,7 @@ impl Compiler {
 
         let krate_name = krate_name
             .to_str()
-            .map(|str| self.string_interner.intern(str))
+            .map(|str| InternedStr::from(str))
             .or_else(|| {
                 self.diagnostics
                     .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
@@ -197,22 +191,13 @@ impl Compiler {
                 .ok()?;
             let module_path = self.module_path(local_path)?;
 
-            let tokens = tokenize_file(
-                &mut self.string_interner,
-                &mut self.diagnostics,
-                &file.into_path(),
-            )?;
+            let tokens = tokenize_file(&mut self.diagnostics, &file.into_path())?;
             let TokenizedSource {
                 tokens,
                 line_map,
                 token_source,
             } = tokens;
-            let mut module = parse(
-                &mut self.string_interner,
-                &mut self.diagnostics,
-                &mut self.id_generator,
-                tokens,
-            )?;
+            let mut module = parse(&mut self.diagnostics, &mut self.id_generator, tokens)?;
 
             module.path = module_path.clone();
             let module_id = krate.add_module(module_path, module);
@@ -227,12 +212,7 @@ impl Compiler {
     pub fn validate_crates(&mut self, crates: StrMap<Crate>) -> Result<StrMap<Crate>, Diagnostics> {
         for krate in crates.values() {
             for module in krate.modules() {
-                validate(
-                    &self.string_interner,
-                    &mut self.diagnostics,
-                    &self.source_map,
-                    module,
-                );
+                validate(&mut self.diagnostics, &self.source_map, module);
             }
         }
         self.check_errors(crates)
@@ -242,25 +222,14 @@ impl Compiler {
         &'hir self,
         mut crates: &'hir mut StrMap<Crate>,
     ) -> Result<HirMap<'hir>, Diagnostics> {
-        resolve(
-            &self.string_interner,
-            &self.diagnostics,
-            &self.hir_allocator,
-            crates,
-        )
-        .ok_or(self.diagnostics.clone())
+        resolve(&self.diagnostics, &self.hir_allocator, crates).ok_or(self.diagnostics.clone())
     }
 
     pub fn infer_types<'hir>(
         &'hir self,
         hir_map: &'hir HirMap<'hir>,
     ) -> Result<ThirMap<'hir>, Diagnostics> {
-        let thirs = infer_types(
-            &self.string_interner,
-            &self.diagnostics,
-            &self.hir_allocator,
-            hir_map,
-        );
+        let thirs = infer_types(&self.diagnostics, &self.hir_allocator, hir_map);
         self.check_errors(thirs)
     }
 
@@ -279,7 +248,7 @@ impl Compiler {
                     .push(Diagnostic::Fatal(FatalError::InvalidOsStr));
                 None
             })?;
-            let interned_segment = self.string_interner.intern(segment);
+            let interned_segment = InternedStr::from(segment);
             segments.push(interned_segment);
         }
 

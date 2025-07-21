@@ -12,7 +12,6 @@ use diagnostics::{Diagnostic, Diagnostics};
 use hir::{
     ForStmt, HirCrate, HirMap, InfixOp, InfixOpClass, ItemKind, LocalDef, Res, StmtKind, WhileStmt,
 };
-use interner::StringInterner;
 use typed_hir::{
     ArrayExpr, Block, BlockStmt, CallExpr, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind,
     Field, Fields, FloatTy, FnDef, GenericParam, GenericParams, Generics, IfStmt, InfixExpr, IntTy,
@@ -29,7 +28,6 @@ mod trait_solver;
 mod unification;
 
 pub fn infer_types<'hir>(
-    string_interner: &'hir StringInterner,
     diagnostics: &'hir Diagnostics,
     hir_allocator: &'hir Bump,
     hir_map: &'hir HirMap<'hir>,
@@ -37,14 +35,8 @@ pub fn infer_types<'hir>(
     let mut crates = Vec::default();
     let ty_resolver: TyResolver<'hir> = TyResolver::new(hir_map, hir_allocator);
     for krate in hir_map.krates() {
-        let crate_inference = CrateInference::new(
-            string_interner,
-            diagnostics,
-            &ty_resolver,
-            hir_allocator,
-            krate,
-            hir_map,
-        );
+        let crate_inference =
+            CrateInference::new(diagnostics, &ty_resolver, hir_allocator, krate, hir_map);
         let bodies = crate_inference.infer_bodies();
         let tkrate = ThirCrate {
             name: krate.name,
@@ -64,7 +56,6 @@ pub fn infer_types<'hir>(
 /// TODO: All types SHOULD also be interned across crates using a ty interner.
 #[derive(Debug)]
 pub struct CrateInference<'a, 'hir> {
-    string_interner: &'hir StringInterner,
     diagnostics: &'hir Diagnostics,
     ty_resolver: &'a TyResolver<'hir>,
 
@@ -95,7 +86,6 @@ pub struct InferCtxt<'a, 'hir> {
     // Contains the current THIR body and information used to unify all the types.
     unify_table: UnificationTable<'hir>,
     ty_resolver: &'a TyResolver<'hir>,
-    string_interner: &'a StringInterner,
     diagnostics: &'a Diagnostics,
     ty_map: LDefMap<Ty<'hir>>,
     constraints: Constraints<'hir>,
@@ -556,8 +546,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                         format!("{:?} is not a callable type!", *ty)
                     }
                     ConstraintEvaluation::MissingArg(field) => {
-                        let field_name = self.string_interner.resolve(field.name.ident);
-                        format!("Missing an argument for field {:?}", field_name)
+                        format!("Missing an argument for field {:?}", field.name.ident)
                     }
                     ConstraintEvaluation::ExtraArg(arg) => {
                         format!("Extra argument of {:?} supplied!", *arg)
@@ -948,7 +937,6 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         generic_params: GenericParams<'hir>,
         params: Params<'hir>,
         ty_resolver: &'a TyResolver<'hir>,
-        string_interner: &'a StringInterner,
         diagnostics: &'a Diagnostics,
         hir_allocator: &'hir Bump,
         ret_ty: Ty<'hir>,
@@ -963,7 +951,6 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         Self {
             unify_table: Default::default(),
             ty_resolver,
-            string_interner,
             diagnostics,
             ty_map: Default::default(),
             constraints: Default::default(),
@@ -976,7 +963,6 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
 impl<'a, 'hir> CrateInference<'a, 'hir> {
     pub fn new(
-        string_interner: &'hir StringInterner,
         diagnostics: &'hir Diagnostics,
         ty_resolver: &'a TyResolver<'hir>,
         hir_allocator: &'hir Bump,
@@ -984,7 +970,6 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
         hir_map: &'hir HirMap,
     ) -> Self {
         Self {
-            string_interner,
             diagnostics,
             ty_resolver,
             hir_allocator,
@@ -1021,7 +1006,6 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
             GenericParams::default(),
             Params::default(),
             &self.ty_resolver,
-            &self.string_interner,
             &self.diagnostics,
             &self.hir_allocator,
             ret_ty,
@@ -1092,7 +1076,6 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
                 generic_params,
                 params,
                 &self.ty_resolver,
-                &self.string_interner,
                 &self.diagnostics,
                 &self.hir_allocator,
                 ret_ty,

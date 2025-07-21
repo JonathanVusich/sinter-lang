@@ -2,6 +2,7 @@
 
 use std::borrow::Borrow;
 use std::collections::VecDeque;
+use std::hash::Hash;
 use std::sync::Arc;
 
 use itertools::Itertools;
@@ -10,7 +11,7 @@ use radix_trie::TrieKey;
 use serde::{Deserialize, Serialize};
 
 use id::{DefId, LocalDefId, ModuleId};
-use interner::{InternedStr, StringInterner};
+use interner::InternedStr;
 use macros::named_slice;
 use span::Span;
 use types::{IStrMap, StrMap};
@@ -200,15 +201,12 @@ impl ModulePath {
 
 impl TrieKey for ModulePath {
     #[inline]
-    fn encode(&self) -> Nibblet {
-        let mut nibblet = Nibblet::new();
-        for seg in self.module_path.iter().copied() {
-            let bytes = seg.into_inner().to_be_bytes();
-            for byte in bytes {
-                nibblet.push(byte);
-            }
-        }
-        nibblet
+    fn encode_bytes(&self) -> Vec<u8> {
+        self.module_path
+            .iter()
+            .map(|seg| unsafe { seg.as_ptr() as usize })
+            .flat_map(|size| size.to_ne_bytes())
+            .collect()
     }
 }
 
@@ -454,11 +452,8 @@ impl QualifiedIdent {
         }
     }
 
-    pub fn format(&self, string_interner: &StringInterner) -> String {
-        self.idents
-            .iter()
-            .map(|ident| string_interner.resolve(ident.ident))
-            .join("::")
+    pub fn format(&self) -> String {
+        self.idents.iter().map(|ident| ident.ident).join("::")
     }
 }
 

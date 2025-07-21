@@ -6,7 +6,6 @@ use diagnostics::Diagnostic;
 use diagnostics::Diagnostics;
 use diagnostics::FatalError;
 use interner::InternedStr;
-use interner::StringInterner;
 use phf::phf_map;
 use source::Source;
 use unicode_segmentation::UnicodeSegmentation;
@@ -16,11 +15,7 @@ use crate::token::TokenType;
 use crate::tokenized_file::TokenizedOutput;
 use crate::tokenized_file::TokenizedSource;
 
-pub fn tokenize_file(
-    string_interner: &mut StringInterner,
-    diagnostics: &Diagnostics,
-    path: &Path,
-) -> Option<TokenizedSource> {
+pub fn tokenize_file(diagnostics: &Diagnostics, path: &Path) -> Option<TokenizedSource> {
     let token_source = Source::Path(path.to_path_buf());
 
     let source_file = fs::read_to_string(path)
@@ -29,7 +24,7 @@ pub fn tokenize_file(
             err
         })
         .ok()?;
-    let tokenizer = Tokenizer::new(string_interner, &source_file);
+    let tokenizer = Tokenizer::new(&source_file);
     let tokenized_output = tokenizer.tokenize();
     Some(TokenizedSource {
         tokens: tokenized_output.tokens,
@@ -38,8 +33,8 @@ pub fn tokenize_file(
     })
 }
 
-pub fn tokenize(string_interner: &mut StringInterner, input: String) -> TokenizedSource {
-    let tokenizer = Tokenizer::new(string_interner, &input);
+pub fn tokenize(input: String) -> TokenizedSource {
+    let tokenizer = Tokenizer::new(&input);
     let tokenized_output = tokenizer.tokenize();
     TokenizedSource {
         tokens: tokenized_output.tokens,
@@ -80,8 +75,7 @@ static KEYWORDS: phf::Map<&'static str, TokenType> = phf_map! {
 };
 
 #[derive(Debug)]
-pub(crate) struct Tokenizer<'ctxt, 'this> {
-    string_interner: &'ctxt mut StringInterner,
+pub(crate) struct Tokenizer<'this> {
     chars: Vec<&'this str>,
     tokenized_file: TokenizedOutput,
     start: usize,
@@ -90,12 +84,11 @@ pub(crate) struct Tokenizer<'ctxt, 'this> {
     current_byte_pos: usize,
 }
 
-impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
-    pub fn new(string_interner: &'ctxt mut StringInterner, source: &'this str) -> Self {
+impl<'this> Tokenizer<'this> {
+    pub fn new(source: &'this str) -> Self {
         let chars = source.graphemes(true).collect::<Vec<&'this str>>();
 
         Self {
-            string_interner,
             chars,
             tokenized_file: TokenizedOutput::new(),
             start: 0,
@@ -206,7 +199,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
 
         let identifier = chars.join("");
         let token_type = KEYWORDS.get(&identifier).copied().unwrap_or_else(|| {
-            let interned_str = self.intern(&identifier);
+            let interned_str = InternedStr::new(&identifier);
             TokenType::Identifier(interned_str)
         });
 
@@ -237,7 +230,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
                 let token_type: TokenType = str
                     .parse::<f64>()
                     .map(TokenType::Float)
-                    .unwrap_or_else(|_| TokenType::Unrecognized(self.intern(&str)));
+                    .unwrap_or_else(|_| TokenType::Unrecognized(InternedStr::new(&str)));
 
                 self.create_token(token_type);
                 return;
@@ -249,7 +242,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
         let token_type = str
             .parse::<i64>()
             .map(TokenType::Int)
-            .unwrap_or_else(|_| TokenType::Unrecognized(self.intern(&str)));
+            .unwrap_or_else(|_| TokenType::Unrecognized(InternedStr::new(&str)));
         self.create_token(token_type);
     }
 
@@ -266,7 +259,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
 
         if self.next() == "\"" {
             let string = tokens.join("");
-            let interned_str = self.intern(&string);
+            let interned_str = InternedStr::from(string);
 
             self.create_token(TokenType::String(interned_str))
         } else {
@@ -325,7 +318,7 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
     }
 
     fn create_unrecognized_token(&mut self, error_message: &'static str) {
-        let interned_error = self.intern(error_message);
+        let interned_error = InternedStr::from(error_message);
         self.create_token(TokenType::Unrecognized(interned_error));
     }
 
@@ -334,10 +327,6 @@ impl<'ctxt, 'this> Tokenizer<'ctxt, 'this> {
         self.start = self.current;
         self.start_byte_pos = self.current_byte_pos;
         self.tokenized_file.tokens.push(token);
-    }
-
-    fn intern(&mut self, str: &str) -> InternedStr {
-        self.string_interner.intern(str)
     }
 }
 
@@ -398,108 +387,105 @@ fn is_delimiter(char: &str) -> bool {
 }
 
 mod tests {
-    use interner::StringInterner;
-
     use snap::snapshot;
 
     use crate::tokenized_file::TokenizedOutput;
     use crate::tokenizer::Tokenizer;
 
     #[cfg(test)]
-    fn tokenize_str<T: AsRef<str>>(code: T) -> (StringInterner, TokenizedOutput) {
-        let mut string_interner = StringInterner::default();
-        let tokenizer = Tokenizer::new(&mut string_interner, code.as_ref());
+    fn tokenize_str<T: AsRef<str>>(code: T) -> TokenizedOutput {
+        let tokenizer = Tokenizer::new(code.as_ref());
         let tokens = tokenizer.tokenize();
-        (string_interner, tokens)
+        tokens
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_class() -> (StringInterner, TokenizedOutput) {
+    pub fn simple_class() -> TokenizedOutput {
         tokenize_str("pub class Random {}")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_enum() -> (StringInterner, TokenizedOutput) {
+    pub fn simple_enum() -> TokenizedOutput {
         tokenize_str("impl enum \n Reader \n [ ]")
     }
 
     #[test]
     #[snapshot]
-    pub fn invalid_native_keyword() -> (StringInterner, TokenizedOutput) {
+    pub fn invalid_native_keyword() -> TokenizedOutput {
         tokenize_str("native nativer enative")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_statement() -> (StringInterner, TokenizedOutput) {
+    pub fn simple_statement() -> TokenizedOutput {
         tokenize_str("use std::vector::Vector")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_float_base_case() -> (StringInterner, TokenizedOutput) {
+    pub fn parse_float_base_case() -> TokenizedOutput {
         tokenize_str("123.45")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_float_with_preceding_whitespace() -> (StringInterner, TokenizedOutput) {
+    pub fn parse_float_with_preceding_whitespace() -> TokenizedOutput {
         tokenize_str(" 123.45")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_positive_int() -> (StringInterner, TokenizedOutput) {
+    pub fn parse_positive_int() -> TokenizedOutput {
         tokenize_str("123")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_negative_int() -> (StringInterner, TokenizedOutput) {
+    pub fn parse_negative_int() -> TokenizedOutput {
         tokenize_str("-123")
     }
 
     #[test]
     #[snapshot]
-    pub fn parse_int_with_dot_after() -> (StringInterner, TokenizedOutput) {
+    pub fn parse_int_with_dot_after() -> TokenizedOutput {
         tokenize_str("123.")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_expression() -> (StringInterner, TokenizedOutput) {
+    pub fn simple_expression() -> TokenizedOutput {
         tokenize_str("x = 123 >> 2 | 89 * 21 & 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn complex_function_composition() -> (StringInterner, TokenizedOutput) {
+    pub fn complex_function_composition() -> TokenizedOutput {
         tokenize_str("1 + 2 + f(g(h())) * 3 * 4")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_infix() -> (StringInterner, TokenizedOutput) {
+    pub fn double_infix() -> TokenizedOutput {
         tokenize_str("--1 * 2")
     }
 
     #[test]
     #[snapshot]
-    pub fn double_infix_call() -> (StringInterner, TokenizedOutput) {
+    pub fn double_infix_call() -> TokenizedOutput {
         tokenize_str("--f(g)")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_trait() -> (StringInterner, TokenizedOutput) {
+    pub fn simple_trait() -> TokenizedOutput {
         tokenize_str("trait Serializable { }")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_iterator_trait() -> (StringInterner, TokenizedOutput) {
+    pub fn simple_iterator_trait() -> TokenizedOutput {
         let code = concat!(
             "trait Iterator<T> {\n",
             "     fn next() => T | None;\n",
@@ -511,13 +497,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn generic_point_class() -> (StringInterner, TokenizedOutput) {
+    pub fn generic_point_class() -> TokenizedOutput {
         tokenize_str("class Point<T, U>(x: T, y: U);")
     }
 
     #[test]
     #[snapshot]
-    pub fn simple_main_stmt() -> (StringInterner, TokenizedOutput) {
+    pub fn simple_main_stmt() -> TokenizedOutput {
         tokenize_str(concat!(
             "fn main(arguments: [str]) {\n",
             "    println(arguments.to_string());\n",
@@ -527,25 +513,25 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn var_declarations() -> (StringInterner, TokenizedOutput) {
+    pub fn var_declarations() -> TokenizedOutput {
         tokenize_str(concat!("let mut x = None;\n", "let y = 0;"))
     }
 
     #[test]
     #[snapshot]
-    pub fn uppercase_self() -> (StringInterner, TokenizedOutput) {
+    pub fn uppercase_self() -> TokenizedOutput {
         tokenize_str("Self::lower_hir")
     }
 
     #[test]
     #[snapshot]
-    pub fn parameter_parsing() -> (StringInterner, TokenizedOutput) {
+    pub fn parameter_parsing() -> TokenizedOutput {
         tokenize_str("fn mutate(mut self) => None;")
     }
 
     #[test]
     #[snapshot]
-    pub fn bytearray_to_str() -> (StringInterner, TokenizedOutput) {
+    pub fn bytearray_to_str() -> TokenizedOutput {
         tokenize_str(concat!(
             r#"let greeting = "Hello world!"; // 'str' type is inferred"#,
             "\n",
@@ -557,19 +543,19 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn empty_string() -> (StringInterner, TokenizedOutput) {
+    pub fn empty_string() -> TokenizedOutput {
         tokenize_str("")
     }
 
     #[test]
     #[snapshot]
-    pub fn small_a_string() -> (StringInterner, TokenizedOutput) {
+    pub fn small_a_string() -> TokenizedOutput {
         tokenize_str("a")
     }
 
     #[test]
     #[snapshot]
-    pub fn scene_graph_node() -> (StringInterner, TokenizedOutput) {
+    pub fn scene_graph_node() -> TokenizedOutput {
         tokenize_str(concat!(
             "trait Node {\n",
             "   fn bounds() => Bounds;\n",
@@ -583,13 +569,13 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn empty_class_with_traits() -> (StringInterner, TokenizedOutput) {
+    pub fn empty_class_with_traits() -> TokenizedOutput {
         tokenize_str("class SortedMap<T: Sortable + Hashable>;")
     }
 
     #[test]
     #[snapshot]
-    pub fn enum_with_member_funcs() -> (StringInterner, TokenizedOutput) {
+    pub fn enum_with_member_funcs() -> TokenizedOutput {
         let code = concat!(
             "enum Message {\n",
             "    Text(message: str),\n",
@@ -605,7 +591,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn complex_enum() -> (StringInterner, TokenizedOutput) {
+    pub fn complex_enum() -> TokenizedOutput {
         let code = concat!(
             "enum Vector<X: Number + Display, Y: Number + Display> {\n",
             "    Normalized(x: X, y: Y),\n",
@@ -621,19 +607,19 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn for_loop() -> (StringInterner, TokenizedOutput) {
+    pub fn for_loop() -> TokenizedOutput {
         tokenize_str("for x in 0..100 { }")
     }
 
     #[test]
     #[snapshot]
-    pub fn let_stmt_none() -> (StringInterner, TokenizedOutput) {
+    pub fn let_stmt_none() -> TokenizedOutput {
         tokenize_str("let x: None;")
     }
 
     #[test]
     #[snapshot]
-    pub fn multiple_let_stmts() -> (StringInterner, TokenizedOutput) {
+    pub fn multiple_let_stmts() -> TokenizedOutput {
         let code = concat!(
             "let a: i64 = 1; // Immediate assignment\n",
             "let b = 2; // `i64` type is inferred\n"
@@ -643,7 +629,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn mutable_assignment() -> (StringInterner, TokenizedOutput) {
+    pub fn mutable_assignment() -> TokenizedOutput {
         let code = concat!(
             "fn mut_var() {\n",
             "    let mut x = 5; // `i64` type is inferred\n",
@@ -655,7 +641,7 @@ mod tests {
 
     #[test]
     #[snapshot]
-    pub fn print_fn() -> (StringInterner, TokenizedOutput) {
+    pub fn print_fn() -> TokenizedOutput {
         let code = concat!("fn print(text: str) {\n", "    println(text);\n", "}");
         tokenize_str(code)
     }

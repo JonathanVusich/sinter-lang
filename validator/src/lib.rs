@@ -6,22 +6,16 @@ use ast::{
 };
 use diagnostics::{Diagnostic, Diagnostics};
 use id::LocalDefId;
-use interner::{InternedStr, StringInterner};
+use interner::InternedStr;
 use source::{SourceCode, SourceMap};
 use span::Span;
 
-pub fn validate(
-    string_interner: &StringInterner,
-    diagnostics: &Diagnostics,
-    source_map: &SourceMap,
-    module: &Module,
-) {
-    let validator = Validator::new(string_interner, diagnostics, source_map, module);
+pub fn validate(diagnostics: &Diagnostics, source_map: &SourceMap, module: &Module) {
+    let validator = Validator::new(diagnostics, source_map, module);
     validator.validate()
 }
 
 struct Validator<'a> {
-    string_interner: &'a StringInterner,
     diagnostics: &'a Diagnostics,
     source_map: &'a SourceMap,
     module: &'a Module,
@@ -33,13 +27,11 @@ struct Validator<'a> {
 
 impl<'a> Validator<'a> {
     pub(crate) fn new(
-        string_interner: &'a StringInterner,
         diagnostics: &'a Diagnostics,
         source_map: &'a SourceMap,
         module: &'a Module,
     ) -> Self {
         Self {
-            string_interner,
             diagnostics,
             source_map,
             module,
@@ -198,7 +190,6 @@ impl<'a> Validator<'a> {
             .filter(|(_, vals)| vals.len() > 1)
             .map(|(name, vals)| {
                 let source_code = self.source_code();
-                let name = self.string_interner.resolve(*name);
                 let mut message = format!("ERROR: Duplicate {item_name} `{name}` in scope\n");
                 let explanation = vals
                     .iter()
@@ -238,7 +229,7 @@ mod tests {
     #[cfg(test)]
     use id::ModuleId;
     #[cfg(test)]
-    use interner::StringInterner;
+    use interner::InternedStr;
     #[cfg(test)]
     use krate::Crate;
     #[cfg(test)]
@@ -257,12 +248,11 @@ mod tests {
     use types::StrMap;
 
     #[cfg(test)]
-    type ValidationOutput = (StringInterner, Vec<Diagnostic>);
+    type ValidationOutput = Vec<Diagnostic>;
 
     #[cfg(test)]
     fn validate<T: AsRef<str>>(code: T) -> ValidationOutput {
         let code = code.as_ref().to_string();
-        let mut string_interner = StringInterner::default();
         let diagnostics = Diagnostics::default();
         let mut id_generator = IdGenerator::default();
         let mut source_map = SourceMap::default();
@@ -271,28 +261,20 @@ mod tests {
             tokens,
             line_map,
             token_source,
-        } = tokenize(&mut string_interner, code);
-        let module = parse(
-            &mut string_interner,
-            &diagnostics,
-            &mut id_generator,
-            tokens,
-        )
-        .unwrap();
-        let krate_name = string_interner.intern("crate");
+        } = tokenize(code);
+        let module = parse(&diagnostics, &mut id_generator, tokens).unwrap();
+        let krate_name = InternedStr::new("crate");
         let mut krate = Crate::new(krate_name, CrateId::new(0));
-        let module_id = krate.add_module(
-            ModulePath::from_iter([string_interner.intern("module")]),
-            module,
-        );
+        let module_id =
+            krate.add_module(ModulePath::from_iter([InternedStr::new("module")]), module);
         let source_code = SourceCode::new(token_source, line_map);
         source_map.intern(module_id, source_code);
         let krates = StrMap::from([(krate_name, krate)]);
         let krate = krates.get(&krate_name).unwrap();
         let module = krate.module(ModuleId::new(0, 0));
 
-        crate::validate(&string_interner, &diagnostics, &source_map, module);
-        (string_interner, diagnostics.filter(DiagnosticKind::Error))
+        crate::validate(&diagnostics, &source_map, module);
+        diagnostics.filter(DiagnosticKind::Error)
     }
 
     #[test]
