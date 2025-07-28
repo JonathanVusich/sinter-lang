@@ -195,6 +195,7 @@ pub struct EnumDef<'a> {
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct MemberDef<'a> {
     pub name: InternedStr,
+    pub generic_params: GenericParams<'a>,
     pub fields: Fields<'a>,
     pub fn_defs: FnDefs<'a>,
     pub span: Span,

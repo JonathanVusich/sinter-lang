@@ -24,12 +24,8 @@
             ),
           ),
           ty: (
-            kind: Primitive(U64),
-            span: (
-              start: 34,
-              end: 37,
-            ),
-            id: 0,
+            crate_id: 0,
+            local_id: 0,
           ),
           span: (
             start: 28,
@@ -56,6 +52,7 @@
         generic_params: [],
         members: [(
           name: "Text",
+          generic_params: [],
           fields: [(
             name: (
               ident: "message",
@@ -65,12 +62,8 @@
               ),
             ),
             ty: (
-              kind: Primitive(Str),
-              span: (
-                start: 75,
-                end: 78,
-              ),
-              id: 3,
+              crate_id: 0,
+              local_id: 3,
             ),
             span: (
               start: 66,
@@ -86,6 +79,7 @@
           id: 5,
         ), (
           name: "Photo",
+          generic_params: [],
           fields: [(
             name: (
               ident: "caption",
@@ -95,12 +89,8 @@
               ),
             ),
             ty: (
-              kind: Primitive(Str),
-              span: (
-                start: 100,
-                end: 103,
-              ),
-              id: 6,
+              crate_id: 0,
+              local_id: 6,
             ),
             span: (
               start: 91,
@@ -116,18 +106,8 @@
               ),
             ),
             ty: (
-              kind: Path((
-                definition: (
-                  crate_id: 0,
-                  local_id: 2,
-                ),
-                generics: [],
-)),
-              span: (
-                start: 112,
-                end: 127,
-              ),
-              id: 8,
+              crate_id: 0,
+              local_id: 8,
             ),
             span: (
               start: 105,
@@ -155,18 +135,8 @@
                   id: 10,
                 ),
                 ty: (
-                  kind: Path((
-                    definition: (
-                      crate_id: 0,
-                      local_id: 21,
-                    ),
-                    generics: [],
-)),
-                  span: (
-                    start: 147,
-                    end: 151,
-                  ),
-                  id: 11,
+                  crate_id: 0,
+                  local_id: 11,
                 ),
                 mutability: Immutable,
                 span: (
@@ -290,12 +260,8 @@
           ),
         ),
         ty: (
-          kind: Primitive(U64),
-          span: (
-            start: 34,
-            end: 37,
-          ),
-          id: 0,
+          crate_id: 0,
+          local_id: 0,
         ),
         span: (
           start: 28,
@@ -323,12 +289,8 @@
               ),
             ),
             ty: (
-              kind: Primitive(U64),
-              span: (
-                start: 34,
-                end: 37,
-              ),
-              id: 0,
+              crate_id: 0,
+              local_id: 0,
             ),
             span: (
               start: 28,
@@ -361,12 +323,8 @@
           ),
         ),
         ty: (
-          kind: Primitive(Str),
-          span: (
-            start: 75,
-            end: 78,
-          ),
-          id: 3,
+          crate_id: 0,
+          local_id: 3,
         ),
         span: (
           start: 66,
@@ -377,6 +335,7 @@
       5: Item((
         kind: Member((
           name: "Text",
+          generic_params: [],
           fields: [(
             name: (
               ident: "message",
@@ -386,12 +345,8 @@
               ),
             ),
             ty: (
-              kind: Primitive(Str),
-              span: (
-                start: 75,
-                end: 78,
-              ),
-              id: 3,
+              crate_id: 0,
+              local_id: 3,
             ),
             span: (
               start: 66,
@@ -429,12 +384,8 @@
           ),
         ),
         ty: (
-          kind: Primitive(Str),
-          span: (
-            start: 100,
-            end: 103,
-          ),
-          id: 6,
+          crate_id: 0,
+          local_id: 6,
         ),
         span: (
           start: 91,
@@ -465,18 +416,8 @@
           ),
         ),
         ty: (
-          kind: Path((
-            definition: (
-              crate_id: 0,
-              local_id: 2,
-            ),
-            generics: [],
-)),
-          span: (
-            start: 112,
-            end: 127,
-          ),
-          id: 8,
+          crate_id: 0,
+          local_id: 8,
         ),
         span: (
           start: 105,
@@ -496,7 +437,7 @@
         kind: Path((
           definition: (
             crate_id: 0,
-            local_id: 21,
+            local_id: 20,
           ),
           generics: [],
 )),
@@ -516,18 +457,8 @@
           id: 10,
         ),
         ty: (
-          kind: Path((
-            definition: (
-              crate_id: 0,
-              local_id: 21,
-            ),
-            generics: [],
-)),
-          span: (
-            start: 147,
-            end: 151,
-          ),
-          id: 11,
+          crate_id: 0,
+          local_id: 11,
         ),
         mutability: Immutable,
         span: (
@@ -802,18 +733,8 @@
                 id: 10,
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 21,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 147,
-                  end: 151,
-                ),
-                id: 11,
+                crate_id: 0,
+                local_id: 11,
               ),
               mutability: Immutable,
               span: (
@@ -914,6 +835,7 @@
       20: Item((
         kind: Member((
           name: "Photo",
+          generic_params: [],
           fields: [(
             name: (
               ident: "caption",
@@ -923,12 +845,8 @@
               ),
             ),
             ty: (
-              kind: Primitive(Str),
-              span: (
-                start: 100,
-                end: 103,
-              ),
-              id: 6,
+              crate_id: 0,
+              local_id: 6,
             ),
             span: (
               start: 91,
@@ -944,18 +862,8 @@
               ),
             ),
             ty: (
-              kind: Path((
-                definition: (
-                  crate_id: 0,
-                  local_id: 2,
-                ),
-                generics: [],
-)),
-              span: (
-                start: 112,
-                end: 127,
-              ),
-              id: 8,
+              crate_id: 0,
+              local_id: 8,
             ),
             span: (
               start: 105,
@@ -983,18 +891,8 @@
                   id: 10,
                 ),
                 ty: (
-                  kind: Path((
-                    definition: (
-                      crate_id: 0,
-                      local_id: 21,
-                    ),
-                    generics: [],
-)),
-                  span: (
-                    start: 147,
-                    end: 151,
-                  ),
-                  id: 11,
+                  crate_id: 0,
+                  local_id: 11,
                 ),
                 mutability: Immutable,
                 span: (
@@ -1110,6 +1008,7 @@
           generic_params: [],
           members: [(
             name: "Text",
+            generic_params: [],
             fields: [(
               name: (
                 ident: "message",
@@ -1119,12 +1018,8 @@
                 ),
               ),
               ty: (
-                kind: Primitive(Str),
-                span: (
-                  start: 75,
-                  end: 78,
-                ),
-                id: 3,
+                crate_id: 0,
+                local_id: 3,
               ),
               span: (
                 start: 66,
@@ -1140,6 +1035,7 @@
             id: 5,
           ), (
             name: "Photo",
+            generic_params: [],
             fields: [(
               name: (
                 ident: "caption",
@@ -1149,12 +1045,8 @@
                 ),
               ),
               ty: (
-                kind: Primitive(Str),
-                span: (
-                  start: 100,
-                  end: 103,
-                ),
-                id: 6,
+                crate_id: 0,
+                local_id: 6,
               ),
               span: (
                 start: 91,
@@ -1170,18 +1062,8 @@
                 ),
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 2,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 112,
-                  end: 127,
-                ),
-                id: 8,
+                crate_id: 0,
+                local_id: 8,
               ),
               span: (
                 start: 105,
@@ -1209,18 +1091,8 @@
                     id: 10,
                   ),
                   ty: (
-                    kind: Path((
-                      definition: (
-                        crate_id: 0,
-                        local_id: 21,
-                      ),
-                      generics: [],
-)),
-                    span: (
-                      start: 147,
-                      end: 151,
-                    ),
-                    id: 11,
+                    crate_id: 0,
+                    local_id: 11,
                   ),
                   mutability: Immutable,
                   span: (

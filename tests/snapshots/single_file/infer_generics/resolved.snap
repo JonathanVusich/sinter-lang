@@ -23,6 +23,11 @@
             ),
           ),
           trait_bound: None,
+          span: (
+            start: 13,
+            end: 14,
+          ),
+          id: 0,
         )],
         fields: [(
           name: (
@@ -33,18 +38,8 @@
             ),
           ),
           ty: (
-            kind: Path((
-              definition: (
-                crate_id: 0,
-                local_id: 0,
-              ),
-              generics: [],
-)),
-            span: (
-              start: 29,
-              end: 30,
-            ),
-            id: 1,
+            crate_id: 0,
+            local_id: 1,
           ),
           span: (
             start: 22,
@@ -216,17 +211,15 @@
       id: 15,
     )],
     nodes: {
-      0: Ty((
-        kind: GenericParam((
-          ident: (
-            ident: "T",
-            span: (
-              start: 13,
-              end: 14,
-            ),
+      0: GenericParam((
+        ident: (
+          ident: "T",
+          span: (
+            start: 13,
+            end: 14,
           ),
-          trait_bound: None,
-        )),
+        ),
+        trait_bound: None,
         span: (
           start: 13,
           end: 14,
@@ -256,18 +249,8 @@
           ),
         ),
         ty: (
-          kind: Path((
-            definition: (
-              crate_id: 0,
-              local_id: 0,
-            ),
-            generics: [],
-)),
-          span: (
-            start: 29,
-            end: 30,
-          ),
-          id: 1,
+          crate_id: 0,
+          local_id: 1,
         ),
         span: (
           start: 22,
@@ -294,6 +277,11 @@
               ),
             ),
             trait_bound: None,
+            span: (
+              start: 13,
+              end: 14,
+            ),
+            id: 0,
           )],
           fields: [(
             name: (
@@ -304,18 +292,8 @@
               ),
             ),
             ty: (
-              kind: Path((
-                definition: (
-                  crate_id: 0,
-                  local_id: 0,
-                ),
-                generics: [],
-)),
-              span: (
-                start: 29,
-                end: 30,
-              ),
-              id: 1,
+              crate_id: 0,
+              local_id: 1,
             ),
             span: (
               start: 22,

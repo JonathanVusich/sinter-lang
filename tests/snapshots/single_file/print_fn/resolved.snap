@@ -32,12 +32,8 @@
           id: 0,
         ),
         ty: (
-          kind: Primitive(Str),
-          span: (
-            start: 15,
-            end: 18,
-          ),
-          id: 1,
+          crate_id: 0,
+          local_id: 1,
         ),
         mutability: Immutable,
         span: (

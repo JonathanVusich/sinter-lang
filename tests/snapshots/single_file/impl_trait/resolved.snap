@@ -24,12 +24,8 @@
             ),
           ),
           ty: (
-            kind: Primitive(Str),
-            span: (
-              start: 28,
-              end: 31,
-            ),
-            id: 0,
+            crate_id: 0,
+            local_id: 0,
           ),
           span: (
             start: 18,
@@ -45,12 +41,8 @@
             ),
           ),
           ty: (
-            kind: Primitive(Str),
-            span: (
-              start: 46,
-              end: 49,
-            ),
-            id: 2,
+            crate_id: 0,
+            local_id: 2,
           ),
           span: (
             start: 37,
@@ -95,18 +87,8 @@
                 id: 5,
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 10,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 87,
-                  end: 91,
-                ),
-                id: 6,
+                crate_id: 0,
+                local_id: 6,
               ),
               mutability: Immutable,
               span: (
@@ -170,18 +152,8 @@
                 id: 11,
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 4,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 146,
-                  end: 150,
-                ),
-                id: 12,
+                crate_id: 0,
+                local_id: 12,
               ),
               mutability: Immutable,
               span: (
@@ -328,12 +300,8 @@
           ),
         ),
         ty: (
-          kind: Primitive(Str),
-          span: (
-            start: 28,
-            end: 31,
-          ),
-          id: 0,
+          crate_id: 0,
+          local_id: 0,
         ),
         span: (
           start: 18,
@@ -358,12 +326,8 @@
           ),
         ),
         ty: (
-          kind: Primitive(Str),
-          span: (
-            start: 46,
-            end: 49,
-          ),
-          id: 2,
+          crate_id: 0,
+          local_id: 2,
         ),
         span: (
           start: 37,
@@ -391,12 +355,8 @@
               ),
             ),
             ty: (
-              kind: Primitive(Str),
-              span: (
-                start: 28,
-                end: 31,
-              ),
-              id: 0,
+              crate_id: 0,
+              local_id: 0,
             ),
             span: (
               start: 18,
@@ -412,12 +372,8 @@
               ),
             ),
             ty: (
-              kind: Primitive(Str),
-              span: (
-                start: 46,
-                end: 49,
-              ),
-              id: 2,
+              crate_id: 0,
+              local_id: 2,
             ),
             span: (
               start: 37,
@@ -465,18 +421,8 @@
           id: 5,
         ),
         ty: (
-          kind: Path((
-            definition: (
-              crate_id: 0,
-              local_id: 10,
-            ),
-            generics: [],
-)),
-          span: (
-            start: 87,
-            end: 91,
-          ),
-          id: 6,
+          crate_id: 0,
+          local_id: 6,
         ),
         mutability: Immutable,
         span: (
@@ -514,18 +460,8 @@
                 id: 5,
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 10,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 87,
-                  end: 91,
-                ),
-                id: 6,
+                crate_id: 0,
+                local_id: 6,
               ),
               mutability: Immutable,
               span: (
@@ -586,18 +522,8 @@
                   id: 5,
                 ),
                 ty: (
-                  kind: Path((
-                    definition: (
-                      crate_id: 0,
-                      local_id: 10,
-                    ),
-                    generics: [],
-)),
-                  span: (
-                    start: 87,
-                    end: 91,
-                  ),
-                  id: 6,
+                  crate_id: 0,
+                  local_id: 6,
                 ),
                 mutability: Immutable,
                 span: (
@@ -661,18 +587,8 @@
           id: 11,
         ),
         ty: (
-          kind: Path((
-            definition: (
-              crate_id: 0,
-              local_id: 4,
-            ),
-            generics: [],
-)),
-          span: (
-            start: 146,
-            end: 150,
-          ),
-          id: 12,
+          crate_id: 0,
+          local_id: 12,
         ),
         mutability: Immutable,
         span: (
@@ -1093,18 +1009,8 @@
                 id: 11,
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 4,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 146,
-                  end: 150,
-                ),
-                id: 12,
+                crate_id: 0,
+                local_id: 12,
               ),
               mutability: Immutable,
               span: (
@@ -1265,18 +1171,8 @@
                   id: 11,
                 ),
                 ty: (
-                  kind: Path((
-                    definition: (
-                      crate_id: 0,
-                      local_id: 4,
-                    ),
-                    generics: [],
-)),
-                  span: (
-                    start: 146,
-                    end: 150,
-                  ),
-                  id: 12,
+                  crate_id: 0,
+                  local_id: 12,
                 ),
                 mutability: Immutable,
                 span: (

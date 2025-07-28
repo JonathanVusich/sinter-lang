@@ -83,7 +83,7 @@ pub enum TyKind<'a> {
     Array(Ty<'a>),
     Class(&'a ClassDef<'a>, Generics<'a>),
     Enum(&'a EnumDef<'a>, Generics<'a>),
-    Member(&'a MemberDef<'a>),
+    Member(&'a MemberDef<'a>, Generics<'a>),
     Trait(&'a TraitDef<'a>, Generics<'a>),
     TraitBound(TraitBound<'a>),
     GenericParam(&'a GenericParam<'a>),
@@ -117,6 +117,7 @@ pub struct EnumDef<'a> {
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct MemberDef<'a> {
     pub name: InternedStr,
+    pub generic_params: GenericParams<'a>,
     pub fields: Fields<'a>,
     pub fn_defs: FnDefs<'a>,
 }

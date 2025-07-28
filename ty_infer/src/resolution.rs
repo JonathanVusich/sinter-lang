@@ -40,6 +40,26 @@ struct PrimitiveTypes<'hir> {
     bool: Ty<'hir>,
 }
 
+impl<'hir> PrimitiveTypes<'hir> {
+    pub fn convert(&self, primitive: Primitive) -> Ty<'hir> {
+        match primitive {
+            Primitive::U8 => self.u8,
+            Primitive::U16 => self.u16,
+            Primitive::U32 => self.u32,
+            Primitive::U64 => self.u64,
+            Primitive::I8 => self.i8,
+            Primitive::I16 => self.i16,
+            Primitive::I32 => self.i32,
+            Primitive::I64 => self.i64,
+            Primitive::F32 => self.f32,
+            Primitive::F64 => self.f64,
+            Primitive::Str => self.str,
+            Primitive::Boolean => self.bool,
+            Primitive::None => self.none,
+        }
+    }
+}
+
 /// This is needed because we need to have a way to construct types from their definition either
 /// with or without associated generic types.
 #[derive(Copy, Clone, Debug)]
@@ -61,6 +81,7 @@ impl<'hir> Binder<'hir> {
             let ty = match def {
                 GenericTyDef::Class(class_def) => TyKind::Class(class_def, generics),
                 GenericTyDef::Enum(enum_def) => TyKind::Enum(enum_def, generics),
+                GenericTyDef::EnumMember(member_def) => TyKind::Member(member_def, generics),
                 GenericTyDef::Trait(trait_def) => TyKind::Trait(trait_def, generics),
                 GenericTyDef::Fn(fn_def) => TyKind::Fn(fn_def, generics),
                 any => panic!("Should never happen!"),
@@ -143,21 +164,7 @@ impl<'hir> TyResolver<'hir> {
                 });
                 self.intern(TyKind::Closure(closure_def))
             }
-            hir::TyKind::Primitive(primitive) => match primitive {
-                Primitive::U8 => self.tys.u8,
-                Primitive::U16 => self.tys.u16,
-                Primitive::U32 => self.tys.u32,
-                Primitive::U64 => self.tys.u64,
-                Primitive::I8 => self.tys.i8,
-                Primitive::I16 => self.tys.i16,
-                Primitive::I32 => self.tys.i32,
-                Primitive::I64 => self.tys.i64,
-                Primitive::F32 => self.tys.f32,
-                Primitive::F64 => self.tys.f64,
-                Primitive::Str => self.tys.str,
-                Primitive::Boolean => self.tys.bool,
-                Primitive::None => self.tys.none,
-            },
+            hir::TyKind::Primitive(primitive) => self.tys.convert(primitive),
         }
     }
 
@@ -186,46 +193,57 @@ impl<'hir> TyResolver<'hir> {
         let node = krate.node(&id.local_id());
         let crate_id = krate.id;
         match node {
-            Node::Item(Item {
-                kind: ItemKind::Class(class_def),
-                ..
-            }) => self.to_generic_binder(GenericTyDef::Class(
-                self.resolve_class_def(class_def, crate_id),
-            )),
-            Node::Item(Item {
-                kind: ItemKind::Enum(enum_def),
-                ..
-            }) => self.to_generic_binder(GenericTyDef::Enum(
-                self.resolve_enum_def(enum_def, crate_id),
-            )),
-            Node::Item(Item {
-                kind: ItemKind::Member(member_def),
-                ..
-            }) => self.to_direct_binder(
-                self.alloc(self.resolve_enum_member(member_def, crate_id)),
-                TyKind::Member,
-            ),
-            Node::Item(Item {
-                kind: ItemKind::Fn(fn_def),
-                ..
-            }) => self.to_generic_binder(GenericTyDef::Fn(self.resolve_fn_def(fn_def, crate_id))),
-            Node::Item(Item {
-                kind: ItemKind::Trait(trait_def),
-                ..
-            }) => self.to_generic_binder(GenericTyDef::Trait(
-                self.resolve_trait_def(trait_def, crate_id),
-            )),
-            Node::Ty(hir::Ty {
-                kind: hir::TyKind::GenericParam(param),
-                ..
-            }) => self.to_direct_binder(self.resolve_generic_param(param), TyKind::GenericParam),
-            Node::Ty(hir::Ty {
-                kind: hir::TyKind::Array(ty),
-                ..
-            }) => self.to_direct_binder(self.resolve_ty(ty), TyKind::Array),
+            Node::Item(item) => self.resolve_binder_from_item(item, crate_id),
+            Node::Ty(ty) => self.resolve_binder_from_ty(ty, crate_id),
             node => {
                 dbg!(node);
                 panic!("Unsupported node type!");
+            }
+        }
+    }
+
+    fn resolve_binder_from_ty(&self, ty: &'hir hir::Ty<'hir>, crate_id: CrateId) -> Binder<'hir> {
+        match ty.kind {
+            hir::TyKind::Array(array) => {
+                self.to_direct_binder(self.resolve_ty(array), TyKind::Array)
+            }
+            hir::TyKind::GenericParam(param) => {
+                self.to_direct_binder(self.resolve_generic_param(param), TyKind::GenericParam)
+            }
+            hir::TyKind::Path(path) => Binder::BareDef(self.resolve_path_ty(path)),
+            hir::TyKind::Primitive(primitive) => Binder::BareDef(self.tys.convert(primitive)),
+            ty => {
+                dbg!(ty);
+                panic!("Unsupported ty type!")
+            }
+        }
+    }
+
+    fn resolve_binder_from_item(&self, item: &'hir Item<'hir>, crate_id: CrateId) -> Binder<'hir> {
+        match item.kind {
+            ItemKind::Class(class_def) => {
+                let def = self.resolve_class_def(class_def, crate_id);
+                self.to_generic_binder(GenericTyDef::Class(def))
+            }
+            ItemKind::Enum(enum_def) => {
+                let def = self.resolve_enum_def(enum_def, crate_id);
+                self.to_generic_binder(GenericTyDef::Enum(def))
+            }
+            ItemKind::Member(member_def) => {
+                let def = self.resolve_enum_member(member_def, crate_id);
+                self.to_generic_binder(GenericTyDef::EnumMember(def))
+            }
+            ItemKind::Fn(fn_def) => {
+                let def = self.resolve_fn_def(fn_def, crate_id);
+                self.to_generic_binder(GenericTyDef::Fn(def))
+            }
+            ItemKind::Trait(trait_def) => {
+                let def = self.resolve_trait_def(trait_def, crate_id);
+                self.to_generic_binder(GenericTyDef::Trait(def))
+            }
+            item => {
+                dbg!(item);
+                panic!("Unsupported item type!")
             }
         }
     }
@@ -304,11 +322,13 @@ impl<'hir> TyResolver<'hir> {
         crate_id: CrateId,
     ) -> MemberDef<'hir> {
         let name = enum_member.name;
+        let generic_params = self.resolve_generic_params(enum_member.generic_params);
         let fields = self.resolve_fields(enum_member.fields, crate_id);
         let fn_defs = self.resolve_fn_defs(enum_member.fn_defs, crate_id);
 
         MemberDef {
             name,
+            generic_params,
             fields,
             fn_defs,
         }

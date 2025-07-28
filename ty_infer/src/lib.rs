@@ -14,8 +14,8 @@ use hir::{
 use typed_hir::{
     ArrayExpr, Block, BlockStmt, CallExpr, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind,
     Field, FloatTy, FnDef, GenericParam, GenericParams, IfStmt, InfixExpr, IntTy, LetStmt,
-    LocalVar, Params, PathExpr, ReturnStmt, Stmt, StmtId, Thir, ThirCrate, ThirMap, Trait,
-    TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
+    LocalVar, MemberDef, Params, PathExpr, ReturnStmt, Stmt, StmtId, Thir, ThirCrate, ThirMap,
+    Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
 };
 use types::{LDefMap, StrMap};
 
@@ -72,6 +72,7 @@ pub struct CrateInference<'a, 'hir> {
 pub enum GenericTyDef<'a> {
     Class(ClassDef<'a>),
     Enum(EnumDef<'a>),
+    EnumMember(MemberDef<'a>),
     Trait(TraitDef<'a>),
     Fn(FnDef<'a>),
 }
@@ -81,6 +82,7 @@ impl<'a> GenericTyDef<'a> {
         match self {
             GenericTyDef::Class(class_def) => !class_def.generic_params.is_empty(),
             GenericTyDef::Enum(enum_def) => !enum_def.generic_params.is_empty(),
+            GenericTyDef::EnumMember(member_def) => !member_def.generic_params.is_empty(),
             GenericTyDef::Trait(trait_def) => !trait_def.generic_params.is_empty(),
             GenericTyDef::Fn(fn_def) => !fn_def.generic_params.is_empty(),
         }
@@ -748,7 +750,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                     };
                 })
                 .unwrap_or(ConstraintEvaluation::Success),
-            TyKind::Member(_) | TyKind::Fn(_, _) | TyKind::Closure(_) => {
+            TyKind::Member(_, _) | TyKind::Fn(_, _) | TyKind::Closure(_) => {
                 // TODO: Implement fixes
                 ConstraintEvaluation::Success
             }
@@ -836,7 +838,10 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             TyKind::Trait(trait_def, generics) => {
                 todo!()
             }
-            TyKind::Member(member_def) => Some(ty),
+            TyKind::Member(member_def, generics) => self.normalize_tys(generics).map(|generics| {
+                self.ty_resolver
+                    .intern(TyKind::Member(member_def, generics))
+            }),
             TyKind::TraitBound(trait_bound) => self
                 .normalize_trait_bound(trait_bound)
                 .map(|trait_bound| self.ty_resolver.intern(TyKind::TraitBound(trait_bound))),

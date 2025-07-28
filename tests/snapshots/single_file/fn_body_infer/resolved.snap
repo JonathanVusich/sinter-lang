@@ -25,12 +25,8 @@
               id: 0,
             ),
             ty: (
-              kind: Primitive(I64),
-              span: (
-                start: 18,
-                end: 21,
-              ),
-              id: 1,
+              crate_id: 0,
+              local_id: 1,
             ),
             mutability: Immutable,
             span: (
@@ -238,12 +234,8 @@
           id: 0,
         ),
         ty: (
-          kind: Primitive(I64),
-          span: (
-            start: 18,
-            end: 21,
-          ),
-          id: 1,
+          crate_id: 0,
+          local_id: 1,
         ),
         mutability: Immutable,
         span: (
@@ -775,12 +767,8 @@
                 id: 0,
               ),
               ty: (
-                kind: Primitive(I64),
-                span: (
-                  start: 18,
-                  end: 21,
-                ),
-                id: 1,
+                crate_id: 0,
+                local_id: 1,
               ),
               mutability: Immutable,
               span: (

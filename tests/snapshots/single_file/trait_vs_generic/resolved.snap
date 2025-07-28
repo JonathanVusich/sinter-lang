@@ -34,18 +34,8 @@
                 id: 0,
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 5,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 43,
-                  end: 47,
-                ),
-                id: 1,
+                crate_id: 0,
+                local_id: 1,
               ),
               mutability: Immutable,
               span: (
@@ -110,18 +100,8 @@
           id: 0,
         ),
         ty: (
-          kind: Path((
-            definition: (
-              crate_id: 0,
-              local_id: 5,
-            ),
-            generics: [],
-)),
-          span: (
-            start: 43,
-            end: 47,
-          ),
-          id: 1,
+          crate_id: 0,
+          local_id: 1,
         ),
         mutability: Immutable,
         span: (
@@ -159,18 +139,8 @@
                 id: 0,
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 5,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 43,
-                  end: 47,
-                ),
-                id: 1,
+                crate_id: 0,
+                local_id: 1,
               ),
               mutability: Immutable,
               span: (
@@ -231,18 +201,8 @@
                   id: 0,
                 ),
                 ty: (
-                  kind: Path((
-                    definition: (
-                      crate_id: 0,
-                      local_id: 5,
-                    ),
-                    generics: [],
-)),
-                  span: (
-                    start: 43,
-                    end: 47,
-                  ),
-                  id: 1,
+                  crate_id: 0,
+                  local_id: 1,
                 ),
                 mutability: Immutable,
                 span: (

@@ -52,6 +52,7 @@ pub enum Scope {
         generics: StrMap<LocalDefId>,
     },
     EnumMember {
+        id: DefId,
         fields: StrMap<LocalDefId>,
         self_fns: StrMap<LocalDefId>,
     },
@@ -763,7 +764,7 @@ impl<'hir> CrateResolver<'hir> {
         });
 
         let generic_params = self.resolve_generic_params(&enum_stmt.generic_params)?;
-        let members = self.resolve_enum_members(&enum_stmt.members)?;
+        let members = self.resolve_enum_members(&enum_stmt.members, generic_params)?;
         let member_fns = self.resolve_self_fn_stmts(&enum_stmt.self_fns)?;
 
         self.scopes.pop();
@@ -788,12 +789,14 @@ impl<'hir> CrateResolver<'hir> {
     fn resolve_enum_members(
         &mut self,
         enum_stmt_members: &Vec<ast::EnumMember>,
+        generic_params: GenericParams<'hir>,
     ) -> Option<MemberDefs<'hir>> {
         let mut enum_members = Vec::<&'hir MemberDef>::with_capacity(enum_stmt_members.len());
         for member in enum_stmt_members {
             self.insert_enum_member(member.name, member.id)?;
 
             self.scopes.push(Scope::EnumMember {
+                id: member.id.to_def_id(self.krate.id),
                 fields: Default::default(),
                 self_fns: Default::default(),
             });
@@ -807,6 +810,7 @@ impl<'hir> CrateResolver<'hir> {
 
             let member_def = self.alloc(MemberDef {
                 name: member.name,
+                generic_params,
                 fields,
                 fn_defs: member_fns,
                 span: member.span,
@@ -1476,6 +1480,7 @@ impl<'hir> CrateResolver<'hir> {
                     .find_map(|scope| match scope {
                         Scope::Class { id, .. } => Some(id),
                         Scope::Enum { id, .. } => Some(id),
+                        Scope::EnumMember { id, .. } => Some(id),
                         Scope::Trait { id, .. } => Some(id),
                         Scope::TraitImpl { target_id, .. } => Some(target_id),
                         _ => None,

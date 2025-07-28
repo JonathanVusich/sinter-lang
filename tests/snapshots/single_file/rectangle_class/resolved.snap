@@ -24,12 +24,8 @@
             ),
           ),
           ty: (
-            kind: Primitive(F64),
-            span: (
-              start: 29,
-              end: 32,
-            ),
-            id: 0,
+            crate_id: 0,
+            local_id: 0,
           ),
           span: (
             start: 22,
@@ -45,12 +41,8 @@
             ),
           ),
           ty: (
-            kind: Primitive(F64),
-            span: (
-              start: 46,
-              end: 49,
-            ),
-            id: 2,
+            crate_id: 0,
+            local_id: 2,
           ),
           span: (
             start: 38,
@@ -78,18 +70,8 @@
                 id: 4,
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 31,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 69,
-                  end: 73,
-                ),
-                id: 5,
+                crate_id: 0,
+                local_id: 5,
               ),
               mutability: Immutable,
               span: (
@@ -266,12 +248,8 @@
                 id: 20,
               ),
               ty: (
-                kind: Primitive(F64),
-                span: (
-                  start: 164,
-                  end: 167,
-                ),
-                id: 21,
+                crate_id: 0,
+                local_id: 21,
               ),
               mutability: Immutable,
               span: (
@@ -434,12 +412,8 @@
           ),
         ),
         ty: (
-          kind: Primitive(F64),
-          span: (
-            start: 29,
-            end: 32,
-          ),
-          id: 0,
+          crate_id: 0,
+          local_id: 0,
         ),
         span: (
           start: 22,
@@ -464,12 +438,8 @@
           ),
         ),
         ty: (
-          kind: Primitive(F64),
-          span: (
-            start: 46,
-            end: 49,
-          ),
-          id: 2,
+          crate_id: 0,
+          local_id: 2,
         ),
         span: (
           start: 38,
@@ -509,18 +479,8 @@
           id: 4,
         ),
         ty: (
-          kind: Path((
-            definition: (
-              crate_id: 0,
-              local_id: 31,
-            ),
-            generics: [],
-)),
-          span: (
-            start: 69,
-            end: 73,
-          ),
-          id: 5,
+          crate_id: 0,
+          local_id: 5,
         ),
         mutability: Immutable,
         span: (
@@ -1173,18 +1133,8 @@
                 id: 4,
               ),
               ty: (
-                kind: Path((
-                  definition: (
-                    crate_id: 0,
-                    local_id: 31,
-                  ),
-                  generics: [],
-)),
-                span: (
-                  start: 69,
-                  end: 73,
-                ),
-                id: 5,
+                crate_id: 0,
+                local_id: 5,
               ),
               mutability: Immutable,
               span: (
@@ -1374,12 +1324,8 @@
           id: 20,
         ),
         ty: (
-          kind: Primitive(F64),
-          span: (
-            start: 164,
-            end: 167,
-          ),
-          id: 21,
+          crate_id: 0,
+          local_id: 21,
         ),
         mutability: Immutable,
         span: (
@@ -1808,12 +1754,8 @@
                 id: 20,
               ),
               ty: (
-                kind: Primitive(F64),
-                span: (
-                  start: 164,
-                  end: 167,
-                ),
-                id: 21,
+                crate_id: 0,
+                local_id: 21,
               ),
               mutability: Immutable,
               span: (
@@ -1977,12 +1919,8 @@
               ),
             ),
             ty: (
-              kind: Primitive(F64),
-              span: (
-                start: 29,
-                end: 32,
-              ),
-              id: 0,
+              crate_id: 0,
+              local_id: 0,
             ),
             span: (
               start: 22,
@@ -1998,12 +1936,8 @@
               ),
             ),
             ty: (
-              kind: Primitive(F64),
-              span: (
-                start: 46,
-                end: 49,
-              ),
-              id: 2,
+              crate_id: 0,
+              local_id: 2,
             ),
             span: (
               start: 38,
@@ -2031,18 +1965,8 @@
                   id: 4,
                 ),
                 ty: (
-                  kind: Path((
-                    definition: (
-                      crate_id: 0,
-                      local_id: 31,
-                    ),
-                    generics: [],
-)),
-                  span: (
-                    start: 69,
-                    end: 73,
-                  ),
-                  id: 5,
+                  crate_id: 0,
+                  local_id: 5,
                 ),
                 mutability: Immutable,
                 span: (
@@ -2219,12 +2143,8 @@
                   id: 20,
                 ),
                 ty: (
-                  kind: Primitive(F64),
-                  span: (
-                    start: 164,
-                    end: 167,
-                  ),
-                  id: 21,
+                  crate_id: 0,
+                  local_id: 21,
                 ),
                 mutability: Immutable,
                 span: (
