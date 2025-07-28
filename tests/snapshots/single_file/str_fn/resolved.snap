@@ -1,6 +1,6 @@
 (
   crates: [(
-    name: 5,
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -8,7 +8,7 @@
       kind: Fn((
         sig: (
           name: (
-            ident: 1,
+            ident: "str_fn",
             span: (
               start: 3,
               end: 9,
@@ -16,20 +16,20 @@
           ),
           generic_params: [],
           params: [],
-          ret_ty: Some((
+          ret_ty: (
             kind: Primitive(Str),
             span: (
               start: 15,
               end: 18,
             ),
             id: 0,
-          )),
+          ),
         ),
-        body: Some((
+        body: (
           stmts: [(
             kind: Expression((
               expr: (
-                kind: String(3),
+                kind: String("hello world"),
                 span: (
                   start: 25,
                   end: 38,
@@ -49,7 +49,7 @@
             end: 40,
           ),
           id: 3,
-        )),
+        ),
         span: (
           start: 0,
           end: 40,
@@ -72,7 +72,7 @@
         id: 0,
       )),
       1: Expr((
-        kind: String(3),
+        kind: String("hello world"),
         span: (
           start: 25,
           end: 38,
@@ -82,7 +82,7 @@
       2: Stmt((
         kind: Expression((
           expr: (
-            kind: String(3),
+            kind: String("hello world"),
             span: (
               start: 25,
               end: 38,
@@ -101,7 +101,7 @@
         stmts: [(
           kind: Expression((
             expr: (
-              kind: String(3),
+              kind: String("hello world"),
               span: (
                 start: 25,
                 end: 38,
@@ -126,7 +126,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 1,
+              ident: "str_fn",
               span: (
                 start: 3,
                 end: 9,
@@ -134,20 +134,20 @@
             ),
             generic_params: [],
             params: [],
-            ret_ty: Some((
+            ret_ty: (
               kind: Primitive(Str),
               span: (
                 start: 15,
                 end: 18,
               ),
               id: 0,
-            )),
+            ),
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Expression((
                 expr: (
-                  kind: String(3),
+                  kind: String("hello world"),
                   span: (
                     start: 25,
                     end: 38,
@@ -167,7 +167,7 @@
               end: 40,
             ),
             id: 3,
-          )),
+          ),
           span: (
             start: 0,
             end: 40,
@@ -182,5 +182,5 @@
       )),
     },
   )],
-  names_to_indices: [5],
+  names_to_indices: ["crate"],
 )

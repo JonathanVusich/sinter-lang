@@ -1,6 +1,6 @@
 (
   crates: [(
-    name: 6,
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -8,7 +8,7 @@
       kind: Fn((
         sig: (
           name: (
-            ident: 1,
+            ident: "sum",
             span: (
               start: 3,
               end: 6,
@@ -17,7 +17,7 @@
           generic_params: [],
           params: [(
             local_var: (
-              ident: 2,
+              ident: "a",
               span: (
                 start: 7,
                 end: 8,
@@ -40,7 +40,7 @@
             id: 2,
           ), (
             local_var: (
-              ident: 4,
+              ident: "b",
               span: (
                 start: 15,
                 end: 16,
@@ -62,16 +62,16 @@
             ),
             id: 5,
           )],
-          ret_ty: Some((
+          ret_ty: (
             kind: Primitive(I64),
             span: (
               start: 26,
               end: 29,
             ),
             id: 6,
-          )),
+          ),
         ),
-        body: Some((
+        body: (
           stmts: [(
             kind: Expression((
               expr: (
@@ -81,7 +81,7 @@
                     kind: Path((
                       segments: [(
                         res: Local(Var((
-                          ident: 2,
+                          ident: "a",
                           span: (
                             start: 7,
                             end: 8,
@@ -101,7 +101,7 @@
                     kind: Path((
                       segments: [(
                         res: Local(Var((
-                          ident: 4,
+                          ident: "b",
                           span: (
                             start: 15,
                             end: 16,
@@ -137,7 +137,7 @@
             end: 43,
           ),
           id: 11,
-        )),
+        ),
         span: (
           start: 0,
           end: 43,
@@ -152,7 +152,7 @@
     )],
     nodes: {
       0: LocalVar((
-        ident: 2,
+        ident: "a",
         span: (
           start: 7,
           end: 8,
@@ -169,7 +169,7 @@
       )),
       2: Param((
         local_var: (
-          ident: 2,
+          ident: "a",
           span: (
             start: 7,
             end: 8,
@@ -192,7 +192,7 @@
         id: 2,
       )),
       3: LocalVar((
-        ident: 4,
+        ident: "b",
         span: (
           start: 15,
           end: 16,
@@ -209,7 +209,7 @@
       )),
       5: Param((
         local_var: (
-          ident: 4,
+          ident: "b",
           span: (
             start: 15,
             end: 16,
@@ -243,7 +243,7 @@
         kind: Path((
           segments: [(
             res: Local(Var((
-              ident: 2,
+              ident: "a",
               span: (
                 start: 7,
                 end: 8,
@@ -263,7 +263,7 @@
         kind: Path((
           segments: [(
             res: Local(Var((
-              ident: 4,
+              ident: "b",
               span: (
                 start: 15,
                 end: 16,
@@ -286,7 +286,7 @@
             kind: Path((
               segments: [(
                 res: Local(Var((
-                  ident: 2,
+                  ident: "a",
                   span: (
                     start: 7,
                     end: 8,
@@ -306,7 +306,7 @@
             kind: Path((
               segments: [(
                 res: Local(Var((
-                  ident: 4,
+                  ident: "b",
                   span: (
                     start: 15,
                     end: 16,
@@ -338,7 +338,7 @@
                 kind: Path((
                   segments: [(
                     res: Local(Var((
-                      ident: 2,
+                      ident: "a",
                       span: (
                         start: 7,
                         end: 8,
@@ -358,7 +358,7 @@
                 kind: Path((
                   segments: [(
                     res: Local(Var((
-                      ident: 4,
+                      ident: "b",
                       span: (
                         start: 15,
                         end: 16,
@@ -399,7 +399,7 @@
                   kind: Path((
                     segments: [(
                       res: Local(Var((
-                        ident: 2,
+                        ident: "a",
                         span: (
                           start: 7,
                           end: 8,
@@ -419,7 +419,7 @@
                   kind: Path((
                     segments: [(
                       res: Local(Var((
-                        ident: 4,
+                        ident: "b",
                         span: (
                           start: 15,
                           end: 16,
@@ -460,7 +460,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 1,
+              ident: "sum",
               span: (
                 start: 3,
                 end: 6,
@@ -469,7 +469,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 2,
+                ident: "a",
                 span: (
                   start: 7,
                   end: 8,
@@ -492,7 +492,7 @@
               id: 2,
             ), (
               local_var: (
-                ident: 4,
+                ident: "b",
                 span: (
                   start: 15,
                   end: 16,
@@ -514,16 +514,16 @@
               ),
               id: 5,
             )],
-            ret_ty: Some((
+            ret_ty: (
               kind: Primitive(I64),
               span: (
                 start: 26,
                 end: 29,
               ),
               id: 6,
-            )),
+            ),
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Expression((
                 expr: (
@@ -533,7 +533,7 @@
                       kind: Path((
                         segments: [(
                           res: Local(Var((
-                            ident: 2,
+                            ident: "a",
                             span: (
                               start: 7,
                               end: 8,
@@ -553,7 +553,7 @@
                       kind: Path((
                         segments: [(
                           res: Local(Var((
-                            ident: 4,
+                            ident: "b",
                             span: (
                               start: 15,
                               end: 16,
@@ -589,7 +589,7 @@
               end: 43,
             ),
             id: 11,
-          )),
+          ),
           span: (
             start: 0,
             end: 43,
@@ -604,5 +604,5 @@
       )),
     },
   )],
-  names_to_indices: [6],
+  names_to_indices: ["crate"],
 )

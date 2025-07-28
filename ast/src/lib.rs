@@ -3,10 +3,8 @@
 use std::borrow::Borrow;
 use std::collections::VecDeque;
 use std::hash::Hash;
-use std::sync::Arc;
 
 use itertools::Itertools;
-use nibble_vec::Nibblet;
 use radix_trie::TrieKey;
 use serde::{Deserialize, Serialize};
 
@@ -14,7 +12,7 @@ use id::{DefId, LocalDefId, ModuleId};
 use interner::InternedStr;
 use macros::named_slice;
 use span::Span;
-use types::{IStrMap, StrMap};
+use types::IStrMap;
 
 /// This trait describes a visitor that can traverse the AST and collect information.
 pub trait AstPass<T>: Default

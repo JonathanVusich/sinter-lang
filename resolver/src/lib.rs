@@ -549,10 +549,10 @@ impl<'hir> CrateResolver<'hir> {
     }
 
     fn resolve_params(&mut self, params: &ast::Params) -> Option<Params<'hir>> {
-        let mut hir_params = Vec::<&'hir Param<'hir>>::with_capacity(params.len());
+        let mut hir_params = Vec::<&'hir Param>::with_capacity(params.len());
         for param in params {
             let local_var = self.resolve_local_param(&param.local_var);
-            let ty = self.resolve_ty(&param.ty)?;
+            let ty = self.resolve_ty(&param.ty)?.id.to_def_id(self.krate.id);
             let mutability = param.mutability;
             let span = param.span;
             let id = param.id;
@@ -594,9 +594,6 @@ impl<'hir> CrateResolver<'hir> {
             let generic_param = self.alloc(GenericParam {
                 ident: param.name,
                 trait_bound,
-            });
-            let generic_ty = self.alloc(Ty {
-                kind: TyKind::GenericParam(generic_param),
                 span,
                 id,
             });
@@ -604,7 +601,7 @@ impl<'hir> CrateResolver<'hir> {
                 We always want to insert the node, even if it clashes with another generic param.
                 Otherwise we can't look it up later when handling errors.
             */
-            self.insert_node(param.id, Node::Ty(generic_ty));
+            self.insert_node(param.id, Node::GenericParam(generic_param));
             generics.push(generic_param);
         }
         Some(self.alloc_slice(&*generics))
@@ -723,7 +720,7 @@ impl<'hir> CrateResolver<'hir> {
     }
 
     fn resolve_fields(&mut self, ast_fields: &ast::Fields) -> Option<Fields<'hir>> {
-        let mut fields = Vec::<&'hir Field<'hir>>::with_capacity(ast_fields.len());
+        let mut fields = Vec::<&'hir Field>::with_capacity(ast_fields.len());
         for field in ast_fields {
             let ast::Field {
                 name: ident,
@@ -741,7 +738,7 @@ impl<'hir> CrateResolver<'hir> {
             */
             let field = self.allocator.alloc(Field {
                 name: *ident,
-                ty: resolved_ty,
+                ty: resolved_ty.id.to_def_id(self.krate.id),
                 span: *span,
                 id: *id,
             });

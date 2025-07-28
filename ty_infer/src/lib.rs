@@ -1,11 +1,10 @@
 #![allow(unused)]
 
-use std::cell::RefCell;
-use std::fmt::{Debug, Display};
-
 use bumpalo::Bump;
 use itertools::{EitherOrBoth, Itertools};
 use serde::{Deserialize, Serialize};
+use std::cell::RefCell;
+use std::fmt::{Debug, Display};
 
 use ast::ValueDef;
 use diagnostics::{Diagnostic, Diagnostics};
@@ -14,11 +13,11 @@ use hir::{
 };
 use typed_hir::{
     ArrayExpr, Block, BlockStmt, CallExpr, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind,
-    Field, Fields, FloatTy, FnDef, GenericParam, GenericParams, Generics, IfStmt, InfixExpr, IntTy,
-    LetStmt, LocalVar, MemberDef, Params, PathExpr, ReturnStmt, Stmt, StmtId, Thir, ThirCrate,
-    ThirMap, Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
+    Field, FloatTy, FnDef, GenericParam, GenericParams, IfStmt, InfixExpr, IntTy, LetStmt,
+    LocalVar, Params, PathExpr, ReturnStmt, Stmt, StmtId, Thir, ThirCrate, ThirMap, Trait,
+    TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
 };
-use types::{DefMap, LDefMap, StrMap};
+use types::{LDefMap, StrMap};
 
 use crate::resolution::TyResolver;
 use crate::unification::UnificationTable;
@@ -70,13 +69,22 @@ pub struct CrateInference<'a, 'hir> {
 /// that will work with type resolution and will avoid the need for recursive
 /// type building.
 #[derive(Debug)]
-pub enum DefType<'a> {
+pub enum GenericTyDef<'a> {
     Class(ClassDef<'a>),
     Enum(EnumDef<'a>),
-    Member(MemberDef<'a>),
     Trait(TraitDef<'a>),
     Fn(FnDef<'a>),
-    GenericParam(&'a GenericParam<'a>),
+}
+
+impl<'a> GenericTyDef<'a> {
+    pub fn has_generic_params(&self) -> bool {
+        match self {
+            GenericTyDef::Class(class_def) => !class_def.generic_params.is_empty(),
+            GenericTyDef::Enum(enum_def) => !enum_def.generic_params.is_empty(),
+            GenericTyDef::Trait(trait_def) => !trait_def.generic_params.is_empty(),
+            GenericTyDef::Fn(fn_def) => !fn_def.generic_params.is_empty(),
+        }
+    }
 }
 
 static GENERICS: hir::Generics<'static> = &[];
@@ -378,7 +386,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 lhs,
                 rhs,
             }),
-            // Use the LHS ty since the right side should be coercable to the LHS ty.
+            // Use the LHS ty since the right side should be coercible to the LHS ty.
             ty: resultant_ty,
         };
         let expr_id = self.thir.borrow_mut().insert_expr(expr);
@@ -450,10 +458,14 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 (expr_id, ty)
             }
             Res::ValueDef(ValueDef::Class(class_def)) => {
-                let ty = self.ty_resolver.type_of(class_def.id, generics);
+                let generics = self.ty_resolver.resolve_generics(generics);
+                let ty = self
+                    .ty_resolver
+                    .type_of(class_def.id)
+                    .instantiate(self.ty_resolver, generics);
                 let expr = PathExpr::Class(class_def.id);
                 let expr_id = self.insert_expr(ExprKind::Path(expr), ty);
-                return (expr_id, ty);
+                (expr_id, ty)
             }
             any => {
                 dbg!(any);
@@ -607,18 +619,18 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
     }
 
     fn eq(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> ConstraintEvaluation<'hir> {
-        return if (lhs.eq(&rhs)) {
+        if (lhs.eq(&rhs)) {
             ConstraintEvaluation::Success
         } else {
             ConstraintEvaluation::NotEqual(lhs, rhs)
-        };
+        }
     }
 
     fn assignable(&self, lhs: Ty<'hir>, rhs: Ty<'hir>) -> ConstraintEvaluation<'hir> {
         match *lhs {
             TyKind::Infer(_) => ConstraintEvaluation::Success,
             TyKind::Array(inner_lhs) => {
-                return if let TyKind::Array(inner_rhs) = *rhs {
+                if let TyKind::Array(inner_rhs) = *rhs {
                     self.assignable(inner_lhs, inner_rhs)
                 } else {
                     ConstraintEvaluation::NotAssignable(lhs, rhs)
@@ -722,7 +734,8 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 .zip_longest(args.iter())
                 .map(|item| match item {
                     EitherOrBoth::Both(field, rhs) => {
-                        self.unify_ty_ty(field.ty, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
+                        let field_ty = self.ty_resolver.type_of(field.ty).instantiate_identity();
+                        self.unify_ty_ty(field_ty, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
                     }
                     EitherOrBoth::Left(field) => ConstraintEvaluation::MissingArg(*field),
                     EitherOrBoth::Right(arg) => ConstraintEvaluation::ExtraArg(*arg),
@@ -735,7 +748,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                     };
                 })
                 .unwrap_or(ConstraintEvaluation::Success),
-            TyKind::Member(_, _) | TyKind::Fn(_, _) | TyKind::Closure(_) => {
+            TyKind::Member(_) | TyKind::Fn(_, _) | TyKind::Closure(_) => {
                 // TODO: Implement fixes
                 ConstraintEvaluation::Success
             }
@@ -823,10 +836,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             TyKind::Trait(trait_def, generics) => {
                 todo!()
             }
-            TyKind::Member(member_def, generics) => self.normalize_tys(generics).map(|generics| {
-                self.ty_resolver
-                    .intern(TyKind::Member(member_def, generics))
-            }),
+            TyKind::Member(member_def) => Some(ty),
             TyKind::TraitBound(trait_bound) => self
                 .normalize_trait_bound(trait_bound)
                 .map(|trait_bound| self.ty_resolver.intern(TyKind::TraitBound(trait_bound))),
@@ -944,7 +954,8 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         let mut type_envs = TypeEnvs::default();
         let mut type_env = TypeEnv::new(ret_ty);
         for param in params {
-            type_env.local_vars.insert(param.name.ident, param.ty);
+            let ty = ty_resolver.type_of(param.ty).instantiate_identity();
+            type_env.local_vars.insert(param.name.ident, ty);
         }
         type_envs.push(type_env);
         let thir = Thir::new(generic_params, ret_ty);
@@ -1120,7 +1131,7 @@ impl<'hir> TypeEnvs<'hir> {
                 return Some(*ty);
             }
         }
-        return None;
+        None
     }
 
     /// This represents the ret_ty of the type env, which is always a function return type.
@@ -1150,7 +1161,7 @@ enum ConstraintEvaluation<'hir> {
     NotEqual(Ty<'hir>, Ty<'hir>),
     NotAssignable(Ty<'hir>, Ty<'hir>),
     NotCallable(Ty<'hir>),
-    MissingArg(Field<'hir>),
+    MissingArg(Field),
     ExtraArg(Ty<'hir>),
     InfixOpUnsupported(Ty<'hir>, InfixOp),
 }

@@ -1,7 +1,7 @@
 {
-  5: (
-    name: 5,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [4],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -19,7 +19,7 @@
       items: [(
         kind: GlobalLet((
           local_var: (
-            ident: 1,
+            ident: "a",
             span: (
               start: 4,
               end: 5,
@@ -51,7 +51,7 @@
       ), (
         kind: GlobalLet((
           local_var: (
-            ident: 3,
+            ident: "b",
             span: (
               start: 44,
               end: 45,

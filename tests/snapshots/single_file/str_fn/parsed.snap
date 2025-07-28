@@ -1,7 +1,7 @@
 {
-  5: (
-    name: 5,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [4],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -20,7 +20,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 1,
+              ident: "str_fn",
               span: (
                 start: 3,
                 end: 9,
@@ -28,20 +28,20 @@
             ),
             generic_params: [],
             params: [],
-            return_type: Some((
+            return_type: (
               kind: Str,
               span: (
                 start: 15,
                 end: 18,
               ),
               id: 0,
-            )),
+            ),
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Expression((
                 expr: (
-                  kind: String(3),
+                  kind: String("hello world"),
                   span: (
                     start: 25,
                     end: 38,
@@ -61,7 +61,7 @@
               end: 40,
             ),
             id: 3,
-          )),
+          ),
         )),
         span: (
           start: 0,

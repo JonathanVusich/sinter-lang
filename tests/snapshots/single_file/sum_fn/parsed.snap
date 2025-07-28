@@ -1,7 +1,7 @@
 {
-  6: (
-    name: 6,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [5],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -20,7 +20,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 1,
+              ident: "sum",
               span: (
                 start: 3,
                 end: 6,
@@ -29,7 +29,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 2,
+                ident: "a",
                 span: (
                   start: 7,
                   end: 8,
@@ -52,7 +52,7 @@
               id: 2,
             ), (
               local_var: (
-                ident: 4,
+                ident: "b",
                 span: (
                   start: 15,
                   end: 16,
@@ -74,16 +74,16 @@
               ),
               id: 5,
             )],
-            return_type: Some((
+            return_type: (
               kind: I64,
               span: (
                 start: 26,
                 end: 29,
               ),
               id: 6,
-            )),
+            ),
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Expression((
                 expr: (
@@ -94,7 +94,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 2,
+                            ident: "a",
                             span: (
                               start: 36,
                               end: 37,
@@ -114,7 +114,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 4,
+                            ident: "b",
                             span: (
                               start: 40,
                               end: 41,
@@ -149,7 +149,7 @@
               end: 43,
             ),
             id: 11,
-          )),
+          ),
         )),
         span: (
           start: 0,

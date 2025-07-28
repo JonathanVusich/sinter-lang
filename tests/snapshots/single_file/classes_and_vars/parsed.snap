@@ -1,6 +1,6 @@
 {
-  11: (
-    name: 11,
+  "crate": (
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [10],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -19,7 +19,7 @@
       items: [(
         kind: Class((
           name: (
-            ident: 1,
+            ident: "Point",
             span: (
               start: 6,
               end: 11,
@@ -29,7 +29,7 @@
           generic_params: [],
           fields: [(
             name: (
-              ident: 2,
+              ident: "x",
               span: (
                 start: 18,
                 end: 19,
@@ -50,7 +50,7 @@
             id: 1,
           ), (
             name: (
-              ident: 4,
+              ident: "y",
               span: (
                 start: 30,
                 end: 31,
@@ -80,7 +80,7 @@
       ), (
         kind: Class((
           name: (
-            ident: 5,
+            ident: "Node",
             span: (
               start: 50,
               end: 54,
@@ -99,7 +99,7 @@
       ), (
         kind: GlobalLet((
           local_var: (
-            ident: 6,
+            ident: "i64_array",
             span: (
               start: 60,
               end: 69,
@@ -161,7 +161,7 @@
       ), (
         kind: GlobalLet((
           local_var: (
-            ident: 8,
+            ident: "point_array",
             span: (
               start: 94,
               end: 105,
@@ -176,7 +176,7 @@
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 1,
+                        ident: "Point",
                         span: (
                           start: 108,
                           end: 113,
@@ -207,7 +207,7 @@
                     ident_type: LocalOrUse,
                     segments: [(
                       ident: (
-                        ident: 1,
+                        ident: "Point",
                         span: (
                           start: 118,
                           end: 123,
@@ -250,7 +250,7 @@
                     ident_type: LocalOrUse,
                     segments: [(
                       ident: (
-                        ident: 1,
+                        ident: "Point",
                         span: (
                           start: 135,
                           end: 140,
@@ -302,7 +302,7 @@
       ), (
         kind: GlobalLet((
           local_var: (
-            ident: 9,
+            ident: "node_array",
             span: (
               start: 157,
               end: 167,
@@ -317,7 +317,7 @@
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 5,
+                        ident: "Node",
                         span: (
                           start: 170,
                           end: 174,
@@ -348,7 +348,7 @@
                     ident_type: LocalOrUse,
                     segments: [(
                       ident: (
-                        ident: 5,
+                        ident: "Node",
                         span: (
                           start: 179,
                           end: 183,
@@ -377,7 +377,7 @@
                     ident_type: LocalOrUse,
                     segments: [(
                       ident: (
-                        ident: 5,
+                        ident: "Node",
                         span: (
                           start: 187,
                           end: 191,

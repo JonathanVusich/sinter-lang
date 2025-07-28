@@ -1,6 +1,6 @@
 {
-  16: (
-    name: 16,
+  "crate": (
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [15],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -19,7 +19,7 @@
       items: [(
         kind: Class((
           name: (
-            ident: 1,
+            ident: "SerializedPhoto",
             span: (
               start: 6,
               end: 21,
@@ -29,7 +29,7 @@
           generic_params: [],
           fields: [(
             name: (
-              ident: 2,
+              ident: "size",
               span: (
                 start: 28,
                 end: 32,
@@ -59,7 +59,7 @@
       ), (
         kind: Enum((
           name: (
-            ident: 4,
+            ident: "Message",
             span: (
               start: 47,
               end: 54,
@@ -67,10 +67,10 @@
           ),
           generic_params: [],
           members: [(
-            name: 5,
+            name: "Text",
             fields: [(
               name: (
-                ident: 6,
+                ident: "message",
                 span: (
                   start: 66,
                   end: 73,
@@ -97,10 +97,10 @@
             ),
             id: 5,
           ), (
-            name: 8,
+            name: "Photo",
             fields: [(
               name: (
-                ident: 9,
+                ident: "caption",
                 span: (
                   start: 91,
                   end: 98,
@@ -121,7 +121,7 @@
               id: 7,
             ), (
               name: (
-                ident: 10,
+                ident: "photo",
                 span: (
                   start: 105,
                   end: 110,
@@ -133,7 +133,7 @@
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 1,
+                        ident: "SerializedPhoto",
                         span: (
                           start: 112,
                           end: 127,
@@ -158,7 +158,7 @@
             self_fns: [(
               sig: (
                 name: (
-                  ident: 2,
+                  ident: "size",
                   span: (
                     start: 142,
                     end: 146,
@@ -167,7 +167,7 @@
                 generic_params: [],
                 params: [(
                   local_var: (
-                    ident: 14,
+                    ident: "self",
                     span: (
                       start: 147,
                       end: 151,
@@ -210,7 +210,7 @@
                                 ident_type: LocalOrUse,
                                 segments: [(
                                   ident: (
-                                    ident: 14,
+                                    ident: "self",
                                     span: (
                                       start: 181,
                                       end: 185,
@@ -226,7 +226,7 @@
                               id: 14,
                             ),
                             ident: (
-                              ident: 10,
+                              ident: "photo",
                               span: (
                                 start: 186,
                                 end: 191,
@@ -240,7 +240,7 @@
                           id: 15,
                         ),
                         ident: (
-                          ident: 2,
+                          ident: "size",
                           span: (
                             start: 192,
                             end: 196,
@@ -288,7 +288,7 @@
       ), (
         kind: GlobalLet((
           local_var: (
-            ident: 11,
+            ident: "extracted_text",
             span: (
               start: 222,
               end: 236,
@@ -310,7 +310,7 @@
                   ident_type: LocalOrUse,
                   segments: [(
                     ident: (
-                      ident: 6,
+                      ident: "message",
                       span: (
                         start: 250,
                         end: 257,
@@ -332,13 +332,13 @@
                       ident: (
                         ident_type: LocalOrUse,
                         idents: [(
-                          ident: 4,
+                          ident: "Message",
                           span: (
                             start: 264,
                             end: 271,
                           ),
                         ), (
-                          ident: 5,
+                          ident: "Text",
                           span: (
                             start: 273,
                             end: 277,
@@ -348,7 +348,7 @@
                       generics: [],
 ),
                     exprs: [(
-                      kind: String(12),
+                      kind: String("null"),
                       span: (
                         start: 278,
                         end: 284,
@@ -360,13 +360,13 @@
                       ident: (
                         ident_type: LocalOrUse,
                         idents: [(
-                          ident: 4,
+                          ident: "Message",
                           span: (
                             start: 288,
                             end: 295,
                           ),
                         ), (
-                          ident: 8,
+                          ident: "Photo",
                           span: (
                             start: 297,
                             end: 302,
@@ -376,7 +376,7 @@
                       generics: [],
 ),
                     exprs: [(
-                      kind: String(12),
+                      kind: String("null"),
                       span: (
                         start: 303,
                         end: 309,
@@ -384,7 +384,7 @@
                       id: 26,
                     ), (
                       kind: Identifier((
-                        ident: 10,
+                        ident: "photo",
                         span: (
                           start: 311,
                           end: 316,
@@ -402,7 +402,7 @@
                 body: (
                   kind: Expression((
                     expr: (
-                      kind: String(13),
+                      kind: String(""),
                       span: (
                         start: 321,
                         end: 323,
@@ -428,13 +428,13 @@
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 4,
+                        ident: "Message",
                         span: (
                           start: 329,
                           end: 336,
                         ),
                       ), (
-                        ident: 5,
+                        ident: "Text",
                         span: (
                           start: 338,
                           end: 342,
@@ -445,7 +445,7 @@
 ),
                   exprs: [(
                     kind: Identifier((
-                      ident: 7,
+                      ident: "str",
                       span: (
                         start: 343,
                         end: 346,
@@ -466,7 +466,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 7,
+                            ident: "str",
                             span: (
                               start: 351,
                               end: 354,
@@ -500,13 +500,13 @@
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 4,
+                        ident: "Message",
                         span: (
                           start: 360,
                           end: 367,
                         ),
                       ), (
-                        ident: 8,
+                        ident: "Photo",
                         span: (
                           start: 369,
                           end: 374,
@@ -517,7 +517,7 @@
 ),
                   exprs: [(
                     kind: Identifier((
-                      ident: 9,
+                      ident: "caption",
                       span: (
                         start: 375,
                         end: 382,
@@ -531,7 +531,7 @@
                     id: 38,
                   ), (
                     kind: Identifier((
-                      ident: 10,
+                      ident: "photo",
                       span: (
                         start: 384,
                         end: 389,
@@ -552,7 +552,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 9,
+                            ident: "caption",
                             span: (
                               start: 394,
                               end: 401,

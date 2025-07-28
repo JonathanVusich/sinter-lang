@@ -1,6 +1,6 @@
 (
   crates: [(
-    name: 5,
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -10,7 +10,6 @@
         ret_ty: (
           kind: Int(I64),
         ),
-        blocks: [],
         arms: [],
         stmts: [],
         exprs: [(
@@ -26,7 +25,6 @@
         ret_ty: (
           kind: Int(I64),
         ),
-        blocks: [],
         arms: [],
         stmts: [],
         exprs: [(

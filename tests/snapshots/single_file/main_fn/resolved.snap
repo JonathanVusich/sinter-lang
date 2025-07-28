@@ -1,13 +1,13 @@
 (
   crates: [(
-    name: 7,
+    name: "crate",
     id: (
       id: 0,
     ),
     items: [],
     nodes: {
       0: LocalVar((
-        ident: 2,
+        ident: "args",
         span: (
           start: 8,
           end: 12,
@@ -39,7 +39,7 @@
       )),
       3: Param((
         local_var: (
-          ident: 2,
+          ident: "args",
           span: (
             start: 8,
             end: 12,
@@ -72,7 +72,7 @@
         kind: Path((
           segments: [(
             res: Local(Var((
-              ident: 2,
+              ident: "args",
               span: (
                 start: 8,
                 end: 12,
@@ -94,7 +94,7 @@
             kind: Path((
               segments: [(
                 res: Local(Var((
-                  ident: 2,
+                  ident: "args",
                   span: (
                     start: 8,
                     end: 12,
@@ -111,7 +111,7 @@
             id: 5,
           ),
           ident: (
-            ident: 5,
+            ident: "to_str",
             span: (
               start: 38,
               end: 44,
@@ -132,7 +132,7 @@
                 kind: Path((
                   segments: [(
                     res: Local(Var((
-                      ident: 2,
+                      ident: "args",
                       span: (
                         start: 8,
                         end: 12,
@@ -149,7 +149,7 @@
                 id: 5,
               ),
               ident: (
-                ident: 5,
+                ident: "to_str",
                 span: (
                   start: 38,
                   end: 44,
@@ -172,5 +172,5 @@
       )),
     },
   )],
-  names_to_indices: [7],
+  names_to_indices: ["crate"],
 )

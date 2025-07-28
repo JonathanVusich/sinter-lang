@@ -1,7 +1,7 @@
 {
-  7: (
-    name: 7,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [6],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -20,19 +20,19 @@
         kind: Use((
           ident_type: LocalOrUse,
           idents: [(
-            ident: 1,
+            ident: "std",
             span: (
               start: 4,
               end: 7,
             ),
           ), (
-            ident: 2,
+            ident: "out",
             span: (
               start: 9,
               end: 12,
             ),
           ), (
-            ident: 3,
+            ident: "print",
             span: (
               start: 14,
               end: 19,
@@ -48,7 +48,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 4,
+              ident: "main",
               span: (
                 start: 25,
                 end: 29,
@@ -58,7 +58,7 @@
             params: [],
             return_type: None,
 ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Expression((
                 expr: (
@@ -68,7 +68,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 3,
+                            ident: "print",
                             span: (
                               start: 38,
                               end: 43,
@@ -84,7 +84,7 @@
                       id: 1,
                     ),
                     args: [(
-                      kind: String(5),
+                      kind: String("Hello world!"),
                       span: (
                         start: 44,
                         end: 58,
@@ -111,7 +111,7 @@
               end: 62,
             ),
             id: 5,
-          )),
+          ),
         )),
         span: (
           start: 22,

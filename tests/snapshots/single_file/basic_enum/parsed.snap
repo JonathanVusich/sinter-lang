@@ -1,6 +1,6 @@
 {
-  12: (
-    name: 12,
+  "crate": (
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [11],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -19,7 +19,7 @@
       items: [(
         kind: Enum((
           name: (
-            ident: 1,
+            ident: "Planet",
             span: (
               start: 5,
               end: 11,
@@ -27,7 +27,7 @@
           ),
           generic_params: [],
           members: [(
-            name: 2,
+            name: "Mercury",
             fields: [],
             self_fns: [],
             span: (
@@ -36,7 +36,7 @@
             ),
             id: 0,
           ), (
-            name: 3,
+            name: "Venus",
             fields: [],
             self_fns: [],
             span: (
@@ -45,7 +45,7 @@
             ),
             id: 1,
           ), (
-            name: 4,
+            name: "Earth",
             fields: [],
             self_fns: [],
             span: (
@@ -54,7 +54,7 @@
             ),
             id: 2,
           ), (
-            name: 5,
+            name: "Mars",
             fields: [],
             self_fns: [],
             span: (
@@ -63,7 +63,7 @@
             ),
             id: 3,
           ), (
-            name: 6,
+            name: "Jupiter",
             fields: [],
             self_fns: [],
             span: (
@@ -72,7 +72,7 @@
             ),
             id: 4,
           ), (
-            name: 7,
+            name: "Saturn",
             fields: [],
             self_fns: [],
             span: (
@@ -81,7 +81,7 @@
             ),
             id: 5,
           ), (
-            name: 8,
+            name: "Uranus",
             fields: [],
             self_fns: [],
             span: (
@@ -90,7 +90,7 @@
             ),
             id: 6,
           ), (
-            name: 9,
+            name: "Neptune",
             fields: [],
             self_fns: [],
             span: (
@@ -99,7 +99,7 @@
             ),
             id: 7,
           ), (
-            name: 10,
+            name: "Pluto",
             fields: [],
             self_fns: [],
             span: (

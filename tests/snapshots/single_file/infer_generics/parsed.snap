@@ -1,7 +1,7 @@
 {
-  9: (
-    name: 9,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [8],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -19,7 +19,7 @@
       items: [(
         kind: Class((
           name: (
-            ident: 1,
+            ident: "Option",
             span: (
               start: 6,
               end: 12,
@@ -28,7 +28,7 @@
           class_type: Inline,
           generic_params: [(
             name: (
-              ident: 2,
+              ident: "T",
               span: (
                 start: 13,
                 end: 14,
@@ -43,7 +43,7 @@
           )],
           fields: [(
             name: (
-              ident: 3,
+              ident: "inner",
               span: (
                 start: 22,
                 end: 27,
@@ -55,7 +55,7 @@
                   ident: (
                     ident_type: LocalOrUse,
                     idents: [(
-                      ident: 2,
+                      ident: "T",
                       span: (
                         start: 29,
                         end: 30,
@@ -88,7 +88,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 4,
+              ident: "options",
               span: (
                 start: 38,
                 end: 45,
@@ -102,7 +102,7 @@
             stmts: [(
               kind: Let((
                 local_var: (
-                  ident: 5,
+                  ident: "option_f64",
                   span: (
                     start: 58,
                     end: 68,
@@ -118,7 +118,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 1,
+                            ident: "Option",
                             span: (
                               start: 71,
                               end: 77,
@@ -157,7 +157,7 @@
             ), (
               kind: Let((
                 local_var: (
-                  ident: 6,
+                  ident: "option_str",
                   span: (
                     start: 92,
                     end: 102,
@@ -173,7 +173,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 1,
+                            ident: "Option",
                             span: (
                               start: 105,
                               end: 111,
@@ -189,7 +189,7 @@
                       id: 10,
                     ),
                     args: [(
-                      kind: String(7),
+                      kind: String("hi there"),
                       span: (
                         start: 112,
                         end: 122,

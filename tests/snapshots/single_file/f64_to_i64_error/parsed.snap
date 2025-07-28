@@ -1,6 +1,6 @@
 {
-  4: (
-    name: 4,
+  "crate": (
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [3],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -19,7 +19,7 @@
       items: [(
         kind: GlobalLet((
           local_var: (
-            ident: 1,
+            ident: "PLANETS",
             span: (
               start: 4,
               end: 11,

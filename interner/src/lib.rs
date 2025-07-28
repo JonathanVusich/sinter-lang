@@ -1,5 +1,3 @@
-#![feature(hash_raw_entry)]
-
 use serde::{Serialize, Serializer};
 
 use std::borrow::Borrow;
@@ -8,13 +6,13 @@ use std::borrow::Cow;
 use std::cell::RefCell;
 use std::cmp::Ordering;
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use std::ffi::OsStr;
 
 use std::fmt;
 use std::fmt::Formatter;
-use std::hash::{Hash, Hasher};
+use std::hash::{BuildHasher, Hash, Hasher};
 
 use std::ops::Deref;
 
@@ -26,6 +24,9 @@ use std::str;
 
 use std::sync::Mutex;
 
+use hashbrown::hash_table::Entry;
+use hashbrown::DefaultHashBuilder;
+use hashbrown::HashTable;
 use serde::de::Visitor;
 use std::sync::OnceLock;
 
@@ -191,7 +192,7 @@ impl Serialize for InternedStr {
 
 #[derive(Debug)]
 pub struct Interner<'a, T> {
-    interned: RefCell<HashMap<&'a T, ()>>,
+    interned: RefCell<HashTable<&'a T>>,
 }
 
 impl<'a, T> Default for Interner<'a, T> {
@@ -208,11 +209,18 @@ where
 {
     pub fn intern<F: Fn(T) -> &'a T>(&self, val: T, alloc_fn: F) -> &'a T {
         let mut interned = self.interned.borrow_mut();
-        interned
-            .raw_entry_mut()
-            .from_key(&val)
-            .or_insert_with(|| (alloc_fn(val), ()))
-            .0
+        let hash_fn = DefaultHashBuilder::default();
+        let hash = hash_fn.hash_one(&val);
+
+        let entry = interned.entry(hash, |v| (**v) == val, |val| hash_fn.hash_one(val));
+        match entry {
+            Entry::Occupied(occupied) => occupied.get(),
+            Entry::Vacant(vacant) => {
+                let interned_val = alloc_fn(val);
+                vacant.insert(interned_val);
+                interned_val
+            }
+        }
     }
 }
 

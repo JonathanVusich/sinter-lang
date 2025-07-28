@@ -16,14 +16,16 @@ pub enum Node<'a> {
     Item(&'a Item<'a>),
 
     Ty(&'a Ty<'a>),
+    // Separate type for GenericParam since the definition of the param is separate from a reference
+    GenericParam(&'a GenericParam<'a>),
 
     Expr(&'a Expr<'a>),
     DestructureExpr(&'a DestructureExpr<'a>),
     Stmt(&'a Stmt<'a>),
     Block(&'a Block<'a>),
 
-    Param(&'a Param<'a>),
-    Field(&'a Field<'a>),
+    Param(&'a Param),
+    Field(&'a Field),
     LocalVar(LocalVar),
     Pattern(&'a Pattern<'a>),
     MatchArm(&'a MatchArm<'a>),
@@ -230,9 +232,9 @@ pub struct FnSig<'a> {
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct Param<'a> {
+pub struct Param {
     pub local_var: LocalVar,
-    pub ty: &'a Ty<'a>,
+    pub ty: DefId,
     pub mutability: Mutability,
     pub span: Span,
     pub id: LocalDefId,
@@ -288,9 +290,9 @@ pub type Initializers<'a> = &'a [&'a Expr<'a>];
 pub type Exprs<'a> = &'a [&'a Expr<'a>];
 pub type DestructureExprs<'a> = &'a [&'a DestructureExpr<'a>];
 pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
-pub type Fields<'a> = &'a [&'a Field<'a>];
+pub type Fields<'a> = &'a [&'a Field];
 pub type ClosureParams<'a> = &'a [ClosureParam];
-pub type Params<'a> = &'a [&'a Param<'a>];
+pub type Params<'a> = &'a [&'a Param];
 pub type FnDefs<'a> = &'a [&'a FnDef<'a>];
 pub type MemberDefs<'a> = &'a [&'a MemberDef<'a>];
 pub type MatchArms<'a> = &'a [&'a MatchArm<'a>];
@@ -535,9 +537,9 @@ pub struct Segment<'a> {
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct Field<'a> {
+pub struct Field {
     pub name: Ident,
-    pub ty: &'a Ty<'a>,
+    pub ty: DefId,
     pub span: Span,
     pub id: LocalDefId,
 }
@@ -588,6 +590,8 @@ pub struct ClosureParam {
 pub struct GenericParam<'a> {
     pub ident: Ident,
     pub trait_bound: Option<TraitBound<'a>>,
+    pub span: Span,
+    pub id: LocalDefId,
 }
 
 #[derive(PartialEq, Debug, Default, Clone, Serialize)]

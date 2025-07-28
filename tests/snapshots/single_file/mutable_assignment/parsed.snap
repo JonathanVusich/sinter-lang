@@ -1,7 +1,7 @@
 {
-  4: (
-    name: 4,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [3],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -20,7 +20,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 1,
+              ident: "mut_var",
               span: (
                 start: 3,
                 end: 10,
@@ -30,11 +30,11 @@
             params: [],
             return_type: None,
 ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Let((
                 local_var: (
-                  ident: 2,
+                  ident: "x",
                   span: (
                     start: 27,
                     end: 28,
@@ -43,14 +43,14 @@
                 ),
                 mutability: Mutable,
                 ty: None,
-                initializer: Some((
+                initializer: (
                   kind: Int(5),
                   span: (
                     start: 31,
                     end: 32,
                   ),
                   id: 1,
-                )),
+                ),
               )),
               span: (
                 start: 19,
@@ -67,7 +67,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 2,
+                            ident: "x",
                             span: (
                               start: 64,
                               end: 65,
@@ -90,7 +90,7 @@
                             ident_type: LocalOrUse,
                             segments: [(
                               ident: (
-                                ident: 2,
+                                ident: "x",
                                 span: (
                                   start: 68,
                                   end: 69,
@@ -140,7 +140,7 @@
               end: 76,
             ),
             id: 9,
-          )),
+          ),
         )),
         span: (
           start: 0,

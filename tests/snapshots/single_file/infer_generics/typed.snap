@@ -1,6 +1,6 @@
 (
   crates: [(
-    name: 9,
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -13,20 +13,18 @@
         arms: [],
         stmts: [Let((
           local_var: (
-            ident: 5,
+            ident: "option_f64",
             ty: (
               kind: Class((
                 name: (
-                  ident: 1,
+                  ident: "Option",
                   span: (
                     start: 6,
                     end: 12,
                   ),
                 ),
-              ), [(
-                kind: Int(I64),
-              )]),
-            ),
+              ), []),
+),
           ),
           mutability: Immutable,
           initializer: (
@@ -34,20 +32,18 @@
           ),
         )), Let((
           local_var: (
-            ident: 6,
+            ident: "option_str",
             ty: (
               kind: Class((
                 name: (
-                  ident: 1,
+                  ident: "Option",
                   span: (
                     start: 6,
                     end: 12,
                   ),
                 ),
-              ), [(
-                kind: Str,
-              )]),
-            ),
+              ), []),
+),
           ),
           mutability: Immutable,
           initializer: (
@@ -56,27 +52,20 @@
         ))],
         exprs: [(
           kind: Path(Class((
-            name: (
-              ident: 1,
-              span: (
-                start: 6,
-                end: 12,
-              ),
-            ),
+            crate_id: 0,
+            local_id: 3,
           ))),
           ty: (
             kind: Class((
               name: (
-                ident: 1,
+                ident: "Option",
                 span: (
                   start: 6,
                   end: 12,
                 ),
               ),
-            ), [(
-              kind: Int(I64),
-            )]),
-          ),
+            ), []),
+),
         ), (
           kind: Int(123),
           ty: (
@@ -94,41 +83,32 @@
           ty: (
             kind: Class((
               name: (
-                ident: 1,
+                ident: "Option",
                 span: (
                   start: 6,
                   end: 12,
                 ),
               ),
-            ), [(
-              kind: Int(I64),
-            )]),
-          ),
+            ), []),
+),
         ), (
           kind: Path(Class((
-            name: (
-              ident: 1,
-              span: (
-                start: 6,
-                end: 12,
-              ),
-            ),
+            crate_id: 0,
+            local_id: 3,
           ))),
           ty: (
             kind: Class((
               name: (
-                ident: 1,
+                ident: "Option",
                 span: (
                   start: 6,
                   end: 12,
                 ),
               ),
-            ), [(
-              kind: Str,
-            )]),
-          ),
+            ), []),
+),
         ), (
-          kind: String(7),
+          kind: String("hi there"),
           ty: (
             kind: Str,
           ),
@@ -144,16 +124,14 @@
           ty: (
             kind: Class((
               name: (
-                ident: 1,
+                ident: "Option",
                 span: (
                   start: 6,
                   end: 12,
                 ),
               ),
-            ), [(
-              kind: Str,
-            )]),
-          ),
+            ), []),
+),
         )],
         destructure_exprs: [],
 ),

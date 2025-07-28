@@ -1,6 +1,6 @@
 (
   crates: [(
-    name: 9,
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -8,7 +8,7 @@
       kind: Fn((
         sig: (
           name: (
-            ident: 1,
+            ident: "to_string",
             span: (
               start: 3,
               end: 12,
@@ -17,7 +17,7 @@
           generic_params: [],
           params: [(
             local_var: (
-              ident: 2,
+              ident: "num",
               span: (
                 start: 13,
                 end: 16,
@@ -39,20 +39,20 @@
             ),
             id: 2,
           )],
-          ret_ty: Some((
+          ret_ty: (
             kind: Primitive(Str),
             span: (
               start: 26,
               end: 29,
             ),
             id: 3,
-          )),
+          ),
         ),
-        body: Some((
+        body: (
           stmts: [(
             kind: Let((
               local_var: (
-                ident: 5,
+                ident: "doubled_num",
                 span: (
                   start: 40,
                   end: 51,
@@ -61,14 +61,14 @@
               ),
               mutability: Immutable,
               ty: None,
-              initializer: Some((
+              initializer: (
                 kind: Infix((
                   operator: Multiply,
                   lhs: (
                     kind: Path((
                       segments: [(
                         res: Local(Var((
-                          ident: 2,
+                          ident: "num",
                           span: (
                             start: 13,
                             end: 16,
@@ -98,7 +98,7 @@
                   end: 61,
                 ),
                 id: 7,
-              )),
+              ),
             )),
             span: (
               start: 36,
@@ -114,7 +114,7 @@
                     kind: Path((
                       segments: [(
                         res: Local(Var((
-                          ident: 2,
+                          ident: "num",
                           span: (
                             start: 13,
                             end: 16,
@@ -148,14 +148,14 @@
               if_true: (
                 stmts: [(
                   kind: Return((
-                    value: Some((
-                      kind: String(6),
+                    value: (
+                      kind: String("Greater than 1000"),
                       span: (
                         start: 96,
                         end: 115,
                       ),
                       id: 12,
-                    )),
+                    ),
                   )),
                   span: (
                     start: 89,
@@ -178,14 +178,14 @@
             id: 15,
           ), (
             kind: Return((
-              value: Some((
-                kind: String(7),
+              value: (
+                kind: String("Less than or equal to 1000"),
                 span: (
                   start: 134,
                   end: 162,
                 ),
                 id: 16,
-              )),
+              ),
             )),
             span: (
               start: 127,
@@ -198,7 +198,7 @@
             end: 165,
           ),
           id: 18,
-        )),
+        ),
         span: (
           start: 0,
           end: 165,
@@ -213,7 +213,7 @@
     )],
     nodes: {
       0: LocalVar((
-        ident: 2,
+        ident: "num",
         span: (
           start: 13,
           end: 16,
@@ -230,7 +230,7 @@
       )),
       2: Param((
         local_var: (
-          ident: 2,
+          ident: "num",
           span: (
             start: 13,
             end: 16,
@@ -261,7 +261,7 @@
         id: 3,
       )),
       4: LocalVar((
-        ident: 5,
+        ident: "doubled_num",
         span: (
           start: 40,
           end: 51,
@@ -272,7 +272,7 @@
         kind: Path((
           segments: [(
             res: Local(Var((
-              ident: 2,
+              ident: "num",
               span: (
                 start: 13,
                 end: 16,
@@ -303,7 +303,7 @@
             kind: Path((
               segments: [(
                 res: Local(Var((
-                  ident: 2,
+                  ident: "num",
                   span: (
                     start: 13,
                     end: 16,
@@ -337,7 +337,7 @@
       8: Stmt((
         kind: Let((
           local_var: (
-            ident: 5,
+            ident: "doubled_num",
             span: (
               start: 40,
               end: 51,
@@ -346,14 +346,14 @@
           ),
           mutability: Immutable,
           ty: None,
-          initializer: Some((
+          initializer: (
             kind: Infix((
               operator: Multiply,
               lhs: (
                 kind: Path((
                   segments: [(
                     res: Local(Var((
-                      ident: 2,
+                      ident: "num",
                       span: (
                         start: 13,
                         end: 16,
@@ -383,7 +383,7 @@
               end: 61,
             ),
             id: 7,
-          )),
+          ),
         )),
         span: (
           start: 36,
@@ -395,7 +395,7 @@
         kind: Path((
           segments: [(
             res: Local(Var((
-              ident: 2,
+              ident: "num",
               span: (
                 start: 13,
                 end: 16,
@@ -426,7 +426,7 @@
             kind: Path((
               segments: [(
                 res: Local(Var((
-                  ident: 2,
+                  ident: "num",
                   span: (
                     start: 13,
                     end: 16,
@@ -458,7 +458,7 @@
         id: 11,
       )),
       12: Expr((
-        kind: String(6),
+        kind: String("Greater than 1000"),
         span: (
           start: 96,
           end: 115,
@@ -467,14 +467,14 @@
       )),
       13: Stmt((
         kind: Return((
-          value: Some((
-            kind: String(6),
+          value: (
+            kind: String("Greater than 1000"),
             span: (
               start: 96,
               end: 115,
             ),
             id: 12,
-          )),
+          ),
         )),
         span: (
           start: 89,
@@ -485,14 +485,14 @@
       14: Block((
         stmts: [(
           kind: Return((
-            value: Some((
-              kind: String(6),
+            value: (
+              kind: String("Greater than 1000"),
               span: (
                 start: 96,
                 end: 115,
               ),
               id: 12,
-            )),
+            ),
           )),
           span: (
             start: 89,
@@ -515,7 +515,7 @@
                 kind: Path((
                   segments: [(
                     res: Local(Var((
-                      ident: 2,
+                      ident: "num",
                       span: (
                         start: 13,
                         end: 16,
@@ -549,14 +549,14 @@
           if_true: (
             stmts: [(
               kind: Return((
-                value: Some((
-                  kind: String(6),
+                value: (
+                  kind: String("Greater than 1000"),
                   span: (
                     start: 96,
                     end: 115,
                   ),
                   id: 12,
-                )),
+                ),
               )),
               span: (
                 start: 89,
@@ -579,7 +579,7 @@
         id: 15,
       )),
       16: Expr((
-        kind: String(7),
+        kind: String("Less than or equal to 1000"),
         span: (
           start: 134,
           end: 162,
@@ -588,14 +588,14 @@
       )),
       17: Stmt((
         kind: Return((
-          value: Some((
-            kind: String(7),
+          value: (
+            kind: String("Less than or equal to 1000"),
             span: (
               start: 134,
               end: 162,
             ),
             id: 16,
-          )),
+          ),
         )),
         span: (
           start: 127,
@@ -607,7 +607,7 @@
         stmts: [(
           kind: Let((
             local_var: (
-              ident: 5,
+              ident: "doubled_num",
               span: (
                 start: 40,
                 end: 51,
@@ -616,14 +616,14 @@
             ),
             mutability: Immutable,
             ty: None,
-            initializer: Some((
+            initializer: (
               kind: Infix((
                 operator: Multiply,
                 lhs: (
                   kind: Path((
                     segments: [(
                       res: Local(Var((
-                        ident: 2,
+                        ident: "num",
                         span: (
                           start: 13,
                           end: 16,
@@ -653,7 +653,7 @@
                 end: 61,
               ),
               id: 7,
-            )),
+            ),
           )),
           span: (
             start: 36,
@@ -669,7 +669,7 @@
                   kind: Path((
                     segments: [(
                       res: Local(Var((
-                        ident: 2,
+                        ident: "num",
                         span: (
                           start: 13,
                           end: 16,
@@ -703,14 +703,14 @@
             if_true: (
               stmts: [(
                 kind: Return((
-                  value: Some((
-                    kind: String(6),
+                  value: (
+                    kind: String("Greater than 1000"),
                     span: (
                       start: 96,
                       end: 115,
                     ),
                     id: 12,
-                  )),
+                  ),
                 )),
                 span: (
                   start: 89,
@@ -733,14 +733,14 @@
           id: 15,
         ), (
           kind: Return((
-            value: Some((
-              kind: String(7),
+            value: (
+              kind: String("Less than or equal to 1000"),
               span: (
                 start: 134,
                 end: 162,
               ),
               id: 16,
-            )),
+            ),
           )),
           span: (
             start: 127,
@@ -758,7 +758,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 1,
+              ident: "to_string",
               span: (
                 start: 3,
                 end: 12,
@@ -767,7 +767,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 2,
+                ident: "num",
                 span: (
                   start: 13,
                   end: 16,
@@ -789,20 +789,20 @@
               ),
               id: 2,
             )],
-            ret_ty: Some((
+            ret_ty: (
               kind: Primitive(Str),
               span: (
                 start: 26,
                 end: 29,
               ),
               id: 3,
-            )),
+            ),
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Let((
                 local_var: (
-                  ident: 5,
+                  ident: "doubled_num",
                   span: (
                     start: 40,
                     end: 51,
@@ -811,14 +811,14 @@
                 ),
                 mutability: Immutable,
                 ty: None,
-                initializer: Some((
+                initializer: (
                   kind: Infix((
                     operator: Multiply,
                     lhs: (
                       kind: Path((
                         segments: [(
                           res: Local(Var((
-                            ident: 2,
+                            ident: "num",
                             span: (
                               start: 13,
                               end: 16,
@@ -848,7 +848,7 @@
                     end: 61,
                   ),
                   id: 7,
-                )),
+                ),
               )),
               span: (
                 start: 36,
@@ -864,7 +864,7 @@
                       kind: Path((
                         segments: [(
                           res: Local(Var((
-                            ident: 2,
+                            ident: "num",
                             span: (
                               start: 13,
                               end: 16,
@@ -898,14 +898,14 @@
                 if_true: (
                   stmts: [(
                     kind: Return((
-                      value: Some((
-                        kind: String(6),
+                      value: (
+                        kind: String("Greater than 1000"),
                         span: (
                           start: 96,
                           end: 115,
                         ),
                         id: 12,
-                      )),
+                      ),
                     )),
                     span: (
                       start: 89,
@@ -928,14 +928,14 @@
               id: 15,
             ), (
               kind: Return((
-                value: Some((
-                  kind: String(7),
+                value: (
+                  kind: String("Less than or equal to 1000"),
                   span: (
                     start: 134,
                     end: 162,
                   ),
                   id: 16,
-                )),
+                ),
               )),
               span: (
                 start: 127,
@@ -948,7 +948,7 @@
               end: 165,
             ),
             id: 18,
-          )),
+          ),
           span: (
             start: 0,
             end: 165,
@@ -963,5 +963,5 @@
       )),
     },
   )],
-  names_to_indices: [9],
+  names_to_indices: ["crate"],
 )

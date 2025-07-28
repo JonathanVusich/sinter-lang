@@ -1,7 +1,7 @@
 {
-  6: (
-    name: 6,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [5],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -20,7 +20,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 1,
+              ident: "print",
               span: (
                 start: 3,
                 end: 8,
@@ -29,7 +29,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 2,
+                ident: "text",
                 span: (
                   start: 9,
                   end: 13,
@@ -53,7 +53,7 @@
             )],
             return_type: None,
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Expression((
                 expr: (
@@ -63,7 +63,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 4,
+                            ident: "println",
                             span: (
                               start: 26,
                               end: 33,
@@ -83,7 +83,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 2,
+                            ident: "text",
                             span: (
                               start: 34,
                               end: 38,
@@ -118,7 +118,7 @@
               end: 42,
             ),
             id: 7,
-          )),
+          ),
         )),
         span: (
           start: 0,

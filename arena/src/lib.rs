@@ -52,7 +52,7 @@ impl<T> Arena<T> {
     }
 
     fn can_alloc(&self, num: usize) -> bool {
-        let remaining_entries = unsafe { self.end.get().sub_ptr(self.ptr.get()) };
+        let remaining_entries = unsafe { self.end.get().offset_from_unsigned(self.ptr.get()) };
         remaining_entries >= num
     }
 
@@ -60,8 +60,8 @@ impl<T> Arena<T> {
         let min_chunk_size = min.next_power_of_two();
         let mut chunks = self.chunks.borrow_mut();
         let next_chunk_size = if let Some(chunk) = chunks.last_mut() {
-            let chunk_len = unsafe { chunk.end().sub_ptr(chunk.start()) };
-            let num_entries = unsafe { self.end.get().sub_ptr(self.ptr.get()) };
+            let chunk_len = unsafe { chunk.end().offset_from_unsigned(chunk.start()) };
+            let num_entries = unsafe { self.end.get().offset_from_unsigned(self.ptr.get()) };
             chunk.entries = num_entries;
 
             chunk_len * GROW_FACTOR
@@ -103,9 +103,7 @@ impl<T> Drop for Chunk<T> {
         if mem::needs_drop::<T>() {
             unsafe {
                 let slice = self.chunk.as_mut();
-                ptr::drop_in_place(MaybeUninit::slice_assume_init_mut(
-                    &mut slice[..self.entries],
-                ))
+                ptr::drop_in_place((&mut slice[..self.entries]).assume_init_mut());
             }
         }
     }

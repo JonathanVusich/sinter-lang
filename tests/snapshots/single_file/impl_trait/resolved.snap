@@ -1,13 +1,13 @@
 (
   crates: [(
-    name: 9,
+    name: "crate",
     id: (
       id: 0,
     ),
     items: [(
       kind: Class((
         name: (
-          ident: 1,
+          ident: "Tweet",
           span: (
             start: 6,
             end: 11,
@@ -16,8 +16,8 @@
         class_type: Inline,
         generic_params: [],
         fields: [(
-          ident: (
-            ident: 2,
+          name: (
+            ident: "username",
             span: (
               start: 18,
               end: 26,
@@ -37,8 +37,8 @@
           ),
           id: 1,
         ), (
-          ident: (
-            ident: 4,
+          name: (
+            ident: "content",
             span: (
               start: 37,
               end: 44,
@@ -68,7 +68,7 @@
     ), (
       kind: Trait((
         name: (
-          ident: 5,
+          ident: "Summary",
           span: (
             start: 60,
             end: 67,
@@ -78,7 +78,7 @@
         fn_defs: [(
           sig: (
             name: (
-              ident: 6,
+              ident: "summarize",
               span: (
                 start: 77,
                 end: 86,
@@ -87,7 +87,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 7,
+                ident: "self",
                 span: (
                   start: 87,
                   end: 91,
@@ -115,14 +115,14 @@
               ),
               id: 7,
             )],
-            ret_ty: Some((
+            ret_ty: (
               kind: Primitive(Str),
               span: (
                 start: 96,
                 end: 99,
               ),
               id: 8,
-            )),
+            ),
           ),
           body: None,
           span: (
@@ -153,7 +153,7 @@
         fn_defs: [(
           sig: (
             name: (
-              ident: 6,
+              ident: "summarize",
               span: (
                 start: 136,
                 end: 145,
@@ -162,7 +162,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 7,
+                ident: "self",
                 span: (
                   start: 146,
                   end: 150,
@@ -190,19 +190,19 @@
               ),
               id: 13,
             )],
-            ret_ty: Some((
+            ret_ty: (
               kind: Primitive(Str),
               span: (
                 start: 155,
                 end: 158,
               ),
               id: 14,
-            )),
+            ),
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Return((
-                value: Some((
+                value: (
                   kind: Infix((
                     operator: Add,
                     lhs: (
@@ -211,7 +211,7 @@
                           kind: Path((
                             segments: [(
                               res: Local(Var((
-                                ident: 7,
+                                ident: "self",
                                 span: (
                                   start: 146,
                                   end: 150,
@@ -228,7 +228,7 @@
                           id: 15,
                         ),
                         ident: (
-                          ident: 2,
+                          ident: "username",
                           span: (
                             start: 181,
                             end: 189,
@@ -247,7 +247,7 @@
                           kind: Path((
                             segments: [(
                               res: Local(Var((
-                                ident: 7,
+                                ident: "self",
                                 span: (
                                   start: 146,
                                   end: 150,
@@ -264,7 +264,7 @@
                           id: 17,
                         ),
                         ident: (
-                          ident: 4,
+                          ident: "content",
                           span: (
                             start: 197,
                             end: 204,
@@ -283,7 +283,7 @@
                     end: 204,
                   ),
                   id: 19,
-                )),
+                ),
               )),
               span: (
                 start: 169,
@@ -296,7 +296,7 @@
               end: 211,
             ),
             id: 21,
-          )),
+          ),
           span: (
             start: 133,
             end: 211,
@@ -320,8 +320,8 @@
         id: 0,
       )),
       1: Field((
-        ident: (
-          ident: 2,
+        name: (
+          ident: "username",
           span: (
             start: 18,
             end: 26,
@@ -350,8 +350,8 @@
         id: 2,
       )),
       3: Field((
-        ident: (
-          ident: 4,
+        name: (
+          ident: "content",
           span: (
             start: 37,
             end: 44,
@@ -374,7 +374,7 @@
       4: Item((
         kind: Class((
           name: (
-            ident: 1,
+            ident: "Tweet",
             span: (
               start: 6,
               end: 11,
@@ -383,8 +383,8 @@
           class_type: Inline,
           generic_params: [],
           fields: [(
-            ident: (
-              ident: 2,
+            name: (
+              ident: "username",
               span: (
                 start: 18,
                 end: 26,
@@ -404,8 +404,8 @@
             ),
             id: 1,
           ), (
-            ident: (
-              ident: 4,
+            name: (
+              ident: "content",
               span: (
                 start: 37,
                 end: 44,
@@ -434,7 +434,7 @@
         id: 4,
       )),
       5: LocalVar((
-        ident: 7,
+        ident: "self",
         span: (
           start: 87,
           end: 91,
@@ -457,7 +457,7 @@
       )),
       7: Param((
         local_var: (
-          ident: 7,
+          ident: "self",
           span: (
             start: 87,
             end: 91,
@@ -497,7 +497,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 6,
+              ident: "summarize",
               span: (
                 start: 77,
                 end: 86,
@@ -506,7 +506,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 7,
+                ident: "self",
                 span: (
                   start: 87,
                   end: 91,
@@ -534,14 +534,14 @@
               ),
               id: 7,
             )],
-            ret_ty: Some((
+            ret_ty: (
               kind: Primitive(Str),
               span: (
                 start: 96,
                 end: 99,
               ),
               id: 8,
-            )),
+            ),
           ),
           body: None,
           span: (
@@ -559,7 +559,7 @@
       10: Item((
         kind: Trait((
           name: (
-            ident: 5,
+            ident: "Summary",
             span: (
               start: 60,
               end: 67,
@@ -569,7 +569,7 @@
           fn_defs: [(
             sig: (
               name: (
-                ident: 6,
+                ident: "summarize",
                 span: (
                   start: 77,
                   end: 86,
@@ -578,7 +578,7 @@
               generic_params: [],
               params: [(
                 local_var: (
-                  ident: 7,
+                  ident: "self",
                   span: (
                     start: 87,
                     end: 91,
@@ -606,14 +606,14 @@
                 ),
                 id: 7,
               )],
-              ret_ty: Some((
+              ret_ty: (
                 kind: Primitive(Str),
                 span: (
                   start: 96,
                   end: 99,
                 ),
                 id: 8,
-              )),
+              ),
             ),
             body: None,
             span: (
@@ -630,7 +630,7 @@
         id: 10,
       )),
       11: LocalVar((
-        ident: 7,
+        ident: "self",
         span: (
           start: 146,
           end: 150,
@@ -653,7 +653,7 @@
       )),
       13: Param((
         local_var: (
-          ident: 7,
+          ident: "self",
           span: (
             start: 146,
             end: 150,
@@ -693,7 +693,7 @@
         kind: Path((
           segments: [(
             res: Local(Var((
-              ident: 7,
+              ident: "self",
               span: (
                 start: 146,
                 end: 150,
@@ -715,7 +715,7 @@
             kind: Path((
               segments: [(
                 res: Local(Var((
-                  ident: 7,
+                  ident: "self",
                   span: (
                     start: 146,
                     end: 150,
@@ -732,7 +732,7 @@
             id: 15,
           ),
           ident: (
-            ident: 2,
+            ident: "username",
             span: (
               start: 181,
               end: 189,
@@ -749,7 +749,7 @@
         kind: Path((
           segments: [(
             res: Local(Var((
-              ident: 7,
+              ident: "self",
               span: (
                 start: 146,
                 end: 150,
@@ -771,7 +771,7 @@
             kind: Path((
               segments: [(
                 res: Local(Var((
-                  ident: 7,
+                  ident: "self",
                   span: (
                     start: 146,
                     end: 150,
@@ -788,7 +788,7 @@
             id: 17,
           ),
           ident: (
-            ident: 4,
+            ident: "content",
             span: (
               start: 197,
               end: 204,
@@ -810,7 +810,7 @@
                 kind: Path((
                   segments: [(
                     res: Local(Var((
-                      ident: 7,
+                      ident: "self",
                       span: (
                         start: 146,
                         end: 150,
@@ -827,7 +827,7 @@
                 id: 15,
               ),
               ident: (
-                ident: 2,
+                ident: "username",
                 span: (
                   start: 181,
                   end: 189,
@@ -846,7 +846,7 @@
                 kind: Path((
                   segments: [(
                     res: Local(Var((
-                      ident: 7,
+                      ident: "self",
                       span: (
                         start: 146,
                         end: 150,
@@ -863,7 +863,7 @@
                 id: 17,
               ),
               ident: (
-                ident: 4,
+                ident: "content",
                 span: (
                   start: 197,
                   end: 204,
@@ -885,7 +885,7 @@
       )),
       20: Stmt((
         kind: Return((
-          value: Some((
+          value: (
             kind: Infix((
               operator: Add,
               lhs: (
@@ -894,7 +894,7 @@
                     kind: Path((
                       segments: [(
                         res: Local(Var((
-                          ident: 7,
+                          ident: "self",
                           span: (
                             start: 146,
                             end: 150,
@@ -911,7 +911,7 @@
                     id: 15,
                   ),
                   ident: (
-                    ident: 2,
+                    ident: "username",
                     span: (
                       start: 181,
                       end: 189,
@@ -930,7 +930,7 @@
                     kind: Path((
                       segments: [(
                         res: Local(Var((
-                          ident: 7,
+                          ident: "self",
                           span: (
                             start: 146,
                             end: 150,
@@ -947,7 +947,7 @@
                     id: 17,
                   ),
                   ident: (
-                    ident: 4,
+                    ident: "content",
                     span: (
                       start: 197,
                       end: 204,
@@ -966,7 +966,7 @@
               end: 204,
             ),
             id: 19,
-          )),
+          ),
         )),
         span: (
           start: 169,
@@ -977,7 +977,7 @@
       21: Block((
         stmts: [(
           kind: Return((
-            value: Some((
+            value: (
               kind: Infix((
                 operator: Add,
                 lhs: (
@@ -986,7 +986,7 @@
                       kind: Path((
                         segments: [(
                           res: Local(Var((
-                            ident: 7,
+                            ident: "self",
                             span: (
                               start: 146,
                               end: 150,
@@ -1003,7 +1003,7 @@
                       id: 15,
                     ),
                     ident: (
-                      ident: 2,
+                      ident: "username",
                       span: (
                         start: 181,
                         end: 189,
@@ -1022,7 +1022,7 @@
                       kind: Path((
                         segments: [(
                           res: Local(Var((
-                            ident: 7,
+                            ident: "self",
                             span: (
                               start: 146,
                               end: 150,
@@ -1039,7 +1039,7 @@
                       id: 17,
                     ),
                     ident: (
-                      ident: 4,
+                      ident: "content",
                       span: (
                         start: 197,
                         end: 204,
@@ -1058,7 +1058,7 @@
                 end: 204,
               ),
               id: 19,
-            )),
+            ),
           )),
           span: (
             start: 169,
@@ -1076,7 +1076,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 6,
+              ident: "summarize",
               span: (
                 start: 136,
                 end: 145,
@@ -1085,7 +1085,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 7,
+                ident: "self",
                 span: (
                   start: 146,
                   end: 150,
@@ -1113,19 +1113,19 @@
               ),
               id: 13,
             )],
-            ret_ty: Some((
+            ret_ty: (
               kind: Primitive(Str),
               span: (
                 start: 155,
                 end: 158,
               ),
               id: 14,
-            )),
+            ),
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Return((
-                value: Some((
+                value: (
                   kind: Infix((
                     operator: Add,
                     lhs: (
@@ -1134,7 +1134,7 @@
                           kind: Path((
                             segments: [(
                               res: Local(Var((
-                                ident: 7,
+                                ident: "self",
                                 span: (
                                   start: 146,
                                   end: 150,
@@ -1151,7 +1151,7 @@
                           id: 15,
                         ),
                         ident: (
-                          ident: 2,
+                          ident: "username",
                           span: (
                             start: 181,
                             end: 189,
@@ -1170,7 +1170,7 @@
                           kind: Path((
                             segments: [(
                               res: Local(Var((
-                                ident: 7,
+                                ident: "self",
                                 span: (
                                   start: 146,
                                   end: 150,
@@ -1187,7 +1187,7 @@
                           id: 17,
                         ),
                         ident: (
-                          ident: 4,
+                          ident: "content",
                           span: (
                             start: 197,
                             end: 204,
@@ -1206,7 +1206,7 @@
                     end: 204,
                   ),
                   id: 19,
-                )),
+                ),
               )),
               span: (
                 start: 169,
@@ -1219,7 +1219,7 @@
               end: 211,
             ),
             id: 21,
-          )),
+          ),
           span: (
             start: 133,
             end: 211,
@@ -1248,7 +1248,7 @@
           fn_defs: [(
             sig: (
               name: (
-                ident: 6,
+                ident: "summarize",
                 span: (
                   start: 136,
                   end: 145,
@@ -1257,7 +1257,7 @@
               generic_params: [],
               params: [(
                 local_var: (
-                  ident: 7,
+                  ident: "self",
                   span: (
                     start: 146,
                     end: 150,
@@ -1285,19 +1285,19 @@
                 ),
                 id: 13,
               )],
-              ret_ty: Some((
+              ret_ty: (
                 kind: Primitive(Str),
                 span: (
                   start: 155,
                   end: 158,
                 ),
                 id: 14,
-              )),
+              ),
             ),
-            body: Some((
+            body: (
               stmts: [(
                 kind: Return((
-                  value: Some((
+                  value: (
                     kind: Infix((
                       operator: Add,
                       lhs: (
@@ -1306,7 +1306,7 @@
                             kind: Path((
                               segments: [(
                                 res: Local(Var((
-                                  ident: 7,
+                                  ident: "self",
                                   span: (
                                     start: 146,
                                     end: 150,
@@ -1323,7 +1323,7 @@
                             id: 15,
                           ),
                           ident: (
-                            ident: 2,
+                            ident: "username",
                             span: (
                               start: 181,
                               end: 189,
@@ -1342,7 +1342,7 @@
                             kind: Path((
                               segments: [(
                                 res: Local(Var((
-                                  ident: 7,
+                                  ident: "self",
                                   span: (
                                     start: 146,
                                     end: 150,
@@ -1359,7 +1359,7 @@
                             id: 17,
                           ),
                           ident: (
-                            ident: 4,
+                            ident: "content",
                             span: (
                               start: 197,
                               end: 204,
@@ -1378,7 +1378,7 @@
                       end: 204,
                     ),
                     id: 19,
-                  )),
+                  ),
                 )),
                 span: (
                   start: 169,
@@ -1391,7 +1391,7 @@
                 end: 211,
               ),
               id: 21,
-            )),
+            ),
             span: (
               start: 133,
               end: 211,
@@ -1407,5 +1407,5 @@
       )),
     },
   )],
-  names_to_indices: [9],
+  names_to_indices: ["crate"],
 )

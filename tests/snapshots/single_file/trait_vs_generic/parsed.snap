@@ -1,7 +1,7 @@
 {
-  12: (
-    name: 12,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [11],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -19,7 +19,7 @@
       items: [(
         kind: Trait((
           name: (
-            ident: 1,
+            ident: "Loggable",
             span: (
               start: 6,
               end: 14,
@@ -29,7 +29,7 @@
           self_fns: [(
             sig: (
               name: (
-                ident: 2,
+                ident: "format_log_message",
                 span: (
                   start: 24,
                   end: 42,
@@ -38,7 +38,7 @@
               generic_params: [],
               params: [(
                 local_var: (
-                  ident: 10,
+                  ident: "self",
                   span: (
                     start: 43,
                     end: 47,
@@ -60,14 +60,14 @@
                 ),
                 id: 2,
               )],
-              return_type: Some((
+              return_type: (
                 kind: Str,
                 span: (
                   start: 52,
                   end: 55,
                 ),
                 id: 3,
-              )),
+              ),
             ),
             body: None,
             span: (
@@ -86,7 +86,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 4,
+              ident: "log_specialized_message",
               span: (
                 start: 63,
                 end: 86,
@@ -94,19 +94,19 @@
             ),
             generic_params: [(
               name: (
-                ident: 5,
+                ident: "T",
                 span: (
                   start: 87,
                   end: 88,
                 ),
               ),
-              trait_bound: Some((
+              trait_bound: (
                 kind: TraitBound(
                   trait_bound: [(
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 1,
+                        ident: "Loggable",
                         span: (
                           start: 90,
                           end: 98,
@@ -118,7 +118,7 @@
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 6,
+                        ident: "Serializable",
                         span: (
                           start: 101,
                           end: 113,
@@ -133,7 +133,7 @@
                   end: 113,
                 ),
                 id: 6,
-              )),
+              ),
               span: (
                 start: 87,
                 end: 113,
@@ -142,7 +142,7 @@
             )],
             params: [(
               local_var: (
-                ident: 7,
+                ident: "message",
                 span: (
                   start: 115,
                   end: 122,
@@ -155,7 +155,7 @@
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 5,
+                        ident: "T",
                         span: (
                           start: 124,
                           end: 125,
@@ -180,7 +180,7 @@
             )],
             return_type: None,
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Expression((
                 expr: (
@@ -190,7 +190,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 8,
+                            ident: "println",
                             span: (
                               start: 133,
                               end: 140,
@@ -214,7 +214,7 @@
                                 ident_type: LocalOrUse,
                                 segments: [(
                                   ident: (
-                                    ident: 7,
+                                    ident: "message",
                                     span: (
                                       start: 141,
                                       end: 148,
@@ -230,7 +230,7 @@
                               id: 12,
                             ),
                             ident: (
-                              ident: 2,
+                              ident: "format_log_message",
                               span: (
                                 start: 149,
                                 end: 167,
@@ -271,7 +271,7 @@
               end: 173,
             ),
             id: 17,
-          )),
+          ),
         )),
         span: (
           start: 60,
@@ -282,7 +282,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 9,
+              ident: "log_trait_message",
               span: (
                 start: 178,
                 end: 195,
@@ -291,7 +291,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 7,
+                ident: "message",
                 span: (
                   start: 196,
                   end: 203,
@@ -304,7 +304,7 @@
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 1,
+                        ident: "Loggable",
                         span: (
                           start: 205,
                           end: 213,
@@ -316,7 +316,7 @@
                     ident: (
                       ident_type: LocalOrUse,
                       idents: [(
-                        ident: 6,
+                        ident: "Serializable",
                         span: (
                           start: 216,
                           end: 228,
@@ -341,7 +341,7 @@
             )],
             return_type: None,
           ),
-          body: Some((
+          body: (
             stmts: [(
               kind: Expression((
                 expr: (
@@ -351,7 +351,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 8,
+                            ident: "println",
                             span: (
                               start: 236,
                               end: 243,
@@ -375,7 +375,7 @@
                                 ident_type: LocalOrUse,
                                 segments: [(
                                   ident: (
-                                    ident: 7,
+                                    ident: "message",
                                     span: (
                                       start: 244,
                                       end: 251,
@@ -391,7 +391,7 @@
                               id: 23,
                             ),
                             ident: (
-                              ident: 2,
+                              ident: "format_log_message",
                               span: (
                                 start: 252,
                                 end: 270,
@@ -432,7 +432,7 @@
               end: 276,
             ),
             id: 28,
-          )),
+          ),
         )),
         span: (
           start: 175,

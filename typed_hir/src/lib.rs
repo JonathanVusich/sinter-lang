@@ -5,7 +5,7 @@ use std::ops::{Add, Deref, Index, IndexMut, Sub};
 
 use serde::Serialize;
 
-use ast::{ClassType, Ident, Mutability, UnaryOp};
+use ast::{Ident, Mutability, UnaryOp};
 use hir::InfixOp;
 use id::{CrateId, DefId, LocalDefId};
 use interner::InternedStr;
@@ -83,7 +83,7 @@ pub enum TyKind<'a> {
     Array(Ty<'a>),
     Class(&'a ClassDef<'a>, Generics<'a>),
     Enum(&'a EnumDef<'a>, Generics<'a>),
-    Member(&'a MemberDef<'a>, Generics<'a>),
+    Member(&'a MemberDef<'a>),
     Trait(&'a TraitDef<'a>, Generics<'a>),
     TraitBound(TraitBound<'a>),
     GenericParam(&'a GenericParam<'a>),
@@ -101,9 +101,8 @@ pub enum TyKind<'a> {
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct ClassDef<'a> {
     pub name: Ident,
-    #[serde(skip)]
+    pub generic_params: GenericParams<'a>,
     pub fields: Fields<'a>,
-    #[serde(skip)]
     pub fns: FnDefs<'a>,
 }
 
@@ -125,6 +124,7 @@ pub struct MemberDef<'a> {
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct TraitDef<'a> {
     pub name: Ident,
+    pub generic_params: GenericParams<'a>,
     pub fn_defs: FnDefs<'a>,
 }
 
@@ -135,15 +135,16 @@ pub struct Trait<'a> {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
-pub struct Field<'a> {
-    pub name: Ident,
-    pub ty: Ty<'a>,
+pub struct Field {
+    pub name: Ident, // Needed to break the cycle of recursive types
+    pub ty: DefId,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct FnDef<'a> {
     pub name: Ident,
-    pub ret_ty: Option<DefId>,
+    pub ret_ty: Option<DefId>, // Needed to break the cycle of recursive types
+    pub generic_params: GenericParams<'a>,
     pub params: Params<'a>,
 }
 
@@ -243,11 +244,12 @@ pub enum UintTy {
 }
 
 pub type TraitBound<'a> = &'a [&'a Trait<'a>];
+// TODO: I think this needs to be DefId
 pub type Generics<'a> = &'a [Ty<'a>];
 pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
-pub type Params<'a> = &'a [Param<'a>];
+pub type Params<'a> = &'a [Param];
 pub type ClosureDefParams<'a> = &'a [Ty<'a>];
-pub type Fields<'a> = &'a [Field<'a>];
+pub type Fields<'a> = &'a [Field];
 pub type MemberDefs<'a> = &'a [MemberDef<'a>];
 pub type FnDefs<'a> = &'a [FnDef<'a>];
 pub type Args = Box<[ExprId]>;
@@ -431,9 +433,9 @@ pub struct Generic<'a> {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
-pub struct Param<'a> {
+pub struct Param {
     pub name: Ident,
-    pub ty: Ty<'a>,
+    pub ty: DefId,
     pub id: DefId,
 }
 
@@ -469,11 +471,11 @@ impl<'hir> Thir<'hir> {
     }
 
     pub fn exprs(&mut self) -> impl Iterator<Item = &'_ mut Expr<'hir>> {
-        return self.exprs.iter_mut();
+        self.exprs.iter_mut()
     }
 
     pub fn stmts(&mut self) -> impl Iterator<Item = &'_ mut Stmt<'hir>> {
-        return self.stmts.iter_mut();
+        self.stmts.iter_mut()
     }
 
     pub fn insert_expr(&mut self, expr: Expr<'hir>) -> ExprId {

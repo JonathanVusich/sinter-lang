@@ -1,13 +1,13 @@
 (
   crates: [(
-    name: 11,
+    name: "crate",
     id: (
       id: 0,
     ),
     items: [(
       kind: Class((
         name: (
-          ident: 1,
+          ident: "Point",
           span: (
             start: 6,
             end: 11,
@@ -17,7 +17,7 @@
         generic_params: [],
         fields: [(
           name: (
-            ident: 2,
+            ident: "x",
             span: (
               start: 18,
               end: 19,
@@ -38,7 +38,7 @@
           id: 1,
         ), (
           name: (
-            ident: 4,
+            ident: "y",
             span: (
               start: 30,
               end: 31,
@@ -68,7 +68,7 @@
     ), (
       kind: Class((
         name: (
-          ident: 5,
+          ident: "Node",
           span: (
             start: 50,
             end: 54,
@@ -87,7 +87,7 @@
     ), (
       kind: Constant((
         local_var: (
-          ident: 6,
+          ident: "i64_array",
           span: (
             start: 60,
             end: 69,
@@ -149,7 +149,7 @@
     ), (
       kind: Constant((
         local_var: (
-          ident: 8,
+          ident: "point_array",
           span: (
             start: 94,
             end: 105,
@@ -194,13 +194,13 @@
                             crate_id: 0,
                             local_id: 1,
                           ),
-                          ident: 2,
+                          ident: "x",
                         ), (
                           id: (
                             crate_id: 0,
                             local_id: 3,
                           ),
-                          ident: 4,
+                          ident: "y",
                         )],
                         fns: [],
 ))),
@@ -249,13 +249,13 @@
                             crate_id: 0,
                             local_id: 1,
                           ),
-                          ident: 2,
+                          ident: "x",
                         ), (
                           id: (
                             crate_id: 0,
                             local_id: 3,
                           ),
-                          ident: 4,
+                          ident: "y",
                         )],
                         fns: [],
 ))),
@@ -306,7 +306,7 @@
     ), (
       kind: Constant((
         local_var: (
-          ident: 9,
+          ident: "node_array",
           span: (
             start: 157,
             end: 167,
@@ -420,7 +420,7 @@
       )),
       1: Field((
         name: (
-          ident: 2,
+          ident: "x",
           span: (
             start: 18,
             end: 19,
@@ -450,7 +450,7 @@
       )),
       3: Field((
         name: (
-          ident: 4,
+          ident: "y",
           span: (
             start: 30,
             end: 31,
@@ -473,7 +473,7 @@
       4: Item((
         kind: Class((
           name: (
-            ident: 1,
+            ident: "Point",
             span: (
               start: 6,
               end: 11,
@@ -483,7 +483,7 @@
           generic_params: [],
           fields: [(
             name: (
-              ident: 2,
+              ident: "x",
               span: (
                 start: 18,
                 end: 19,
@@ -504,7 +504,7 @@
             id: 1,
           ), (
             name: (
-              ident: 4,
+              ident: "y",
               span: (
                 start: 30,
                 end: 31,
@@ -535,7 +535,7 @@
       5: Item((
         kind: Class((
           name: (
-            ident: 5,
+            ident: "Node",
             span: (
               start: 50,
               end: 54,
@@ -553,7 +553,7 @@
         id: 5,
       )),
       6: LocalVar((
-        ident: 6,
+        ident: "i64_array",
         span: (
           start: 60,
           end: 69,
@@ -641,7 +641,7 @@
       13: Item((
         kind: Constant((
           local_var: (
-            ident: 6,
+            ident: "i64_array",
             span: (
               start: 60,
               end: 69,
@@ -702,7 +702,7 @@
         id: 13,
       )),
       14: LocalVar((
-        ident: 8,
+        ident: "point_array",
         span: (
           start: 94,
           end: 105,
@@ -773,13 +773,13 @@
                   crate_id: 0,
                   local_id: 1,
                 ),
-                ident: 2,
+                ident: "x",
               ), (
                 id: (
                   crate_id: 0,
                   local_id: 3,
                 ),
-                ident: 4,
+                ident: "y",
               )],
               fns: [],
 ))),
@@ -807,13 +807,13 @@
                       crate_id: 0,
                       local_id: 1,
                     ),
-                    ident: 2,
+                    ident: "x",
                   ), (
                     id: (
                       crate_id: 0,
                       local_id: 3,
                     ),
-                    ident: 4,
+                    ident: "y",
                   )],
                   fns: [],
 ))),
@@ -877,13 +877,13 @@
                   crate_id: 0,
                   local_id: 1,
                 ),
-                ident: 2,
+                ident: "x",
               ), (
                 id: (
                   crate_id: 0,
                   local_id: 3,
                 ),
-                ident: 4,
+                ident: "y",
               )],
               fns: [],
 ))),
@@ -911,13 +911,13 @@
                       crate_id: 0,
                       local_id: 1,
                     ),
-                    ident: 2,
+                    ident: "x",
                   ), (
                     id: (
                       crate_id: 0,
                       local_id: 3,
                     ),
-                    ident: 4,
+                    ident: "y",
                   )],
                   fns: [],
 ))),
@@ -969,13 +969,13 @@
                           crate_id: 0,
                           local_id: 1,
                         ),
-                        ident: 2,
+                        ident: "x",
                       ), (
                         id: (
                           crate_id: 0,
                           local_id: 3,
                         ),
-                        ident: 4,
+                        ident: "y",
                       )],
                       fns: [],
 ))),
@@ -1024,13 +1024,13 @@
                           crate_id: 0,
                           local_id: 1,
                         ),
-                        ident: 2,
+                        ident: "x",
                       ), (
                         id: (
                           crate_id: 0,
                           local_id: 3,
                         ),
-                        ident: 4,
+                        ident: "y",
                       )],
                       fns: [],
 ))),
@@ -1075,7 +1075,7 @@
       26: Item((
         kind: Constant((
           local_var: (
-            ident: 8,
+            ident: "point_array",
             span: (
               start: 94,
               end: 105,
@@ -1120,13 +1120,13 @@
                               crate_id: 0,
                               local_id: 1,
                             ),
-                            ident: 2,
+                            ident: "x",
                           ), (
                             id: (
                               crate_id: 0,
                               local_id: 3,
                             ),
-                            ident: 4,
+                            ident: "y",
                           )],
                           fns: [],
 ))),
@@ -1175,13 +1175,13 @@
                               crate_id: 0,
                               local_id: 1,
                             ),
-                            ident: 2,
+                            ident: "x",
                           ), (
                             id: (
                               crate_id: 0,
                               local_id: 3,
                             ),
-                            ident: 4,
+                            ident: "y",
                           )],
                           fns: [],
 ))),
@@ -1231,7 +1231,7 @@
         id: 26,
       )),
       27: LocalVar((
-        ident: 9,
+        ident: "node_array",
         span: (
           start: 157,
           end: 167,
@@ -1444,7 +1444,7 @@
       35: Item((
         kind: Constant((
           local_var: (
-            ident: 9,
+            ident: "node_array",
             span: (
               start: 157,
               end: 167,
@@ -1549,5 +1549,5 @@
       )),
     },
   )],
-  names_to_indices: [11],
+  names_to_indices: ["crate"],
 )

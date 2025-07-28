@@ -1,7 +1,7 @@
 {
-  12: (
-    name: 12,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [11],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -19,7 +19,7 @@
       items: [(
         kind: Class((
           name: (
-            ident: 1,
+            ident: "Rectangle",
             span: (
               start: 6,
               end: 15,
@@ -29,7 +29,7 @@
           generic_params: [],
           fields: [(
             name: (
-              ident: 2,
+              ident: "width",
               span: (
                 start: 22,
                 end: 27,
@@ -50,7 +50,7 @@
             id: 1,
           ), (
             name: (
-              ident: 4,
+              ident: "length",
               span: (
                 start: 38,
                 end: 44,
@@ -73,7 +73,7 @@
           self_fns: [(
             sig: (
               name: (
-                ident: 5,
+                ident: "perimeter",
                 span: (
                   start: 59,
                   end: 68,
@@ -82,7 +82,7 @@
               generic_params: [],
               params: [(
                 local_var: (
-                  ident: 9,
+                  ident: "self",
                   span: (
                     start: 69,
                     end: 73,
@@ -104,19 +104,19 @@
                 ),
                 id: 6,
               )],
-              return_type: Some((
+              return_type: (
                 kind: F64,
                 span: (
                   start: 78,
                   end: 81,
                 ),
                 id: 7,
-              )),
+              ),
             ),
-            body: Some((
+            body: (
               stmts: [(
                 kind: Return((
-                  value: Some((
+                  value: (
                     kind: Infix((
                       operator: Add,
                       lhs: (
@@ -131,7 +131,7 @@
                                       ident_type: LocalOrUse,
                                       segments: [(
                                         ident: (
-                                          ident: 9,
+                                          ident: "self",
                                           span: (
                                             start: 100,
                                             end: 104,
@@ -147,7 +147,7 @@
                                     id: 8,
                                   ),
                                   ident: (
-                                    ident: 2,
+                                    ident: "width",
                                     span: (
                                       start: 105,
                                       end: 110,
@@ -194,7 +194,7 @@
                                       ident_type: LocalOrUse,
                                       segments: [(
                                         ident: (
-                                          ident: 9,
+                                          ident: "self",
                                           span: (
                                             start: 119,
                                             end: 123,
@@ -210,7 +210,7 @@
                                     id: 12,
                                   ),
                                   ident: (
-                                    ident: 6,
+                                    ident: "height",
                                     span: (
                                       start: 124,
                                       end: 130,
@@ -251,7 +251,7 @@
                       end: 135,
                     ),
                     id: 16,
-                  )),
+                  ),
                 )),
                 span: (
                   start: 92,
@@ -264,7 +264,7 @@
                 end: 142,
               ),
               id: 18,
-            )),
+            ),
             span: (
               start: 56,
               end: 142,
@@ -273,7 +273,7 @@
           ), (
             sig: (
               name: (
-                ident: 7,
+                ident: "square",
                 span: (
                   start: 151,
                   end: 157,
@@ -282,7 +282,7 @@
               generic_params: [],
               params: [(
                 local_var: (
-                  ident: 8,
+                  ident: "size",
                   span: (
                     start: 158,
                     end: 162,
@@ -304,26 +304,26 @@
                 ),
                 id: 22,
               )],
-              return_type: Some((
+              return_type: (
                 kind: QSelf,
                 span: (
                   start: 172,
                   end: 176,
                 ),
                 id: 23,
-              )),
+              ),
             ),
-            body: Some((
+            body: (
               stmts: [(
                 kind: Return((
-                  value: Some((
+                  value: (
                     kind: Call((
                       target: (
                         kind: Path((
                           ident_type: LocalOrUse,
                           segments: [(
                             ident: (
-                              ident: 10,
+                              ident: "Self",
                               span: (
                                 start: 194,
                                 end: 198,
@@ -343,7 +343,7 @@
                           ident_type: LocalOrUse,
                           segments: [(
                             ident: (
-                              ident: 8,
+                              ident: "size",
                               span: (
                                 start: 199,
                                 end: 203,
@@ -362,7 +362,7 @@
                           ident_type: LocalOrUse,
                           segments: [(
                             ident: (
-                              ident: 8,
+                              ident: "size",
                               span: (
                                 start: 205,
                                 end: 209,
@@ -383,7 +383,7 @@
                       end: 210,
                     ),
                     id: 27,
-                  )),
+                  ),
                 )),
                 span: (
                   start: 187,
@@ -396,7 +396,7 @@
                 end: 217,
               ),
               id: 29,
-            )),
+            ),
             span: (
               start: 148,
               end: 217,

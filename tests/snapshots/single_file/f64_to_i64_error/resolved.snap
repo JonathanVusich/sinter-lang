@@ -1,13 +1,13 @@
 (
   crates: [(
-    name: 4,
+    name: "crate",
     id: (
       id: 0,
     ),
     items: [(
       kind: Constant((
         local_var: (
-          ident: 1,
+          ident: "PLANETS",
           span: (
             start: 4,
             end: 11,
@@ -39,7 +39,7 @@
     )],
     nodes: {
       0: LocalVar((
-        ident: 1,
+        ident: "PLANETS",
         span: (
           start: 4,
           end: 11,
@@ -65,7 +65,7 @@
       3: Item((
         kind: Constant((
           local_var: (
-            ident: 1,
+            ident: "PLANETS",
             span: (
               start: 4,
               end: 11,
@@ -97,5 +97,5 @@
       )),
     },
   )],
-  names_to_indices: [4],
+  names_to_indices: ["crate"],
 )

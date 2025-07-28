@@ -1,6 +1,6 @@
 (
   crates: [(
-    name: 9,
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -13,19 +13,19 @@
         arms: [],
         stmts: [Let((
           local_var: (
-            ident: 5,
+            ident: "doubled_num",
             ty: (
               kind: Int(I64),
             ),
           ),
           mutability: Immutable,
-          initializer: Some((
+          initializer: (
             id: 2,
-          )),
+          ),
         )), Return((
-          expr: Some((
+          expr: (
             id: 6,
-          )),
+          ),
         )), If((
           condition: (
             id: 5,
@@ -35,13 +35,13 @@
           ),
           if_false: None,
         )), Return((
-          expr: Some((
+          expr: (
             id: 8,
-          )),
+          ),
         ))],
         exprs: [(
           kind: Path(Var((
-            ident: 2,
+            ident: "num",
             ty: (
               kind: Int(I64),
             ),
@@ -69,7 +69,7 @@
           ),
         ), (
           kind: Path(Var((
-            ident: 2,
+            ident: "num",
             ty: (
               kind: Int(I64),
             ),
@@ -96,7 +96,7 @@
             kind: Boolean,
           ),
         ), (
-          kind: String(6),
+          kind: String("Greater than 1000"),
           ty: (
             kind: Str,
           ),
@@ -110,7 +110,7 @@
             kind: None,
           ),
         ), (
-          kind: String(7),
+          kind: String("Less than or equal to 1000"),
           ty: (
             kind: Str,
           ),

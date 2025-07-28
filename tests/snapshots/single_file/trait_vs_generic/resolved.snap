@@ -1,13 +1,13 @@
 (
   crates: [(
-    name: 12,
+    name: "crate",
     id: (
       id: 0,
     ),
     items: [(
       kind: Trait((
         name: (
-          ident: 1,
+          ident: "Loggable",
           span: (
             start: 6,
             end: 14,
@@ -17,7 +17,7 @@
         fn_defs: [(
           sig: (
             name: (
-              ident: 2,
+              ident: "format_log_message",
               span: (
                 start: 24,
                 end: 42,
@@ -26,7 +26,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 10,
+                ident: "self",
                 span: (
                   start: 43,
                   end: 47,
@@ -54,14 +54,14 @@
               ),
               id: 2,
             )],
-            ret_ty: Some((
+            ret_ty: (
               kind: Primitive(Str),
               span: (
                 start: 52,
                 end: 55,
               ),
               id: 3,
-            )),
+            ),
           ),
           body: None,
           span: (
@@ -79,7 +79,7 @@
     )],
     nodes: {
       0: LocalVar((
-        ident: 10,
+        ident: "self",
         span: (
           start: 43,
           end: 47,
@@ -102,7 +102,7 @@
       )),
       2: Param((
         local_var: (
-          ident: 10,
+          ident: "self",
           span: (
             start: 43,
             end: 47,
@@ -142,7 +142,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 2,
+              ident: "format_log_message",
               span: (
                 start: 24,
                 end: 42,
@@ -151,7 +151,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 10,
+                ident: "self",
                 span: (
                   start: 43,
                   end: 47,
@@ -179,14 +179,14 @@
               ),
               id: 2,
             )],
-            ret_ty: Some((
+            ret_ty: (
               kind: Primitive(Str),
               span: (
                 start: 52,
                 end: 55,
               ),
               id: 3,
-            )),
+            ),
           ),
           body: None,
           span: (
@@ -204,7 +204,7 @@
       5: Item((
         kind: Trait((
           name: (
-            ident: 1,
+            ident: "Loggable",
             span: (
               start: 6,
               end: 14,
@@ -214,7 +214,7 @@
           fn_defs: [(
             sig: (
               name: (
-                ident: 2,
+                ident: "format_log_message",
                 span: (
                   start: 24,
                   end: 42,
@@ -223,7 +223,7 @@
               generic_params: [],
               params: [(
                 local_var: (
-                  ident: 10,
+                  ident: "self",
                   span: (
                     start: 43,
                     end: 47,
@@ -251,14 +251,14 @@
                 ),
                 id: 2,
               )],
-              ret_ty: Some((
+              ret_ty: (
                 kind: Primitive(Str),
                 span: (
                   start: 52,
                   end: 55,
                 ),
                 id: 3,
-              )),
+              ),
             ),
             body: None,
             span: (
@@ -275,7 +275,7 @@
         id: 5,
       )),
       19: LocalVar((
-        ident: 7,
+        ident: "message",
         span: (
           start: 196,
           end: 203,
@@ -284,5 +284,5 @@
       )),
     },
   )],
-  names_to_indices: [12],
+  names_to_indices: ["crate"],
 )

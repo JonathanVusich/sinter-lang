@@ -1,6 +1,6 @@
 {
-  9: (
-    name: 9,
+  "crate": (
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [8],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},
@@ -20,7 +20,7 @@
         kind: Fn((
           sig: (
             name: (
-              ident: 1,
+              ident: "to_string",
               span: (
                 start: 3,
                 end: 12,
@@ -29,7 +29,7 @@
             generic_params: [],
             params: [(
               local_var: (
-                ident: 2,
+                ident: "num",
                 span: (
                   start: 13,
                   end: 16,
@@ -64,7 +64,7 @@
             stmts: [(
               kind: Let((
                 local_var: (
-                  ident: 5,
+                  ident: "doubled_num",
                   span: (
                     start: 40,
                     end: 51,
@@ -81,7 +81,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 2,
+                            ident: "num",
                             span: (
                               start: 54,
                               end: 57,
@@ -127,7 +127,7 @@
                         ident_type: LocalOrUse,
                         segments: [(
                           ident: (
-                            ident: 2,
+                            ident: "num",
                             span: (
                               start: 70,
                               end: 73,
@@ -161,7 +161,7 @@
                   stmts: [(
                     kind: Return((
                       value: (
-                        kind: String(6),
+                        kind: String("Greater than 1000"),
                         span: (
                           start: 96,
                           end: 115,
@@ -191,7 +191,7 @@
             ), (
               kind: Return((
                 value: (
-                  kind: String(7),
+                  kind: String("Less than or equal to 1000"),
                   span: (
                     start: 134,
                     end: 162,

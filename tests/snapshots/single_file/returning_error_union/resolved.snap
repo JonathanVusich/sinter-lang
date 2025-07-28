@@ -1,13 +1,13 @@
 (
   crates: [(
-    name: 23,
+    name: "crate",
     id: (
       id: 0,
     ),
     items: [(
       kind: Enum((
         name: (
-          ident: 11,
+          ident: "WriteError",
           span: (
             start: 287,
             end: 297,
@@ -15,7 +15,7 @@
         ),
         generic_params: [],
         members: [(
-          name: 12,
+          name: "BufferOverflow",
           fields: [],
           fn_defs: [],
           span: (
@@ -24,7 +24,7 @@
           ),
           id: 38,
         ), (
-          name: 14,
+          name: "MalformedBytes",
           fields: [],
           fn_defs: [],
           span: (
@@ -44,7 +44,7 @@
     nodes: {
       38: Item((
         kind: Member((
-          name: 12,
+          name: "BufferOverflow",
           fields: [],
           fn_defs: [],
           span: (
@@ -61,7 +61,7 @@
       )),
       39: Item((
         kind: Member((
-          name: 14,
+          name: "MalformedBytes",
           fields: [],
           fn_defs: [],
           span: (
@@ -79,7 +79,7 @@
       40: Item((
         kind: Enum((
           name: (
-            ident: 11,
+            ident: "WriteError",
             span: (
               start: 287,
               end: 297,
@@ -87,7 +87,7 @@
           ),
           generic_params: [],
           members: [(
-            name: 12,
+            name: "BufferOverflow",
             fields: [],
             fn_defs: [],
             span: (
@@ -96,7 +96,7 @@
             ),
             id: 38,
           ), (
-            name: 14,
+            name: "MalformedBytes",
             fields: [],
             fn_defs: [],
             span: (
@@ -115,5 +115,5 @@
       )),
     },
   )],
-  names_to_indices: [23],
+  names_to_indices: ["crate"],
 )

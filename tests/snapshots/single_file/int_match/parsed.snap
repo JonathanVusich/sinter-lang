@@ -1,7 +1,7 @@
 {
-  7: (
-    name: 7,
-    crate_id: (
+  "crate": (
+    name: "crate",
+    id: (
       id: 0,
     ),
     modules: [(
@@ -10,7 +10,7 @@
         module_id: 0,
       ),
       path: (
-        module_path: [6],
+        module_path: ["module"],
       ),
       namespace: (
         modules: {},

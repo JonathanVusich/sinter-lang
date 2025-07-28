@@ -10,3 +10,4 @@ bumpalo = "3.16.0"
 
 serde = { version = "1.0.196", features = ["derive"] }
 lasso = { version = "0.7.3", features = ["serialize"] }
+hashbrown = "0.15.4"

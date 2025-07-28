@@ -1,6 +1,6 @@
 (
   crates: [(
-    name: 11,
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -53,7 +53,7 @@
           kind: Array((
             kind: Class((
               name: (
-                ident: 1,
+                ident: "Point",
                 span: (
                   start: 6,
                   end: 11,
@@ -72,7 +72,7 @@
           ty: (
             kind: Class((
               name: (
-                ident: 1,
+                ident: "Point",
                 span: (
                   start: 6,
                   end: 11,
@@ -104,7 +104,7 @@
           ty: (
             kind: Class((
               name: (
-                ident: 1,
+                ident: "Point",
                 span: (
                   start: 6,
                   end: 11,
@@ -120,7 +120,7 @@
           ty: (
             kind: Class((
               name: (
-                ident: 1,
+                ident: "Point",
                 span: (
                   start: 6,
                   end: 11,
@@ -152,7 +152,7 @@
           ty: (
             kind: Class((
               name: (
-                ident: 1,
+                ident: "Point",
                 span: (
                   start: 6,
                   end: 11,
@@ -172,7 +172,7 @@
             kind: Array((
               kind: Class((
                 name: (
-                  ident: 1,
+                  ident: "Point",
                   span: (
                     start: 6,
                     end: 11,
@@ -190,7 +190,7 @@
           kind: Array((
             kind: Class((
               name: (
-                ident: 5,
+                ident: "Node",
                 span: (
                   start: 50,
                   end: 54,
@@ -209,7 +209,7 @@
           ty: (
             kind: Class((
               name: (
-                ident: 5,
+                ident: "Node",
                 span: (
                   start: 50,
                   end: 54,
@@ -227,7 +227,7 @@
           ty: (
             kind: Class((
               name: (
-                ident: 5,
+                ident: "Node",
                 span: (
                   start: 50,
                   end: 54,
@@ -243,7 +243,7 @@
           ty: (
             kind: Class((
               name: (
-                ident: 5,
+                ident: "Node",
                 span: (
                   start: 50,
                   end: 54,
@@ -261,7 +261,7 @@
           ty: (
             kind: Class((
               name: (
-                ident: 5,
+                ident: "Node",
                 span: (
                   start: 50,
                   end: 54,
@@ -281,7 +281,7 @@
             kind: Array((
               kind: Class((
                 name: (
-                  ident: 5,
+                  ident: "Node",
                   span: (
                     start: 50,
                     end: 54,

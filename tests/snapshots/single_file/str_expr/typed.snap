@@ -1,6 +1,6 @@
 (
   crates: [(
-    name: 5,
+    name: "crate",
     id: (
       id: 0,
     ),
@@ -10,11 +10,10 @@
         ret_ty: (
           kind: Str,
         ),
-        blocks: [],
         arms: [],
         stmts: [],
         exprs: [(
-          kind: String(3),
+          kind: String("hello world"),
           ty: (
             kind: Str,
           ),

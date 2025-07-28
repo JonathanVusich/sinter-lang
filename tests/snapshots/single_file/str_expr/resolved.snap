@@ -1,13 +1,13 @@
 (
   crates: [(
-    name: 5,
+    name: "crate",
     id: (
       id: 0,
     ),
     items: [(
       kind: Constant((
         local_var: (
-          ident: 1,
+          ident: "string",
           span: (
             start: 4,
             end: 10,
@@ -23,7 +23,7 @@
           id: 1,
         ),
         initializer: (
-          kind: String(3),
+          kind: String("hello world"),
           span: (
             start: 18,
             end: 31,
@@ -39,7 +39,7 @@
     )],
     nodes: {
       0: LocalVar((
-        ident: 1,
+        ident: "string",
         span: (
           start: 4,
           end: 10,
@@ -55,7 +55,7 @@
         id: 1,
       )),
       2: Expr((
-        kind: String(3),
+        kind: String("hello world"),
         span: (
           start: 18,
           end: 31,
@@ -65,7 +65,7 @@
       3: Item((
         kind: Constant((
           local_var: (
-            ident: 1,
+            ident: "string",
             span: (
               start: 4,
               end: 10,
@@ -81,7 +81,7 @@
             id: 1,
           ),
           initializer: (
-            kind: String(3),
+            kind: String("hello world"),
             span: (
               start: 18,
               end: 31,
@@ -97,5 +97,5 @@
       )),
     },
   )],
-  names_to_indices: [5],
+  names_to_indices: ["crate"],
 )
