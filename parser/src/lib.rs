@@ -60,12 +60,14 @@ impl<'ctxt> Parser<'ctxt> {
         self.id_generator.local_def_id()
     }
 
-    fn track_span(&mut self) {
+    fn track_span(&mut self) -> usize {
         self.spans.push(self.pos);
+        self.pos
     }
 
-    fn get_span(&mut self) -> Span {
+    fn get_span(&mut self, pos: usize) -> Span {
         let first = self.spans.pop().expect("No start token found!");
+        debug_assert_eq!(pos, first);
 
         self.compute_span(first)
     }
@@ -111,9 +113,9 @@ impl<'ctxt> Parser<'ctxt> {
         parse_fn: for<'rf> fn(&'rf mut Parser<'ctxt>) -> Option<T>,
         constructor: fn(T, Span, LocalDefId) -> I,
     ) -> Option<I> {
-        self.track_span();
+        let pos = self.track_span();
         let value = parse_fn(self)?;
-        Some(constructor(value, self.get_span(), self.get_id()))
+        Some(constructor(value, self.get_span(pos), self.get_id()))
     }
 
     fn parse_item<U>(
@@ -121,9 +123,9 @@ impl<'ctxt> Parser<'ctxt> {
         parse_fn: fn(&mut Parser<'_>) -> Option<U>,
         kind: fn(U) -> ItemKind,
     ) -> Option<Item> {
-        self.track_span();
+        let pos = self.track_span();
         let item = parse_fn(self)?;
-        let span = self.get_span();
+        let span = self.get_span(pos);
         let id = self.get_id();
 
         let item_kind = kind(item);
@@ -229,14 +231,14 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn fn_self_stmt(&mut self) -> Option<FnSelfStmt> {
-        self.track_span();
+        let pos = self.track_span();
         let signature = self.fn_signature(false)?;
         let stmt = self.block()?;
 
         Some(FnSelfStmt::new(
             signature,
             Some(stmt),
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
@@ -249,7 +251,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn fn_trait_stmt(&mut self) -> Option<FnSelfStmt> {
-        self.track_span();
+        let pos = self.track_span();
         let signature = self.fn_signature(true)?;
         match self.current() {
             Some(TokenType::Semicolon) => {
@@ -257,7 +259,7 @@ impl<'ctxt> Parser<'ctxt> {
                 Some(FnSelfStmt::new(
                     signature,
                     None,
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
@@ -266,7 +268,7 @@ impl<'ctxt> Parser<'ctxt> {
                 Some(FnSelfStmt::new(
                     signature,
                     Some(stmt),
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
@@ -282,10 +284,10 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_let_stmt(&mut self) -> Option<Stmt> {
-        self.track_span();
+        let pos = self.track_span();
         Some(Stmt::new(
             StmtKind::Let(self.let_stmt()?),
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
@@ -421,7 +423,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_expression(&mut self) -> Option<Stmt> {
-        self.track_span();
+        let pos = self.track_span();
         let expr = self.expr()?;
         let implicit_return = if self.matches(TokenType::Semicolon) {
             self.advance();
@@ -431,7 +433,7 @@ impl<'ctxt> Parser<'ctxt> {
         };
         Some(Stmt::new(
             StmtKind::Expression(Expression::new(expr, implicit_return)),
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
@@ -576,24 +578,24 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn generic_param(&mut self) -> Option<GenericParam> {
-        self.track_span();
+        let pos = self.track_span();
         let ident = self.identifier()?;
         let mut trait_bound: Option<Ty> = None;
         if self.matches(TokenType::Colon) {
             self.advance();
-            self.track_span();
+            let pos = self.track_span();
             trait_bound = Some(Ty::new(
                 TyKind::TraitBound {
                     trait_bound: self.trait_bound()?,
                 },
-                self.get_span(),
+                self.get_span(pos),
                 self.get_id(),
             ));
         }
         Some(GenericParam::new(
             ident,
             trait_bound,
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
@@ -617,7 +619,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn enum_member(&mut self) -> Option<EnumMember> {
-        self.track_span();
+        let pos = self.track_span();
         match self.current() {
             Some(TokenType::Identifier(ident)) => {
                 self.advance();
@@ -628,7 +630,7 @@ impl<'ctxt> Parser<'ctxt> {
                     TokenType::RightBrace,
                 )?;
 
-                let span = self.get_span();
+                let span = self.get_span(pos);
                 let id = self.get_id();
                 Some(EnumMember::new(ident, fields, fn_self_stmts, span, id))
             }
@@ -674,21 +676,21 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn field(&mut self) -> Option<Field> {
-        self.track_span();
+        let pos = self.track_span();
         let ident = self.identifier()?;
         self.expect(TokenType::Colon)?;
         let ty = self.parse_ty()?;
-        Some(Field::new(ident, ty, self.get_span(), self.get_id()))
+        Some(Field::new(ident, ty, self.get_span(pos), self.get_id()))
     }
 
     fn param(&mut self) -> Option<Param> {
-        self.track_span();
+        let pos = self.track_span();
         let (mutability, ident, ty) = self.mut_var_ty()?;
         Some(Param::new(
             ident,
             ty,
             mutability,
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
@@ -715,7 +717,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn self_param(&mut self) -> Option<Param> {
-        self.track_span();
+        let pos = self.track_span();
         let mutability = self.mutability();
 
         match self.current_token() {
@@ -731,7 +733,7 @@ impl<'ctxt> Parser<'ctxt> {
                     ident,
                     ty,
                     mutability,
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
@@ -759,27 +761,29 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn block(&mut self) -> Option<Block> {
-        self.track_span();
+        let pos = self.track_span();
         let stmts = self.parse_multiple_with_scope(
             |parser| parser.parse_inner_stmt(),
             TokenType::LeftBrace,
             TokenType::RightBrace,
         )?;
-        Some(Block::new(stmts, self.get_span(), self.get_id()))
+        Some(Block::new(stmts, self.get_span(pos), self.get_id()))
     }
 
     fn parse_block_stmt(&mut self) -> Option<Stmt> {
         self.track_span();
+        let pos = self.track_span();
+
         Some(Stmt::new(
             StmtKind::Expression(Expression::new(
                 Expr::new(
                     ExprKind::Block(self.block()?),
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ),
                 true,
             )),
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
@@ -892,7 +896,7 @@ impl<'ctxt> Parser<'ctxt> {
     /// Parses a closure type. This method assumes that a valid closure signature
     /// already exists.
     fn parse_closure_ty(&mut self) -> Option<Ty> {
-        self.track_span();
+        let pos = self.track_span();
         let params = self.parse_multiple_with_scope_delimiter::<Ty, 1>(
             |parser| parser.parse_ty(),
             TokenType::Comma,
@@ -916,25 +920,25 @@ impl<'ctxt> Parser<'ctxt> {
                 params,
                 ret_ty: Box::new(ret_ty),
             };
-            Some(Ty::new(ty_kind, self.get_span(), self.get_id()))
+            Some(Ty::new(ty_kind, self.get_span(pos), self.get_id()))
         } else {
             self.unexpected_end()
         }
     }
 
     fn parse_array_ty(&mut self) -> Option<Ty> {
-        self.track_span();
+        let pos = self.track_span();
         self.expect(TokenType::LeftBracket)?;
         let ty_kind = TyKind::Array {
             ty: Box::new(self.parse_ty()?),
         };
-        let ty = Ty::new(ty_kind, self.get_span(), self.get_id());
+        let ty = Ty::new(ty_kind, self.get_span(pos), self.get_id());
         self.expect(TokenType::RightBracket)?;
         Some(ty)
     }
 
     fn parse_qualified_ty(&mut self) -> Option<Ty> {
-        self.track_span();
+        let pos = self.track_span();
 
         let path = self.parse_path_ty()?;
 
@@ -944,7 +948,7 @@ impl<'ctxt> Parser<'ctxt> {
                 .parse_multiple_with_delimiter(|parser| parser.parse_path_ty(), TokenType::Plus)?;
             paths.insert(0, path);
 
-            let span = self.get_span();
+            let span = self.get_span(pos);
             Some(Ty::new(
                 TyKind::TraitBound {
                     trait_bound: TraitBound::from(paths),
@@ -953,13 +957,13 @@ impl<'ctxt> Parser<'ctxt> {
                 self.get_id(),
             ))
         } else {
-            let span = self.get_span();
+            let span = self.get_span(pos);
             Some(Ty::new(TyKind::Path { path }, span, self.get_id()))
         }
     }
 
     fn parse_if_stmt(&mut self) -> Option<Stmt> {
-        self.track_span();
+        let pos = self.track_span();
         self.expect(TokenType::If)?;
         let condition = self.expr()?;
         let block_stmt = self.block()?;
@@ -971,16 +975,16 @@ impl<'ctxt> Parser<'ctxt> {
         };
         Some(Stmt::new(
             StmtKind::If(IfStmt::new(condition, block_stmt, optional_stmt)),
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
 
     fn parse_while_stmt(&mut self) -> Option<Stmt> {
-        self.track_span();
+        let pos = self.track_span();
         Some(Stmt::new(
             StmtKind::While(self.while_stmt()?),
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
@@ -994,7 +998,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_for_stmt(&mut self) -> Option<Stmt> {
-        self.track_span();
+        let pos = self.track_span();
         self.expect(TokenType::For)?;
         let local_var = self.local_var()?;
         self.expect(TokenType::In)?;
@@ -1003,13 +1007,13 @@ impl<'ctxt> Parser<'ctxt> {
         let body = self.block()?;
         Some(Stmt::new(
             StmtKind::For(ForStmt::new(local_var, range_expr, body)),
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
 
     fn parse_return_stmt(&mut self) -> Option<Stmt> {
-        self.track_span();
+        let pos = self.track_span();
         self.expect(TokenType::Return)?;
         let expr = if self.matches(TokenType::Semicolon) {
             self.advance();
@@ -1021,7 +1025,7 @@ impl<'ctxt> Parser<'ctxt> {
         };
         Some(Stmt::new(
             StmtKind::Return(ReturnStmt::new(expr)),
-            self.get_span(),
+            self.get_span(pos),
             self.get_id(),
         ))
     }
@@ -1362,7 +1366,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn parse_match_arm(&mut self) -> Option<MatchArm> {
-        self.track_span();
+        let pos = self.track_span();
         let mut patterns = self
             .parse_multiple_with_delimiter(|parser| parser.parse_pattern(), TokenType::BitwiseOr)?;
         let pattern = if patterns.len() > 1 {
@@ -1373,18 +1377,23 @@ impl<'ctxt> Parser<'ctxt> {
 
         self.expect(TokenType::RightArrow)?;
         let stmt = self.parse_block_or_expr()?;
-        Some(MatchArm::new(pattern, stmt, self.get_span(), self.get_id()))
+        Some(MatchArm::new(
+            pattern,
+            stmt,
+            self.get_span(pos),
+            self.get_id(),
+        ))
     }
 
     fn parse_block_or_expr(&mut self) -> Option<Stmt> {
         if self.matches(TokenType::LeftBrace) {
             self.parse_block_stmt()
         } else {
-            self.track_span();
+            let pos = self.track_span();
             self.expr().map(|expr| {
                 Stmt::new(
                     StmtKind::Expression(Expression::new(expr, true)),
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 )
             })
@@ -1436,11 +1445,11 @@ impl<'ctxt> Parser<'ctxt> {
                         Some(Pattern::Destructure(destructure_pat))
                     }
                     Some(TokenType::Identifier(str)) => {
-                        self.track_span();
+                        let pos = self.track_span();
                         self.advance();
                         let ty_pat = TyPattern::new(
                             ty,
-                            Some(LocalVar::new(str, self.get_span(), self.get_id())),
+                            Some(LocalVar::new(str, self.get_span(pos), self.get_id())),
                         );
                         Some(Pattern::Ty(ty_pat))
                     }
@@ -1465,7 +1474,7 @@ impl<'ctxt> Parser<'ctxt> {
     }
 
     fn destructure_expr(&mut self) -> Option<DestructureExpr> {
-        self.track_span();
+        let pos = self.track_span();
         match self.current() {
             Some(TokenType::Identifier(_)) => {
                 // If the next token is a comma, we know that this is an identifier not a path.
@@ -1474,7 +1483,7 @@ impl<'ctxt> Parser<'ctxt> {
                         let local_var = self.local_var()?;
                         Some(DestructureExpr::new(
                             DestructureExprKind::Identifier(local_var),
-                            self.get_span(),
+                            self.get_span(pos),
                             self.get_id(),
                         ))
                     }
@@ -1489,7 +1498,7 @@ impl<'ctxt> Parser<'ctxt> {
                             )?;
                         Some(DestructureExpr::new(
                             DestructureExprKind::Pattern(DestructurePattern::new(path_ty, exprs)),
-                            self.get_span(),
+                            self.get_span(pos),
                             self.get_id(),
                         ))
                     }
@@ -1500,7 +1509,7 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Some(DestructureExpr::new(
                     DestructureExprKind::True,
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
@@ -1508,7 +1517,7 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Some(DestructureExpr::new(
                     DestructureExprKind::False,
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
@@ -1516,7 +1525,7 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Some(DestructureExpr::new(
                     DestructureExprKind::String(string),
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
@@ -1524,7 +1533,7 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Some(DestructureExpr::new(
                     DestructureExprKind::Int(integer),
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
@@ -1532,7 +1541,7 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Some(DestructureExpr::new(
                     DestructureExprKind::UInt(uinteger),
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
@@ -1540,7 +1549,7 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Some(DestructureExpr::new(
                     DestructureExprKind::Float(float),
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
@@ -1548,7 +1557,7 @@ impl<'ctxt> Parser<'ctxt> {
                 self.advance();
                 Some(DestructureExpr::new(
                     DestructureExprKind::None,
-                    self.get_span(),
+                    self.get_span(pos),
                     self.get_id(),
                 ))
             }
