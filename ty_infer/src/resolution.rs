@@ -195,6 +195,9 @@ impl<'hir> TyResolver<'hir> {
         match node {
             Node::Item(item) => self.resolve_binder_from_item(item, crate_id),
             Node::Ty(ty) => self.resolve_binder_from_ty(ty, crate_id),
+            Node::GenericParam(param) => {
+                self.to_direct_binder(self.resolve_generic_param(param), TyKind::GenericParam)
+            }
             node => {
                 dbg!(node);
                 panic!("Unsupported node type!");
