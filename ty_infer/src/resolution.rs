@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use bumpalo::Bump;
 
 use ast::Ident;
-use hir::{HirMap, Item, ItemKind, Node, Primitive};
+use hir::{HirMap, Item, ItemKind, Node, PathTy, Primitive};
 use id::{CrateId, DefId};
 use interner::Interner;
 use typed_hir::{
@@ -88,6 +88,7 @@ impl<'hir> Binder<'hir> {
             };
             return ty_resolver.intern(ty);
         }
+        dbg!(self);
         panic!("Cannot construct generic type!")
     }
 }
@@ -147,7 +148,8 @@ impl<'hir> TyResolver<'hir> {
             hir::TyKind::Path(path) => self.resolve_path_ty(path),
             hir::TyKind::GenericParam(generic_param) => {
                 let generic_param = self.resolve_generic_param(generic_param);
-                self.intern(TyKind::GenericParam(generic_param))
+                todo!()
+                // self.intern(TyKind::Generic(generic_param))
             }
             hir::TyKind::TraitBound(trait_bound) => {
                 let trait_bound = self.resolve_trait_bound(trait_bound);
@@ -178,14 +180,25 @@ impl<'hir> TyResolver<'hir> {
             .alloc_slice_fill_iter(params.iter().map(|param| self.resolve_ty(param)))
     }
 
-    fn resolve_path_ty(&self, path: &hir::PathTy<'hir>) -> Ty<'hir> {
-        let binder = self.ty_cache.resolve_binder(path.definition, || {
-            self.resolve_binder_from_id(path.definition)
-        });
-        let generics = self
-            .hir_allocator
-            .alloc_slice_fill_iter(path.generics.iter().map(|generic| self.resolve_ty(generic)));
-        binder.instantiate(&self, generics)
+    fn resolve_path_ty(&self, path: &PathTy<'hir>) -> Ty<'hir> {
+        match path {
+            PathTy::Bare { definition } => self
+                .ty_cache
+                .resolve_binder(*definition, || self.resolve_binder_from_id(*definition))
+                .instantiate_identity(),
+            PathTy::Generic {
+                definition,
+                generics,
+            } => {
+                let binder = self
+                    .ty_cache
+                    .resolve_binder(*definition, || self.resolve_binder_from_id(*definition));
+                let generics = self
+                    .hir_allocator
+                    .alloc_slice_fill_iter(generics.iter().map(|generic| self.resolve_ty(generic)));
+                binder.instantiate(&self, generics)
+            }
+        }
     }
 
     fn resolve_binder_from_id(&self, id: DefId) -> Binder<'hir> {

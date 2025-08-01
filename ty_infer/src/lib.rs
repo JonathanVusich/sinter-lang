@@ -440,7 +440,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn infer_path(&self, path: hir::PathExpr<'hir>) -> (ExprId, Ty<'hir>) {
         let last_segment = path.segments.last().unwrap();
-        let (res, generics) = (last_segment.res, last_segment.generics.unwrap_or(GENERICS));
+        let (res, generics) = (last_segment.res, last_segment.generics);
         match res {
             Res::Crate(_) | Res::ModuleSegment(_, _) | Res::Module(_) | Res::Primitive(_) => {
                 panic!("I think this is a logic bug that should be caught by the resolver.")
@@ -460,11 +460,19 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 (expr_id, ty)
             }
             Res::ValueDef(ValueDef::Class(class_def)) => {
-                let generics = self.ty_resolver.resolve_generics(generics);
+                let generics = generics
+                    .map(|generics| self.ty_resolver.resolve_generics(generics))
+                    .unwrap_or_else(|| {
+                        let number = class_def.generic_params.len();
+                        self.hir_allocator
+                            .alloc_slice_fill_iter((0..number).into_iter().map(|_| self.fresh_ty()))
+                    });
+
                 let ty = self
                     .ty_resolver
                     .type_of(class_def.id)
                     .instantiate(self.ty_resolver, generics);
+
                 let expr = PathExpr::Class(class_def.id);
                 let expr_id = self.insert_expr(ExprKind::Path(expr), ty);
                 (expr_id, ty)
@@ -730,26 +738,31 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn callable(&self, ty: Ty<'hir>, args: Vec<Ty<'hir>>) -> ConstraintEvaluation<'hir> {
         match *ty {
-            TyKind::Class(class_def, generics) => class_def
-                .fields
-                .iter()
-                .zip_longest(args.iter())
-                .map(|item| match item {
-                    EitherOrBoth::Both(field, rhs) => {
-                        let field_ty = self.ty_resolver.type_of(field.ty).instantiate_identity();
-                        self.unify_ty_ty(field_ty, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
-                    }
-                    EitherOrBoth::Left(field) => ConstraintEvaluation::MissingArg(*field),
-                    EitherOrBoth::Right(arg) => ConstraintEvaluation::ExtraArg(*arg),
-                })
-                .reduce(|lhs, rhs| {
-                    return if let ConstraintEvaluation::Success = lhs {
-                        rhs
-                    } else {
-                        lhs
-                    };
-                })
-                .unwrap_or(ConstraintEvaluation::Success),
+            TyKind::Class(class_def, generics) => {
+                dbg!(generics);
+                class_def
+                    .fields
+                    .iter()
+                    .zip_longest(args.iter())
+                    .map(|item| match item {
+                        EitherOrBoth::Both(field, rhs) => {
+                            let field_ty =
+                                self.ty_resolver.type_of(field.ty).instantiate_identity();
+
+                            self.unify_ty_ty(field_ty, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
+                        }
+                        EitherOrBoth::Left(field) => ConstraintEvaluation::MissingArg(*field),
+                        EitherOrBoth::Right(arg) => ConstraintEvaluation::ExtraArg(*arg),
+                    })
+                    .reduce(|lhs, rhs| {
+                        return if let ConstraintEvaluation::Success = lhs {
+                            rhs
+                        } else {
+                            lhs
+                        };
+                    })
+                    .unwrap_or(ConstraintEvaluation::Success)
+            }
             TyKind::Member(_, _) | TyKind::Fn(_, _) | TyKind::Closure(_) => {
                 // TODO: Implement fixes
                 ConstraintEvaluation::Success

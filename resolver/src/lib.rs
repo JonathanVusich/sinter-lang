@@ -302,6 +302,13 @@ fn generate_mod_values(module: &ast::Module, krate_id: CrateId) -> ast::ModuleNS
                 );
             }
             ast::ItemKind::Class(class_stmt) => {
+                let generic_params = class_stmt
+                    .generic_params
+                    .into_iter()
+                    .map(|param| {
+                        ast::GenericParamDef::new(param.id.to_def_id(krate_id), param.name.ident)
+                    })
+                    .collect();
                 let fields = class_stmt
                     .fields
                     .into_iter()
@@ -316,7 +323,7 @@ fn generate_mod_values(module: &ast::Module, krate_id: CrateId) -> ast::ModuleNS
                     .collect();
                 values.insert(
                     class_stmt.name.ident,
-                    ast::ValueDef::Class(ast::ClassDef::new(def_id, fields, fns)),
+                    ast::ValueDef::Class(ast::ClassDef::new(def_id, generic_params, fields, fns)),
                 );
             }
             ast::ItemKind::Enum(enum_stmt) => {
@@ -1488,10 +1495,7 @@ impl<'hir> CrateResolver<'hir> {
                     .copied()
                     .unwrap();
 
-                let path_ty = PathTy {
-                    definition,
-                    generics: self.alloc_slice(&[]),
-                };
+                let path_ty = PathTy::Bare { definition };
                 TyKind::Path(self.alloc(path_ty))
             }
             ast::TyKind::U8 => TyKind::Primitive(Primitive::U8),
@@ -1520,12 +1524,16 @@ impl<'hir> CrateResolver<'hir> {
     }
 
     fn resolve_path_ty(&mut self, path_ty: &ast::PathTy) -> Option<&'hir PathTy<'hir>> {
-        let definition = self.resolve_qualified_ident(&path_ty.ident)?;
-        let generics = self.resolve_generics(&path_ty.generics)?;
-        Some(self.alloc(PathTy {
-            definition,
-            generics,
-        }))
+        let path_ty = match path_ty {
+            ast::PathTy::Bare { ident } => PathTy::Bare {
+                definition: self.resolve_qualified_ident(ident)?,
+            },
+            ast::PathTy::Generic { ident, generics } => PathTy::Generic {
+                definition: self.resolve_qualified_ident(ident)?,
+                generics: self.resolve_generics(generics)?,
+            },
+        };
+        Some(self.alloc(path_ty))
     }
 
     fn resolve_trait_bound(

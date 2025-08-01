@@ -277,9 +277,14 @@ pub enum Primitive {
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub struct PathTy<'a> {
-    pub definition: DefId,
-    pub generics: Generics<'a>,
+pub enum PathTy<'a> {
+    Bare {
+        definition: DefId,
+    },
+    Generic {
+        definition: DefId,
+        generics: Generics<'a>,
+    },
 }
 
 pub type TraitBound<'a> = &'a [&'a PathTy<'a>];

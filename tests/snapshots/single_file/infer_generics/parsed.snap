@@ -51,7 +51,7 @@
             ),
             ty: (
               kind: Path(
-                path: (
+                path: Bare(
                   ident: (
                     ident_type: LocalOrUse,
                     idents: [(
@@ -62,8 +62,7 @@
                       ),
                     )],
                   ),
-                  generics: [],
-),
+                ),
               ),
               span: (
                 start: 29,

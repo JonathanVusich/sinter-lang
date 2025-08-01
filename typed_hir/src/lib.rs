@@ -245,7 +245,6 @@ pub enum UintTy {
 }
 
 pub type TraitBound<'a> = &'a [&'a Trait<'a>];
-// TODO: I think this needs to be DefId
 pub type Generics<'a> = &'a [Ty<'a>];
 pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
 pub type Params<'a> = &'a [Param];

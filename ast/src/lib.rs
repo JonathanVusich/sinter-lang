@@ -305,6 +305,18 @@ impl FieldDef {
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+pub struct GenericParamDef {
+    pub id: DefId,
+    pub ident: InternedStr,
+}
+
+impl GenericParamDef {
+    pub fn new(id: DefId, ident: InternedStr) -> Self {
+        Self { id, ident }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct TraitFnDef {
     pub trait_id: DefId,
     pub id: DefId,
@@ -336,13 +348,24 @@ impl GlobalVarDef {
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub struct ClassDef {
     pub id: DefId,
+    pub generic_params: Vec<GenericParamDef>,
     pub fields: Vec<FieldDef>,
     pub fns: Vec<FnDef>,
 }
 
 impl ClassDef {
-    pub fn new(id: DefId, fields: Vec<FieldDef>, fns: Vec<FnDef>) -> Self {
-        Self { id, fields, fns }
+    pub fn new(
+        id: DefId,
+        generic_params: Vec<GenericParamDef>,
+        fields: Vec<FieldDef>,
+        fns: Vec<FnDef>,
+    ) -> Self {
+        Self {
+            id,
+            generic_params,
+            fields,
+            fns,
+        }
     }
 }
 
@@ -465,14 +488,23 @@ named_slice!(Args, Expr);
 named_slice!(Segments, Segment);
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct PathTy {
-    pub ident: QualifiedIdent,
-    pub generics: Generics,
+pub enum PathTy {
+    Bare {
+        ident: QualifiedIdent,
+    },
+    Generic {
+        ident: QualifiedIdent,
+        generics: Generics,
+    },
 }
 
 impl PathTy {
     pub fn new(ident: QualifiedIdent, generics: Generics) -> Self {
-        Self { ident, generics }
+        if generics.is_empty() {
+            PathTy::Bare { ident }
+        } else {
+            PathTy::Generic { ident, generics }
+        }
     }
 }
 

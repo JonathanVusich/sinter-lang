@@ -91,6 +91,13 @@
                             crate_id: 0,
                             local_id: 3,
                           ),
+                          generic_params: [(
+                            id: (
+                              crate_id: 0,
+                              local_id: 0,
+                            ),
+                            ident: "T",
+                          )],
                           fields: [(
                             id: (
                               crate_id: 0,
@@ -152,6 +159,13 @@
                             crate_id: 0,
                             local_id: 3,
                           ),
+                          generic_params: [(
+                            id: (
+                              crate_id: 0,
+                              local_id: 0,
+                            ),
+                            ident: "T",
+                          )],
                           fields: [(
                             id: (
                               crate_id: 0,
@@ -227,13 +241,12 @@
         id: 0,
       )),
       1: Ty((
-        kind: Path((
+        kind: Path(Bare(
           definition: (
             crate_id: 0,
             local_id: 0,
           ),
-          generics: [],
-)),
+        )),
         span: (
           start: 29,
           end: 30,
@@ -333,6 +346,13 @@
                 crate_id: 0,
                 local_id: 3,
               ),
+              generic_params: [(
+                id: (
+                  crate_id: 0,
+                  local_id: 0,
+                ),
+                ident: "T",
+              )],
               fields: [(
                 id: (
                   crate_id: 0,
@@ -361,6 +381,13 @@
                     crate_id: 0,
                     local_id: 3,
                   ),
+                  generic_params: [(
+                    id: (
+                      crate_id: 0,
+                      local_id: 0,
+                    ),
+                    ident: "T",
+                  )],
                   fields: [(
                     id: (
                       crate_id: 0,
@@ -416,6 +443,13 @@
                         crate_id: 0,
                         local_id: 3,
                       ),
+                      generic_params: [(
+                        id: (
+                          crate_id: 0,
+                          local_id: 0,
+                        ),
+                        ident: "T",
+                      )],
                       fields: [(
                         id: (
                           crate_id: 0,
@@ -480,6 +514,13 @@
                 crate_id: 0,
                 local_id: 3,
               ),
+              generic_params: [(
+                id: (
+                  crate_id: 0,
+                  local_id: 0,
+                ),
+                ident: "T",
+              )],
               fields: [(
                 id: (
                   crate_id: 0,
@@ -508,6 +549,13 @@
                     crate_id: 0,
                     local_id: 3,
                   ),
+                  generic_params: [(
+                    id: (
+                      crate_id: 0,
+                      local_id: 0,
+                    ),
+                    ident: "T",
+                  )],
                   fields: [(
                     id: (
                       crate_id: 0,
@@ -563,6 +611,13 @@
                         crate_id: 0,
                         local_id: 3,
                       ),
+                      generic_params: [(
+                        id: (
+                          crate_id: 0,
+                          local_id: 0,
+                        ),
+                        ident: "T",
+                      )],
                       fields: [(
                         id: (
                           crate_id: 0,
@@ -626,6 +681,13 @@
                           crate_id: 0,
                           local_id: 3,
                         ),
+                        generic_params: [(
+                          id: (
+                            crate_id: 0,
+                            local_id: 0,
+                          ),
+                          ident: "T",
+                        )],
                         fields: [(
                           id: (
                             crate_id: 0,
@@ -687,6 +749,13 @@
                           crate_id: 0,
                           local_id: 3,
                         ),
+                        generic_params: [(
+                          id: (
+                            crate_id: 0,
+                            local_id: 0,
+                          ),
+                          ident: "T",
+                        )],
                         fields: [(
                           id: (
                             crate_id: 0,
@@ -770,6 +839,13 @@
                               crate_id: 0,
                               local_id: 3,
                             ),
+                            generic_params: [(
+                              id: (
+                                crate_id: 0,
+                                local_id: 0,
+                              ),
+                              ident: "T",
+                            )],
                             fields: [(
                               id: (
                                 crate_id: 0,
@@ -831,6 +907,13 @@
                               crate_id: 0,
                               local_id: 3,
                             ),
+                            generic_params: [(
+                              id: (
+                                crate_id: 0,
+                                local_id: 0,
+                              ),
+                              ident: "T",
+                            )],
                             fields: [(
                               id: (
                                 crate_id: 0,

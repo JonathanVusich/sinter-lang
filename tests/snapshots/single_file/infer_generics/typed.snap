@@ -1,0 +1,308 @@
+(
+  crates: [(
+    name: "crate",
+    id: (
+      id: 0,
+    ),
+    bodies: {
+      15: (
+        generic_params: [],
+        ret_ty: (
+          kind: None,
+        ),
+        arms: [],
+        stmts: [Let((
+          local_var: (
+            ident: "option_f64",
+            ty: (
+              kind: Class((
+                name: (
+                  ident: "Option",
+                  span: (
+                    start: 6,
+                    end: 12,
+                  ),
+                ),
+                generic_params: [(
+                  ident: (
+                    ident: "T",
+                    span: (
+                      start: 13,
+                      end: 14,
+                    ),
+                  ),
+                  trait_bound: None,
+                )],
+                fields: [(
+                  name: (
+                    ident: "inner",
+                    span: (
+                      start: 22,
+                      end: 27,
+                    ),
+                  ),
+                  ty: (
+                    crate_id: 0,
+                    local_id: 1,
+                  ),
+                )],
+                fns: [],
+), [(
+                kind: Infer((
+                  id: 1,
+                )),
+              )]),
+            ),
+          ),
+          mutability: Immutable,
+          initializer: (
+            id: 2,
+          ),
+        )), Let((
+          local_var: (
+            ident: "option_str",
+            ty: (
+              kind: Class((
+                name: (
+                  ident: "Option",
+                  span: (
+                    start: 6,
+                    end: 12,
+                  ),
+                ),
+                generic_params: [(
+                  ident: (
+                    ident: "T",
+                    span: (
+                      start: 13,
+                      end: 14,
+                    ),
+                  ),
+                  trait_bound: None,
+                )],
+                fields: [(
+                  name: (
+                    ident: "inner",
+                    span: (
+                      start: 22,
+                      end: 27,
+                    ),
+                  ),
+                  ty: (
+                    crate_id: 0,
+                    local_id: 1,
+                  ),
+                )],
+                fns: [],
+), [(
+                kind: Infer((
+                  id: 3,
+                )),
+              )]),
+            ),
+          ),
+          mutability: Immutable,
+          initializer: (
+            id: 5,
+          ),
+        ))],
+        exprs: [(
+          kind: Path(Class((
+            crate_id: 0,
+            local_id: 3,
+          ))),
+          ty: (
+            kind: Class((
+              name: (
+                ident: "Option",
+                span: (
+                  start: 6,
+                  end: 12,
+                ),
+              ),
+              generic_params: [(
+                ident: (
+                  ident: "T",
+                  span: (
+                    start: 13,
+                    end: 14,
+                  ),
+                ),
+                trait_bound: None,
+              )],
+              fields: [(
+                name: (
+                  ident: "inner",
+                  span: (
+                    start: 22,
+                    end: 27,
+                  ),
+                ),
+                ty: (
+                  crate_id: 0,
+                  local_id: 1,
+                ),
+              )],
+              fns: [],
+), [(
+              kind: Infer((
+                id: 1,
+              )),
+            )]),
+          ),
+        ), (
+          kind: Int(123),
+          ty: (
+            kind: Int(I64),
+          ),
+        ), (
+          kind: Call((
+            target: (
+              id: 0,
+            ),
+            args: [(
+              id: 1,
+            )],
+          )),
+          ty: (
+            kind: Class((
+              name: (
+                ident: "Option",
+                span: (
+                  start: 6,
+                  end: 12,
+                ),
+              ),
+              generic_params: [(
+                ident: (
+                  ident: "T",
+                  span: (
+                    start: 13,
+                    end: 14,
+                  ),
+                ),
+                trait_bound: None,
+              )],
+              fields: [(
+                name: (
+                  ident: "inner",
+                  span: (
+                    start: 22,
+                    end: 27,
+                  ),
+                ),
+                ty: (
+                  crate_id: 0,
+                  local_id: 1,
+                ),
+              )],
+              fns: [],
+), [(
+              kind: Infer((
+                id: 1,
+              )),
+            )]),
+          ),
+        ), (
+          kind: Path(Class((
+            crate_id: 0,
+            local_id: 3,
+          ))),
+          ty: (
+            kind: Class((
+              name: (
+                ident: "Option",
+                span: (
+                  start: 6,
+                  end: 12,
+                ),
+              ),
+              generic_params: [(
+                ident: (
+                  ident: "T",
+                  span: (
+                    start: 13,
+                    end: 14,
+                  ),
+                ),
+                trait_bound: None,
+              )],
+              fields: [(
+                name: (
+                  ident: "inner",
+                  span: (
+                    start: 22,
+                    end: 27,
+                  ),
+                ),
+                ty: (
+                  crate_id: 0,
+                  local_id: 1,
+                ),
+              )],
+              fns: [],
+), [(
+              kind: Infer((
+                id: 3,
+              )),
+            )]),
+          ),
+        ), (
+          kind: String("hi there"),
+          ty: (
+            kind: Str,
+          ),
+        ), (
+          kind: Call((
+            target: (
+              id: 3,
+            ),
+            args: [(
+              id: 4,
+            )],
+          )),
+          ty: (
+            kind: Class((
+              name: (
+                ident: "Option",
+                span: (
+                  start: 6,
+                  end: 12,
+                ),
+              ),
+              generic_params: [(
+                ident: (
+                  ident: "T",
+                  span: (
+                    start: 13,
+                    end: 14,
+                  ),
+                ),
+                trait_bound: None,
+              )],
+              fields: [(
+                name: (
+                  ident: "inner",
+                  span: (
+                    start: 22,
+                    end: 27,
+                  ),
+                ),
+                ty: (
+                  crate_id: 0,
+                  local_id: 1,
+                ),
+              )],
+              fns: [],
+), [(
+              kind: Infer((
+                id: 3,
+              )),
+            )]),
+          ),
+        )],
+        destructure_exprs: [],
+),
+    },
+  )],
+)
