@@ -23,6 +23,7 @@
             ),
           ),
           trait_bound: None,
+          index: 0,
           span: (
             start: 13,
             end: 14,
@@ -234,6 +235,7 @@
           ),
         ),
         trait_bound: None,
+        index: 0,
         span: (
           start: 13,
           end: 14,
@@ -290,6 +292,7 @@
               ),
             ),
             trait_bound: None,
+            index: 0,
             span: (
               start: 13,
               end: 14,

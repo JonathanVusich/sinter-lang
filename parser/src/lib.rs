@@ -403,7 +403,7 @@ impl<'ctxt> Parser<'ctxt> {
         self.expect(TokenType::Impl)?;
         let trait_to_impl = self.parse_path_ty()?;
         self.expect(TokenType::For)?;
-        let target_ty = self.qualified_ident()?;
+        let target_ty = self.parse_path_ty()?;
 
         match self.current() {
             Some(TokenType::Semicolon) => {

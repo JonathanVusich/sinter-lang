@@ -112,7 +112,7 @@ pub enum PrintOption {
 }
 
 impl TokenType {
-    pub fn pretty_print(&self, print_option: PrintOption) -> Cow<str> {
+    pub fn pretty_print(&self, print_option: PrintOption) -> Cow<'_, str> {
         match self {
             TokenType::Unrecognized(str) => Cow::Borrowed(str),
             TokenType::Identifier(str) => match print_option {

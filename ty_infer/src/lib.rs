@@ -13,7 +13,7 @@ use hir::{
 };
 use typed_hir::{
     ArrayExpr, Block, BlockStmt, CallExpr, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind,
-    Field, FloatTy, FnDef, GenericParam, GenericParams, IfStmt, InfixExpr, IntTy, LetStmt,
+    Field, FloatTy, FnDef, GenericDef, GenericParams, Generics, IfStmt, InfixExpr, IntTy, LetStmt,
     LocalVar, MemberDef, Params, PathExpr, ReturnStmt, Stmt, StmtId, Thir, ThirCrate, ThirMap,
     Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
 };
@@ -74,22 +74,9 @@ pub enum GenericTyDef<'a> {
     Enum(EnumDef<'a>),
     EnumMember(MemberDef<'a>),
     Trait(TraitDef<'a>),
+    Generic(GenericDef<'a>),
     Fn(FnDef<'a>),
 }
-
-impl<'a> GenericTyDef<'a> {
-    pub fn has_generic_params(&self) -> bool {
-        match self {
-            GenericTyDef::Class(class_def) => !class_def.generic_params.is_empty(),
-            GenericTyDef::Enum(enum_def) => !enum_def.generic_params.is_empty(),
-            GenericTyDef::EnumMember(member_def) => !member_def.generic_params.is_empty(),
-            GenericTyDef::Trait(trait_def) => !trait_def.generic_params.is_empty(),
-            GenericTyDef::Fn(fn_def) => !fn_def.generic_params.is_empty(),
-        }
-    }
-}
-
-static GENERICS: hir::Generics<'static> = &[];
 
 #[derive(Debug)]
 pub struct InferCtxt<'a, 'hir> {
@@ -172,7 +159,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn infer_let_stmt(&self, let_stmt: &'hir hir::LetStmt<'hir>) -> (StmtId, Ty<'hir>) {
         let ty = match let_stmt.ty {
-            Some(explicit_ty) => self.ty_resolver.resolve_ty(explicit_ty),
+            Some(explicit_ty) => self.ty_resolver.resolve_ty(explicit_ty, || self.fresh_ty()),
             None => self
                 .ty_resolver
                 .intern(TyKind::Infer(self.unify_table.fresh_ty())),
@@ -460,13 +447,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 (expr_id, ty)
             }
             Res::ValueDef(ValueDef::Class(class_def)) => {
-                let generics = generics
-                    .map(|generics| self.ty_resolver.resolve_generics(generics))
-                    .unwrap_or_else(|| {
-                        let number = class_def.generic_params.len();
-                        self.hir_allocator
-                            .alloc_slice_fill_iter((0..number).into_iter().map(|_| self.fresh_ty()))
-                    });
+                let generics = self.resolve_generics(generics, class_def.generic_params.len());
 
                 let ty = self
                     .ty_resolver
@@ -507,6 +488,19 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         };
         let expr_id = self.insert_expr(ExprKind::Block(block), ret_ty);
         (expr_id, ret_ty)
+    }
+
+    fn resolve_generics(
+        &self,
+        generics: Option<hir::Generics<'hir>>,
+        expected: usize,
+    ) -> Generics<'hir> {
+        generics
+            .map(|generics| self.ty_resolver.resolve_generics(generics))
+            .unwrap_or_else(|| {
+                self.hir_allocator
+                    .alloc_slice_fill_iter((0..expected).into_iter().map(|_| self.fresh_ty()))
+            })
     }
 
     fn fresh_ty(&self) -> Ty<'hir> {
@@ -650,7 +644,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 todo!()
                 // Implement trait mapping logic
             }
-            TyKind::GenericParam(param) => {
+            TyKind::Generic(param, ty) => {
                 // TODO: Implement trait bound logic
                 ConstraintEvaluation::Success
             }
@@ -746,8 +740,10 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                     .zip_longest(args.iter())
                     .map(|item| match item {
                         EitherOrBoth::Both(field, rhs) => {
-                            let field_ty =
-                                self.ty_resolver.type_of(field.ty).instantiate_identity();
+                            let field_ty = self
+                                .ty_resolver
+                                .type_of(field.ty)
+                                .instantiate(self.ty_resolver, generics);
 
                             self.unify_ty_ty(field_ty, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
                         }
@@ -858,16 +854,9 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
             TyKind::TraitBound(trait_bound) => self
                 .normalize_trait_bound(trait_bound)
                 .map(|trait_bound| self.ty_resolver.intern(TyKind::TraitBound(trait_bound))),
-            TyKind::GenericParam(GenericParam { ident, trait_bound }) => match trait_bound {
-                Some(trait_bound) => self.normalize_trait_bound(trait_bound).map(|trait_bound| {
-                    let generic_param = self.alloc(GenericParam {
-                        ident: *ident,
-                        trait_bound: Some(trait_bound),
-                    });
-                    self.ty_resolver.intern(TyKind::GenericParam(generic_param))
-                }),
-                None => None,
-            },
+            TyKind::Generic(param, ty) => self
+                .normalize_ty(*ty)
+                .map(|ty| self.ty_resolver.intern(TyKind::Generic(*param, ty))),
             TyKind::Fn(fn_def, generics) => self
                 .normalize_tys(generics)
                 .map(|generics| self.ty_resolver.intern(TyKind::Fn(fn_def, generics))),

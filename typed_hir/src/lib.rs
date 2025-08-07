@@ -86,8 +86,8 @@ pub enum TyKind<'a> {
     Member(&'a MemberDef<'a>, Generics<'a>),
     Trait(&'a TraitDef<'a>, Generics<'a>),
     TraitBound(TraitBound<'a>),
-    GenericParam(&'a GenericParam<'a>),
     Fn(&'a FnDef<'a>, Generics<'a>),
+    Generic(GenericParam<'a>, Ty<'a>),
     Closure(&'a ClosureDef<'a>),
     Infer(TyVar),
     Float(FloatTy),
@@ -120,6 +120,11 @@ pub struct MemberDef<'a> {
     pub generic_params: GenericParams<'a>,
     pub fields: Fields<'a>,
     pub fn_defs: FnDefs<'a>,
+}
+
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
+pub struct GenericDef<'a> {
+    pub param: &'a GenericParam<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
@@ -421,6 +426,7 @@ pub struct IfStmt {
 pub struct GenericParam<'a> {
     pub ident: Ident,
     pub trait_bound: Option<TraitBound<'a>>,
+    pub index: usize,
 }
 
 /// This type represents an instantiated generic.

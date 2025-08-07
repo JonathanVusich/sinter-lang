@@ -91,7 +91,6 @@ pub struct Ty<'a> {
 pub enum TyKind<'a> {
     Array(&'a Ty<'a>),
     Path(&'a PathTy<'a>),
-    GenericParam(&'a GenericParam<'a>),
     TraitBound(TraitBound<'a>),
     Closure(Closure<'a>),
     Primitive(Primitive),
@@ -212,7 +211,7 @@ pub struct TraitDef<'a> {
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub struct TraitImplDef<'a> {
     pub trait_to_impl: &'a PathTy<'a>,
-    pub target_ty: DefId,
+    pub target_ty: &'a PathTy<'a>,
     pub fn_defs: FnDefs<'a>,
 }
 
@@ -277,14 +276,40 @@ pub enum Primitive {
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub enum PathTy<'a> {
-    Bare {
-        definition: DefId,
-    },
-    Generic {
-        definition: DefId,
-        generics: Generics<'a>,
-    },
+pub enum PathKind {
+    GlobalVar(DefId),
+    GenericParam(DefId),
+    Class(DefId),
+    Enum(DefId),
+    EnumMember(DefId),
+    Trait(DefId),
+    Fn(DefId),
+    TraitImpl(DefId),
+}
+
+#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
+pub struct PathTy<'a> {
+    pub kind: &'a PathKind,
+    pub generics: Generics<'a>,
+}
+
+impl<'a> PathTy<'a> {
+    pub fn new(kind: &'a PathKind, generics: Generics<'a>) -> Self {
+        Self { kind, generics }
+    }
+
+    pub fn id(&self) -> DefId {
+        match self.kind {
+            PathKind::GlobalVar(id) => *id,
+            PathKind::GenericParam(id) => *id,
+            PathKind::Class(id) => *id,
+            PathKind::Enum(id) => *id,
+            PathKind::EnumMember(id) => *id,
+            PathKind::Trait(id) => *id,
+            PathKind::Fn(id) => *id,
+            PathKind::TraitImpl(id) => *id,
+        }
+    }
 }
 
 pub type TraitBound<'a> = &'a [&'a PathTy<'a>];
@@ -596,6 +621,7 @@ pub struct ClosureParam {
 pub struct GenericParam<'a> {
     pub ident: Ident,
     pub trait_bound: Option<TraitBound<'a>>,
+    pub index: usize,
     pub span: Span,
     pub id: LocalDefId,
 }
@@ -612,11 +638,11 @@ impl<'a> HirMap<'a> {
         self.crates.push(krate);
     }
 
-    pub fn krate_by_name(&self, name: &InternedStr) -> &HirCrate {
+    pub fn krate_by_name(&self, name: &InternedStr) -> &HirCrate<'a> {
         let index = self.names_to_indices.get_index_of(name).unwrap();
         &self.crates[index]
     }
-    pub fn krate(&self, def_id: &DefId) -> &HirCrate {
+    pub fn krate(&self, def_id: &DefId) -> &HirCrate<'a> {
         &self.crates[def_id.crate_id().as_usize()]
     }
     pub fn krates(&self) -> impl Iterator<Item = &HirCrate<'a>> {

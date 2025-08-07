@@ -4,11 +4,11 @@ use std::collections::HashMap;
 use bumpalo::Bump;
 
 use ast::Ident;
-use hir::{HirMap, Item, ItemKind, Node, PathTy, Primitive};
+use hir::{HirMap, Item, ItemKind, Node, PathKind, PathTy, Primitive};
 use id::{CrateId, DefId};
 use interner::Interner;
 use typed_hir::{
-    ClassDef, ClosureDef, EnumDef, Field, Fields, FloatTy, FnDef, FnDefs, GenericParam,
+    ClassDef, ClosureDef, EnumDef, Field, Fields, FloatTy, FnDef, FnDefs, GenericDef, GenericParam,
     GenericParams, Generics, IntTy, MemberDef, MemberDefs, Param, Params, TraitBound, TraitDef, Ty,
     TyKind, UintTy,
 };
@@ -64,33 +64,14 @@ impl<'hir> PrimitiveTypes<'hir> {
 /// with or without associated generic types.
 #[derive(Copy, Clone, Debug)]
 pub enum Binder<'hir> {
-    GenericDef(&'hir GenericTyDef<'hir>),
+    Array(Binder<'hir>),
+    Class(&'hir ClassDef<'hir>),
+    Enum(&'hir EnumDef<'hir>),
+    EnumMember(&'hir MemberDef<'hir>),
+    Trait(&'hir TraitDef<'hir>),
+    Generic(&'hir GenericDef<'hir>),
+    Fn(&'hir FnDef<'hir>),
     BareDef(Ty<'hir>),
-}
-
-impl<'hir> Binder<'hir> {
-    pub fn instantiate_identity(self) -> Ty<'hir> {
-        if let Binder::BareDef(ty) = self {
-            return ty;
-        }
-        panic!("Cannot construct type: Missing generics!")
-    }
-
-    pub fn instantiate(self, ty_resolver: &TyResolver<'hir>, generics: Generics<'hir>) -> Ty<'hir> {
-        if let Binder::GenericDef(def) = self {
-            let ty = match def {
-                GenericTyDef::Class(class_def) => TyKind::Class(class_def, generics),
-                GenericTyDef::Enum(enum_def) => TyKind::Enum(enum_def, generics),
-                GenericTyDef::EnumMember(member_def) => TyKind::Member(member_def, generics),
-                GenericTyDef::Trait(trait_def) => TyKind::Trait(trait_def, generics),
-                GenericTyDef::Fn(fn_def) => TyKind::Fn(fn_def, generics),
-                any => panic!("Should never happen!"),
-            };
-            return ty_resolver.intern(ty);
-        }
-        dbg!(self);
-        panic!("Cannot construct generic type!")
-    }
 }
 
 // TODO: Currently allocating way more than necessary because we are allocating for types that may be interned.
@@ -141,25 +122,25 @@ impl<'hir> TyResolver<'hir> {
             .resolve_binder(def_id, || self.resolve_binder_from_id(def_id))
     }
 
-    pub fn resolve_ty(&self, existing_ty: &hir::Ty<'hir>) -> Ty<'hir> {
+    pub fn resolve_ty(&self, existing_ty: &hir::Ty<'hir>, fresh_ty: fn() -> Ty<'hir>) -> Ty<'hir> {
         dbg!(existing_ty);
         match existing_ty.kind {
-            hir::TyKind::Array(array_ty) => self.intern(TyKind::Array(self.resolve_ty(array_ty))),
-            hir::TyKind::Path(path) => self.resolve_path_ty(path),
-            hir::TyKind::GenericParam(generic_param) => {
-                let generic_param = self.resolve_generic_param(generic_param);
-                todo!()
-                // self.intern(TyKind::Generic(generic_param))
+            hir::TyKind::Array(array_ty) => {
+                self.intern(TyKind::Array(self.resolve_ty(array_ty, fresh_ty)))
             }
+            hir::TyKind::Path(path) => self.resolve_path_ty(path, fresh_ty),
             hir::TyKind::TraitBound(trait_bound) => {
                 let trait_bound = self.resolve_trait_bound(trait_bound);
                 self.intern(TyKind::TraitBound(trait_bound))
             }
             hir::TyKind::Closure(closure) => {
                 let params = self.hir_allocator.alloc_slice_fill_iter(
-                    closure.params.iter().map(|param| self.resolve_ty(param)),
+                    closure
+                        .params
+                        .iter()
+                        .map(|param| self.resolve_ty(param, fresh_ty)),
                 );
-                let return_type = self.resolve_ty(closure.ret_ty);
+                let return_type = self.resolve_ty(closure.ret_ty, fresh_ty);
                 let closure_def = self.alloc(ClosureDef {
                     params,
                     return_type,
@@ -175,29 +156,25 @@ impl<'hir> TyResolver<'hir> {
             .alloc_slice_fill_iter(params.iter().map(|param| self.resolve_generic_param(param)))
     }
 
-    pub fn resolve_generics(&self, params: hir::Generics<'hir>) -> Generics<'hir> {
+    pub fn resolve_generics(
+        &self,
+        params: hir::Generics<'hir>,
+        fresh_ty: fn() -> Ty<'hir>,
+    ) -> Generics<'hir> {
         self.hir_allocator
-            .alloc_slice_fill_iter(params.iter().map(|param| self.resolve_ty(param)))
+            .alloc_slice_fill_iter(params.iter().map(|param| self.resolve_ty(param, fresh_ty)))
     }
 
-    fn resolve_path_ty(&self, path: &PathTy<'hir>) -> Ty<'hir> {
-        match path {
-            PathTy::Bare { definition } => self
-                .ty_cache
-                .resolve_binder(*definition, || self.resolve_binder_from_id(*definition))
-                .instantiate_identity(),
-            PathTy::Generic {
-                definition,
-                generics,
-            } => {
-                let binder = self
-                    .ty_cache
-                    .resolve_binder(*definition, || self.resolve_binder_from_id(*definition));
-                let generics = self
-                    .hir_allocator
-                    .alloc_slice_fill_iter(generics.iter().map(|generic| self.resolve_ty(generic)));
-                binder.instantiate(&self, generics)
-            }
+    fn resolve_path_ty(&self, path: &PathTy<'hir>, fresh_ty: fn() -> Ty<'hir>) -> Ty<'hir> {
+        match path.kind {
+            PathKind::GlobalVar(_) => {}
+            PathKind::GenericParam(_) => {}
+            PathKind::Class(_) => {}
+            PathKind::Enum(_) => {}
+            PathKind::EnumMember(_) => {}
+            PathKind::Trait(_) => {}
+            PathKind::Fn(_) => {}
+            PathKind::TraitImpl(_) => {}
         }
     }
 
@@ -209,7 +186,10 @@ impl<'hir> TyResolver<'hir> {
             Node::Item(item) => self.resolve_binder_from_item(item, crate_id),
             Node::Ty(ty) => self.resolve_binder_from_ty(ty, crate_id),
             Node::GenericParam(param) => {
-                self.to_direct_binder(self.resolve_generic_param(param), TyKind::GenericParam)
+                let generic_param = self.resolve_generic_param(param);
+                self.to_generic_binder(GenericTyDef::Generic(GenericDef {
+                    param: generic_param,
+                }))
             }
             node => {
                 dbg!(node);
@@ -222,9 +202,6 @@ impl<'hir> TyResolver<'hir> {
         match ty.kind {
             hir::TyKind::Array(array) => {
                 self.to_direct_binder(self.resolve_ty(array), TyKind::Array)
-            }
-            hir::TyKind::GenericParam(param) => {
-                self.to_direct_binder(self.resolve_generic_param(param), TyKind::GenericParam)
             }
             hir::TyKind::Path(path) => Binder::BareDef(self.resolve_path_ty(path)),
             hir::TyKind::Primitive(primitive) => Binder::BareDef(self.tys.convert(primitive)),
@@ -418,6 +395,7 @@ impl<'hir> TyResolver<'hir> {
         self.alloc(GenericParam {
             ident: param.ident,
             trait_bound,
+            index: param.index,
         })
     }
 

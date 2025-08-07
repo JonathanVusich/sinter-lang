@@ -232,37 +232,31 @@ pub struct ModuleNS {
 }
 
 impl ModuleNS {
-    pub fn find_ident_with_module(&self, ident: &QualifiedIdent) -> Option<DefId> {
+    pub fn find_ident_with_module(&self, ident: &QualifiedIdent) -> Option<ValueDef> {
         match ident.idents.as_slice() {
-            [_module, ident] => self.values.get(&ident.ident).map(ValueDef::id),
-            [_module, enm, member] => {
-                if let Some(ValueDef::Enum(enum_def)) = self.values.get(&enm.ident) {
-                    return enum_def
-                        .members
-                        .iter()
-                        .find(|member_def| member_def.ident == member.ident)
-                        .map(|def| def.id);
-                }
-                None
-            }
+            [_module, ident] => self.values.get(&ident.ident).cloned(),
+            [_module, enm, member] => self.find_member(enm, member),
             _ => None,
         }
     }
-    pub fn find_ident(&self, ident: &QualifiedIdent) -> Option<DefId> {
+
+    pub fn find_ident(&self, ident: &QualifiedIdent) -> Option<ValueDef> {
         match ident.idents.as_slice() {
-            [ident] => self.values.get(&ident.ident).map(ValueDef::id),
-            [enm, member] => {
-                if let Some(ValueDef::Enum(enum_def)) = self.values.get(&enm.ident) {
-                    return enum_def
-                        .members
-                        .iter()
-                        .find(|member_def| member_def.ident == member.ident)
-                        .map(|def| def.id);
-                }
-                None
-            }
+            [ident] => self.values.get(&ident.ident).cloned(),
+            [enm, member] => self.find_member(enm, member),
             _ => None,
         }
+    }
+
+    fn find_member(&self, enm: &Ident, member: &Ident) -> Option<ValueDef> {
+        if let Some(ValueDef::Enum(enum_def)) = self.values.get(&enm.ident) {
+            return enum_def
+                .members
+                .iter()
+                .find(|member_def| member_def.ident == member.ident)
+                .map(|def| ValueDef::EnumMember(def.clone()));
+        }
+        None
     }
 
     pub fn find_value(&self, value: InternedStr) -> Option<&ValueDef> {
@@ -488,23 +482,14 @@ named_slice!(Args, Expr);
 named_slice!(Segments, Segment);
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum PathTy {
-    Bare {
-        ident: QualifiedIdent,
-    },
-    Generic {
-        ident: QualifiedIdent,
-        generics: Generics,
-    },
+pub struct PathTy {
+    pub ident: QualifiedIdent,
+    pub generics: Generics,
 }
 
 impl PathTy {
     pub fn new(ident: QualifiedIdent, generics: Generics) -> Self {
-        if generics.is_empty() {
-            PathTy::Bare { ident }
-        } else {
-            PathTy::Generic { ident, generics }
-        }
+        Self { ident, generics }
     }
 }
 
@@ -631,16 +616,12 @@ impl TraitStmt {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct TraitImplStmt {
     pub trait_to_impl: PathTy,
-    pub target_ty: QualifiedIdent,
+    pub target_ty: PathTy,
     pub self_fns: Vec<FnSelfStmt>,
 }
 
 impl TraitImplStmt {
-    pub fn new(
-        trait_to_impl: PathTy,
-        target_ty: QualifiedIdent,
-        member_fns: Vec<FnSelfStmt>,
-    ) -> Self {
+    pub fn new(trait_to_impl: PathTy, target_ty: PathTy, member_fns: Vec<FnSelfStmt>) -> Self {
         Self {
             trait_to_impl,
             target_ty,
