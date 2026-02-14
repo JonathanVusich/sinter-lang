@@ -473,6 +473,7 @@ impl QualifiedIdent {
 }
 
 named_slice!(TraitBound, PathTy);
+// Generics are concrete types passed at a generic call site.
 named_slice!(Generics, Ty);
 named_slice!(GenericParams, GenericParam);
 named_slice!(GenericCallSite, Ty);

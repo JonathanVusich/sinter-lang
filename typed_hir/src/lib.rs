@@ -249,7 +249,7 @@ pub enum UintTy {
     U64,
 }
 
-pub type TraitBound<'a> = &'a [&'a Trait<'a>];
+pub type TraitBound<'a> = &'a [Ty<'a>];
 pub type Generics<'a> = &'a [Ty<'a>];
 pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
 pub type Params<'a> = &'a [Param];

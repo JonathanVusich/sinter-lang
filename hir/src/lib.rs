@@ -16,7 +16,7 @@ pub enum Node<'a> {
     Item(&'a Item<'a>),
 
     Ty(&'a Ty<'a>),
-    // Separate type for GenericParam since the definition of the param is separate from a reference
+    // Separate node for GenericParam since the definition of the param is separate from a reference
     GenericParam(&'a GenericParam<'a>),
 
     Expr(&'a Expr<'a>),
@@ -89,7 +89,7 @@ pub struct Ty<'a> {
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub enum TyKind<'a> {
-    Array(&'a Ty<'a>),
+    Array(DefId),
     Path(&'a PathTy<'a>),
     TraitBound(TraitBound<'a>),
     Closure(Closure<'a>),
@@ -170,7 +170,7 @@ pub enum PatternKind<'a> {
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Constant<'a> {
     pub local_var: LocalVar,
-    pub ty: &'a Ty<'a>,
+    pub ty: DefId,
     pub initializer: &'a Expr<'a>,
 }
 
@@ -228,7 +228,7 @@ pub struct FnSig<'a> {
     pub name: Ident,
     pub generic_params: GenericParams<'a>,
     pub params: Params<'a>,
-    pub ret_ty: Option<&'a Ty<'a>>,
+    pub ret_ty: Option<DefId>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
@@ -276,47 +276,26 @@ pub enum Primitive {
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
-pub enum PathKind {
-    GlobalVar(DefId),
-    GenericParam(DefId),
-    Class(DefId),
-    Enum(DefId),
-    EnumMember(DefId),
-    Trait(DefId),
-    Fn(DefId),
-    TraitImpl(DefId),
-}
-
-#[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct PathTy<'a> {
-    pub kind: &'a PathKind,
+    pub definition: DefId,
     pub generics: Generics<'a>,
 }
 
 impl<'a> PathTy<'a> {
-    pub fn new(kind: &'a PathKind, generics: Generics<'a>) -> Self {
-        Self { kind, generics }
-    }
-
-    pub fn id(&self) -> DefId {
-        match self.kind {
-            PathKind::GlobalVar(id) => *id,
-            PathKind::GenericParam(id) => *id,
-            PathKind::Class(id) => *id,
-            PathKind::Enum(id) => *id,
-            PathKind::EnumMember(id) => *id,
-            PathKind::Trait(id) => *id,
-            PathKind::Fn(id) => *id,
-            PathKind::TraitImpl(id) => *id,
+    pub fn new(definition: DefId, generics: Generics<'a>) -> Self {
+        Self {
+            definition,
+            generics,
         }
     }
 }
 
 pub type TraitBound<'a> = &'a [&'a PathTy<'a>];
-pub type Generics<'a> = &'a [&'a Ty<'a>];
+// Concrete types that are passed at a generic call site
+pub type Generics<'a> = &'a [DefId];
 pub type Args<'a> = &'a [&'a Expr<'a>];
 pub type Stmts<'a> = &'a [&'a Stmt<'a>];
-pub type AnonParams<'a> = &'a [&'a Ty<'a>];
+pub type AnonParams<'a> = &'a [DefId];
 pub type Initializers<'a> = &'a [&'a Expr<'a>];
 pub type Exprs<'a> = &'a [&'a Expr<'a>];
 pub type DestructureExprs<'a> = &'a [&'a DestructureExpr<'a>];
@@ -501,7 +480,7 @@ pub struct DestructurePattern<'a> {
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Closure<'a> {
     pub params: AnonParams<'a>,
-    pub ret_ty: &'a Ty<'a>,
+    pub ret_ty: DefId,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
@@ -564,6 +543,7 @@ pub enum DefTy {
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Segment<'a> {
     pub res: &'a Res,
+    // TODO: Make this Generics<'a>
     pub generics: Option<Generics<'a>>,
 }
 
@@ -579,7 +559,7 @@ pub struct Field {
 pub struct LetStmt<'a> {
     pub local_var: LocalVar,
     pub mutability: Mutability,
-    pub ty: Option<&'a Ty<'a>>,
+    pub ty: Option<DefId>,
     pub initializer: Option<&'a Expr<'a>>,
 }
 

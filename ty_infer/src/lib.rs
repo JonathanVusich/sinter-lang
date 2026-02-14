@@ -1,4 +1,5 @@
 #![allow(unused)]
+extern crate core;
 
 use bumpalo::Bump;
 use itertools::{EitherOrBoth, Itertools};
@@ -9,17 +10,18 @@ use std::fmt::{Debug, Display};
 use ast::ValueDef;
 use diagnostics::{Diagnostic, Diagnostics};
 use hir::{
-    ForStmt, HirCrate, HirMap, InfixOp, InfixOpClass, ItemKind, LocalDef, Res, StmtKind, WhileStmt,
+    ForStmt, HirCrate, HirMap, InfixOp, InfixOpClass, ItemKind, LocalDef, PathTy, Primitive, Res,
+    StmtKind, WhileStmt,
 };
+use id::DefId;
 use typed_hir::{
-    ArrayExpr, Block, BlockStmt, CallExpr, ClassDef, ClosureDef, EnumDef, Expr, ExprId, ExprKind,
-    Field, FloatTy, FnDef, GenericDef, GenericParams, Generics, IfStmt, InfixExpr, IntTy, LetStmt,
-    LocalVar, MemberDef, Params, PathExpr, ReturnStmt, Stmt, StmtId, Thir, ThirCrate, ThirMap,
-    Trait, TraitBound, TraitDef, Ty, TyKind, TyVar, UintTy,
+    ArrayExpr, Block, BlockStmt, CallExpr, ClosureDef, Expr, ExprId, ExprKind, Field, FloatTy,
+    GenericParams, Generics, IfStmt, InfixExpr, IntTy, LetStmt, LocalVar, Params, PathExpr,
+    ReturnStmt, Stmt, StmtId, Thir, ThirCrate, ThirMap, TraitBound, Ty, TyKind, TyVar, UintTy,
 };
 use types::{LDefMap, StrMap};
 
-use crate::resolution::TyResolver;
+use crate::resolution::{Binder, TyResolver};
 use crate::unification::UnificationTable;
 
 mod resolution;
@@ -63,19 +65,6 @@ pub struct CrateInference<'a, 'hir> {
 
     hir_allocator: &'hir Bump,
     bodies: LDefMap<Thir<'hir>>,
-}
-
-/// TODO: Need to figure out an alternate representation for these types
-/// that will work with type resolution and will avoid the need for recursive
-/// type building.
-#[derive(Debug)]
-pub enum GenericTyDef<'a> {
-    Class(ClassDef<'a>),
-    Enum(EnumDef<'a>),
-    EnumMember(MemberDef<'a>),
-    Trait(TraitDef<'a>),
-    Generic(GenericDef<'a>),
-    Fn(FnDef<'a>),
 }
 
 #[derive(Debug)]
@@ -159,7 +148,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
 
     fn infer_let_stmt(&self, let_stmt: &'hir hir::LetStmt<'hir>) -> (StmtId, Ty<'hir>) {
         let ty = match let_stmt.ty {
-            Some(explicit_ty) => self.ty_resolver.resolve_ty(explicit_ty, || self.fresh_ty()),
+            Some(explicit_ty) => instantiate(&self.ty_resolver, &self.ty_resolver.type_of(explicit_ty), Generics::default()),
             None => self
                 .ty_resolver
                 .intern(TyKind::Infer(self.unify_table.fresh_ty())),
@@ -447,12 +436,14 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                 (expr_id, ty)
             }
             Res::ValueDef(ValueDef::Class(class_def)) => {
+                if let Some(generics) = generics {
+                    assert_eq!(generics.len(), class_def.generic_params.len());
+                }
+
                 let generics = self.resolve_generics(generics, class_def.generic_params.len());
 
-                let ty = self
-                    .ty_resolver
-                    .type_of(class_def.id)
-                    .instantiate(self.ty_resolver, generics);
+                let bound_ty = self.ty_resolver.type_of(class_def.id);
+                let ty = self.instantiate(&bound_ty, generics);
 
                 let expr = PathExpr::Class(class_def.id);
                 let expr_id = self.insert_expr(ExprKind::Path(expr), ty);
@@ -490,17 +481,108 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         (expr_id, ret_ty)
     }
 
+    fn resolve_ty(&self, ty: hir::Ty<'hir>) -> Ty<'hir> {
+        match ty.kind {
+            hir::TyKind::Array(ty) => self.ty_resolver.intern(TyKind::Array(self.(ty))),
+            hir::TyKind::Path(path) => self.resolve_path_ty(path),
+            hir::TyKind::TraitBound(trait_bound) => self.resolve_trait_bound(trait_bound),
+            hir::TyKind::Closure(closure) => {
+                todo!()
+            }
+            hir::TyKind::Primitive(primitive) => match primitive {
+                Primitive::U8 => self.ty_resolver.intern(TyKind::Uint(UintTy::U8)),
+                Primitive::U16 => self.ty_resolver.intern(TyKind::Uint(UintTy::U16)),
+                Primitive::U32 => self.ty_resolver.intern(TyKind::Uint(UintTy::U32)),
+                Primitive::U64 => self.ty_resolver.intern(TyKind::Uint(UintTy::U64)),
+                Primitive::I8 => self.ty_resolver.intern(TyKind::Int(IntTy::I8)),
+                Primitive::I16 => self.ty_resolver.intern(TyKind::Int(IntTy::I16)),
+                Primitive::I32 => self.ty_resolver.intern(TyKind::Int(IntTy::I32)),
+                Primitive::I64 => self.ty_resolver.intern(TyKind::Int(IntTy::I64)),
+                Primitive::F32 => self.ty_resolver.intern(TyKind::Float(FloatTy::F32)),
+                Primitive::F64 => self.ty_resolver.intern(TyKind::Float(FloatTy::F64)),
+                Primitive::F64 => self.ty_resolver.intern(TyKind::Float(FloatTy::F64)),
+                Primitive::Str => {}
+                Primitive::Boolean => {}
+                Primitive::None => {}
+            },
+        }
+    }
+
+    fn resolve_path_ty(&self, path: &PathTy<'hir>) -> Ty<'hir> {
+        let binder = self.ty_resolver.type_of(path.definition);
+        let generics = self.hir_allocator.alloc_slice_fill_iter(
+            path.generics
+                .iter()
+                .map(|generic| self.resolve_ty(*generic)),
+        );
+        self.instantiate(&binder, generics)
+    }
+
+    fn resolve_trait_bound(&self, trait_bound: hir::TraitBound<'hir>) -> Ty<'hir> {
+        let trait_bound = self
+            .hir_allocator
+            .alloc_slice_fill_iter(trait_bound.iter().map(|bound| self.resolve_trait(bound)));
+        self.ty_resolver.intern(TyKind::TraitBound(trait_bound))
+    }
+
+    fn resolve_trait(&self, trait_path: &PathTy<'hir>) -> Ty<'hir> {
+        let binder = self.ty_resolver.type_of(trait_path.definition);
+
+        if let Binder::Trait(trait_def) = binder {
+            let generics = self.hir_allocator.alloc_slice_fill_iter(
+                trait_path
+                    .generics
+                    .iter()
+                    .map(|generic| self.resolve(*generic)),
+            );
+            return self.ty_resolver.intern(TyKind::Trait(trait_def, generics));
+        }
+        panic!("Should disallow non trait paths in resolver!")
+    }
+
     fn resolve_generics(
         &self,
         generics: Option<hir::Generics<'hir>>,
         expected: usize,
     ) -> Generics<'hir> {
-        generics
-            .map(|generics| self.ty_resolver.resolve_generics(generics))
-            .unwrap_or_else(|| {
-                self.hir_allocator
-                    .alloc_slice_fill_iter((0..expected).into_iter().map(|_| self.fresh_ty()))
-            })
+        todo!()
+    }
+
+    fn instantiate(&self, binder: &Binder<'hir>, generics: Generics<'hir>) -> Ty<'hir> {
+        match binder {
+            Binder::Array(binder) => {
+                debug_assert_eq!(1, generics.len());
+                self.ty_resolver
+                    .intern(TyKind::Array(self.instantiate(binder, generics)))
+            }
+            Binder::Class(class_def) => {
+                debug_assert_eq!(class_def.generic_params.len(), generics.len());
+                self.ty_resolver.intern(TyKind::Class(class_def, generics))
+            }
+            Binder::Enum(enum_def) => {
+                debug_assert_eq!(enum_def.generic_params.len(), generics.len());
+                self.ty_resolver.intern(TyKind::Enum(enum_def, generics))
+            }
+            Binder::EnumMember(member_def) => {
+                debug_assert_eq!(member_def.generic_params.len(), generics.len());
+                self.ty_resolver
+                    .intern(TyKind::Member(member_def, generics))
+            }
+            Binder::Trait(trait_def) => {
+                debug_assert_eq!(trait_def.generic_params.len(), generics.len());
+                self.ty_resolver.intern(TyKind::Trait(trait_def, generics))
+            }
+            Binder::Fn(fn_def) => {
+                debug_assert_eq!(fn_def.generic_params.len(), generics.len());
+                self.ty_resolver.intern(TyKind::Fn(fn_def, generics))
+            }
+            Binder::Generic(generic_param) => {
+                debug_assert_eq!(1, generics.len());
+                self.ty_resolver
+                    .intern(TyKind::Generic(**generic_param, generics[0]))
+            }
+            Binder::BareDef(ty) => *ty,
+        }
     }
 
     fn fresh_ty(&self) -> Ty<'hir> {
@@ -740,10 +822,8 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
                     .zip_longest(args.iter())
                     .map(|item| match item {
                         EitherOrBoth::Both(field, rhs) => {
-                            let field_ty = self
-                                .ty_resolver
-                                .type_of(field.ty)
-                                .instantiate(self.ty_resolver, generics);
+                            let field_ty =
+                                self.instantiate(&self.ty_resolver.type_of(field.ty), generics);
 
                             self.unify_ty_ty(field_ty, *rhs, |lhs, rhs| self.assignable(*lhs, *rhs))
                         }
@@ -913,28 +993,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
     }
 
     fn normalize_trait_bound(&self, trait_bound: TraitBound<'hir>) -> Option<TraitBound<'hir>> {
-        let mut replaced_traits = Vec::with_capacity(trait_bound.len());
-        let mut any_replaced = false;
-        for tr in trait_bound {
-            match self.normalize_tys(tr.generics) {
-                None => {
-                    replaced_traits.push(*tr);
-                }
-                Some(generics) => {
-                    any_replaced = true;
-                    let trait_def = tr.trait_def;
-                    replaced_traits.push(self.alloc(Trait {
-                        trait_def,
-                        generics,
-                    }));
-                }
-            };
-        }
-        if any_replaced {
-            Some(self.alloc_slice(replaced_traits))
-        } else {
-            None
-        }
+        self.normalize_tys(trait_bound)
     }
 
     fn alloc<T>(&self, val: T) -> &'hir T {
@@ -961,7 +1020,7 @@ impl<'a, 'hir> InferCtxt<'a, 'hir> {
         let mut type_envs = TypeEnvs::default();
         let mut type_env = TypeEnv::new(ret_ty);
         for param in params {
-            let ty = ty_resolver.type_of(param.ty).instantiate_identity();
+            let ty = ty_resolver.type_of(param.ty);
             type_env.local_vars.insert(param.name.ident, ty);
         }
         type_envs.push(type_env);
@@ -1102,6 +1161,82 @@ impl<'a, 'hir> CrateInference<'a, 'hir> {
             let thir = infer_ctxt.build_thir();
             self.bodies.insert(fn_def.id, thir);
         }
+    }
+}
+
+
+/// This function will generate a type from a definition, inferring any generics.
+fn instantiate_inferring_generics<'hir>(
+    ty_resolver: &TyResolver<'hir>,
+    binder: &Binder<'hir>
+) -> Ty<'hir> {
+    match binder {
+        Binder::Array(binder) => {
+            ty_resolver.intern(TyKind::Array(instantiate_inferring_generics(ty_resolver, binder)))
+        }
+        Binder::Class(class_def) => {
+            let generics = class_def.generic_params.iter().map(|param| self.create_generic(param))
+            ty_resolver.intern(TyKind::Class(class_def, generics))
+        }
+        Binder::Enum(enum_def) => {
+            debug_assert_eq!(enum_def.generic_params.len(), generics.len());
+            ty_resolver.intern(TyKind::Enum(enum_def, generics))
+        }
+        Binder::EnumMember(member_def) => {
+            debug_assert_eq!(member_def.generic_params.len(), generics.len());
+            ty_resolver.intern(TyKind::Member(member_def, generics))
+        }
+        Binder::Trait(trait_def) => {
+            debug_assert_eq!(trait_def.generic_params.len(), generics.len());
+            ty_resolver.intern(TyKind::Trait(trait_def, generics))
+        }
+        Binder::Fn(fn_def) => {
+            debug_assert_eq!(fn_def.generic_params.len(), generics.len());
+            ty_resolver.intern(TyKind::Fn(fn_def, generics))
+        }
+        Binder::Generic(generic_param) => {
+            debug_assert_eq!(1, generics.len());
+            ty_resolver.intern(TyKind::Generic(**generic_param, generics[0]))
+        }
+        Binder::BareDef(ty) => *ty,
+    }
+}
+
+fn instantiate<'hir>(
+    ty_resolver: &TyResolver<'hir>,
+    binder: &Binder<'hir>,
+    generics: Generics<'hir>,
+) -> Ty<'hir> {
+    match binder {
+        Binder::Array(binder) => {
+            debug_assert_eq!(1, generics.len());
+            ty_resolver.intern(TyKind::Array(instantiate(ty_resolver, binder, generics)))
+        }
+        Binder::Class(class_def) => {
+            debug_assert_eq!(class_def.generic_params.len(), generics.len());
+            ty_resolver.intern(TyKind::Class(class_def, generics))
+        }
+        Binder::Enum(enum_def) => {
+            debug_assert_eq!(enum_def.generic_params.len(), generics.len());
+            ty_resolver.intern(TyKind::Enum(enum_def, generics))
+        }
+        Binder::EnumMember(member_def) => {
+            debug_assert_eq!(member_def.generic_params.len(), generics.len());
+            ty_resolver.intern(TyKind::Member(member_def, generics))
+        }
+        Binder::Trait(trait_def) => {
+            debug_assert_eq!(trait_def.generic_params.len(), generics.len());
+            ty_resolver.intern(TyKind::Trait(trait_def, generics))
+        }
+        Binder::Fn(fn_def) => {
+            debug_assert_eq!(fn_def.generic_params.len(), generics.len());
+            ty_resolver.intern(TyKind::Fn(fn_def, generics))
+        }
+        Binder::Generic(generic_param) => {
+            debug_assert_eq!(1, generics.len());
+            ty_resolver.intern(TyKind::Generic(**generic_param, generics[0]))
+        }
+        Binder::BareDef(ty) => *ty,
     }
 }
 
