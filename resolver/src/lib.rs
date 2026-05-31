@@ -548,10 +548,11 @@ impl<'hir> CrateResolver<'hir> {
     }
 
     fn resolve_generics(&mut self, generics: &ast::Generics) -> Option<Generics<'hir>> {
-        todo!()
-        // let result: dyn IntoIterator<Item = DefId, IntoIter = &'hir [DefId]> =
-        //     generics.iter().map(|generic| self.resolve_ty(generic)?);
-        // self.allocator.alloc_slice_fill_iter(result)
+        let mut generic_defs = Vec::<DefId>::with_capacity(generics.len());
+        for generic in generics {
+            generic_defs.push(self.resolve_ty(generic)?);
+        }
+        Some(self.alloc_slice(&*generic_defs))
     }
 
     fn resolve_params(&mut self, params: &ast::Params) -> Option<Params<'hir>> {
@@ -1170,10 +1171,7 @@ impl<'hir> CrateResolver<'hir> {
         match path_expr.ident_type {
             ast::IdentType::Crate => {
                 let res = self.alloc(Res::Crate(self.krate.id));
-                segments.push(self.alloc(Segment {
-                    res,
-                    generics: None,
-                }));
+                segments.push(self.alloc(Segment { res, generics: &[] }));
                 let mut path = VecDeque::from_iter(&path_expr.segments);
                 while !path.is_empty() {
                     let prev_seg = segments.last().unwrap(); // Should be safe
@@ -1214,7 +1212,7 @@ impl<'hir> CrateResolver<'hir> {
     fn find_primary_segment(&mut self, segment: &ast::Segment) -> Option<&'hir Segment<'hir>> {
         let module_ns = &self.module.unwrap().namespace;
         let ident = segment.ident.ident;
-        let generics = self.maybe_resolve_generics(&segment.generics).ok()?;
+        let generics = self.maybe_resolve_generics(&segment.generics).ok()??;
 
         self.find_var(ident)
             .map(LocalDef::Var)
@@ -1223,7 +1221,7 @@ impl<'hir> CrateResolver<'hir> {
             .or_else(|| module_ns.find_value(ident).cloned().map(Res::ValueDef))
             .or_else(|| {
                 self.matches_primitive(ident)
-                    .filter(|prim| generics.is_none())
+                    .filter(|prim| generics.is_empty())
                     .map(Res::Primitive)
             })
             .or_else(|| {
@@ -1273,8 +1271,7 @@ impl<'hir> CrateResolver<'hir> {
     ) -> Option<&'hir Segment<'hir>> {
         let module_ns = &self.module.unwrap().namespace;
         let ident = segment.ident.ident;
-        // TODO: Finish generics error handling
-        let generics = self.maybe_resolve_generics(&segment.generics).ok()?;
+        let generics = self.maybe_resolve_generics(&segment.generics).ok()??;
 
         let res = match previous {
             Res::Crate(krate_id) => {
@@ -1312,12 +1309,12 @@ impl<'hir> CrateResolver<'hir> {
                         None
                     })?
             }
-            Res::ValueDef(ast::ValueDef::Enum(enum_def)) => enum_def
+            Res::ValueDef(ValueDef::Enum(enum_def)) => enum_def
                 .members
                 .iter()
                 .find(|member_def| member_def.ident == ident)
                 .cloned()
-                .map(|member| Res::ValueDef(ast::ValueDef::EnumMember(member)))
+                .map(|member| Res::ValueDef(ValueDef::EnumMember(member)))
                 .or_else(|| {
                     enum_def
                         .fns
@@ -1331,7 +1328,7 @@ impl<'hir> CrateResolver<'hir> {
                     // FnNotFound(ident)
                     None
                 })?,
-            Res::ValueDef(ast::ValueDef::Class(class_def)) => {
+            Res::ValueDef(ValueDef::Class(class_def)) => {
                 class_def
                     .fns
                     .iter()
@@ -1344,7 +1341,7 @@ impl<'hir> CrateResolver<'hir> {
                         None
                     })?
             }
-            Res::ValueDef(ast::ValueDef::EnumMember(member_def)) => {
+            Res::ValueDef(ValueDef::EnumMember(member_def)) => {
                 member_def
                     .fns
                     .iter()
@@ -1357,7 +1354,7 @@ impl<'hir> CrateResolver<'hir> {
                         None
                     })?
             }
-            Res::ValueDef(ast::ValueDef::Trait(trait_def)) => trait_def
+            Res::ValueDef(ValueDef::Trait(trait_def)) => trait_def
                 .fns
                 .iter()
                 .find(|fn_def| fn_def.ident == ident)
@@ -1377,8 +1374,8 @@ impl<'hir> CrateResolver<'hir> {
             // Fns, locals and constants cannot have paths!
             Res::Fn(_)
             | Res::Local(_)
-            | Res::ValueDef(ast::ValueDef::GlobalVar(_))
-            | Res::ValueDef(ast::ValueDef::Fn(_)) => {
+            | Res::ValueDef(ValueDef::GlobalVar(_))
+            | Res::ValueDef(ValueDef::Fn(_)) => {
                 // TODO: Emit compiler error
                 // (VarNotFound(ident).into());
                 return None;
@@ -1482,22 +1479,17 @@ impl<'hir> CrateResolver<'hir> {
                 TyKind::Closure(Closure { params, ret_ty })
             }
             ast::TyKind::QSelf => {
-                let definition = self
-                    .scopes
-                    .iter()
-                    .rev()
-                    .find_map(|scope| match scope {
-                        Scope::Class { id, .. } => Some(*id),
-                        Scope::Enum { id, .. } => Some(*id),
-                        Scope::EnumMember { id, .. } => Some(*id),
-                        Scope::Trait { id, .. } => Some(*id),
-                        Scope::Fn { id, .. } => Some(*id),
-                        Scope::TraitImpl { .. } => None,
-                        Scope::Module { .. } => None,
-                        Scope::MatchArm { .. } => None,
-                        Scope::Block { .. } => None,
-                    })
-                    .unwrap();
+                let definition = self.scopes.iter().rev().find_map(|scope| match scope {
+                    Scope::Class { id, .. } => Some(*id),
+                    Scope::Enum { id, .. } => Some(*id),
+                    Scope::EnumMember { id, .. } => Some(*id),
+                    Scope::Trait { id, .. } => Some(*id),
+                    Scope::Fn { id, .. } => Some(*id),
+                    Scope::TraitImpl { .. } => None,
+                    Scope::Module { .. } => None,
+                    Scope::MatchArm { .. } => None,
+                    Scope::Block { .. } => None,
+                })?;
 
                 // TODO: Is this needed or should path kinds store generics inline
                 let generics = self.resolve_generics(&ast::Generics::empty())?;

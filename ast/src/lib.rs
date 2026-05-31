@@ -298,7 +298,7 @@ impl FieldDef {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct GenericParamDef {
     pub id: DefId,
     pub ident: InternedStr,

@@ -543,8 +543,7 @@ pub enum DefTy {
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
 pub struct Segment<'a> {
     pub res: &'a Res,
-    // TODO: Make this Generics<'a>
-    pub generics: Option<Generics<'a>>,
+    pub generics: Generics<'a>,
 }
 
 #[derive(PartialEq, Debug, Copy, Clone, Serialize)]
@@ -601,6 +600,7 @@ pub struct ClosureParam {
 pub struct GenericParam<'a> {
     pub ident: Ident,
     pub trait_bound: Option<TraitBound<'a>>,
+    /// May not be needed
     pub index: usize,
     pub span: Span,
     pub id: LocalDefId,

@@ -8,10 +8,10 @@ use hir::{HirMap, Item, ItemKind, Node, Primitive};
 use id::{CrateId, DefId};
 use interner::Interner;
 use typed_hir::{
-    ClassDef, EnumDef, Field, Fields, FloatTy, FnDef, FnDefs, GenericParam, GenericParams, IntTy,
-    MemberDef, MemberDefs, Param, Params, TraitBound, TraitDef, Ty, TyKind, UintTy,
+    ClassDef, EnumDef, Field, Fields, FloatTy, FnDef, FnDefs, GenericDef, GenericParam,
+    GenericParams, Generics, IntTy, MemberDef, MemberDefs, Param, Params, TraitBound, TraitDef, Ty,
+    TyKind, UintTy,
 };
-use crate::instantiate;
 
 #[derive(Debug)]
 pub struct TyResolver<'hir> {
@@ -67,7 +67,7 @@ pub enum Binder<'hir> {
     Enum(&'hir EnumDef<'hir>),
     EnumMember(&'hir MemberDef<'hir>),
     Trait(&'hir TraitDef<'hir>),
-    Generic(&'hir GenericParam<'hir>),
+    GenericParam(&'hir GenericParam<'hir>),
     Fn(&'hir FnDef<'hir>),
     BareDef(Ty<'hir>),
 }
@@ -112,39 +112,32 @@ impl<'hir> TyResolver<'hir> {
             .resolve_binder(def_id, || self.resolve_binder_from_id(def_id))
     }
 
-    /// This function will generate a type from a definition, inferring any generics.
-    pub fn instantiate(&self, def_id: DefId) -> Ty<'hir> {
-        let binder = self.type_of(def_id);
+    fn instantiate(&self, binder: &Binder<'hir>) -> Ty<'hir> {
         match binder {
-            Binder::Array(inner) => {
-
-            }
-            Binder::Class(_) => {}
+            Binder::Array(inner) => self.intern(TyKind::Array(self.instantiate(inner))),
+            Binder::Class(class_def) => self.intern(TyKind::Class(
+                class_def,
+                self.instantiate_generics(class_def),
+            )),
             Binder::Enum(_) => {}
             Binder::EnumMember(_) => {}
             Binder::Trait(_) => {}
-            Binder::Generic(_) => {}
+            Binder::GenericParam(_) => {}
             Binder::Fn(_) => {}
             Binder::BareDef(_) => {}
         }
     }
 
-    fn instantiate_infer_generics(&self, binder: &Binder<'hir>) -> Ty<'hir> {
-        match binder {
-            Binder::Array(inner) => self.intern(TyKind::Array(self.instantiate_infer_generics(inner))),
-            Binder::Class(class_def) => self.intern(TyKind::Class(class_def), class_def.generic_params)
-            Binder::Enum(_) => {}
-            Binder::EnumMember(_) => {}
-            Binder::Trait(_) => {}
-            Binder::Generic(_) => {}
-            Binder::Fn(_) => {}
-            Binder::BareDef(_) => {}
-        }
-    }
-
-    pub fn resolve_generic_params(&self, params: hir::GenericParams<'hir>) -> GenericParams<'hir> {
-        self.hir_allocator
-            .alloc_slice_fill_iter(params.iter().map(|param| self.resolve_generic_param(param)))
+    pub fn resolve_generic_params(
+        &self,
+        generic_params: hir::GenericParams<'hir>,
+        crate_id: CrateId,
+    ) -> GenericParams<'hir> {
+        self.hir_allocator.alloc_slice_fill_iter(
+            generic_params
+                .iter()
+                .map(|generic| self.resolve_generic_param(*generic, crate_id)),
+        )
     }
 
     pub fn resolve_generics(&self, generics: hir::Generics<'hir>) -> &'hir [Binder<'hir>] {
@@ -160,8 +153,8 @@ impl<'hir> TyResolver<'hir> {
             Node::Item(item) => self.resolve_binder_from_item(item, crate_id),
             Node::Ty(ty) => self.resolve_binder_from_ty(ty, crate_id),
             Node::GenericParam(param) => {
-                let generic_param = self.resolve_generic_param(param);
-                Binder::Generic(generic_param)
+                let generic_param = self.resolve_generic_param(param, crate_id);
+                Binder::GenericParam(&generic_param)
             }
             node => {
                 dbg!(node);
@@ -220,17 +213,14 @@ impl<'hir> TyResolver<'hir> {
         Binder::BareDef(self.intern(ty_kind))
     }
 
-    fn maybe_resolve_trait_bound(
-        &self,
-        trait_bound: &Option<hir::TraitBound>,
-    ) -> Option<TraitBound<'hir>> {
+    fn maybe_resolve_trait_bound(&self, trait_bound: &Option<hir::TraitBound>) -> Option<Ty<'hir>> {
         if let Some(trait_bound) = trait_bound {
             return Some(self.resolve_trait_bound(trait_bound));
         }
         None
     }
 
-    fn resolve_trait_bound(&self, trait_bound: hir::TraitBound) -> TraitBound<'hir> {
+    fn resolve_trait_bound(&self, trait_bound: hir::TraitBound) -> Ty<'hir> {
         todo!()
     }
 
@@ -239,7 +229,7 @@ impl<'hir> TyResolver<'hir> {
         class_def: &hir::ClassDef<'hir>,
         crate_id: CrateId,
     ) -> ClassDef<'hir> {
-        let generic_params = self.resolve_generic_params(class_def.generic_params);
+        let generic_params = self.resolve_generic_params(class_def.generic_params, crate_id);
         let fields = self.resolve_fields(class_def.fields, crate_id);
         let fns = self.resolve_fn_defs(class_def.fn_defs, crate_id);
         ClassDef {
@@ -252,7 +242,7 @@ impl<'hir> TyResolver<'hir> {
 
     fn resolve_enum_def(&self, enum_def: &hir::EnumDef<'hir>, crate_id: CrateId) -> EnumDef<'hir> {
         let name = enum_def.name;
-        let generic_params = self.resolve_generic_params(enum_def.generic_params);
+        let generic_params = self.resolve_generic_params(enum_def.generic_params, crate_id);
         let members = self.resolve_members(enum_def.members, crate_id);
         let fn_defs = self.resolve_fn_defs(enum_def.fn_defs, crate_id);
         EnumDef {
@@ -281,7 +271,7 @@ impl<'hir> TyResolver<'hir> {
         crate_id: CrateId,
     ) -> MemberDef<'hir> {
         let name = enum_member.name;
-        let generic_params = self.resolve_generic_params(enum_member.generic_params);
+        let generic_params = self.resolve_generic_params(enum_member.generic_params, crate_id);
         let fields = self.resolve_fields(enum_member.fields, crate_id);
         let fn_defs = self.resolve_fn_defs(enum_member.fn_defs, crate_id);
 
@@ -299,7 +289,7 @@ impl<'hir> TyResolver<'hir> {
         crate_id: CrateId,
     ) -> TraitDef<'hir> {
         let name = trait_def.name;
-        let generic_params = self.resolve_generic_params(trait_def.generic_params);
+        let generic_params = self.resolve_generic_params(trait_def.generic_params, crate_id);
         let fn_defs = self.resolve_fn_defs(trait_def.fn_defs, crate_id);
         TraitDef {
             name,
@@ -318,7 +308,7 @@ impl<'hir> TyResolver<'hir> {
 
     fn resolve_fn_def(&self, fn_def: &hir::FnDef<'hir>, crate_id: CrateId) -> FnDef<'hir> {
         let name = fn_def.sig.name;
-        let generic_params = self.resolve_generic_params(fn_def.sig.generic_params);
+        let generic_params = self.resolve_generic_params(fn_def.sig.generic_params, crate_id);
         let params = self.resolve_params(fn_def.sig.params, crate_id);
         let ret_ty = fn_def.sig.ret_ty;
 
@@ -356,13 +346,17 @@ impl<'hir> TyResolver<'hir> {
             }))
     }
 
-    fn resolve_generic_param(&self, param: &hir::GenericParam<'hir>) -> &'hir GenericParam<'hir> {
+    fn resolve_generic_param(
+        &self,
+        param: &hir::GenericParam<'hir>,
+        crate_id: CrateId,
+    ) -> GenericParam<'hir> {
         let trait_bound = self.maybe_resolve_trait_bound(&param.trait_bound);
-        self.alloc(GenericParam {
+        GenericParam {
             ident: param.ident,
             trait_bound,
-            index: param.index,
-        })
+            id: param.id.to_def_id(crate_id),
+        }
     }
 
     fn alloc<T>(&self, val: T) -> &'hir T {

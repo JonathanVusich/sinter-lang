@@ -98,6 +98,40 @@ pub enum TyKind<'a> {
     None,
 }
 
+pub trait GenericDef<'a> {
+    fn generic_params(&self) -> GenericParams<'a>;
+}
+
+impl<'a> GenericDef<'a> for ClassDef<'a> {
+    fn generic_params(&self) -> GenericParams<'a> {
+        self.generic_params
+    }
+}
+
+impl<'a> GenericDef<'a> for EnumDef<'a> {
+    fn generic_params(&self) -> GenericParams<'a> {
+        self.generic_params
+    }
+}
+
+impl<'a> GenericDef<'a> for MemberDef<'a> {
+    fn generic_params(&self) -> GenericParams<'a> {
+        self.generic_params
+    }
+}
+
+impl<'a> GenericDef<'a> for TraitDef<'a> {
+    fn generic_params(&self) -> GenericParams<'a> {
+        self.generic_params
+    }
+}
+
+impl<'a> GenericDef<'a> for FnDef<'a> {
+    fn generic_params(&self) -> GenericParams<'a> {
+        self.generic_params
+    }
+}
+
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
 pub struct ClassDef<'a> {
     pub name: Ident,
@@ -120,11 +154,6 @@ pub struct MemberDef<'a> {
     pub generic_params: GenericParams<'a>,
     pub fields: Fields<'a>,
     pub fn_defs: FnDefs<'a>,
-}
-
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
-pub struct GenericDef<'a> {
-    pub param: &'a GenericParam<'a>,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize)]
@@ -251,7 +280,7 @@ pub enum UintTy {
 
 pub type TraitBound<'a> = &'a [Ty<'a>];
 pub type Generics<'a> = &'a [Ty<'a>];
-pub type GenericParams<'a> = &'a [&'a GenericParam<'a>];
+pub type GenericParams<'a> = &'a [GenericParam<'a>];
 pub type Params<'a> = &'a [Param];
 pub type ClosureDefParams<'a> = &'a [Ty<'a>];
 pub type Fields<'a> = &'a [Field];
@@ -353,7 +382,7 @@ pub struct IndexExpr {
 
 #[derive(PartialEq, Debug, Clone, Serialize)]
 pub enum PathExpr<'a> {
-    Class(DefId),
+    Class(Ty<'a>),
     Enum(DefId),
     Trait(DefId),
     Fn(DefId),
@@ -425,8 +454,8 @@ pub struct IfStmt {
 #[derive(PartialEq, Eq, Hash, Debug, Copy, Clone, Serialize)]
 pub struct GenericParam<'a> {
     pub ident: Ident,
-    pub trait_bound: Option<TraitBound<'a>>,
-    pub index: usize,
+    pub trait_bound: Option<Ty<'a>>,
+    pub id: DefId,
 }
 
 /// This type represents an instantiated generic.
